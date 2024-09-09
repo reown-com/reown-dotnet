@@ -1,0 +1,13 @@
+{
+  "name": "com.reown.core.storage",
+  "version": "1.0.0",
+  "displayName": "Reown.Core.Storage",
+  "unity": "2022.3",
+  "author": "Reown",
+  "keywords": [
+    "reown"
+  ],
+  "dependencies": {
+    "com.reown.core.common": "1.0.0"
+  }
+}

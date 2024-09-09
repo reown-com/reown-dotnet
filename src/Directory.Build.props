@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <DefaultVersion>1.0.0</DefaultVersion>
+        <DefaultTargetFrameworks>net7.0;net8.0;netstandard2.1;</DefaultTargetFrameworks>
+        <MSBUildProjectExtensionsPath>..\..\build\$(MSBuildProjectName)\obj\</MSBUildProjectExtensionsPath>
+        <BaseIntermediateOutputPath>..\..\build\$(MSBuildProjectName)\obj\</BaseIntermediateOutputPath>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    </PropertyGroup>
+    
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <OutputPath>..\..\build\$(MSBuildProjectName)\bin\Release\</OutputPath>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <OutputPath>..\..\build\$(MSBuildProjectName)\bin\Debug\</OutputPath>
+    </PropertyGroup>
+    <PropertyGroup Label="C#">
+        <LangVersion>9.0</LangVersion>
+        <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+        <ImplicitUsings>disable</ImplicitUsings>
+    </PropertyGroup>
+    <PropertyGroup>
+        <DefaultAssemblyVersion>$(DefaultVersion)</DefaultAssemblyVersion>
+        <DefaultPackageVersion>$(DefaultVersion)</DefaultPackageVersion>
+        <DefaultFileVersion>$(DefaultVersion)</DefaultFileVersion>
+    </PropertyGroup>
+</Project>

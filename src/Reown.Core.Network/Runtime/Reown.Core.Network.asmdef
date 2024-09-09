@@ -1,0 +1,16 @@
+{
+    "name": "Reown.Core.Network",
+    "rootNamespace": "Reown.Core.Network",
+    "references": [
+        "GUID:2475f66dc86de476fbf57ee4d48fb277"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

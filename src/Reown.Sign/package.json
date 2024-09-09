@@ -1,0 +1,13 @@
+{
+  "name": "com.reown.sign",
+  "version": "1.0.0",
+  "displayName": "Reown.Sign",
+  "unity": "2022.3",
+  "author": "Reown",
+  "keywords": [
+    "reown"
+  ],
+  "dependencies": {
+    "com.reown.core": "1.0.0"
+  }
+}

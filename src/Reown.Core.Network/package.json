@@ -1,0 +1,13 @@
+{
+  "name": "com.reown.core.network",
+  "version": "1.0.0",
+  "displayName": "Reown.Core.Network",
+  "unity": "2022.3",
+  "author": "Reown",
+  "keywords": [
+    "reown"
+  ],
+  "dependencies": {
+    "com.reown.core.common": "1.0.0"
+  }
+}

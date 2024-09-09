@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Nethereum.HdWallet"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\Reown.Core.Crypto\Reown.Core.Crypto.csproj" />
+      <ProjectReference Include="..\..\src\Reown.Core.Network\Reown.Core.Network.csproj" />
+    </ItemGroup>
+
+</Project>

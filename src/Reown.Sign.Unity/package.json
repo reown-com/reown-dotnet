@@ -1,0 +1,14 @@
+{
+  "name": "com.reown.sign.unity",
+  "version": "1.0.0",
+  "displayName": "Reown.Sign.Unity",
+  "unity": "2022.3",
+  "author": "Reown",
+  "keywords": [
+    "reown",
+    "walletconnect"
+  ],
+  "dependencies": {
+    "com.reown.sign": "1.0.0"
+  }
+}

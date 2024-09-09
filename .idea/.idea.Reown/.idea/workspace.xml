@@ -1,0 +1,740 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="2f5f8ac7-0622-47ce-9f54-e7355eaeafc5" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.filenesting.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/.name" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/indexLayout.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/projectSettingsUpdater.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Directory.Packages.props" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Reown.sln" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Reown.sln.DotSettings" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/.idea/.idea.Reown.Playground.Unity/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/.idea/.idea.Reown.Playground.Unity/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/.idea/.idea.Reown.Playground.Unity/.idea/indexLayout.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/.idea/.idea.Reown.Playground.Unity/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/AudioManager.asset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/ClusterInputManager.asset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/DynamicsManager.asset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/EditorBuildSettings.asset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/EditorSettings.asset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/GraphicsSettings.asset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/InputManager.asset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/MemorySettings.asset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/NavMeshAreas.asset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/PackageManagerSettings.asset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/Physics2DSettings.asset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/PresetManager.asset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/ProjectSettings.asset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/ProjectVersion.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/QualitySettings.asset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/SceneTemplateSettings.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/TagManager.asset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/TimeManager.asset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/UnityConnectSettings.asset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/VFXManager.asset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/VersionControlSettings.asset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/XRSettings.asset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/.idea/.idea.Reown/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/.idea/.idea.Reown/.idea/.name" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/.idea/.idea.Reown/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/.idea/.idea.Reown/.idea/indexLayout.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/.idea/.idea.Reown/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Directory.Build.props" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Reown.Core.Common.csproj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Reown.Core.Common.csproj.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Events.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Events/EventHandlerMap.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Events/EventHandlerMap.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Events/GenericEventHolder.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Events/GenericEventHolder.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/IModule.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/IModule.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Logging.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Logging/ILogger.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Logging/ILogger.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Logging/ReownLogger.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Logging/ReownLogger.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Logging/WrapperLogger.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Logging/WrapperLogger.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Errors.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Errors/ErrorType.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Errors/ErrorType.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Errors/ExpiredException.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Errors/ExpiredException.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Errors/NamespacesException.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Errors/NamespacesException.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Errors/ReownNetworkException.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Errors/ReownNetworkException.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Errors/SdkErrors.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Errors/SdkErrors.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/IsolatedModule.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/IsolatedModule.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Relay.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Relay/Relay.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Relay/Relay.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Relay/RelayProtocols.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Relay/RelayProtocols.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Reown.Core.Common.asmdef" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Reown.Core.Common.asmdef.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/SDKConstants.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/SDKConstants.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/Clock.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/Clock.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/Constants.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/Constants.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/DictionaryComparer.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/DictionaryComparer.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/EventUtils.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/EventUtils.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/Extensions.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/Extensions.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/HashUtils.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/HashUtils.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/HexByteConvertorExtensions.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/HexByteConvertorExtensions.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/ListComparer.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/ListComparer.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/PreserveAttribute.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/PreserveAttribute.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/RpcPayloadId.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/RpcPayloadId.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/TypeSafety.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/TypeSafety.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/UrlUtils.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/UrlUtils.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/package.json.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Reown.Core.Crypto.csproj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Reown.Core.Crypto.csproj.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Crypto.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Crypto.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Encoder.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Encoder/ArrayHelpers.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Encoder/ArrayHelpers.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Encoder/Base58Encoding.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Encoder/Base58Encoding.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Encoder/BaseX.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Encoder/BaseX.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Encoder/Bases.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Encoder/Bases.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Encoder/Codec.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Encoder/Codec.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Interfaces.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Interfaces/ICrypto.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Interfaces/ICrypto.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Interfaces/IKeyChain.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Interfaces/IKeyChain.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/KeyChain.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/KeyChain.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Models.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Models/DecodeOptions.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Models/DecodeOptions.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Models/EncodeOptions.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Models/EncodeOptions.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Models/EncodingParams.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Models/EncodingParams.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Models/EncodingValidation.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Models/EncodingValidation.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Models/EncryptParams.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Models/EncryptParams.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Models/IridiumJWTData.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Models/IridiumJWTData.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Models/IridiumJWTDecoded.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Models/IridiumJWTDecoded.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Models/IridiumJWTHeader.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Models/IridiumJWTHeader.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Models/IridiumJWTPayload.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Models/IridiumJWTPayload.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Models/IridiumJWTSigned.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Models/IridiumJWTSigned.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Reown.Core.Crypto.asmdef" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Reown.Core.Crypto.asmdef.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/package.json.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network.WebSocket/Reown.Core.Network.WebSocket.csproj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network.WebSocket/WebsocketConnection.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network.WebSocket/WebsocketConnectionBuilder.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Reown.Core.Network.csproj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Reown.Core.Network.csproj.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Interfaces.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Interfaces/IBaseJsonRpcProvider.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Interfaces/IBaseJsonRpcProvider.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Interfaces/IConnectionBuilder.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Interfaces/IConnectionBuilder.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Interfaces/IJsonRpcConnection.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Interfaces/IJsonRpcConnection.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Interfaces/IJsonRpcError.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Interfaces/IJsonRpcError.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Interfaces/IJsonRpcPayload.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Interfaces/IJsonRpcPayload.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Interfaces/IJsonRpcProvider.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Interfaces/IJsonRpcProvider.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Interfaces/IJsonRpcRequest.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Interfaces/IJsonRpcRequest.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Interfaces/IJsonRpcResult.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Interfaces/IJsonRpcResult.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Interfaces/IRelayUrlBuilder.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Interfaces/IRelayUrlBuilder.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Interfaces/IRequestArguments.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Interfaces/IRequestArguments.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/JsonRpcProvider.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/JsonRpcProvider.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/BaseJsonRpcRequest.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/BaseJsonRpcRequest.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/Error.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/Error.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/JsonRpcError.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/JsonRpcError.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/JsonRpcPayload.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/JsonRpcPayload.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/JsonRpcRequest.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/JsonRpcRequest.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/JsonRpcResponse.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/JsonRpcResponse.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/RequestArguments.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/RequestArguments.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/RpcMethodAttribute.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/RpcMethodAttribute.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/RpcOptionsAttribute.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/RpcOptionsAttribute.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/RpcRequestOptionsAttribute.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/RpcRequestOptionsAttribute.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/RpcResponseOptionsAttribute.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Models/RpcResponseOptionsAttribute.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Reown.Core.Network.asmdef" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Reown.Core.Network.asmdef.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Utils.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Utils/RelayUrlBuilder.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Utils/RelayUrlBuilder.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Utils/Validation.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Utils/Validation.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Network/package.json.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Storage/Reown.Core.Storage.csproj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Storage/Reown.Core.Storage.csproj.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Storage/Runtime.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Storage/Runtime/FileSystemStorage.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Storage/Runtime/FileSystemStorage.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Storage/Runtime/InMemoryStorage.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Storage/Runtime/InMemoryStorage.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Storage/Runtime/Interfaces.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Storage/Runtime/Interfaces/IKeyValueStorage.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Storage/Runtime/Interfaces/IKeyValueStorage.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Storage/Runtime/Reown.Core.Storage.asmdef" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Storage/Runtime/Reown.Core.Storage.asmdef.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Storage/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Storage/package.json.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Reown.Core.csproj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Reown.Core.csproj.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Expirer.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Expirer.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/HeartBeat.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/HeartBeat.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/JsonRpcHistory.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/JsonRpcHistory.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/JsonRpcHistoryFactory.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/JsonRpcHistoryFactory.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/MessageTracker.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/MessageTracker.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Pairing.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Pairing.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/PairingStore.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/PairingStore.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Publisher.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Publisher.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Relayer.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Relayer.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Store.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Store.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Subscriber.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Subscriber.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/TopicMap.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/TopicMap.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/TypedMessageHandler.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/TypedMessageHandler.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Core.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Core.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/ICore.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/ICore.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IExpirer.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IExpirer.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IHeartBeat.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IHeartBeat.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IJsonRpcHistory.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IJsonRpcHistory.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IJsonRpcHistoryFactory.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IJsonRpcHistoryFactory.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IKeyHolder.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IKeyHolder.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IMessageTracker.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IMessageTracker.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IPairing.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IPairing.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IPairingStore.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IPairingStore.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IPublisher.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IPublisher.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IRelayer.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IRelayer.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IStore.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IStore.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/ISubscriber.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/ISubscriber.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/ISubscriberMap.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/ISubscriberMap.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/ITypedMessageHandler.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/ITypedMessageHandler.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Metadata.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Metadata.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/BatchFetchMessageRequest.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/BatchFetchMessageRequest.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/BatchFetchMessagesResponse.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/BatchFetchMessagesResponse.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/CoreOptions.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/CoreOptions.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/DisposeHandlerToken.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/DisposeHandlerToken.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Eth.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Eth/EthCall.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Eth/EthCall.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Expirer.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Expirer/Expiration.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Expirer/Expiration.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Expirer/ExpirerEventArgs.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Expirer/ExpirerEventArgs.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Expirer/ExpirerTarget.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Expirer/ExpirerTarget.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/History.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/History/JsonRpcRecord.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/History/JsonRpcRecord.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/History/RequestEvent.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/History/RequestEvent.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/MessageHandler.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/MessageHandler/RequestEventArgs.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/MessageHandler/RequestEventArgs.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/MessageHandler/ResponseEventArgs.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/MessageHandler/ResponseEventArgs.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/MessageHandler/TypedEventHandler.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/MessageHandler/TypedEventHandler.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing/CreatePairingData.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing/CreatePairingData.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing/Methods.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing/Methods/PairingDelete.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing/Methods/PairingDelete.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing/Methods/PairingPing.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing/Methods/PairingPing.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing/PairingEvent.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing/PairingEvent.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing/PairingStruct.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing/PairingStruct.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing/UriParameters.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing/UriParameters.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Publisher.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Publisher/PublishParams.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Publisher/PublishParams.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/RedirectData.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/RedirectData.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Relay.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Relay/DecodedMessageEvent.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Relay/DecodedMessageEvent.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Relay/MessageEvent.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Relay/MessageEvent.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Relay/ProtocolOptionHolder.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Relay/ProtocolOptionHolder.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Relay/ProtocolOptions.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Relay/ProtocolOptions.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Relay/PublishOptions.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Relay/PublishOptions.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Relay/RelayPublishRequest.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Relay/RelayPublishRequest.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Relay/RelayerOptions.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Relay/RelayerOptions.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Relay/SubscribeOptions.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Relay/SubscribeOptions.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Relay/UnsubscribeOptions.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Relay/UnsubscribeOptions.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Subscriber.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Subscriber/ActiveSubscription.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Subscriber/ActiveSubscription.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Subscriber/BatchSubscribeParams.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Subscriber/BatchSubscribeParams.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Subscriber/DeletedSubscription.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Subscriber/DeletedSubscription.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Subscriber/JsonRpcSubscriberParams.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Subscriber/JsonRpcSubscriberParams.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Subscriber/JsonRpcSubscriptionParams.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Subscriber/JsonRpcSubscriptionParams.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Subscriber/JsonRpcUnsubscribeParams.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Subscriber/JsonRpcUnsubscribeParams.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Subscriber/MessageData.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Subscriber/MessageData.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Subscriber/PendingSubscription.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Subscriber/PendingSubscription.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Verify.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Verify/Validation.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Verify/Validation.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Verify/VerifiedContext.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Verify/VerifiedContext.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Verify/Verifier.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Verify/Verifier.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Reown.Core.asmdef" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Reown.Core.asmdef.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Utils.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Utils.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/package.json.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum.Unity/Reown.Sign.Nethereum.Unity.csproj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum.Unity/Reown.Sign.Nethereum.Unity.csproj.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum.Unity/Runtime.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum.Unity/Runtime/Reown.Sign.Nethereum.Unity.asmdef" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum.Unity/Runtime/Reown.Sign.Nethereum.Unity.asmdef.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum.Unity/Runtime/ReownSignUnityInterceptor.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum.Unity/Runtime/ReownSignUnityInterceptor.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum.Unity/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum.Unity/package.json.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Reown.Sign.Nethereum.csproj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Reown.Sign.Nethereum.csproj.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/Extensions.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/Extensions.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/Model.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/Model/EthSendRawTransaction.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/Model/EthSendRawTransaction.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/Model/EthSendTransaction.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/Model/EthSendTransaction.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/Model/EthSignTypedDataV4.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/Model/EthSignTypedDataV4.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/Model/EthereumChain.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/Model/EthereumChain.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/Model/PersonalSign.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/Model/PersonalSign.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/Model/Transaction.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/Model/Transaction.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/Model/WalletAddEthereumChain.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/Model/WalletAddEthereumChain.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/Model/WalletSwitchEthereumChain.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/Model/WalletSwitchEthereumChain.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/Reown.Sign.Nethereum.asmdef" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/Reown.Sign.Nethereum.asmdef.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/ReownInterceptor.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/ReownInterceptor.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/ReownSignService.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/ReownSignService.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/ReownSignServiceCore.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Runtime/ReownSignServiceCore.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/package.json.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Plugins.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Plugins/WebSocket.jslib" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Plugins/WebSocket.jslib.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Reown.Sign.Unity.csproj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Reown.Sign.Unity.csproj.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/ConnectionBuilderUnity.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/ConnectionBuilderUnity.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/Linker.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/Linker.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/PlayerPrefsStorage.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/PlayerPrefsStorage.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/Reown.Sign.Unity.asmdef" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/Reown.Sign.Unity.asmdef.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/SignClientUnity.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/SignClientUnity.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/SignMetadata.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/SignMetadata.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/UnityEventsDispatcher.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/UnityEventsDispatcher.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/UnityLogger.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/UnityLogger.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/UnityRelayUrlBuilder.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/UnityRelayUrlBuilder.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/Utils.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/Utils/AotHelper.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/Utils/AotHelper.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/Utils/UnitySyncContext.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/Utils/UnitySyncContext.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/Utils/WaitForNthFrame.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/Utils/WaitForNthFrame.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/WebSocket.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/WebSocket.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/WebSocketConnectionUnity.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/WebSocketConnectionUnity.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/package.json.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Reown.Sign.csproj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Reown.Sign.csproj.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/AddressProvider.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/AddressProvider.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/PendingRequests.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/PendingRequests.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/Proposal.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/Proposal.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/Session.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/Session.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IAddressProvider.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IAddressProvider.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IEngine.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IEngine.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IEngineAPI.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IEngineAPI.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IEnginePrivate.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IEnginePrivate.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IPendingRequests.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IPendingRequests.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IProposal.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IProposal.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/ISession.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/ISession.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/ISignClient.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/ISignClient.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IWcMethod.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IWcMethod.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineTasks.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineTasks.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineValidation.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineValidation.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Caip25Address.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Caip25Address.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/DefaultsLoadingEventArgs.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/DefaultsLoadingEventArgs.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/ApproveParams.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/ApproveParams.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/ConnectOptions.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/ConnectOptions.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/ConnectedData.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/ConnectedData.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Events.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Events/EmitEvent.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Events/EmitEvent.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Events/EventData.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Events/EventData.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Events/SessionEvent.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Events/SessionEvent.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Events/SessionProposalEvent.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Events/SessionProposalEvent.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Events/SessionRequestEvent.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Events/SessionRequestEvent.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Events/SessionUpdateEvent.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Events/SessionUpdateEvent.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/IAcknowledgement.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/IAcknowledgement.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/IApprovedData.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/IApprovedData.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionDelete.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionDelete.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionEvent.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionEvent.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionExtend.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionExtend.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionPing.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionPing.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionPropose.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionPropose.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionProposeResponse.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionProposeResponse.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionProposeResponseAutoReject.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionProposeResponseAutoReject.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionProposeResponseReject.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionProposeResponseReject.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionRequest.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionRequest.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionSettle.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionSettle.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionUpdate.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionUpdate.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/RejectParams.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/RejectParams.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Namespace.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Namespace.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Namespaces.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Namespaces.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Participant.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Participant.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/PendingRequestStruct.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/PendingRequestStruct.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/ProposalStruct.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/ProposalStruct.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/ProposedNamespace.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/ProposedNamespace.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/RequiredNamespaces.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/RequiredNamespaces.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/SessionRequestEventHandler.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/SessionRequestEventHandler.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/SessionStruct.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/SessionStruct.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/SignClientOptions.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/SignClientOptions.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Reown.Sign.asmdef" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Reown.Sign.asmdef.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/SignClient.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/SignClient.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/package.json.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Unity.Dependencies/Runtime.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Unity.Dependencies/Runtime/BouncyCastle.Crypto.dll" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Unity.Dependencies/Runtime/BouncyCastle.Crypto.dll.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Unity.Dependencies/Runtime/Microsoft.IdentityModel.Abstractions.dll" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Unity.Dependencies/Runtime/Microsoft.IdentityModel.Abstractions.dll.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Unity.Dependencies/Runtime/Microsoft.IdentityModel.Logging.dll" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Unity.Dependencies/Runtime/Microsoft.IdentityModel.Logging.dll.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Unity.Dependencies/Runtime/Microsoft.IdentityModel.Tokens.dll" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Unity.Dependencies/Runtime/Microsoft.IdentityModel.Tokens.dll.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Unity.Dependencies/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Unity.Dependencies/package.json.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/Reown.Core.Crypto.Test/CryptoFixtures.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/Reown.Core.Crypto.Test/CryptoTests.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/Reown.Core.Crypto.Test/Model/ModelData.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/Reown.Core.Crypto.Test/Reown.Core.Crypto.Test.csproj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/Reown.Core.Network.Test/Model/TopicData.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/Reown.Core.Network.Test/RelayTests.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/Reown.Core.Network.Test/Reown.Core.Network.Test.csproj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/Rown.TestUtils/CryptoWalletFixture.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/Rown.TestUtils/Rown.TestUtils.csproj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/Rown.TestUtils/TempFolder.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/Rown.TestUtils/TestValues.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/Rown.TestUtils/TwoClientsFixture.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/Rown.TestUtils/UtilExtensions.cs" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/7b93b1e91bbc4c87a18d9a96d41d778c4b5e00/80/3431c94f/Logger.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/6ba852468dc15a33d9f9f68ed9ad966c8ad63cedc8e5abb8a2af81b4e1c87/Transaction.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/playground/Reown.Playground.Unity/Assets/Scripts/Test.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/playground/Reown.Playground.Unity/Library/PackageCache/com.unity.visualscripting@1.9.4/Editor/SettingsProvider/ProjectSettingsProviderView.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Interfaces/IKeyChain.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Reown.Core.Network/Runtime/Utils/RelayUrlBuilder.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Reown.Sign.Nethereum.Unity/Runtime/ReownSignUnityInterceptor.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Reown.Sign.Nethereum.Unity/package.json" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/Reown.Sign.Unity.asmdef" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/UnityLogger.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/WebSocketConnectionUnity.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Reown.Sign.Unity/package.json" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/ISignClient.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Events/EmitEvent.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionPropose.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Reown.Sign/Runtime/SignClient.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Reown.Sign/package.json.meta" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/test/Reown.Core.Crypto.Test/CryptoTests.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/test/Reown.Core.Network.Test/RelayTests.cs" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="PackageJsonUpdateNotifier">
+    <dismissed value="$PROJECT_DIR$/src/Reown.Core.Common/package.json" />
+    <dismissed value="$PROJECT_DIR$/src/Reown.Core.Crypto/package.json" />
+    <dismissed value="$PROJECT_DIR$/src/Reown.Core.Network/package.json" />
+    <dismissed value="$PROJECT_DIR$/src/Reown.Core.Storage/package.json" />
+    <dismissed value="$PROJECT_DIR$/src/Reown.Core/package.json" />
+    <dismissed value="$PROJECT_DIR$/src/Reown.Sign.Nethereum/package.json" />
+    <dismissed value="$PROJECT_DIR$/src/Reown.Sign.Unity/package.json" />
+    <dismissed value="$PROJECT_DIR$/src/Reown.Sign/package.json" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="Toolset" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="2leQec5XENAOhgYvzpMqfdKGqUY" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="autoscrollFromSource" value="true" />
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "rider.code.cleanup.on.save": "true",
+    "settings.editor.selected.configurable": "actions.on.save",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RunManager">
+    <configuration name="Attach to Unity Editor" type="UNITY_DEBUG_RUN_CONFIGURATION" factoryName="Unity Debug" show_console_on_std_err="false" show_console_on_std_out="false" port="50000" address="localhost">
+      <option name="allowRunningInParallel" value="false" />
+      <option name="listenPortForConnections" value="false" />
+      <option name="pid" />
+      <option name="projectPathOnTarget" />
+      <option name="selectedOptions">
+        <list />
+      </option>
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="2f5f8ac7-0622-47ce-9f54-e7355eaeafc5" name="Changes" comment="" />
+      <created>1725538160059</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1725538160059</updated>
+      <workItem from="1725538161380" duration="1617000" />
+      <workItem from="1725604571806" duration="830000" />
+      <workItem from="1725616315998" duration="25938000" />
+      <workItem from="1725891844577" duration="332000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
+  <component name="UnityProjectDiscoverer">
+    <option name="hasUnityReference" value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="LOCAL_CHANGES_DETAILS_PREVIEW_SHOWN" value="false" />
+    <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>

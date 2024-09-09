@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFrameworks>$(DefaultTargetFrameworks)</TargetFrameworks>
+        <PackageVersion>$(DefaultVersion)</PackageVersion>
+        <AssemblyVersion>$(DefaultVersion)</AssemblyVersion>
+        <PackageId>Reown.Sign</PackageId>
+        <Title>Reown.Sign</Title>
+        <Authors>pedrouid, gigajuwels, edkek, skibitsky</Authors>
+        <Copyright>Copyright (c) Reown 2024</Copyright>
+        <PackageProjectUrl>https://reown.com/</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/reown-com/reown-dotnet</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Reown.Core\Reown.Core.csproj"/>
+    </ItemGroup>
+</Project>

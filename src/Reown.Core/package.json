@@ -1,0 +1,17 @@
+{
+  "name": "com.reown.core",
+  "version": "1.0.0",
+  "displayName": "Reown.Core",
+  "unity": "2022.3",
+  "author": "Reown",
+  "keywords": [
+    "reown"
+  ],
+  "dependencies": {
+    "com.reown.core.common": "1.0.0",
+    "com.reown.core.network": "1.0.0",
+    "com.reown.core.storage": "1.0.0",
+    "com.reown.core.crypto": "1.0.0",
+    "com.reown.unity.dependencies": "1.0.0"
+  }
+}

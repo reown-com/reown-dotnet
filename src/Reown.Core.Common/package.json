@@ -1,0 +1,13 @@
+{
+  "name": "com.reown.core.common",
+  "version": "1.0.0",
+  "displayName": "Reown.Core.Common",
+  "unity": "2022.3",
+  "author": "Reown",
+  "keywords": [
+    "reown"
+  ],
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.1"
+  }
+}
