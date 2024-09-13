@@ -1,0 +1,144 @@
+@import url("unity-theme://default");
+
+* {
+    -unity-font-definition: resource("Fonts & Materials/Inter/Inter-Regular SDF");
+
+    --ro-color-success-100: #26d962;
+    --ro-color-error-100: #f25a67;
+
+    --ro-color-bg-success-100: rgba(38, 217, 98, 0.15);
+    --ro-color-bg-error-100: rgba(242, 90, 103, 0.15);
+
+
+    --ro-color-fg-100: #e4e7e7;
+    --ro-color-fg-125: #d0d5d5;
+    --ro-color-fg-150: #a8b1b1;
+    --ro-color-fg-175: #a8b0b0;
+    --ro-color-fg-200: #949e9e;
+    --ro-color-fg-225: #868f8f;
+    --ro-color-fg-250: #788080;
+    --ro-color-fg-275: #788181;
+    --ro-color-fg-300: #6e7777;
+
+    --ro-color-bg-100: #141414;
+    --ro-color-bg-125: #191a1a;
+    --ro-color-bg-150: #1e1f1f;
+    --ro-color-bg-175: #222525;
+    --ro-color-bg-200: #272a2a;
+    --ro-color-bg-225: #2c3030;
+    --ro-color-bg-250: #313535;
+    --ro-color-bg-275: #363b3b;
+    --ro-color-bg-300: #3b4040;
+
+
+    --ro-color-accent-100: #3396ff;
+
+    --ro-accent-glass-090: rgba(51, 150, 255, 0.9);
+    --ro-accent-glass-080: rgba(51, 150, 255, 0.8);
+    --ro-accent-glass-020: rgba(51, 150, 255, 0.2);
+    --ro-accent-glass-015: rgba(51, 150, 255, 0.15);
+    --ro-accent-glass-010: rgba(51, 150, 255, 0.1);
+    --ro-accent-glass-005: rgba(51, 150, 255, 0.05);
+    --ro-accent-glass-002: rgba(51, 150, 255, 0.02);
+
+    --ro-gray-glass-001: rgba(255, 255, 255, 0.01);
+    --ro-gray-glass-002: rgba(255, 255, 255, 0.02);
+    --ro-gray-glass-005: rgba(255, 255, 255, 0.05);
+    --ro-gray-glass-010: rgba(255, 255, 255, 0.1);
+    --ro-gray-glass-015: rgba(255, 255, 255, 0.15);
+    --ro-gray-glass-020: rgba(255, 255, 255, 0.2);
+    --ro-gray-glass-025: rgba(255, 255, 255, 0.25);
+    --ro-gray-glass-030: rgba(255, 255, 255, 0.3);
+    --ro-gray-glass-060: rgba(255, 255, 255, 0.6);
+    --ro-gray-glass-080: rgba(255, 255, 255, 0.8);
+
+
+    --ro-border-radius-5xs: 4px;
+    --ro-border-radius-4xs: 6px;
+    --ro-border-radius-3xs: 8px;
+    --ro-border-radius-xxs: 12px;
+    --ro-border-radius-xs: 16px;
+    --ro-border-radius-s: 20px;
+    --ro-border-radius-m: 28px;
+    --ro-border-radius-l: 36px;
+    --ro-border-radius-3xl: 80px;
+    --ro-border-radius-full: 1000px;
+
+    --ro-font-size-micro: 10px;
+    --ro-font-size-tiny: 12px;
+    --ro-font-size-small: 14px;
+    --ro-font-size-paragraph: 16px;
+    --ro-font-size-large: 20px;
+    --ro-font-size-medium-title: 24px;
+    --ro-font-size-2xl: 40px;
+
+    --ro-letter-spacing-micro: -0.2px;
+    --ro-letter-spacing-tiny: -0.48px;
+    --ro-letter-spacing-small: -0.56px;
+    --ro-letter-spacing-paragraph: -0.64px;
+    --ro-letter-spacing-large: -0.8px;
+    --ro-letter-spacing-medium-title: -0.96px;
+    --ro-letter-spacing-2xl: -1.6px;
+}
+
+Modal {
+    --ro-modal-bg-color: rgb(25, 26, 26);
+    --ro-modal-border-color: var(--ro-gray-glass-005);
+    --ro-modal-border-width: 1px;
+    --ro-modal-width-desktop: 360px;
+    --ro-modal-max-height-mobile: 90%;
+}
+
+ModalHeader {
+    --ro-modal-header-border-color: var(--ro-gray-glass-005);
+}
+
+CardSelect {
+    --ro-card-select-bg-color: var(--ro-gray-glass-002);
+    --ro-card-select-bg-color-hover: var(--ro-gray-glass-005);
+    --ro-card-select-border-color: rgba(0, 0, 0, 0);
+    --ro-card-select-border-width: 1px;
+    --ro-card-select-image-border-color: var(--ro-gray-glass-010);
+    --ro-card-select-image-border-width: 1px;
+}
+
+QrCode {
+    --ro-qrcode-bg-color: white;
+    --ro-qrcode-fg-color: black;
+}
+
+.text-micro {
+    font-size: var(--ro-font-size-micro);
+    letter-spacing: var(--ro-letter-spacing-micro);
+}
+
+.text-tiny {
+    font-size: var(--ro-font-size-tiny);
+    letter-spacing: var(--ro-letter-spacing-tiny);
+}
+
+.text-small {
+    font-size: var(--ro-font-size-small);
+    letter-spacing: var(--ro-letter-spacing-small);
+}
+
+.text-paragraph {
+    font-size: var(--ro-font-size-paragraph);
+    letter-spacing: var(--ro-letter-spacing-paragraph);
+}
+
+.text-large {
+    font-size: var(--ro-font-size-large);
+    letter-spacing: var(--ro-letter-spacing-large);
+}
+
+.text-medium-title {
+    font-size: var(--ro-font-size-medium-title);
+    letter-spacing: var(--ro-letter-spacing-medium-title);
+}
+
+.text-2xl {
+    font-size: var(--ro-font-size-2xl);
+    letter-spacing: var(--ro-letter-spacing-2xl);
+}
+
