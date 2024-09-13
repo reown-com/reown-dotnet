@@ -23,7 +23,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\Reown.Core.Crypto\Reown.Core.Crypto.csproj" />
+        <ProjectReference Include="..\..\src\Reown.Sign\Reown.Sign.csproj"/>
+        <ProjectReference Include="..\Rown.TestUtils\Rown.TestUtils.csproj"/>
     </ItemGroup>
 
 </Project>

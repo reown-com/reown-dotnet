@@ -157,7 +157,7 @@ namespace Reown.Sign.Unity
             {
 #if !UNITY_EDITOR && UNITY_IOS
                 return _CanOpenURL(url);
-#elif !UNITY_EDITOR && UNITY_ANDROID
+#elif !UNITY_EDITOR && UNITY_ANDROID 
                 using (var urlCheckerClass = new AndroidJavaClass("com.reown.sign.unity.Linker"))
                 using (var unityPlayerClass = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
                 using (var currentActivity = unityPlayerClass.GetStatic<AndroidJavaObject>("currentActivity"))
@@ -175,7 +175,7 @@ namespace Reown.Sign.Unity
         }
 
 #if !UNITY_EDITOR && UNITY_IOS
-        [DllImport("__Internal")]
+        [System.Runtime.InteropServices.DllImport("__Internal")]
         public static extern bool _CanOpenURL(string url);
 #endif
 

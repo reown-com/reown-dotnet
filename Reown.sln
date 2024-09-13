@@ -26,6 +26,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reown.Sign.Nethereum", "src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reown.Sign.Nethereum.Unity", "src\Reown.Sign.Nethereum.Unity\Reown.Sign.Nethereum.Unity.csproj", "{90011BE0-4297-4D3A-A4AA-FEB4BCB194F8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reown.AppKit.Unity", "src\Reown.AppKit.Unity\Reown.AppKit.Unity.csproj", "{3F06A851-E57D-4FEE-8EDC-259202512DC5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reown.Sign.Test", "test\Reown.Sign.Test\Reown.Sign.Test.csproj", "{690628A4-28F5-4110-AC1D-F08CE0A84F93}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reown.WalletKit", "src\Reown.WalletKit\Reown.WalletKit.csproj", "{EBF94ECB-1034-42AC-9270-386E6D955EDA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reown.WalletKit.Test", "test\Reown.WalletKit.Test\Reown.WalletKit.Test.csproj", "{D27B8D54-3BB7-4A1F-B8DA-7D00ADE730A7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -84,5 +92,21 @@ Global
 		{90011BE0-4297-4D3A-A4AA-FEB4BCB194F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{90011BE0-4297-4D3A-A4AA-FEB4BCB194F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{90011BE0-4297-4D3A-A4AA-FEB4BCB194F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F06A851-E57D-4FEE-8EDC-259202512DC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F06A851-E57D-4FEE-8EDC-259202512DC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F06A851-E57D-4FEE-8EDC-259202512DC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F06A851-E57D-4FEE-8EDC-259202512DC5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{690628A4-28F5-4110-AC1D-F08CE0A84F93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{690628A4-28F5-4110-AC1D-F08CE0A84F93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{690628A4-28F5-4110-AC1D-F08CE0A84F93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{690628A4-28F5-4110-AC1D-F08CE0A84F93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EBF94ECB-1034-42AC-9270-386E6D955EDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EBF94ECB-1034-42AC-9270-386E6D955EDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EBF94ECB-1034-42AC-9270-386E6D955EDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EBF94ECB-1034-42AC-9270-386E6D955EDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D27B8D54-3BB7-4A1F-B8DA-7D00ADE730A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D27B8D54-3BB7-4A1F-B8DA-7D00ADE730A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D27B8D54-3BB7-4A1F-B8DA-7D00ADE730A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D27B8D54-3BB7-4A1F-B8DA-7D00ADE730A7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

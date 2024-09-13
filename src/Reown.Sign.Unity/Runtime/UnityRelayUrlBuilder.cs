@@ -43,7 +43,7 @@ namespace Reown.Sign.Unity
 
         public override (string name, string version) GetSdkInfo()
         {
-            return ("unity", SignMetadata.Version);
+            return ("reown-unity", SignMetadata.Version);
         }
 
         protected override bool TryGetOrigin(out string origin)

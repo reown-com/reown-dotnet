@@ -30,17 +30,17 @@ namespace Reown.Sign.Nethereum.Model
         {
         }
 
-        public EthereumChain(string chainId, string name, in Currency nativeCurrency, string[] rpcUrls, string[] blockExplorerUrls = null)
+        public EthereumChain(string chainIdDecimal, string name, in Currency nativeCurrency, string[] rpcUrls, string[] blockExplorerUrls = null)
         {
-            chainIdDecimal = chainId;
-            chainIdHex = chainId.ToHex();
+            this.chainIdDecimal = chainIdDecimal;
+            chainIdHex = chainIdDecimal.ToHex();
             this.name = name;
             this.nativeCurrency = nativeCurrency;
             this.rpcUrls = rpcUrls;
             this.blockExplorerUrls = blockExplorerUrls;
         }
     }
-    
+
     [Serializable]
     public readonly struct Currency
     {

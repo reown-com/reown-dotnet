@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Nethereum.JsonRpc.Client;
+using Reown.Core.Common.Logging;
 using Reown.Sign.Unity;
 
 namespace Reown.Sign.Nethereum.Unity
