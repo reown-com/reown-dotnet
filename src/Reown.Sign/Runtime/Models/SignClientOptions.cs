@@ -12,11 +12,11 @@ namespace Reown.Sign.Models
     public class SignClientOptions : CoreOptions
     {
         /// <summary>
-        ///     The <see cref="ICore" /> instance the <see cref="SignClient" /> should use. If
+        ///     The <see cref="ICoreClient" /> instance the <see cref="SignClient" /> should use. If
         ///     left null, then a new Core module will be created and initialized
         /// </summary>
         [JsonProperty("core")]
-        public ICore Core;
+        public ICoreClient CoreClient;
 
         /// <summary>
         ///     The Metadata the <see cref="SignClient" /> should broadcast with

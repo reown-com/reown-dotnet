@@ -19,7 +19,7 @@ namespace Reown.Sign.Models
     {
         private readonly IEnginePrivate _enginePrivate;
 
-        protected SessionRequestEventHandler(ICore engine, IEnginePrivate enginePrivate) : base(engine)
+        protected SessionRequestEventHandler(ICoreClient engine, IEnginePrivate enginePrivate) : base(engine)
         {
             _enginePrivate = enginePrivate;
         }
@@ -35,7 +35,7 @@ namespace Reown.Sign.Models
         ///     be read from
         /// </param>
         /// <returns>The singleton instance to use for request/response event handlers</returns>
-        public static TypedEventHandler<T, TR> GetInstance(ICore engine, IEnginePrivate enginePrivate)
+        public static TypedEventHandler<T, TR> GetInstance(ICoreClient engine, IEnginePrivate enginePrivate)
         {
             var context = engine.Context;
 
@@ -49,7 +49,7 @@ namespace Reown.Sign.Models
             return newInstance;
         }
 
-        protected override TypedEventHandler<T, TR> BuildNew(ICore @ref,
+        protected override TypedEventHandler<T, TR> BuildNew(ICoreClient @ref,
             Func<RequestEventArgs<T, TR>, bool> requestPredicate, Func<ResponseEventArgs<TR>, bool> responsePredicate)
         {
             var instance = new SessionRequestEventHandler<T, TR>(@ref, _enginePrivate)

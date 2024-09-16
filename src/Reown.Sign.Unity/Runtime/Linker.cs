@@ -25,7 +25,7 @@ namespace Reown.Sign.Unity
 
         private void RegisterEventListeners()
         {
-            _signClient.Core.Relayer.Publisher.OnPublishedMessage += OnPublisherPublishedMessage;
+            _signClient.CoreClient.Relayer.Publisher.OnPublishedMessage += OnPublisherPublishedMessage;
         }
 
         public static void OpenSessionProposalDeepLink(string uri, string nativeRedirect)
@@ -202,7 +202,7 @@ namespace Reown.Sign.Unity
             if (disposed) return;
 
             if (disposing)
-                _signClient.Core.Relayer.Publisher.OnPublishedMessage -= OnPublisherPublishedMessage;
+                _signClient.CoreClient.Relayer.Publisher.OnPublishedMessage -= OnPublisherPublishedMessage;
 
             disposed = true;
         }

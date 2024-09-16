@@ -15,7 +15,7 @@ namespace Reown.Core.Interfaces
         /// <summary>
         /// The ICore instance this factory is for
         /// </summary>
-        ICore Core { get; }
+        ICoreClient CoreClient { get; }
         
         /// <summary>
         /// Get the singleton instance of <see cref="IJsonRpcHistory{T,TR}"/> for the given types T and TR.

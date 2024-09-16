@@ -3,6 +3,10 @@
     <PropertyGroup>
         <DefaultVersion>1.0.0</DefaultVersion>
         <DefaultTargetFrameworks>net7.0;net8.0;netstandard2.1;</DefaultTargetFrameworks>
+        <Copyright>reown inc.</Copyright>
+        <PackageProjectUrl>https://reown.com/</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/reown-com/reown-dotnet</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
         <MSBUildProjectExtensionsPath>..\..\build\$(MSBuildProjectName)\obj\</MSBUildProjectExtensionsPath>
         <BaseIntermediateOutputPath>..\..\build\$(MSBuildProjectName)\obj\</BaseIntermediateOutputPath>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>

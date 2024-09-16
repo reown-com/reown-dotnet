@@ -61,7 +61,7 @@ namespace Reown.Sign
 
         private ITypedMessageHandler MessageHandler
         {
-            get => Client.Core.MessageHandler;
+            get => Client.CoreClient.MessageHandler;
         }
 
         private ILogger logger { get; }
@@ -202,7 +202,7 @@ namespace Reown.Sign
         public TypedEventHandler<T, TR> SessionRequestEvents<T, TR>()
         {
             var uniqueKey = typeof(T).FullName + "--" + typeof(TR).FullName;
-            var instance = SessionRequestEventHandler<T, TR>.GetInstance(Client.Core, PrivateThis);
+            var instance = SessionRequestEventHandler<T, TR>.GetInstance(Client.CoreClient, PrivateThis);
             if (!_disposeActions.ContainsKey(uniqueKey))
                 _disposeActions.Add(uniqueKey, () => instance.Dispose());
             return instance;
@@ -219,7 +219,7 @@ namespace Reown.Sign
             Func<string, JsonRpcRequest<SessionEvent<T>>, Task> requestCallback,
             Func<string, JsonRpcResponse<bool>, Task> responseCallback)
         {
-            return Client.Core.MessageHandler.HandleMessageType(requestCallback, responseCallback);
+            return Client.CoreClient.MessageHandler.HandleMessageType(requestCallback, responseCallback);
         }
 
         public Task<IAcknowledgement> UpdateSession(Namespaces namespaces)
@@ -334,19 +334,19 @@ namespace Reown.Sign
 
             if (!string.IsNullOrEmpty(topic))
             {
-                var pairing = Client.Core.Pairing.Store.Get(topic);
+                var pairing = Client.CoreClient.Pairing.Store.Get(topic);
                 if (pairing.Active != null)
                     active = pairing.Active.Value;
             }
 
             if (string.IsNullOrEmpty(topic) || !active)
             {
-                var newPairing = await Client.Core.Pairing.Create();
+                var newPairing = await Client.CoreClient.Pairing.Create();
                 topic = newPairing.Topic;
                 uri = newPairing.Uri;
             }
 
-            var publicKey = await Client.Core.Crypto.GenerateKeyPair();
+            var publicKey = await Client.CoreClient.Crypto.GenerateKeyPair();
             var proposal = new SessionPropose
             {
                 RequiredNamespaces = requiredNamespaces,
@@ -422,7 +422,7 @@ namespace Reown.Sign
 
                 if (!string.IsNullOrWhiteSpace(topic))
                 {
-                    await Client.Core.Pairing.UpdateMetadata(topic, session.Peer.Metadata);
+                    await Client.CoreClient.Pairing.UpdateMetadata(topic, session.Peer.Metadata);
                 }
 
                 SessionConnected -= OnSessionConnected;
@@ -462,7 +462,7 @@ namespace Reown.Sign
         public async Task<ProposalStruct> Pair(string uri)
         {
             IsInitialized();
-            var pairing = await Client.Core.Pairing.Pair(uri);
+            var pairing = await Client.CoreClient.Pairing.Pair(uri);
             var topic = pairing.Topic;
 
             var sessionProposeTask = new TaskCompletionSource<ProposalStruct>();
@@ -513,9 +513,9 @@ namespace Reown.Sign
             var proposer = proposal.Proposer;
             var requiredNamespaces = proposal.RequiredNamespaces;
 
-            var selfPublicKey = await Client.Core.Crypto.GenerateKeyPair();
+            var selfPublicKey = await Client.CoreClient.Crypto.GenerateKeyPair();
             var peerPublicKey = proposer.PublicKey;
-            var sessionTopic = await Client.Core.Crypto.GenerateSharedKey(
+            var sessionTopic = await Client.CoreClient.Crypto.GenerateSharedKey(
                 selfPublicKey,
                 peerPublicKey
             );
@@ -535,7 +535,7 @@ namespace Reown.Sign
                 Expiry = Clock.CalculateExpiry(SessionExpiry)
             };
 
-            await Client.Core.Relayer.Subscribe(sessionTopic);
+            await Client.CoreClient.Relayer.Subscribe(sessionTopic);
             var requestId = await MessageHandler.SendRequest<SessionSettle, bool>(sessionTopic, sessionSettle);
 
             var acknowledgedTask = new TaskCompletionSource<SessionStruct>();
@@ -565,7 +565,7 @@ namespace Reown.Sign
             await Client.Session.Set(sessionTopic, session);
             await PrivateThis.SetExpiry(sessionTopic, Clock.CalculateExpiry(SessionExpiry));
             if (!string.IsNullOrWhiteSpace(pairingTopic))
-                await Client.Core.Pairing.UpdateMetadata(pairingTopic, session.Peer.Metadata);
+                await Client.CoreClient.Pairing.UpdateMetadata(pairingTopic, session.Peer.Metadata);
 
             if (!string.IsNullOrWhiteSpace(pairingTopic) && id != default)
             {
@@ -579,7 +579,7 @@ namespace Reown.Sign
                         ResponderPublicKey = selfPublicKey
                     });
                 await Client.Proposal.Delete(id, Error.FromErrorType(ErrorType.USER_DISCONNECTED));
-                await Client.Core.Pairing.Activate(pairingTopic);
+                await Client.CoreClient.Pairing.Activate(pairingTopic);
             }
 
             return IApprovedData.FromTask(sessionTopic, acknowledgedTask.Task);
@@ -807,9 +807,9 @@ namespace Reown.Sign
                 });
                 await done.Task;
             }
-            else if (Client.Core.Pairing.Store.Keys.Contains(topic))
+            else if (Client.CoreClient.Pairing.Store.Keys.Contains(topic))
             {
-                await Client.Core.Pairing.Ping(topic);
+                await Client.CoreClient.Pairing.Ping(topic);
             }
         }
 
@@ -840,9 +840,9 @@ namespace Reown.Sign
                     Id = id
                 });
             }
-            else if (Client.Core.Pairing.Store.Keys.Contains(topic))
+            else if (Client.CoreClient.Pairing.Store.Keys.Contains(topic))
             {
-                await Client.Core.Pairing.Disconnect(topic);
+                await Client.CoreClient.Pairing.Disconnect(topic);
             }
         }
 
@@ -938,14 +938,14 @@ namespace Reown.Sign
 
         private void WrapPairingEvents()
         {
-            Client.Core.Pairing.PairingPinged += (sender, @event) => PairingPinged?.Invoke(sender, @event);
-            Client.Core.Pairing.PairingDeleted += (sender, @event) => PairingDeleted?.Invoke(sender, @event);
-            Client.Core.Pairing.PairingExpired += (sender, @event) => PairingExpired?.Invoke(sender, @event);
+            Client.CoreClient.Pairing.PairingPinged += (sender, @event) => PairingPinged?.Invoke(sender, @event);
+            Client.CoreClient.Pairing.PairingDeleted += (sender, @event) => PairingDeleted?.Invoke(sender, @event);
+            Client.CoreClient.Pairing.PairingExpired += (sender, @event) => PairingExpired?.Invoke(sender, @event);
         }
 
         private void RegisterExpirerEvents()
         {
-            Client.Core.Expirer.Expired += ExpiredCallback;
+            Client.CoreClient.Expirer.Expired += ExpiredCallback;
         }
 
         private async Task RegisterRelayerEvents()
@@ -995,7 +995,7 @@ namespace Reown.Sign
             Func<string, JsonRpcRequest<SessionRequest<T>>, Task> requestCallback,
             Func<string, JsonRpcResponse<TR>, Task> responseCallback)
         {
-            return Client.Core.MessageHandler.HandleMessageType(requestCallback, responseCallback);
+            return Client.CoreClient.MessageHandler.HandleMessageType(requestCallback, responseCallback);
         }
 
         protected virtual void Dispose(bool disposing)

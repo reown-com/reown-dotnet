@@ -17,12 +17,12 @@ namespace Reown.Core
     ///     This module holds all Core Modules and holds configuration data
     ///     required by several Core Module.
     /// </summary>
-    public class Core : ICore
+    public class CoreClient : ICoreClient
     {
         /// <summary>
         ///     The prefix string used for the storage key
         /// </summary>
-        public static readonly string StoragePrefix = ICore.Protocol + "@" + ICore.Version + ":core:";
+        public static readonly string StoragePrefix = ICoreClient.Protocol + "@" + ICoreClient.Version + ":core:";
 
         private readonly string _optName;
         private readonly string guid = "";
@@ -31,7 +31,7 @@ namespace Reown.Core
         ///     Create a new Core with the given options.
         /// </summary>
         /// <param name="options">The options to use to configure the new Core module</param>
-        public Core(CoreOptions options = null)
+        public CoreClient(CoreOptions options = null)
         {
             if (options == null)
             {
@@ -80,7 +80,7 @@ namespace Reown.Core
 
             Relayer = new Relayer(new RelayerOptions
             {
-                Core = this,
+                CoreClient = this,
                 ProjectId = ProjectId,
                 RelayUrl = options.RelayUrl,
                 ConnectionTimeout = options.ConnectionTimeout,

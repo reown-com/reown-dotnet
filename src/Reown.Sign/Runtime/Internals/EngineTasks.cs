@@ -19,7 +19,7 @@ namespace Reown.Sign
         {
             await Task.WhenAll(
                 Client.PendingRequests.Delete(id, reason),
-                expirerHasDeleted ? Task.CompletedTask : Client.Core.Expirer.Delete(id)
+                expirerHasDeleted ? Task.CompletedTask : Client.CoreClient.Expirer.Delete(id)
             );
         }
 
@@ -32,7 +32,7 @@ namespace Reown.Sign
 
             if (expiry != 0)
             {
-                Client.Core.Expirer.Set(pendingRequest.Id, Clock.CalculateExpiry(expiry));
+                Client.CoreClient.Expirer.Set(pendingRequest.Id, Clock.CalculateExpiry(expiry));
             }
         }
 
@@ -41,28 +41,28 @@ namespace Reown.Sign
             var session = Client.Session.Get(topic);
             var self = session.Self;
 
-            var expirerHasDeleted = !Client.Core.Expirer.Has(topic);
+            var expirerHasDeleted = !Client.CoreClient.Expirer.Has(topic);
             var sessionDeleted = !Client.Session.Keys.Contains(topic);
-            var hasKeypairDeleted = !await Client.Core.Crypto.HasKeys(self.PublicKey);
-            var hasSymkeyDeleted = !await Client.Core.Crypto.HasKeys(topic);
+            var hasKeypairDeleted = !await Client.CoreClient.Crypto.HasKeys(self.PublicKey);
+            var hasSymkeyDeleted = !await Client.CoreClient.Crypto.HasKeys(topic);
 
-            await Client.Core.Relayer.Unsubscribe(topic);
+            await Client.CoreClient.Relayer.Unsubscribe(topic);
             await Task.WhenAll(
                 sessionDeleted ? Task.CompletedTask : Client.Session.Delete(topic, Error.FromErrorType(ErrorType.USER_DISCONNECTED)),
-                hasKeypairDeleted ? Task.CompletedTask : Client.Core.Crypto.DeleteKeyPair(self.PublicKey),
-                hasSymkeyDeleted ? Task.CompletedTask : Client.Core.Crypto.DeleteSymKey(topic),
-                expirerHasDeleted ? Task.CompletedTask : Client.Core.Expirer.Delete(topic)
+                hasKeypairDeleted ? Task.CompletedTask : Client.CoreClient.Crypto.DeleteKeyPair(self.PublicKey),
+                hasSymkeyDeleted ? Task.CompletedTask : Client.CoreClient.Crypto.DeleteSymKey(topic),
+                expirerHasDeleted ? Task.CompletedTask : Client.CoreClient.Expirer.Delete(topic)
             );
         }
 
         Task IEnginePrivate.DeleteProposal(long id)
         {
-            var expirerHasDeleted = !Client.Core.Expirer.Has(id);
+            var expirerHasDeleted = !Client.CoreClient.Expirer.Has(id);
             var proposalHasDeleted = !Client.Proposal.Keys.Contains(id);
 
             return Task.WhenAll(
                 proposalHasDeleted ? Task.CompletedTask : Client.Proposal.Delete(id, Error.FromErrorType(ErrorType.USER_DISCONNECTED)),
-                expirerHasDeleted ? Task.CompletedTask : Client.Core.Expirer.Delete(id)
+                expirerHasDeleted ? Task.CompletedTask : Client.CoreClient.Expirer.Delete(id)
             );
         }
 
@@ -76,14 +76,14 @@ namespace Reown.Sign
                 });
             }
 
-            Client.Core.Expirer.Set(topic, expiry);
+            Client.CoreClient.Expirer.Set(topic, expiry);
         }
 
         async Task IEnginePrivate.SetProposal(long id, ProposalStruct proposal)
         {
             await Client.Proposal.Set(id, proposal);
             if (proposal.Expiry != null)
-                Client.Core.Expirer.Set(id, (long)proposal.Expiry);
+                Client.CoreClient.Expirer.Set(id, (long)proposal.Expiry);
         }
 
         Task IEnginePrivate.Cleanup()
@@ -114,7 +114,7 @@ namespace Reown.Sign
 
             try
             {
-                var origin = await Client.Core.Verify.Resolve(hash);
+                var origin = await Client.CoreClient.Verify.Resolve(hash);
                 if (!string.IsNullOrWhiteSpace(origin))
                 {
                     context.Origin = origin;

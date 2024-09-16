@@ -22,9 +22,9 @@ namespace Reown.Core.Interfaces
         PairingStruct[] Pairings { get; }
 
         /// <summary>
-        ///     The <see cref="ICore" /> module using this module instance
+        ///     The <see cref="ICoreClient" /> module using this module instance
         /// </summary>
-        ICore Core { get; }
+        ICoreClient CoreClient { get; }
 
         event EventHandler<PairingEvent> PairingExpired;
 

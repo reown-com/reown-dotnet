@@ -13,8 +13,8 @@ namespace Reown.Core.Controllers
         /// <summary>
         ///     Create a new instance of this module
         /// </summary>
-        /// <param name="core">The <see cref="ICore" /> instance that will be used for <see cref="ICore.Storage" /></param>
-        public PairingStore(ICore core) : base(core, "pairing", Reown.Core.Core.StoragePrefix)
+        /// <param name="coreClient">The <see cref="ICoreClient" /> instance that will be used for <see cref="ICoreClient.Storage" /></param>
+        public PairingStore(ICoreClient coreClient) : base(coreClient, "pairing", Reown.Core.CoreClient.StoragePrefix)
         {
         }
     }

@@ -25,24 +25,24 @@ namespace Reown.Core.Controllers
         /// <summary>
         ///     Create a new Store module with the given ICore, name, and storagePrefix.
         /// </summary>
-        /// <param name="core">The ICore module that is using this Store module</param>
+        /// <param name="coreClient">The ICore module that is using this Store module</param>
         /// <param name="name">The name of this Store module</param>
         /// <param name="storagePrefix">The storage prefix that should be used in the storage key</param>
-        public Store(ICore core, string name, string storagePrefix = null)
+        public Store(ICoreClient coreClient, string name, string storagePrefix = null)
         {
-            Core = core;
+            CoreClient = coreClient;
 
-            name = $"{core.Name}-{name}";
+            name = $"{coreClient.Name}-{name}";
             Name = name;
             Context = name;
 
-            StoragePrefix = storagePrefix ?? Reown.Core.Core.StoragePrefix;
+            StoragePrefix = storagePrefix ?? Reown.Core.CoreClient.StoragePrefix;
         }
 
         /// <summary>
         ///     The ICore module using this Store module
         /// </summary>
-        public ICore Core { get; }
+        public ICoreClient CoreClient { get; }
 
         /// <summary>
         ///     The StoragePrefix this Store module will prepend to the storage key
@@ -249,13 +249,13 @@ namespace Reown.Core.Controllers
 
         protected virtual Task SetDataStore(TValue[] data)
         {
-            return Core.Storage.SetItem(StorageKey, data);
+            return CoreClient.Storage.SetItem(StorageKey, data);
         }
 
         protected virtual async Task<TValue[]> GetDataStore()
         {
-            if (await Core.Storage.HasItem(StorageKey))
-                return await Core.Storage.GetItem<TValue[]>(StorageKey);
+            if (await CoreClient.Storage.HasItem(StorageKey))
+                return await CoreClient.Storage.GetItem<TValue[]>(StorageKey);
 
             return Array.Empty<TValue>();
         }

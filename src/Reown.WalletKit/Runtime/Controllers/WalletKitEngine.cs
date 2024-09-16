@@ -60,7 +60,7 @@ namespace Reown.WalletKit.Controllers
         {
             SignClient = await Sign.SignClient.Init(new SignClientOptions()
             {
-                Core = Client.Core, Metadata = Client.Metadata
+                CoreClient = Client.CoreClient, Metadata = Client.Metadata
             });
         
             InitializeEventListeners();
@@ -71,7 +71,7 @@ namespace Reown.WalletKit.Controllers
         public async Task Pair(string uri, bool activatePairing = false)
         {
             IsInitialized();
-            await this.Client.Core.Pairing.Pair(uri, activatePairing);
+            await this.Client.CoreClient.Pairing.Pair(uri, activatePairing);
         }
 
         public async Task<SessionStruct> ApproveSession(long id, Namespaces namespaces, string relayProtocol = null)

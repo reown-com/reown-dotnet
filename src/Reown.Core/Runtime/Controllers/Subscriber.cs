@@ -60,7 +60,7 @@ namespace Reown.Core.Controllers
         /// </summary>
         public string StorageKey
         {
-            get => Core.StoragePrefix + Version + "//" + Name;
+            get => CoreClient.StoragePrefix + Version + "//" + Name;
         }
 
         /// <summary>
@@ -144,7 +144,7 @@ namespace Reown.Core.Controllers
         {
             if (!_initialized)
             {
-                _clientId = await _relayer.Core.Crypto.GetClientId();
+                _clientId = await _relayer.CoreClient.Crypto.GetClientId();
 
                 await Restart();
                 RegisterEventListeners();
@@ -270,7 +270,7 @@ namespace Reown.Core.Controllers
 
         protected virtual void RegisterEventListeners()
         {
-            _relayer.Core.HeartBeat.OnPulse += (sender, @event) => { CheckPending(); };
+            _relayer.CoreClient.HeartBeat.OnPulse += (sender, @event) => { CheckPending(); };
 
             _relayer.OnConnected += (sender, connection) => { OnConnect(); };
 
@@ -294,15 +294,15 @@ namespace Reown.Core.Controllers
 
         protected virtual async Task<ActiveSubscription[]> GetRelayerSubscriptions()
         {
-            if (await _relayer.Core.Storage.HasItem(StorageKey))
-                return await _relayer.Core.Storage.GetItem<ActiveSubscription[]>(StorageKey);
+            if (await _relayer.CoreClient.Storage.HasItem(StorageKey))
+                return await _relayer.CoreClient.Storage.GetItem<ActiveSubscription[]>(StorageKey);
 
             return Array.Empty<ActiveSubscription>();
         }
 
         protected virtual async Task SetRelayerSubscriptions(ActiveSubscription[] subscriptions)
         {
-            await _relayer.Core.Storage.SetItem(StorageKey, subscriptions);
+            await _relayer.CoreClient.Storage.SetItem(StorageKey, subscriptions);
         }
 
         protected virtual async Task Restore()

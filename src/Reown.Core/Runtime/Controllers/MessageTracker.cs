@@ -17,7 +17,7 @@ namespace Reown.Core.Controllers
         /// </summary>
         public static readonly string Version = "0.3";
 
-        private readonly ICore _core;
+        private readonly ICoreClient _coreClient;
 
         private readonly object _messageLock = new();
 
@@ -26,10 +26,10 @@ namespace Reown.Core.Controllers
         /// <summary>
         ///     Create a new MessageTracker module
         /// </summary>
-        /// <param name="core">The ICore instance that will use this module</param>
-        public MessageTracker(ICore core)
+        /// <param name="coreClient">The ICore instance that will use this module</param>
+        public MessageTracker(ICoreClient coreClient)
         {
-            _core = core;
+            _coreClient = coreClient;
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Reown.Core.Controllers
         /// </summary>
         public string StorageKey
         {
-            get => Core.StoragePrefix + Version + "//" + Name;
+            get => CoreClient.StoragePrefix + Version + "//" + Name;
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Reown.Core.Controllers
         /// </summary>
         public string Name
         {
-            get => $"{_core.Name}-messages";
+            get => $"{_coreClient.Name}-messages";
         }
 
         /// <summary>
@@ -177,13 +177,13 @@ namespace Reown.Core.Controllers
         {
             // Clone dictionary for Storage, otherwise we'll be saving
             // the reference
-            await _core.Storage.SetItem(StorageKey, new Dictionary<string, MessageRecord>(messages));
+            await _coreClient.Storage.SetItem(StorageKey, new Dictionary<string, MessageRecord>(messages));
         }
 
         private async Task<Dictionary<string, MessageRecord>> GetRelayerMessages()
         {
-            if (await _core.Storage.HasItem(StorageKey))
-                return await _core.Storage.GetItem<Dictionary<string, MessageRecord>>(StorageKey);
+            if (await _coreClient.Storage.HasItem(StorageKey))
+                return await _coreClient.Storage.GetItem<Dictionary<string, MessageRecord>>(StorageKey);
 
             return new Dictionary<string, MessageRecord>();
         }

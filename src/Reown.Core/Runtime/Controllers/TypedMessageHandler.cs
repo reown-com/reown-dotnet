@@ -25,19 +25,19 @@ namespace Reown.Core.Controllers
         private bool _isRequestQueueProcessing;
         protected bool Disposed;
 
-        public TypedMessageHandler(ICore core)
+        public TypedMessageHandler(ICoreClient coreClient)
         {
-            Core = core;
+            CoreClient = coreClient;
         }
 
-        public ICore Core { get; }
+        public ICoreClient CoreClient { get; }
 
         /// <summary>
         ///     The name of this publisher module
         /// </summary>
         public string Name
         {
-            get => $"{Core.Name}-typedmessagehandler";
+            get => $"{CoreClient.Name}-typedmessagehandler";
         }
 
         /// <summary>
@@ -181,7 +181,7 @@ namespace Reown.Core.Controllers
         {
             if (!_initialized)
             {
-                Core.Relayer.OnMessageReceived += RelayMessageCallback;
+                CoreClient.Relayer.OnMessageReceived += RelayMessageCallback;
             }
 
             _initialized = true;
@@ -200,7 +200,7 @@ namespace Reown.Core.Controllers
             Func<string, JsonRpcResponse<TR>, Task> responseCallback)
         {
             var method = RpcMethodAttribute.MethodForType<T>();
-            var rpcHistory = await Core.History.JsonRpcHistoryOfType<T, TR>();
+            var rpcHistory = await CoreClient.History.JsonRpcHistoryOfType<T, TR>();
 
             async Task RequestCallback(MessageEvent e)
             {
@@ -216,14 +216,14 @@ namespace Reown.Core.Controllers
 
                     var options = DecodeOptionForTopic(topic);
 
-                    if (options == null && !await Core.Crypto.HasKeys(topic))
+                    if (options == null && !await CoreClient.Crypto.HasKeys(topic))
                     {
                         return;
                     }
 
-                    var payload = await Core.Crypto.Decode<JsonRpcRequest<T>>(topic, message, options);
+                    var payload = await CoreClient.Crypto.Decode<JsonRpcRequest<T>>(topic, message, options);
 
-                    (await Core.History.JsonRpcHistoryOfType<T, TR>()).Set(topic, payload, null);
+                    (await CoreClient.History.JsonRpcHistoryOfType<T, TR>()).Set(topic, payload, null);
 
                     await requestCallback(topic, payload);
                 }
@@ -244,16 +244,16 @@ namespace Reown.Core.Controllers
 
                 var options = DecodeOptionForTopic(topic);
 
-                if (options == null && !await Core.Crypto.HasKeys(topic)) return;
+                if (options == null && !await CoreClient.Crypto.HasKeys(topic)) return;
 
-                var rawResultPayload = await Core.Crypto.Decode<JsonRpcPayload>(topic, message, options);
+                var rawResultPayload = await CoreClient.Crypto.Decode<JsonRpcPayload>(topic, message, options);
 
-                var history = await Core.History.JsonRpcHistoryOfType<T, TR>();
+                var history = await CoreClient.History.JsonRpcHistoryOfType<T, TR>();
                 var expectingResult = await history.Exists(topic, rawResultPayload.Id);
 
                 try
                 {
-                    var payload = await Core.Crypto.Decode<JsonRpcResponse<TR>>(topic, message, options);
+                    var payload = await CoreClient.Crypto.Decode<JsonRpcResponse<TR>>(topic, message, options);
 
                     await history.Resolve(payload);
 
@@ -366,7 +366,7 @@ namespace Reown.Core.Controllers
 
             var payload = new JsonRpcRequest<T>(method, parameters, messageId);
 
-            var message = await Core.Crypto.Encode(topic, payload, options);
+            var message = await CoreClient.Crypto.Encode(topic, payload, options);
 
             var opts = RpcRequestOptionsFromType<T, TR>();
 
@@ -375,9 +375,9 @@ namespace Reown.Core.Controllers
                 opts.TTL = (long)expiry;
             }
 
-            (await Core.History.JsonRpcHistoryOfType<T, TR>()).Set(topic, payload, null);
+            (await CoreClient.History.JsonRpcHistoryOfType<T, TR>()).Set(topic, payload, null);
 
-            await Core.Relayer.Publish(topic, message, opts);
+            await CoreClient.Relayer.Publish(topic, message, opts);
 
             return payload.Id;
         }
@@ -395,10 +395,10 @@ namespace Reown.Core.Controllers
             EnsureTypeIsSerializerSafe(result);
 
             var payload = new JsonRpcResponse<TR>(id, null, result);
-            var message = await Core.Crypto.Encode(topic, payload, options);
+            var message = await CoreClient.Crypto.Encode(topic, payload, options);
             var opts = RpcResponseOptionsFromTypes<T, TR>();
-            await Core.Relayer.Publish(topic, message, opts);
-            await (await Core.History.JsonRpcHistoryOfType<T, TR>()).Resolve(payload);
+            await CoreClient.Relayer.Publish(topic, message, opts);
+            await (await CoreClient.History.JsonRpcHistoryOfType<T, TR>()).Resolve(payload);
         }
 
         /// <summary>
@@ -412,10 +412,10 @@ namespace Reown.Core.Controllers
         public async Task SendError<T, TR>(long id, string topic, Error error, EncodeOptions options = null)
         {
             var payload = new JsonRpcResponse<TR>(id, error, default);
-            var message = await Core.Crypto.Encode(topic, payload, options);
+            var message = await CoreClient.Crypto.Encode(topic, payload, options);
             var opts = RpcResponseOptionsFromTypes<T, TR>();
-            await Core.Relayer.Publish(topic, message, opts);
-            await (await Core.History.JsonRpcHistoryOfType<T, TR>()).Resolve(payload);
+            await CoreClient.Relayer.Publish(topic, message, opts);
+            await (await CoreClient.History.JsonRpcHistoryOfType<T, TR>()).Resolve(payload);
         }
 
         private async void RelayMessageCallback(object sender, MessageEvent e)
@@ -426,7 +426,7 @@ namespace Reown.Core.Controllers
 
             var options = DecodeOptionForTopic(topic);
 
-            var payload = await Core.Crypto.Decode<JsonRpcPayload>(topic, message, options);
+            var payload = await CoreClient.Crypto.Decode<JsonRpcPayload>(topic, message, options);
             if (payload.IsRequest)
             {
                 _requestQueue.Enqueue((payload.Method, e));
@@ -502,7 +502,7 @@ namespace Reown.Core.Controllers
 
             if (disposing)
             {
-                Core.Relayer.OnMessageReceived -= RelayMessageCallback;
+                CoreClient.Relayer.OnMessageReceived -= RelayMessageCallback;
             }
 
             Disposed = true;

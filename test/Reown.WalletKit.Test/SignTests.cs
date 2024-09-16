@@ -100,7 +100,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
         
         private readonly CryptoWalletFixture _cryptoWalletFixture;
         private readonly ITestOutputHelper _testOutputHelper;
-        private Core.Core _core;
+        private Core.CoreClient _coreClient;
         private SignClient _dapp;
         private WalletKitClient _wallet;
         private string uriString;
@@ -134,7 +134,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
 
         public async Task InitializeAsync()
         {
-            _core = new Core.Core(new CoreOptions()
+            _coreClient = new Core.CoreClient(new CoreOptions()
             {
                 ConnectionBuilder = new WebsocketConnectionBuilder(),
                 ProjectId = TestValues.TestProjectId, RelayUrl = TestValues.TestRelayUrl,
@@ -159,7 +159,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
             uriString = connectData.Uri ?? "";
             sessionApproval = connectData.Approval;
             
-            _wallet = await WalletKitClient.Init(_core, new Metadata()
+            _wallet = await WalletKitClient.Init(_coreClient, new Metadata()
             {
                 Description = "An example wallet to showcase WalletKit",
                 Icons = new[] { "https://walletconnect.com/meta/favicon.ico" },
@@ -169,15 +169,15 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
             
             Assert.NotNull(_wallet);
             Assert.NotNull(_dapp);
-            Assert.NotNull(_core);
+            Assert.NotNull(_coreClient);
             Assert.Null(_wallet.Metadata.Redirect);
         }
 
         public async Task DisposeAsync()
         {
-            if (_core.Relayer.Connected)
+            if (_coreClient.Relayer.Connected)
             {
-                await _core.Relayer.TransportClose();
+                await _coreClient.Relayer.TransportClose();
             }
         }
 

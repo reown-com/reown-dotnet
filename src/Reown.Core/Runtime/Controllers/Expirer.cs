@@ -19,7 +19,7 @@ namespace Reown.Core.Controllers
         /// </summary>
         public const string Version = "0.3";
 
-        private readonly ICore _core;
+        private readonly ICoreClient _coreClient;
 
         private readonly Dictionary<string, Expiration> _expirations = new();
 
@@ -29,21 +29,21 @@ namespace Reown.Core.Controllers
         protected bool Disposed;
 
         /// <summary>
-        ///     Create a new Expirer module using the given <see cref="ICore" /> module
+        ///     Create a new Expirer module using the given <see cref="ICoreClient" /> module
         /// </summary>
-        /// <param name="core">The <see cref="ICore" /> module the Expirer should reference for Storage</param>
-        public Expirer(ICore core)
+        /// <param name="coreClient">The <see cref="ICoreClient" /> module the Expirer should reference for Storage</param>
+        public Expirer(ICoreClient coreClient)
         {
-            _core = core;
+            _coreClient = coreClient;
         }
 
         /// <summary>
-        ///     The string key value this module will use when storing data in the <see cref="ICore.Storage" /> module
+        ///     The string key value this module will use when storing data in the <see cref="ICoreClient.Storage" /> module
         ///     module
         /// </summary>
         public string StorageKey
         {
-            get => Core.StoragePrefix + Version + "//" + Name;
+            get => CoreClient.StoragePrefix + Version + "//" + Name;
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Reown.Core.Controllers
         /// </summary>
         public string Name
         {
-            get => $"{_core.Name}-expirer";
+            get => $"{_coreClient.Name}-expirer";
         }
 
         /// <summary>
@@ -268,14 +268,14 @@ namespace Reown.Core.Controllers
 
         private Task SetExpiration(Expiration[] expirations)
         {
-            return _core.Storage.SetItem(StorageKey, expirations);
+            return _coreClient.Storage.SetItem(StorageKey, expirations);
         }
 
         private async Task<Expiration[]> GetExpirations()
         {
-            if (!await _core.Storage.HasItem(StorageKey))
-                await _core.Storage.SetItem(StorageKey, Array.Empty<Expiration>());
-            return await _core.Storage.GetItem<Expiration[]>(StorageKey);
+            if (!await _coreClient.Storage.HasItem(StorageKey))
+                await _coreClient.Storage.SetItem(StorageKey, Array.Empty<Expiration>());
+            return await _coreClient.Storage.GetItem<Expiration[]>(StorageKey);
         }
 
         private async void Persist(object sender, ExpirerEventArgs args)
@@ -331,7 +331,7 @@ namespace Reown.Core.Controllers
 
         private void RegisterEventListeners()
         {
-            _core.HeartBeat.OnPulse += CheckExpirations;
+            _coreClient.HeartBeat.OnPulse += CheckExpirations;
 
             Created += Persist;
             Expired += Persist;
@@ -373,7 +373,7 @@ namespace Reown.Core.Controllers
 
             if (disposing)
             {
-                _core.HeartBeat.OnPulse -= CheckExpirations;
+                _coreClient.HeartBeat.OnPulse -= CheckExpirations;
 
                 Created -= Persist;
                 Expired -= Persist;

@@ -84,12 +84,12 @@ namespace Reown.Sign
             options.ConnectionBuilder ??= new Reown.Core.Network.Websocket.WebsocketConnectionBuilder();
 #endif
 
-            Core = options.Core ?? new Core.Core(options);
+            CoreClient = options.CoreClient ?? new Core.CoreClient(options);
 
-            PendingRequests = new PendingRequests(Core);
-            PairingStore = new PairingStore(Core);
-            Session = new Session(Core);
-            Proposal = new Proposal(Core);
+            PendingRequests = new PendingRequests(CoreClient);
+            PairingStore = new PairingStore(CoreClient);
+            Session = new Session(CoreClient);
+            Proposal = new Proposal(CoreClient);
             Engine = new Engine(this);
             AddressProvider = new AddressProvider(this);
 
@@ -119,9 +119,9 @@ namespace Reown.Sign
         public IAddressProvider AddressProvider { get; }
 
         /// <summary>
-        ///     The <see cref="ICore" /> module this Sign Client module is using
+        ///     The <see cref="ICoreClient" /> module this Sign Client module is using
         /// </summary>
-        public ICore Core { get; }
+        public ICoreClient CoreClient { get; }
 
         /// <summary>
         ///     The <see cref="IEngine" /> module this Sign Client module is using. Used to do all
@@ -491,7 +491,7 @@ namespace Reown.Sign
 
         protected async Task Initialize()
         {
-            await Core.Start();
+            await CoreClient.Start();
             await PendingRequests.Init();
             await PairingStore.Init();
             await Session.Init();
@@ -506,7 +506,7 @@ namespace Reown.Sign
             if (disposing)
             {
                 AddressProvider?.Dispose();
-                Core?.Dispose();
+                CoreClient?.Dispose();
                 Engine?.Dispose();
                 PairingStore?.Dispose();
                 Session?.Dispose();

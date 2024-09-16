@@ -23,9 +23,9 @@ namespace Reown.Sign.Interfaces
         IAddressProvider AddressProvider { get; }
 
         /// <summary>
-        ///     The <see cref="ICore" /> module this Sign Client is using
+        ///     The <see cref="ICoreClient" /> module this Sign Client is using
         /// </summary>
-        ICore Core { get; }
+        ICoreClient CoreClient { get; }
 
         /// <summary>
         ///     The <see cref="IEngine" /> module this Sign Client is using

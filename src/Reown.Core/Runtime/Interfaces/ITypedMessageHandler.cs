@@ -17,7 +17,7 @@ namespace Reown.Core.Interfaces
         /// <summary>
         ///     The <see cref="IRelayer" /> this module is using to send / listen for messages
         /// </summary>
-        ICore Core { get; }
+        ICoreClient CoreClient { get; }
 
         event EventHandler<DecodedMessageEvent> RawMessage;
 

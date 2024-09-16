@@ -224,10 +224,10 @@ namespace Reown.Sign
             if (string.IsNullOrWhiteSpace(topic))
                 throw new ArgumentNullException(nameof(topic), "Pairing topic should be a valid string.");
 
-            if (!Client.Core.Pairing.Store.Keys.Contains(topic))
+            if (!Client.CoreClient.Pairing.Store.Keys.Contains(topic))
                 throw new KeyNotFoundException($"Paring topic {topic} doesn't exist in the pairing store.");
 
-            var expiry = Client.Core.Pairing.Store.Get(topic).Expiry;
+            var expiry = Client.CoreClient.Pairing.Store.Get(topic).Expiry;
             if (expiry != null && Clock.IsExpired(expiry.Value))
             {
                 throw new ExpiredException($"Pairing topic {topic} has expired.");
@@ -275,7 +275,7 @@ namespace Reown.Sign
             {
                 await IsValidSessionTopic(topic);
             }
-            else if (Client.Core.Pairing.Store.Keys.Contains(topic))
+            else if (Client.CoreClient.Pairing.Store.Keys.Contains(topic))
             {
                 await IsValidPairingTopic(topic);
             }

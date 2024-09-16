@@ -14,7 +14,7 @@ namespace Reown.Core.Models.Relay
         ///     The ICore instance the Relayer should use. An ICore module is required as the Relayer
         ///     module requires the core modules to function properly
         /// </summary>
-        [JsonProperty("core")] public ICore Core;
+        [JsonProperty("core")] public ICoreClient CoreClient;
 
         /// <summary>
         ///     The URL of the Relay server to connect to. This should not include any auth information, the Relayer module

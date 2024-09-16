@@ -39,8 +39,8 @@ namespace Reown.Core.Controllers
         /// </param>
         public Relayer(RelayerOptions opts)
         {
-            Core = opts.Core;
-            Messages = new MessageTracker(Core);
+            CoreClient = opts.CoreClient;
+            Messages = new MessageTracker(CoreClient);
             Subscriber = new Subscriber(this);
             Publisher = new Publisher(this);
 
@@ -80,7 +80,7 @@ namespace Reown.Core.Controllers
         /// </summary>
         public string Name
         {
-            get => $"{Core.Name}-relayer";
+            get => $"{CoreClient.Name}-relayer";
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace Reown.Core.Controllers
         /// <summary>
         ///     The ICore module that is using this Relayer module
         /// </summary>
-        public ICore Core { get; }
+        public ICoreClient CoreClient { get; }
 
         /// <summary>
         ///     The IMessageTracker module that this Relayer module is using
@@ -354,7 +354,7 @@ namespace Reown.Core.Controllers
 
         protected virtual async Task CreateProvider()
         {
-            var auth = await Core.Crypto.SignJwt(_relayUrl);
+            var auth = await CoreClient.Crypto.SignJwt(_relayUrl);
             Provider = await CreateProvider(auth);
             RegisterProviderEventListeners();
         }
@@ -375,7 +375,7 @@ namespace Reown.Core.Controllers
 
         protected virtual Task<IJsonRpcConnection> BuildConnection(string url)
         {
-            return Core.Options.ConnectionBuilder.CreateConnection(url);
+            return CoreClient.Options.ConnectionBuilder.CreateConnection(url);
         }
 
         protected virtual void RegisterProviderEventListeners()

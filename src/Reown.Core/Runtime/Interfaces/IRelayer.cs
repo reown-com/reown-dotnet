@@ -25,7 +25,7 @@ namespace Reown.Core.Interfaces
         /// <summary>
         ///     The ICore module that is using this Relayer module
         /// </summary>
-        public ICore Core { get; }
+        public ICoreClient CoreClient { get; }
 
         bool TransportExplicitlyClosed { get; }
 

@@ -21,7 +21,7 @@ namespace Reown.Core.Controllers
         /// </summary>
         public static readonly string Version = "0.3";
 
-        private readonly ICore _core;
+        private readonly ICoreClient _coreClient;
         private readonly object _lock = new();
 
         private readonly Dictionary<long, JsonRpcRecord<T, TR>> _records = new();
@@ -31,17 +31,17 @@ namespace Reown.Core.Controllers
 
         protected bool Disposed;
 
-        public JsonRpcHistory(ICore core)
+        public JsonRpcHistory(ICoreClient coreClient)
         {
-            _core = core;
+            _coreClient = coreClient;
         }
 
         /// <summary>
-        ///     The storage key this module uses to store data in the <see cref="ICore.Storage" /> module
+        ///     The storage key this module uses to store data in the <see cref="ICoreClient.Storage" /> module
         /// </summary>
         public string StorageKey
         {
-            get => Core.StoragePrefix + Version + "//" + Name;
+            get => CoreClient.StoragePrefix + Version + "//" + Name;
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Reown.Core.Controllers
         /// </summary>
         public string Name
         {
-            get => $"{_core.Name}-history-of-type-{typeof(T).FullName}-{typeof(TR).FullName}";
+            get => $"{_coreClient.Name}-history-of-type-{typeof(T).FullName}-{typeof(TR).FullName}";
         }
 
         /// <summary>
@@ -259,13 +259,13 @@ namespace Reown.Core.Controllers
 
         private Task SetJsonRpcRecords(JsonRpcRecord<T, TR>[] records)
         {
-            return _core.Storage.SetItem(StorageKey, records);
+            return _coreClient.Storage.SetItem(StorageKey, records);
         }
 
         private async Task<JsonRpcRecord<T, TR>[]> GetJsonRpcRecords()
         {
-            if (await _core.Storage.HasItem(StorageKey))
-                return await _core.Storage.GetItem<JsonRpcRecord<T, TR>[]>(StorageKey);
+            if (await _coreClient.Storage.HasItem(StorageKey))
+                return await _coreClient.Storage.GetItem<JsonRpcRecord<T, TR>[]>(StorageKey);
 
             return Array.Empty<JsonRpcRecord<T, TR>>();
         }

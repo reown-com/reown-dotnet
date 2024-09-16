@@ -8,7 +8,7 @@ namespace Reown.WalletKit.Interfaces
     {
         IWalletKitEngine Engine { get; }
     
-        ICore Core { get; }
+        ICoreClient CoreClient { get; }
     
         Metadata Metadata { get; }
     }

@@ -10,7 +10,7 @@ namespace Reown.Core.Interfaces
     /// <summary>
     ///     Represents the Core module and all fields the Core module will have
     /// </summary>
-    public interface ICore : IModule
+    public interface ICoreClient : IModule
     {
         /// <summary>
         ///     The Protocol string this Core module will use

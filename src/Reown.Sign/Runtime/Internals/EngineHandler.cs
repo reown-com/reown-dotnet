@@ -69,14 +69,14 @@ namespace Reown.Sign
                 var selfPublicKey = proposal.Proposer.PublicKey;
                 var peerPublicKey = result.ResponderPublicKey;
 
-                var sessionTopic = await Client.Core.Crypto.GenerateSharedKey(
+                var sessionTopic = await Client.CoreClient.Crypto.GenerateSharedKey(
                     selfPublicKey,
                     peerPublicKey
                 );
 
                 proposal.SessionTopic = sessionTopic;
                 await Client.Proposal.Set(id, proposal);
-                await Client.Core.Pairing.Activate(topic);
+                await Client.CoreClient.Pairing.Activate(topic);
                 logger.Log($"Pairing activated for topic {topic}");
 
                 var attempts = 5;
@@ -84,7 +84,7 @@ namespace Reown.Sign
                 {
                     try
                     {
-                        _ = await Client.Core.Relayer.Subscribe(sessionTopic);
+                        _ = await Client.CoreClient.Relayer.Subscribe(sessionTopic);
                         return;
                     }
                     catch (Exception e)

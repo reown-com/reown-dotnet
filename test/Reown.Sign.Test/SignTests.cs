@@ -866,8 +866,8 @@ public class SignTests : IClassFixture<SignClientFixture>
 
         Assert.NotNull(defaultSessionTopic);
 
-        _cryptoFixture.StorageOverrideA = _cryptoFixture.ClientA.Core.Storage;
-        _cryptoFixture.StorageOverrideB = _cryptoFixture.ClientB.Core.Storage;
+        _cryptoFixture.StorageOverrideA = _cryptoFixture.ClientA.CoreClient.Storage;
+        _cryptoFixture.StorageOverrideB = _cryptoFixture.ClientB.CoreClient.Storage;
 
         await Task.Delay(500);
 

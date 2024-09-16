@@ -69,9 +69,9 @@ namespace Reown.Sign.Controllers
         public virtual async Task LoadDefaultsAsync()
         {
             var key = $"{Context}-default-session";
-            if (await _client.Core.Storage.HasItem(key))
+            if (await _client.CoreClient.Storage.HasItem(key))
             {
-                var state = await _client.Core.Storage.GetItem<DefaultData>(key);
+                var state = await _client.CoreClient.Storage.GetItem<DefaultData>(key);
                 var sessionExpiry = state.Session.Expiry;
 
                 _state = sessionExpiry != null && !Clock.IsExpired(sessionExpiry.Value)
@@ -146,7 +146,7 @@ namespace Reown.Sign.Controllers
 
         public virtual async Task SaveDefaults()
         {
-            await _client.Core.Storage.SetItem($"{Context}-default-session", _state);
+            await _client.CoreClient.Storage.SetItem($"{Context}-default-session", _state);
         }
 
         private async void ClientOnSessionUpdated(object sender, SessionEvent e)

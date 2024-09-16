@@ -50,18 +50,18 @@ namespace Reown.WalletKit
         }
 
         public IWalletKitEngine Engine { get; }
-        public ICore Core { get; }
+        public ICoreClient CoreClient { get; }
         public Metadata Metadata { get; }
     
-        public static async Task<WalletKitClient> Init(ICore core, Metadata metadata, string name = null)
+        public static async Task<WalletKitClient> Init(ICoreClient coreClient, Metadata metadata, string name = null)
         {
-            var wallet = new WalletKitClient(core, metadata, name);
+            var wallet = new WalletKitClient(coreClient, metadata, name);
             await wallet.Initialize();
 
             return wallet;
         }
     
-        private WalletKitClient(ICore core, Metadata metadata, string name = null)
+        private WalletKitClient(ICoreClient coreClient, Metadata metadata, string name = null)
         {
             this.Metadata = metadata;
             if (string.IsNullOrWhiteSpace(this.Metadata.Name))
@@ -69,7 +69,7 @@ namespace Reown.WalletKit
         
             this.Name = string.IsNullOrWhiteSpace(name) ? "Web3Wallet" : name;
             this.Context = $"{Name}-context";
-            this.Core = core;
+            this.CoreClient = coreClient;
         
             this.Engine = new WalletKitEngine(this);
         
@@ -151,7 +151,7 @@ namespace Reown.WalletKit
 
         public void Dispose()
         {
-            Core?.Dispose();
+            CoreClient?.Dispose();
         }
     }
 }

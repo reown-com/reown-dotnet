@@ -108,9 +108,6 @@ namespace Reown.AppKit.Unity
             public const string Solana = "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp";
             public const string Polygon = "137";
             public const string Avalanche = "43114";
-
-            public const string Algorand = "wGHE2Pwdvd7S12BL5FaOP20EGYesN73k";
-            public const string AlgorandTestnet = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe";
         }
 
         // https://specs.walletconnect.com/2.0/specs/meta-clients/web3modal/api#known-static-asset-ids

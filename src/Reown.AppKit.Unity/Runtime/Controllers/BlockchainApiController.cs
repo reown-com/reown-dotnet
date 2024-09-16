@@ -44,7 +44,7 @@ namespace Reown.AppKit.Unity
             {
                 if (_signClient != null)
                 {
-                    var rawClientId = await _signClient.Core.Crypto.GetClientId();
+                    var rawClientId = await _signClient.CoreClient.Crypto.GetClientId();
                     _clientIdQueryParam = $"&clientId={Uri.EscapeDataString(rawClientId)}";
                 }
             }

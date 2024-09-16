@@ -7,7 +7,7 @@ namespace Reown.Sign.Controllers
 {
     public class PendingRequests : Store<long, PendingRequestStruct>, IPendingRequests
     {
-        public PendingRequests(ICore core) : base(core, "request", SignClient.StoragePrefix)
+        public PendingRequests(ICoreClient coreClient) : base(coreClient, "request", SignClient.StoragePrefix)
         {
         }
     }

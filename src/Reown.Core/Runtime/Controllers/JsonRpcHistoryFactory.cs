@@ -15,29 +15,29 @@ namespace Reown.Core.Controllers
     public class JsonRpcHistoryFactory : IJsonRpcHistoryFactory
     {
         /// <summary>
-        ///     Create a new factory using the given <see cref="ICore" /> module
+        ///     Create a new factory using the given <see cref="ICoreClient" /> module
         /// </summary>
-        /// <param name="core">The <see cref="ICore" /> module to use for the factory</param>
-        public JsonRpcHistoryFactory(ICore core)
+        /// <param name="coreClient">The <see cref="ICoreClient" /> module to use for the factory</param>
+        public JsonRpcHistoryFactory(ICoreClient coreClient)
         {
-            Core = core;
+            CoreClient = coreClient;
         }
 
         /// <summary>
-        ///     The <see cref="ICore" /> instance this factory is for
+        ///     The <see cref="ICoreClient" /> instance this factory is for
         /// </summary>
-        public ICore Core { get; }
+        public ICoreClient CoreClient { get; }
 
         /// <summary>
         ///     Get the <see cref="IJsonRpcHistory{T,TR}" /> singleton instance with the given types
-        ///     T, TR using the <see cref="ICore" /> instance context string
+        ///     T, TR using the <see cref="ICoreClient" /> instance context string
         /// </summary>
         /// <typeparam name="T">The request type to store history for</typeparam>
         /// <typeparam name="TR">The response type to store history for</typeparam>
         /// <returns>The <see cref="IJsonRpcHistory{T,TR}" /> singleton instance with the given types T, TR</returns>
         public async Task<IJsonRpcHistory<T, TR>> JsonRpcHistoryOfType<T, TR>()
         {
-            return (await JsonRpcHistoryHolder<T, TR>.InstanceForContext(Core)).History;
+            return (await JsonRpcHistoryHolder<T, TR>.InstanceForContext(CoreClient)).History;
         }
 
         /// <summary>
@@ -54,9 +54,9 @@ namespace Reown.Core.Controllers
             private static readonly object HistoryLock = new();
             private static readonly Dictionary<string, JsonRpcHistoryHolder<T, TR>> Instance = new();
 
-            private JsonRpcHistoryHolder(ICore core)
+            private JsonRpcHistoryHolder(ICoreClient coreClient)
             {
-                History = new JsonRpcHistory<T, TR>(core);
+                History = new JsonRpcHistory<T, TR>(coreClient);
             }
 
             /// <summary>
@@ -69,18 +69,18 @@ namespace Reown.Core.Controllers
             ///     Get the singleton instance for a specific ICore context. If no singleton already
             ///     exists, then a new instance will be created and stored.
             /// </summary>
-            /// <param name="core">The ICoe module to use the context string from</param>
+            /// <param name="coreClient">The ICoe module to use the context string from</param>
             /// <returns>The singleton instance for the given ICore context</returns>
-            public static async Task<JsonRpcHistoryHolder<T, TR>> InstanceForContext(ICore core)
+            public static async Task<JsonRpcHistoryHolder<T, TR>> InstanceForContext(ICoreClient coreClient)
             {
                 JsonRpcHistoryHolder<T, TR> historyHolder;
                 lock (HistoryLock)
                 {
-                    if (Instance.TryGetValue(core.Context, out var context))
+                    if (Instance.TryGetValue(coreClient.Context, out var context))
                         return context;
 
-                    historyHolder = new JsonRpcHistoryHolder<T, TR>(core);
-                    Instance.Add(core.Context, historyHolder);
+                    historyHolder = new JsonRpcHistoryHolder<T, TR>(coreClient);
+                    Instance.Add(coreClient.Context, historyHolder);
                 }
 
                 await historyHolder.History.Init();

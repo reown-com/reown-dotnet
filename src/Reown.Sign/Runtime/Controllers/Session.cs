@@ -15,8 +15,8 @@ namespace Reown.Sign.Controllers
         /// <summary>
         ///     Create a new instance of this module
         /// </summary>
-        /// <param name="core">The <see cref="ICore" /> instance that will be used for <see cref="ICore.Storage" /></param>
-        public Session(ICore core) : base(core, "session", SignClient.StoragePrefix)
+        /// <param name="coreClient">The <see cref="ICoreClient" /> instance that will be used for <see cref="ICoreClient.Storage" /></param>
+        public Session(ICoreClient coreClient) : base(coreClient, "session", SignClient.StoragePrefix)
         {
         }
     }

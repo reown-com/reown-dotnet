@@ -40,14 +40,14 @@ namespace Reown.Core.Models.MessageHandler
         protected static readonly Dictionary<string, TypedEventHandler<T, TR>> Instances = new();
         private readonly object _eventLock = new();
         protected readonly List<Action> DisposeActions = new();
-        protected readonly ICore Ref;
+        protected readonly ICoreClient Ref;
         private int _activeCount;
 
         protected DisposeHandlerToken MessageHandler;
         protected Func<RequestEventArgs<T, TR>, bool> RequestPredicate;
         protected Func<ResponseEventArgs<TR>, bool> ResponsePredicate;
 
-        protected TypedEventHandler(ICore engine)
+        protected TypedEventHandler(ICoreClient engine)
         {
             Ref = engine;
         }
@@ -75,7 +75,7 @@ namespace Reown.Core.Models.MessageHandler
         ///     be read from
         /// </param>
         /// <returns>The singleton instance to use for request/response event handlers</returns>
-        public static TypedEventHandler<T, TR> GetInstance(ICore engine)
+        public static TypedEventHandler<T, TR> GetInstance(ICoreClient engine)
         {
             var context = engine.Context;
 
@@ -203,7 +203,7 @@ namespace Reown.Core.Models.MessageHandler
             return BuildNew(Ref, RequestPredicate, finalPredicate);
         }
 
-        protected virtual TypedEventHandler<T, TR> BuildNew(ICore _ref,
+        protected virtual TypedEventHandler<T, TR> BuildNew(ICoreClient _ref,
             Func<RequestEventArgs<T, TR>, bool> requestPredicate,
             Func<ResponseEventArgs<TR>, bool> responsePredicate)
         {
@@ -260,7 +260,7 @@ namespace Reown.Core.Models.MessageHandler
             if (RequestPredicate != null && !RequestPredicate(rea)) return;
             if (_onRequest == null) return;
 
-            var isDisposed = ((Core)Ref).Disposed;
+            var isDisposed = ((CoreClient)Ref).Disposed;
 
             if (isDisposed)
             {
@@ -270,7 +270,7 @@ namespace Reown.Core.Models.MessageHandler
 
             await _onRequest(rea);
 
-            var nextIsDisposed = ((Core)Ref).Disposed;
+            var nextIsDisposed = ((CoreClient)Ref).Disposed;
 
             if (nextIsDisposed)
             {

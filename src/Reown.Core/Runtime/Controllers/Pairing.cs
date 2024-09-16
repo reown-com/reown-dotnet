@@ -33,13 +33,13 @@ namespace Reown.Core.Controllers
         private DisposeHandlerToken pairingPingMessageHandler;
 
         /// <summary>
-        ///     Create a new instance of the Pairing module using the given <see cref="ICore" /> module
+        ///     Create a new instance of the Pairing module using the given <see cref="ICoreClient" /> module
         /// </summary>
-        /// <param name="core">The <see cref="ICore" /> module that is using this new Pairing module</param>
-        public Pairing(ICore core)
+        /// <param name="coreClient">The <see cref="ICoreClient" /> module that is using this new Pairing module</param>
+        public Pairing(ICoreClient coreClient)
         {
-            Core = core;
-            Store = new PairingStore(core);
+            CoreClient = coreClient;
+            Store = new PairingStore(coreClient);
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Reown.Core.Controllers
         /// </summary>
         public string Name
         {
-            get => $"{Core.Context}-pairing";
+            get => $"{CoreClient.Context}-pairing";
         }
 
         /// <summary>
@@ -59,9 +59,9 @@ namespace Reown.Core.Controllers
         }
 
         /// <summary>
-        ///     The <see cref="ICore" /> module using this module instance
+        ///     The <see cref="ICoreClient" /> module using this module instance
         /// </summary>
-        public ICore Core { get; }
+        public ICoreClient CoreClient { get; }
 
         /// <summary>
         ///     Get the <see cref="IStore{TKey,TValue}" /> module that is handling the storage of
@@ -168,7 +168,7 @@ namespace Reown.Core.Controllers
                 throw new ArgumentException($"Topic {topic} already has pairing");
             }
 
-            if (await Core.Crypto.HasKeys(topic))
+            if (await CoreClient.Crypto.HasKeys(topic))
             {
                 throw new ArgumentException($"Topic {topic} already has keychain");
             }
@@ -183,13 +183,13 @@ namespace Reown.Core.Controllers
             };
 
             await Store.Set(topic, pairing);
-            await Core.Crypto.SetSymKey(symKey, topic);
-            await Core.Relayer.Subscribe(topic, new SubscribeOptions
+            await CoreClient.Crypto.SetSymKey(symKey, topic);
+            await CoreClient.Relayer.Subscribe(topic, new SubscribeOptions
             {
                 Relay = relay
             });
 
-            Core.Expirer.Set(topic, expiry);
+            CoreClient.Expirer.Set(topic, expiry);
 
             if (activatePairing)
             {
@@ -211,7 +211,7 @@ namespace Reown.Core.Controllers
             var symKeyRaw = new byte[KeyLength];
             RandomNumberGenerator.Fill(symKeyRaw);
             var symKey = symKeyRaw.ToHex();
-            var topic = await Core.Crypto.SetSymKey(symKey);
+            var topic = await CoreClient.Crypto.SetSymKey(symKey);
             var expiry = Clock.CalculateExpiry(Clock.FIVE_MINUTES);
             var relay = new ProtocolOptions
             {
@@ -224,7 +224,7 @@ namespace Reown.Core.Controllers
                 Relay = relay,
                 Active = false
             };
-            var uri = $"{ICore.Protocol}:{topic}@{ICore.Version}?"
+            var uri = $"{ICoreClient.Protocol}:{topic}@{ICoreClient.Version}?"
                 .AddQueryParam("symKey", symKey)
                 .AddQueryParam("relay-protocol", relay.Protocol);
 
@@ -232,8 +232,8 @@ namespace Reown.Core.Controllers
                 uri = uri.AddQueryParam("relay-data", relay.Data);
 
             await Store.Set(topic, pairing);
-            await Core.Relayer.Subscribe(topic);
-            Core.Expirer.Set(topic, expiry);
+            await CoreClient.Relayer.Subscribe(topic);
+            CoreClient.Expirer.Set(topic, expiry);
 
             return new CreatePairingData
             {
@@ -305,7 +305,7 @@ namespace Reown.Core.Controllers
             await IsValidPairingTopic(topic);
             if (Store.Keys.Contains(topic))
             {
-                var id = await Core.MessageHandler.SendRequest<PairingPing, bool>(topic, new PairingPing());
+                var id = await CoreClient.MessageHandler.SendRequest<PairingPing, bool>(topic, new PairingPing());
                 var done = new TaskCompletionSource<bool>();
 
                 PairingPingResponseEvents.ListenOnce($"pairing_ping{id}", (sender, args) =>
@@ -332,7 +332,7 @@ namespace Reown.Core.Controllers
             if (Store.Keys.Contains(topic))
             {
                 var error = Error.FromErrorType(ErrorType.USER_DISCONNECTED);
-                await Core.MessageHandler.SendRequest<PairingDelete, bool>(topic,
+                await CoreClient.MessageHandler.SendRequest<PairingDelete, bool>(topic,
                     new PairingDelete
                     {
                         Code = error.Code,
@@ -344,13 +344,13 @@ namespace Reown.Core.Controllers
 
         private void RegisterExpirerEvents()
         {
-            Core.Expirer.Expired += ExpiredCallback;
+            CoreClient.Expirer.Expired += ExpiredCallback;
         }
 
         private async Task RegisterTypedMessages()
         {
-            pairingDeleteMessageHandler = await Core.MessageHandler.HandleMessageType<PairingDelete, bool>(OnPairingDeleteRequest, null);
-            pairingPingMessageHandler = await Core.MessageHandler.HandleMessageType<PairingPing, bool>(OnPairingPingRequest, OnPairingPingResponse);
+            pairingDeleteMessageHandler = await CoreClient.MessageHandler.HandleMessageType<PairingDelete, bool>(OnPairingDeleteRequest, null);
+            pairingPingMessageHandler = await CoreClient.MessageHandler.HandleMessageType<PairingPing, bool>(OnPairingPingRequest, OnPairingPingResponse);
         }
 
         private async Task ActivatePairing(string topic)
@@ -362,22 +362,22 @@ namespace Reown.Core.Controllers
                 Expiry = expiry
             });
 
-            Core.Expirer.Set(topic, expiry);
+            CoreClient.Expirer.Set(topic, expiry);
         }
 
         private async Task DeletePairing(string topic)
         {
-            var expirerHasDeleted = !Core.Expirer.Has(topic);
+            var expirerHasDeleted = !CoreClient.Expirer.Has(topic);
             var pairingHasDeleted = !Store.Keys.Contains(topic);
-            var symKeyHasDeleted = !await Core.Crypto.HasKeys(topic);
+            var symKeyHasDeleted = !await CoreClient.Crypto.HasKeys(topic);
 
-            await Core.Relayer.Unsubscribe(topic);
+            await CoreClient.Relayer.Unsubscribe(topic);
             await Task.WhenAll(
                 pairingHasDeleted
                     ? Task.CompletedTask
                     : Store.Delete(topic, Error.FromErrorType(ErrorType.USER_DISCONNECTED)),
-                symKeyHasDeleted ? Task.CompletedTask : Core.Crypto.DeleteSymKey(topic),
-                expirerHasDeleted ? Task.CompletedTask : Core.Expirer.Delete(topic)
+                symKeyHasDeleted ? Task.CompletedTask : CoreClient.Crypto.DeleteSymKey(topic),
+                expirerHasDeleted ? Task.CompletedTask : CoreClient.Expirer.Delete(topic)
             );
         }
 
@@ -446,7 +446,7 @@ namespace Reown.Core.Controllers
             {
                 await IsValidPairingTopic(topic);
 
-                await Core.MessageHandler.SendResult<PairingPing, bool>(id, topic, true);
+                await CoreClient.MessageHandler.SendResult<PairingPing, bool>(id, topic, true);
                 PairingPinged?.Invoke(this, new PairingEvent
                 {
                     Topic = topic,
@@ -455,7 +455,7 @@ namespace Reown.Core.Controllers
             }
             catch (ReownNetworkException e)
             {
-                await Core.MessageHandler.SendError<PairingPing, bool>(id, topic, Error.FromException(e));
+                await CoreClient.MessageHandler.SendError<PairingPing, bool>(id, topic, Error.FromException(e));
             }
         }
 
@@ -483,7 +483,7 @@ namespace Reown.Core.Controllers
             {
                 await IsValidDisconnect(topic, payload.Params);
 
-                await Core.MessageHandler.SendResult<PairingDelete, bool>(id, topic, true);
+                await CoreClient.MessageHandler.SendResult<PairingDelete, bool>(id, topic, true);
                 await DeletePairing(topic);
                 PairingDeleted?.Invoke(this, new PairingEvent
                 {
@@ -493,7 +493,7 @@ namespace Reown.Core.Controllers
             }
             catch (ReownNetworkException e)
             {
-                await Core.MessageHandler.SendError<PairingDelete, bool>(id, topic, Error.FromException(e));
+                await CoreClient.MessageHandler.SendError<PairingDelete, bool>(id, topic, Error.FromException(e));
             }
         }
 
