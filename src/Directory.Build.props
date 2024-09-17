@@ -10,8 +10,16 @@
         <MSBUildProjectExtensionsPath>..\..\build\$(MSBuildProjectName)\obj\</MSBUildProjectExtensionsPath>
         <BaseIntermediateOutputPath>..\..\build\$(MSBuildProjectName)\obj\</BaseIntermediateOutputPath>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <PackageIcon>reown-avatar-positive.png</PackageIcon>
     </PropertyGroup>
-    
+
+    <ItemGroup>
+        <None Include="..\..\media\reown-avatar-positive.png">
+            <Pack>True</Pack>
+            <PackagePath/>
+            <Link>walletkit-icon.png</Link>
+        </None>
+    </ItemGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
         <OutputPath>..\..\build\$(MSBuildProjectName)\bin\Release\</OutputPath>
     </PropertyGroup>

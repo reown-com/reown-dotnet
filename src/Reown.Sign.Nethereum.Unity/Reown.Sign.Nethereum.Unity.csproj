@@ -8,6 +8,7 @@
         <Authors>skibitsky</Authors>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>

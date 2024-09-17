@@ -5,73 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2f5f8ac7-0622-47ce-9f54-e7355eaeafc5" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/global.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/EditorBuildSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/EditorBuildSettings.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/ProjectSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/ProjectSettings.asset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/QualitySettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/QualitySettings.asset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Directory.Build.props" beforeDir="false" afterPath="$PROJECT_DIR$/src/Directory.Build.props" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Reown.AppKit.Unity.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Reown.AppKit.Unity.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Chain.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Chain.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Controllers/BlockchainApiController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Controllers/BlockchainApiController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core.Common/Reown.Core.Common.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Reown.Core.Common.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core.Crypto/Reown.Core.Crypto.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Reown.Core.Crypto.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core.Network.WebSocket/Reown.Core.Network.WebSocket.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core.Network.WebSocket/Reown.Core.Network.WebSocket.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core.Network/Reown.Core.Network.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core.Network/Reown.Core.Network.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core.Storage/Reown.Core.Storage.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core.Storage/Reown.Core.Storage.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Reown.Core.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Reown.Core.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Expirer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Expirer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/JsonRpcHistory.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/JsonRpcHistory.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/JsonRpcHistoryFactory.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/JsonRpcHistoryFactory.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/MessageTracker.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/MessageTracker.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Pairing.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Pairing.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/PairingStore.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/PairingStore.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Relayer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Relayer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Store.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Store.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Subscriber.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Subscriber.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/TypedMessageHandler.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/TypedMessageHandler.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Core.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/CoreClient.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Core.cs.meta" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/CoreClient.cs.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/ICore.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/ICoreClient.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/ICore.cs.meta" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/ICoreClient.cs.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IJsonRpcHistoryFactory.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IJsonRpcHistoryFactory.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IPairing.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IPairing.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IRelayer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IRelayer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/ITypedMessageHandler.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/ITypedMessageHandler.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/MessageHandler/TypedEventHandler.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/MessageHandler/TypedEventHandler.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Relay/RelayerOptions.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Relay/RelayerOptions.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Reown.Sign.Nethereum.Unity/Reown.Sign.Nethereum.Unity.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum.Unity/Reown.Sign.Nethereum.Unity.csproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Reown.Sign.Nethereum.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Reown.Sign.Nethereum.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign.Unity/Plugins/Android.meta" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Plugins/Android.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign.Unity/Plugins/Android/Linker.java.meta" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Plugins/Android/Linker.java.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign.Unity/Plugins/iOS.meta" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Plugins/iOS.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign.Unity/Plugins/iOS/CanOpenUrl.m.meta" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Plugins/iOS/CanOpenUrl.m.meta" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Reown.Sign.Unity/Reown.Sign.Unity.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Reown.Sign.Unity.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/Linker.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/Linker.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Reown.Sign.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Reown.Sign.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/AddressProvider.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/AddressProvider.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/PendingRequests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/PendingRequests.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/Proposal.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/Proposal.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/Session.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/Session.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/ISignClient.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/ISignClient.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineTasks.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineTasks.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineValidation.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineValidation.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/SessionRequestEventHandler.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/SessionRequestEventHandler.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/SignClientOptions.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/SignClientOptions.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/SignClient.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/SignClient.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Unity.Dependencies/Runtime/zxing.unity.dll.meta" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Unity.Dependencies/Runtime/zxing.unity.dll.meta" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Reown.WalletKit/Reown.WalletKit.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.WalletKit/Reown.WalletKit.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.WalletKit/Runtime/Controllers/WalletKitEngine.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.WalletKit/Runtime/Controllers/WalletKitEngine.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.WalletKit/Runtime/Interfaces/IWalletKit.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.WalletKit/Runtime/Interfaces/IWalletKit.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.WalletKit/Runtime/WalletKitClient.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.WalletKit/Runtime/WalletKitClient.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Reown.Core.Crypto.Test/Reown.Core.Crypto.Test.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/test/Reown.Core.Crypto.Test/Reown.Core.Crypto.Test.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Reown.Core.Network.Test/Reown.Core.Network.Test.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/test/Reown.Core.Network.Test/Reown.Core.Network.Test.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Reown.Sign.Test/Reown.Sign.Test.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/test/Reown.Sign.Test/Reown.Sign.Test.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Reown.WalletKit.Test/Reown.WalletKit.Test.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/test/Reown.WalletKit.Test/Reown.WalletKit.Test.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Reown.WalletKit.Test/SignTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Reown.WalletKit.Test/SignTests.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -185,7 +126,7 @@
       <workItem from="1726212605141" duration="13804000" />
       <workItem from="1726492759271" duration="880000" />
       <workItem from="1726493665280" duration="62000" />
-      <workItem from="1726493765557" duration="775000" />
+      <workItem from="1726493765557" duration="8419000" />
     </task>
     <servers />
   </component>

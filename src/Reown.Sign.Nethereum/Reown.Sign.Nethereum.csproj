@@ -6,6 +6,7 @@
         <PackageId>Reown.Sign.Nethereum</PackageId>
         <Title>Reown.Sign.Nethereum</Title>
         <Authors>skibitsky</Authors>
+        <Description>Reown request interceptor for Nethereum</Description>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     </PropertyGroup>
