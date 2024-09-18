@@ -651,10 +651,18 @@ public class SignTests : IClassFixture<SignClientFixture>
     }
 
     [Fact] [Trait("Category", "integration")]
-    public async Task TestTwoUniqueSessionRequestResponseUsingAddressProviderDefaults()
+    public async Task TestTwoUniqueSessionRequestUsingAddressProviderDefaults()
     {
         await _cryptoFixture.WaitForClientsReady();
-
+        await _cryptoFixture.DisposeAndReset();
+        
+        await TwoUniqueSessionRequestUsingAddressProviderDefaults();
+    }
+    
+    private async Task TwoUniqueSessionRequestUsingAddressProviderDefaults()
+    {
+        await _cryptoFixture.WaitForClientsReady();
+        
         var dappClient = ClientA;
         var walletClient = ClientB;
 
@@ -860,7 +868,7 @@ public class SignTests : IClassFixture<SignClientFixture>
     {
         await _cryptoFixture.WaitForClientsReady();
 
-        await TestTwoUniqueSessionRequestResponseUsingAddressProviderDefaults();
+        await TwoUniqueSessionRequestUsingAddressProviderDefaults();
 
         var defaultSessionTopic = _cryptoFixture.ClientA.AddressProvider.DefaultSession.Topic;
 
@@ -871,7 +879,9 @@ public class SignTests : IClassFixture<SignClientFixture>
 
         await Task.Delay(500);
 
-        await _cryptoFixture.DisposeAndReset();
+        _cryptoFixture.ClientA.Dispose();
+        _cryptoFixture.ClientB.Dispose();
+        await _cryptoFixture.Init();
 
         await Task.Delay(500);
 
@@ -880,7 +890,7 @@ public class SignTests : IClassFixture<SignClientFixture>
 
         Assert.Equal(defaultSessionTopic, reloadedDefaultSessionTopic);
 
-        await TestTwoUniqueSessionRequestResponseUsingAddressProviderDefaults();
+        await TwoUniqueSessionRequestUsingAddressProviderDefaults();
     }
 
     [Fact] [Trait("Category", "integration")]
