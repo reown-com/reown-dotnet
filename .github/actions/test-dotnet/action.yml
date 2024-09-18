@@ -1,0 +1,30 @@
+name: 'test-dotnet'
+description: 'Runs unit and integration tests with dotnet cli'
+
+inputs:
+  type:
+    description: 'The type of CI step to run'
+    required: true
+  relay-endpoint:
+    description: 'The endpoint of the relay e.g. wss://relay.walletconnect.org'
+    required: false
+    default: 'wss://relay.walletconnect.org'
+  project-id:
+    description: 'Reown project id'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run tests
+      if: inputs.type == 'unit-tests'
+      shell: bash
+      run: dotnet test Reown.NoUnity.slnf --verbosity minimal --filter Category=unit
+
+    - name: Run integration tests
+      if: inputs.type == 'integration-tests'
+      shell: bash
+      env:
+        RELAY_ENDPOINT: ${{ inputs.relay-endpoint }}
+        PROJECT_ID: ${{ inputs.project-id }}
+      run: dotnet test Reown.NoUnity.slnf --verbosity minimal --filter Category=integration
