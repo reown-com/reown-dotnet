@@ -1,6 +1,6 @@
 # Reown - AppKit Unity
 
-<img src="https://reown-docs.vercel.app/reown/appkit-logo.svg">
+<img width="60px" src="https://raw.githubusercontent.com/reown-com/reown-dotnet/main/media/appkit-icon.png">
 
 The all-in-one stack to build apps for the new internet.
 
