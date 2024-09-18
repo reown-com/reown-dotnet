@@ -1,6 +1,6 @@
 # Reown - WalletKit .NET
 
-<img src="https://reown-docs.vercel.app/reown/walletkit-logo.svg">
+<img width="60px" src="https://raw.githubusercontent.com/reown-com/reown-dotnet/main/media/walletkit-icon.png">
 
 The ultimate toolkit for building and connecting wallets.
 

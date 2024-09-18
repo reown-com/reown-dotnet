@@ -1,0 +1,22 @@
+﻿{
+  "solution": {
+    "path": "Reown.sln",
+    "projects": [
+      "src\\Reown.Core.Common\\Reown.Core.Common.csproj",
+      "src\\Reown.Core.Crypto\\Reown.Core.Crypto.csproj",
+      "src\\Reown.Core.Network.WebSocket\\Reown.Core.Network.WebSocket.csproj",
+      "src\\Reown.Core.Network\\Reown.Core.Network.csproj",
+      "src\\Reown.Core.Storage\\Reown.Core.Storage.csproj",
+      "src\\Reown.Core\\Reown.Core.csproj",
+      "src\\Reown.Sign.Nethereum\\Reown.Sign.Nethereum.csproj",
+      "src\\Reown.Sign\\Reown.Sign.csproj",
+      "src\\Reown.WalletKit\\Reown.WalletKit.csproj",
+      "test\\Reown.Core.Crypto.Test\\Reown.Core.Crypto.Test.csproj",
+      "test\\Reown.Core.Network.Test\\Reown.Core.Network.Test.csproj",
+      "test\\Reown.Core.Storage.Test\\Reown.Core.Storage.Test.csproj",
+      "test\\Reown.Sign.Test\\Reown.Sign.Test.csproj",
+      "test\\Reown.WalletKit.Test\\Reown.WalletKit.Test.csproj",
+      "test\\Rown.TestUtils\\Rown.TestUtils.csproj"
+    ]
+  }
+}

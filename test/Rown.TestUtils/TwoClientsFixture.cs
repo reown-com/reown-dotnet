@@ -15,7 +15,7 @@ public abstract class TwoClientsFixture<TClient> where TClient : IDisposable
 
     public async Task WaitForClientsReady()
     {
-        while (Equals(ClientA, default(TClient)) && Equals(ClientB, default(TClient)))
+        while (Equals(ClientA, default(TClient)) || Equals(ClientB, default(TClient)))
             await Task.Delay(10);
     }
 

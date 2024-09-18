@@ -32,13 +32,13 @@ public class SignClientFixture : TwoClientsFixture<SignClient>
             RelayUrl = TestValues.TestRelayUrl,
             Metadata = new Metadata()
             {
-                Description = "An example dapp to showcase WalletConnectSharpv2",
+                Description = "Dapp Test",
                 Icons = new[]
                 {
-                    "https://walletconnect.com/meta/favicon.ico"
+                    "https://raw.githubusercontent.com/reown-com/reown-dotnet/main/media/reown-avatar-positive.png"
                 },
-                Name = $"WalletConnectSharpv2 Dapp Example",
-                Url = "https://walletconnect.com"
+                Name = "Dapp Test",
+                Url = "https://reown.com"
             },
             // Omit if you want persistant storage
             Storage = StorageOverrideA ?? new InMemoryStorage()
@@ -50,13 +50,13 @@ public class SignClientFixture : TwoClientsFixture<SignClient>
             RelayUrl = TestValues.TestRelayUrl,
             Metadata = new Metadata()
             {
-                Description = "An example wallet to showcase WalletConnectSharpv2",
+                Description = "Wallet Test",
                 Icons = new[]
                 {
-                    "https://walletconnect.com/meta/favicon.ico"
+                    "https://raw.githubusercontent.com/reown-com/reown-dotnet/main/media/reown-avatar-positive.png"
                 },
-                Name = $"WalletConnectSharpv2 Wallet Example",
-                Url = "https://walletconnect.com"
+                Name = "Wallet Test",
+                Url = "https://reown.com"
             },
             // Omit if you want persistant storage
             Storage = StorageOverrideB ?? new InMemoryStorage()
@@ -70,6 +70,11 @@ public class SignClientFixture : TwoClientsFixture<SignClient>
     {
         await WaitForNoPendingRequests(ClientA);
         await WaitForNoPendingRequests(ClientB);
+
+        await Task.WhenAll(
+            ClientA.CoreClient.Storage.Clear(),
+            ClientB.CoreClient.Storage.Clear()
+        );
 
         await base.DisposeAndReset();
     }
