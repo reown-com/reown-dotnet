@@ -1,0 +1,35 @@
+Button {
+    border-radius: 4px;
+}
+
+#Body {
+    height: 100%;
+    width: 100%;
+    padding-top: 24px;
+    padding-bottom: 75px;
+    max-width: 300px;
+    flex-direction: column;
+    align-self: center;
+}
+
+#NotificationContainer {
+    position: absolute;
+    border-radius: 8px;
+    width: 100%;
+    height: 100%;
+    padding: 8px;
+    background-color: #202020;
+    display: none;
+    align-items: center;
+}
+
+#NotificationText {
+    color: white;
+    font-size: 20px;
+    align-self: center;
+    margin-top: 30%;
+    margin-bottom: 16px;
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+

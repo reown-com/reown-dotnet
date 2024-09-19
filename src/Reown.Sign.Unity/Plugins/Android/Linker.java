@@ -1,4 +1,4 @@
-package com.reown.appkit.Unity;
+package com.reown.sign.unity;
 
 import android.content.Context;
 import android.content.Intent;

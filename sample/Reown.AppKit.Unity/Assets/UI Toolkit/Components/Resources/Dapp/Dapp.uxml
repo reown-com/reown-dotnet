@@ -1,0 +1,14 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance"
+         engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
+         editor-extension-mode="True">
+    <Style src="Dapp.uss"/>
+
+    <ui:VisualElement name="Body" picking-mode="Ignore">
+        <ui:ScrollView name="ButtonsContainer" mode="Vertical" vertical-scroller-visibility="Hidden"/>
+
+    </ui:VisualElement>
+    <ui:VisualElement name="NotificationContainer">
+        <ui:Label name="NotificationText" text="Notification"/>
+        <ui:Button name="NotificationButton" text="Close"/>
+    </ui:VisualElement>
+</ui:UXML>

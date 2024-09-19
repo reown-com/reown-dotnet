@@ -1,0 +1,31 @@
+:root {
+    margin-bottom: 8px;
+}
+
+#Container {
+    width: 100%;
+    padding: 8px;
+    background-color: rgba(256, 256, 256, 0.1);
+    border-radius: 8px;
+    font-size: 12;
+}
+
+#Container Label {
+    padding: 0;
+    margin-bottom: 0;
+}
+
+#Label {
+    color: rgba(255, 255, 255, 0.8);
+    -unity-font-style: bold;
+}
+
+#Value {
+    color: rgba(255, 255, 255, 0.6);
+    white-space: normal;
+}
+
+#Copied {
+    display: none;
+    color: rgba(255, 255, 255, 0.6);
+}

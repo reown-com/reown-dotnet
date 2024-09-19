@@ -6,13 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="2f5f8ac7-0622-47ce-9f54-e7355eaeafc5" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/QualitySettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/playground/Reown.Playground.Unity/ProjectSettings/QualitySettings.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Directory.Build.props" beforeDir="false" afterPath="$PROJECT_DIR$/src/Directory.Build.props" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Reown.AppKit.Unity.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Reown.AppKit.Unity.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign.Nethereum.Unity/Reown.Sign.Nethereum.Unity.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum.Unity/Reown.Sign.Nethereum.Unity.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Reown.Sign.Nethereum.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign.Nethereum/Reown.Sign.Nethereum.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign.Unity/Reown.Sign.Unity.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Reown.Sign.Unity.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.WalletKit/Reown.WalletKit.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.WalletKit/Reown.WalletKit.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Sign.Unity/Plugins/Android/Linker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Plugins/Android/Linker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/Linker.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign.Unity/Runtime/Linker.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Unity.Dependencies/Runtime/Microsoft.IdentityModel.Tokens.dll.meta" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Unity.Dependencies/Runtime/Microsoft.IdentityModel.Tokens.dll.meta" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -25,7 +21,60 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;skibitsky&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:reown-com/reown-dotnet.git&quot;,
+    &quot;accountId&quot;: &quot;9bc2b8fe-4184-4079-ad39-58dba3df66ce&quot;
+  }
+}</component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/7b93b1e91bbc4c87a18d9a96d41d778c4b5e00/80/3431c94f/Logger.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/8bc9cdb23bc146bcaaae0bb9e45e5d46d9dc00/2a/6ebc1a4b/IDisposable.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/c4acef6dc8fd4983a0f89a748794a2009000/f9/a14a1b68/BlockHeaderEncoder.cs" root0="FORCE_HIGHLIGHTING" />
@@ -83,22 +132,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "b28ffd12-0193-4c7b-b16b-7260c922df2a.executor": "Debug",
-    "git-widget-placeholder": "main",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "rider.code.cleanup.on.save.profile": "Built-in: Reformat & Apply Syntax Style",
-    "settings.editor.selected.configurable": "SolutionBuilderGeneralOptionsPage",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;b28ffd12-0193-4c7b-b16b-7260c922df2a.executor&quot;: &quot;Debug&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;chore/tests&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;rider.code.cleanup.on.save&quot;: &quot;true&quot;,
+    &quot;rider.code.cleanup.on.save.only.changed.lines&quot;: &quot;true&quot;,
+    &quot;rider.code.cleanup.on.save.profile&quot;: &quot;Built-in: Reformat &amp; Apply Syntax Style&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;actions.on.save&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
-  <component name="RunManager">
+}</component>
+  <component name="RunManager" selected="Attach to Unity Editor.Attach to Unity Editor">
     <configuration name="Attach to Unity Editor" type="UNITY_DEBUG_RUN_CONFIGURATION" factoryName="Unity Debug" show_console_on_std_err="false" show_console_on_std_out="false" port="50000" address="localhost">
       <option name="allowRunningInParallel" value="false" />
       <option name="listenPortForConnections" value="false" />
@@ -126,7 +177,11 @@
       <workItem from="1726212605141" duration="13804000" />
       <workItem from="1726492759271" duration="880000" />
       <workItem from="1726493665280" duration="62000" />
-      <workItem from="1726493765557" duration="8419000" />
+      <workItem from="1726493765557" duration="13123000" />
+      <workItem from="1726642631152" duration="8015000" />
+      <workItem from="1726652892164" duration="10680000" />
+      <workItem from="1726740122619" duration="754000" />
+      <workItem from="1726748023409" duration="2308000" />
     </task>
     <servers />
   </component>
@@ -144,72 +199,6 @@
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
-          <line>663</line>
-          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TestTwoUniqueSessionRequestResponseUsingAddressProviderDefaults'">
-            <startOffsets>
-              <option value="21436" />
-            </startOffsets>
-            <endOffsets>
-              <option value="21537" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="2" />
-        </line-breakpoint>
-        <line-breakpoint type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
-          <line>669</line>
-          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TestTwoUniqueSessionRequestResponseUsingAddressProviderDefaults'">
-            <startOffsets>
-              <option value="21728" />
-            </startOffsets>
-            <endOffsets>
-              <option value="22595" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="3" />
-        </line-breakpoint>
-        <line-breakpoint type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
-          <line>706</line>
-          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TestTwoUniqueSessionRequestResponseUsingAddressProviderDefaults'">
-            <startOffsets>
-              <option value="22957" />
-            </startOffsets>
-            <endOffsets>
-              <option value="23015" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="4" />
-        </line-breakpoint>
-        <line-breakpoint type="DotNet Breakpoints">
-          <dependency id="0" />
-          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
-          <line>780</line>
-          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TestTwoUniqueSessionRequestResponseUsingAddressProviderDefaults'">
-            <startOffsets>
-              <option value="25466" />
-            </startOffsets>
-            <endOffsets>
-              <option value="25558" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="5" />
-        </line-breakpoint>
-        <line-breakpoint type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
-          <line>784</line>
-          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TestTwoUniqueSessionRequestResponseUsingAddressProviderDefaults'">
-            <startOffsets>
-              <option value="25724" />
-            </startOffsets>
-            <endOffsets>
-              <option value="25798" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="6" />
-        </line-breakpoint>
         <line-breakpoint type="DotNet Breakpoints">
           <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineValidation.cs</url>
           <line>159</line>
@@ -236,7 +225,7 @@
           </properties>
           <option name="timeStamp" value="9" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+        <line-breakpoint type="DotNet Breakpoints">
           <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/SignClient.cs</url>
           <line>73</line>
           <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/SignClient.cs" containingFunctionPresentation="Constructor 'SignClient'">
@@ -249,7 +238,7 @@
           </properties>
           <option name="timeStamp" value="11" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+        <line-breakpoint type="DotNet Breakpoints">
           <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/SignClient.cs</url>
           <line>83</line>
           <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/SignClient.cs" containingFunctionPresentation="Constructor 'SignClient'">
@@ -262,7 +251,7 @@
           </properties>
           <option name="timeStamp" value="12" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+        <line-breakpoint type="DotNet Breakpoints">
           <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/SignClient.cs</url>
           <line>95</line>
           <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/SignClient.cs" containingFunctionPresentation="Constructor 'SignClient'">
@@ -275,27 +264,292 @@
           </properties>
           <option name="timeStamp" value="15" />
         </line-breakpoint>
-        <breakpoint enabled="true" suspend="NONE" type="DotNet Exception Breakpoints">
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
+          <line>181</line>
+          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TestApproveSession'">
+            <startOffsets>
+              <option value="5207" />
+            </startOffsets>
+            <endOffsets>
+              <option value="5249" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="17" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
+          <line>671</line>
+          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TwoUniqueSessionRequestUsingAddressProviderDefaults'">
+            <startOffsets>
+              <option value="21708" />
+            </startOffsets>
+            <endOffsets>
+              <option value="21809" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="40" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
+          <line>673</line>
+          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TwoUniqueSessionRequestUsingAddressProviderDefaults'">
+            <startOffsets>
+              <option value="21832" />
+            </startOffsets>
+            <endOffsets>
+              <option value="21895" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="41" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
+          <line>714</line>
+          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TwoUniqueSessionRequestUsingAddressProviderDefaults'">
+            <startOffsets>
+              <option value="23229" />
+            </startOffsets>
+            <endOffsets>
+              <option value="23287" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="42" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
+          <line>725</line>
+          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TwoUniqueSessionRequestUsingAddressProviderDefaults'">
+            <startOffsets>
+              <option value="23676" />
+            </startOffsets>
+            <endOffsets>
+              <option value="23766" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="43" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
+          <line>742</line>
+          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TwoUniqueSessionRequestUsingAddressProviderDefaults'">
+            <startOffsets>
+              <option value="24134" />
+            </startOffsets>
+            <endOffsets>
+              <option value="24518" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="44" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
+          <line>745</line>
+          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Lambda expression inside Method 'TwoUniqueSessionRequestUsingAddressProviderDefaults'">
+            <startOffsets>
+              <option value="24269" />
+            </startOffsets>
+            <endOffsets>
+              <option value="24303" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="45" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
+          <line>757</line>
+          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TwoUniqueSessionRequestUsingAddressProviderDefaults'">
+            <startOffsets>
+              <option value="24619" />
+            </startOffsets>
+            <endOffsets>
+              <option value="24932" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="46" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
+          <line>760</line>
+          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Lambda expression inside Method 'TwoUniqueSessionRequestUsingAddressProviderDefaults'">
+            <startOffsets>
+              <option value="24747" />
+            </startOffsets>
+            <endOffsets>
+              <option value="24781" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="47" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
+          <line>772</line>
+          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TwoUniqueSessionRequestUsingAddressProviderDefaults'">
+            <startOffsets>
+              <option value="25227" />
+            </startOffsets>
+            <endOffsets>
+              <option value="25676" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="48" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
+          <line>776</line>
+          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Lambda expression inside Method 'TwoUniqueSessionRequestUsingAddressProviderDefaults'">
+            <startOffsets>
+              <option value="25430" />
+            </startOffsets>
+            <endOffsets>
+              <option value="25485" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="49" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
+          <line>792</line>
+          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TwoUniqueSessionRequestUsingAddressProviderDefaults'">
+            <startOffsets>
+              <option value="25996" />
+            </startOffsets>
+            <endOffsets>
+              <option value="26070" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="50" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
+          <line>788</line>
+          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TwoUniqueSessionRequestUsingAddressProviderDefaults'">
+            <startOffsets>
+              <option value="25738" />
+            </startOffsets>
+            <endOffsets>
+              <option value="25830" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="51" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
+          <line>789</line>
+          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TwoUniqueSessionRequestUsingAddressProviderDefaults'">
+            <startOffsets>
+              <option value="25839" />
+            </startOffsets>
+            <endOffsets>
+              <option value="25926" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="52" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
+          <line>794</line>
+          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TwoUniqueSessionRequestUsingAddressProviderDefaults'">
+            <startOffsets>
+              <option value="26080" />
+            </startOffsets>
+            <endOffsets>
+              <option value="26113" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="53" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
+          <line>658</line>
+          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TestTwoUniqueSessionRequestUsingAddressProviderDefaults'">
+            <startOffsets>
+              <option value="21286" />
+            </startOffsets>
+            <endOffsets>
+              <option value="21346" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="55" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
+          <line>709</line>
+          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TwoUniqueSessionRequestUsingAddressProviderDefaults'">
+            <startOffsets>
+              <option value="23110" />
+            </startOffsets>
+            <endOffsets>
+              <option value="23137" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="56" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
+          <line>710</line>
+          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TwoUniqueSessionRequestUsingAddressProviderDefaults'">
+            <startOffsets>
+              <option value="23150" />
+            </startOffsets>
+            <endOffsets>
+              <option value="23183" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="57" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
+          <line>711</line>
+          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TwoUniqueSessionRequestUsingAddressProviderDefaults'">
+            <startOffsets>
+              <option value="23192" />
+            </startOffsets>
+            <endOffsets>
+              <option value="23193" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="58" />
+        </line-breakpoint>
+        <breakpoint suspend="NONE" type="DotNet Exception Breakpoints">
           <properties exception="System.Collections.Generic.KeyNotFoundException" isInternal="false" displayValue="KeyNotFoundException" namespaceName="System.Collections.Generic">
             <option name="internal" value="false" />
           </properties>
           <option name="timeStamp" value="7" />
         </breakpoint>
-        <breakpoint enabled="true" suspend="NONE" type="DotNet Exception Breakpoints">
+        <breakpoint suspend="NONE" type="DotNet Exception Breakpoints">
           <properties exception="System.InvalidOperationException" isInternal="false" displayValue="InvalidOperationException" namespaceName="System">
             <option name="internal" value="false" />
           </properties>
           <option name="timeStamp" value="10" />
         </breakpoint>
-        <breakpoint enabled="true" suspend="NONE" type="DotNet Exception Breakpoints">
+        <breakpoint suspend="NONE" type="DotNet Exception Breakpoints">
           <properties exception="System.MissingMethodException" isInternal="false" displayValue="MissingMethodException" namespaceName="System">
             <option name="internal" value="false" />
           </properties>
           <option name="timeStamp" value="14" />
         </breakpoint>
+        <breakpoint type="DotNet Exception Breakpoints">
+          <properties exception="System.NullReferenceException" isInternal="false" displayValue="NullReferenceException" namespaceName="System">
+            <option name="internal" value="false" />
+          </properties>
+          <option name="timeStamp" value="16" />
+        </breakpoint>
+        <breakpoint suspend="NONE" type="DotNet Exception Breakpoints">
+          <properties exception="System.Net.Http.HttpRequestException" isInternal="false" displayValue="HttpRequestException" namespaceName="System.Net.Http">
+            <option name="internal" value="false" />
+          </properties>
+          <option name="timeStamp" value="30" />
+        </breakpoint>
+        <breakpoint enabled="true" suspend="NONE" type="DotNet Exception Breakpoints">
+          <properties exception="Newtonsoft.Json.JsonSerializationException" isInternal="false" displayValue="JsonSerializationException" namespaceName="Newtonsoft.Json">
+            <option name="internal" value="false" />
+          </properties>
+          <option name="timeStamp" value="54" />
+        </breakpoint>
       </breakpoints>
       <default-breakpoints>
-        <breakpoint enabled="true" type="DotNet Exception Breakpoints">
+        <breakpoint type="DotNet Exception Breakpoints">
           <dependency master-id="0" />
         </breakpoint>
       </default-breakpoints>
