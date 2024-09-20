@@ -28,7 +28,9 @@ namespace Sample
             
             _settingsButton.clicked += OnSettingsButtonClicked;
             
+#if !UNITY_WEBGL
             SceneManager.sceneLoaded += OnSceneLoaded;
+#endif
             
             AddInfoItems();
         }
