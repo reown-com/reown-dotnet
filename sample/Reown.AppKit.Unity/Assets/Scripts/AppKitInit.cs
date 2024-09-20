@@ -29,8 +29,10 @@ namespace Sample
                 )
             );
 
+#if !UNITY_WEBGL
             var clientId = await AppKit.Instance.SignClient.CoreClient.Crypto.GetClientId();
             Mixpanel.Identify(clientId);
+#endif
 
             Debug.Log($"[AppKit Init] AppKit initialized. Loading menu scene...");
             SceneManager.LoadScene(_menuScene);

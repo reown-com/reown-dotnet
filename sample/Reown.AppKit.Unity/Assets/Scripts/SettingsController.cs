@@ -60,10 +60,13 @@ namespace Sample
             _scrollContentContainer.Add(_clientIdInfoItem);
         }
         
+        
+#if !UNITY_WEBGL
         private void OnSceneLoaded(Scene arg0, LoadSceneMode arg1)
         {
             UpdateClientIdInfoItem();
         }
+#endif
         
         private void OnSettingsButtonClicked()
         {
