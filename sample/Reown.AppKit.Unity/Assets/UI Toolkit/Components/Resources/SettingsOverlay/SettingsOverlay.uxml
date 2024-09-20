@@ -1,0 +1,12 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="SettingsOverlay.uss" />
+    <ui:VisualElement name="Background" picking-mode="Ignore"/>
+    <ui:VisualElement name="Body" picking-mode="Ignore">
+        <ui:VisualElement name="SettingsView">
+            <ui:ScrollView name="SettingsScroll" mode="Vertical" vertical-scroller-visibility="Hidden"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="Footer">
+            <ui:Button name="SettingsButton" text="settings" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

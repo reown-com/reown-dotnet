@@ -1,0 +1,20 @@
+{
+    "name": "UnityBuilderAction",
+    "rootNamespace": "",
+    "references": [
+        "GUID:21462402cefc5dd4ba284fb769521eff",
+        "GUID:4b36be810ca32874697e674b28afe620",
+        "GUID:9887bf5401cdc9140916d3edbea10b69"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
