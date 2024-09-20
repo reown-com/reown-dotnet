@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         projectPath:
-          - 'Samples/AppKit Sample'
+          - 'sample/Reown.AppKit.Unity'
         targetPlatform:
           # - StandaloneOSX # Build a macOS standalone (Intel 64-bit).
           # - StandaloneWindows # Build a Windows standalone.
@@ -38,7 +38,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          buildsPath: Build
+          buildsPath: Builds
           projectPath: ${{ matrix.projectPath }}
           targetPlatform: ${{ matrix.targetPlatform }}
           customParameters: -Development -mixpanelToken ${{ secrets.MIXPANEL_TOKEN }} -sentryToken ${{ secrets.SENTRY_TOKEN }}
@@ -46,7 +46,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: Build-${{ matrix.targetPlatform }}
-          path: Build/${{ matrix.targetPlatform }}
+          path: Builds/${{ matrix.targetPlatform }}
 
   deployToVercel:
     name: Deploy to Vercel
@@ -62,7 +62,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: Build-WebGL
-          path: Build/WebGL
+          path: Builds/WebGL
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v20
         with:
@@ -71,4 +71,4 @@ jobs:
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           github-comment: true
-          working-directory: Build/WebGL/WebGL
+          working-directory: Builds/WebGL
