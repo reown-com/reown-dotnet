@@ -167,7 +167,7 @@ namespace Reown.Sign
         public IAuth Auth { get; }
 
         public event EventHandler<SessionStruct> SessionExpired;
-        public event EventHandler<AuthenticateRequest> SessionAuthenticateRequest;
+        public event EventHandler<SessionAuthenticate> SessionAuthenticateRequest;
         public event EventHandler<SessionAuthenticatedEventArgs> SessionAuthenticated;
         public event EventHandler<PairingEvent> PairingExpired;
         public event EventHandler<SessionProposalEvent> SessionProposed;

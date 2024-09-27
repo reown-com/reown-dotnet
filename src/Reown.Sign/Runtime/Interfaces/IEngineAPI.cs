@@ -41,7 +41,7 @@ namespace Reown.Sign.Interfaces
         ///     This event is invoked when a new session authentication request is received.
         ///     Event Side: Wallet
         /// </summary>
-        event EventHandler<AuthenticateRequest> SessionAuthenticateRequest;
+        event EventHandler<SessionAuthenticate> SessionAuthenticateRequest;
 
         /// <summary>
         ///     This event is invoked when a new session authentication response is received.

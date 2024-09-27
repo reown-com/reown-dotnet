@@ -99,7 +99,7 @@ namespace Reown.Sign
         ///     This event is invoked when a new session authentication request is received.
         ///     Event Side: Wallet
         /// </summary>
-        public event EventHandler<AuthenticateRequest> SessionAuthenticateRequest;
+        public event EventHandler<SessionAuthenticate> SessionAuthenticateRequest;
 
         /// <summary>
         ///     This event is invoked when a new session authentication response is received.
@@ -992,11 +992,11 @@ namespace Reown.Sign
                 Metadata = Client.Metadata
             };
 
-            var request = new AuthenticateRequest
+            var request = new SessionAuthenticate
             {
                 Payload = authPayloadParams,
                 Requester = participant,
-                Expiry = Clock.CalculateExpiry(authParams.Expiration ?? Clock.ONE_HOUR)
+                ExpiryTimestamp = Clock.CalculateExpiry(authParams.Expiration ?? Clock.ONE_HOUR)
             };
 
             // Build namespaces for fallback session proposal
@@ -1038,7 +1038,7 @@ namespace Reown.Sign
             try
             {
                 var ids = await Task.WhenAll(
-                    MessageHandler.SendRequest<AuthenticateRequest, AuthenticateResponse>(pairingData.Topic, request),
+                    MessageHandler.SendRequest<SessionAuthenticate, AuthenticateResponse>(pairingData.Topic, request),
                     MessageHandler.SendRequest<SessionPropose, SessionProposeResponse>(pairingData.Topic, proposal)
                 );
 
@@ -1185,7 +1185,7 @@ namespace Reown.Sign
                         PrivateThis.OnSessionEventRequest,
                         null),
 
-                    await MessageHandler.HandleMessageType<AuthenticateRequest, AuthenticateResponse>(
+                    await MessageHandler.HandleMessageType<SessionAuthenticate, AuthenticateResponse>(
                         PrivateThis.OnAuthenticateRequest,
                         PrivateThis.OnAuthenticateResponse)
                 };

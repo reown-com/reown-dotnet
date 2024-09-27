@@ -326,7 +326,7 @@ namespace Reown.Sign
             }
         }
 
-        async Task IEnginePrivate.OnAuthenticateRequest(string topic, JsonRpcRequest<AuthenticateRequest> payload)
+        async Task IEnginePrivate.OnAuthenticateRequest(string topic, JsonRpcRequest<SessionAuthenticate> payload)
         {
             try
             {
@@ -342,7 +342,7 @@ namespace Reown.Sign
                     PairingTopic = @params.Payload.PairingTopic,
                     Requester = @params.Requester,
                     PayloadParams = @params.Payload,
-                    Expiry = @params.Expiry,
+                    Expiry = @params.ExpiryTimestamp,
                     VerifyContext = verifyContext
                 };
 
@@ -352,7 +352,7 @@ namespace Reown.Sign
             }
             catch (ReownNetworkException e)
             {
-                await MessageHandler.SendError<AuthenticateRequest, SessionAuthenticateAutoReject>(payload.Id, topic, Error.FromException(e));
+                await MessageHandler.SendError<SessionAuthenticate, SessionAuthenticateAutoReject>(payload.Id, topic, Error.FromException(e));
             }
         }
 

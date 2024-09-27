@@ -6,6 +6,7 @@ using Reown.Sign.Interfaces;
 using Reown.Sign.Models;
 using Reown.Sign.Models.Engine;
 using Reown.Sign.Models.Engine.Events;
+using Reown.Sign.Models.Engine.Methods;
 using Reown.WalletKit.Interfaces;
 
 
@@ -16,7 +17,7 @@ namespace Reown.WalletKit.Controllers
         private bool _initialized;
 
         public event EventHandler<SessionStruct> SessionExpired;
-        public event EventHandler<AuthenticateRequest> SessionAuthenticate; 
+        public event EventHandler<SessionAuthenticate> SessionAuthenticate; 
         public event EventHandler<SessionProposalEvent> SessionProposed;
         public event EventHandler<SessionStruct> SessionConnected;
         public event EventHandler<Exception> SessionConnectionErrored;
