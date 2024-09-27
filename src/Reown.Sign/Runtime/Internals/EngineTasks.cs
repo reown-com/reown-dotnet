@@ -86,6 +86,13 @@ namespace Reown.Sign
                 Client.CoreClient.Expirer.Set(id, (long)proposal.Expiry);
         }
 
+        async Task IEnginePrivate.SetAuthRequest(long id, AuthPendingRequest request)
+        {
+            await Client.Auth.PendingRequests.Set(id, request);
+            if (request.Expiry != null)
+                Client.CoreClient.Expirer.Set(id, (long)request.Expiry);
+        }
+
         Task IEnginePrivate.Cleanup()
         {
             var sessionTopics = (from session in Client.Session.Values where session.Expiry != null && Clock.IsExpired(session.Expiry.Value) select session.Topic).ToList();

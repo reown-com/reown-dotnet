@@ -16,11 +16,13 @@ using Reown.Core.Models.Pairing;
 using Reown.Core.Models.Relay;
 using Reown.Core.Models.Verify;
 using Reown.Core.Network.Models;
+using Reown.Sign.Constants;
 using Reown.Sign.Interfaces;
 using Reown.Sign.Models;
 using Reown.Sign.Models.Engine;
 using Reown.Sign.Models.Engine.Events;
 using Reown.Sign.Models.Engine.Methods;
+using Reown.Sign.Utils;
 
 namespace Reown.Sign
 {
@@ -39,9 +41,25 @@ namespace Reown.Sign
 
         private bool _initialized;
 
-        private List<DisposeHandlerToken> _messageDisposeHandlers = new();
+        private DisposeHandlerToken[] _messageDisposeHandlers = Array.Empty<DisposeHandlerToken>();
 
         protected bool Disposed;
+
+        /// <summary>
+        ///     The name of this Engine module
+        /// </summary>
+        public string Name
+        {
+            get => $"{Client.Name}-engine";
+        }
+
+        /// <summary>
+        ///     The context string for this Engine module
+        /// </summary>
+        public string Context
+        {
+            get => Name;
+        }
 
         /// <summary>
         ///     Create a new Engine with the given <see cref="ISignClient" /> module
@@ -76,6 +94,18 @@ namespace Reown.Sign
         ///     Event Side: dApp & Wallet
         /// </summary>
         public event EventHandler<SessionStruct> SessionExpired;
+
+        /// <summary>
+        ///     This event is invoked when a new session authentication request is received.
+        ///     Event Side: Wallet
+        /// </summary>
+        public event EventHandler<AuthenticateRequest> SessionAuthenticateRequest;
+
+        /// <summary>
+        ///     This event is invoked when a new session authentication response is received.
+        ///     Event Side: dApp
+        /// </summary>
+        public event EventHandler<SessionAuthenticatedEventArgs> SessionAuthenticated;
 
         /// <summary>
         ///     This event is invoked when the given pairing has expired
@@ -162,6 +192,24 @@ namespace Reown.Sign
         ///     Event Side: dApp & Wallet
         /// </summary>
         public event EventHandler<PairingEvent> PairingDeleted;
+
+        /// <summary>
+        ///     Initialize the Engine. This loads any persistant state and connects to the WalletConnect
+        ///     relay server
+        /// </summary>
+        /// <returns></returns>
+        public async Task Init()
+        {
+            if (!_initialized)
+            {
+                SetupEvents();
+
+                await PrivateThis.Cleanup();
+                await RegisterRelayerEvents();
+                RegisterExpirerEvents();
+                _initialized = true;
+            }
+        }
 
         /// <summary>
         ///     Subscribes to a specific session event (wc_sessionEvent). The event is identified by its name and handled by the provided event handler.
@@ -891,44 +939,200 @@ namespace Reown.Sign
             return Reject(proposalStruct.RejectProposal(error));
         }
 
+        public async Task<AuthenticateData> Authenticate(AuthParams authParams)
+        {
+            IsInitialized();
+            PrivateThis.ValidateAuthParams(authParams);
+
+            var pairingData = await Client.CoreClient.Pairing.Create(new[]
+            {
+                "wc_sessionAuthenticate"
+            });
+
+            ReownLogger.Log($"Generated new pairing: {pairingData.Uri}");
+
+            var publicKey = await Client.CoreClient.Crypto.GenerateKeyPair();
+            var responseTopic = Client.CoreClient.Crypto.HashKey(publicKey);
+
+            await Task.WhenAll(
+                Client.Auth.Keys.Set(AuthConstants.AuthPublicKeyName, new AuthKey(responseTopic, publicKey)),
+                Client.Auth.Pairings.Set(responseTopic, new AuthPairing(responseTopic, pairingData.Topic))
+            );
+
+            await Client.CoreClient.Relayer.Subscribe(responseTopic);
+
+            ReownLogger.Log($"Subscribed to relayer: {responseTopic}. Pairing topic: {pairingData.Topic}");
+
+            if (authParams.Methods is { Length: > 0 })
+            {
+                var chainId = authParams.Chains[0];
+                var @namespace = chainId.Split(':')[0];
+
+                //TODO: recaps
+            }
+
+            var authPayloadParams = new AuthPayloadParams
+            {
+                Type = "caip122",
+                Chains = authParams.Chains,
+                Statement = authParams.Statement,
+                Aud = authParams.Uri,
+                Domain = authParams.Domain,
+                Version = "1",
+                Nonce = authParams.Nonce,
+                Iat = DateTimeOffset.UtcNow.ToRfc3339(),
+                Exp = authParams.Expiration.ToString(),
+                Nbf = authParams.NotBefore.ToString(),
+                Resources = authParams.Resources
+            };
+
+            var participant = new Participant
+            {
+                PublicKey = publicKey,
+                Metadata = Client.Metadata
+            };
+
+            var request = new AuthenticateRequest
+            {
+                Payload = authPayloadParams,
+                Requester = participant,
+                Expiry = Clock.CalculateExpiry(authParams.Expiration ?? Clock.ONE_HOUR)
+            };
+
+            // Build namespaces for fallback session proposal
+            var namespaces = new Dictionary<string, ProposedNamespace>
+            {
+                ["eip155"] = new()
+                {
+                    Chains = authParams.Chains,
+                    // Request `personal_sign` method by default to allow for fallback SIWE
+                    Methods = (authParams.Methods ?? Array.Empty<string>()).Union(new[]
+                    {
+                        "personal_sign"
+                    }).ToArray(),
+                    Events = new[]
+                    {
+                        "chainChanged",
+                        "accountsChanged"
+                    }
+                }
+            };
+
+            var proposal = new SessionPropose
+            {
+                OptionalNamespaces = namespaces,
+                Relays = new[]
+                {
+                    new ProtocolOptions
+                    {
+                        Protocol = RelayProtocols.Default
+                    }
+                },
+                Proposer = participant
+            };
+
+            long authId = default;
+            long fallbackId = default;
+            EventHandler<SessionAuthenticatedEventArgs> handler = null;
+            var approvalTask = new TaskCompletionSource<SessionStruct>();
+            try
+            {
+                var ids = await Task.WhenAll(
+                    MessageHandler.SendRequest<AuthenticateRequest, AuthenticateResponse>(pairingData.Topic, request),
+                    MessageHandler.SendRequest<SessionPropose, SessionProposeResponse>(pairingData.Topic, proposal)
+                );
+
+                authId = ids[0];
+                fallbackId = ids[1];
+
+                handler = (sender, session) => OnSessionAuthenticated(sender, session, fallbackId);
+
+                SessionConnected += OnSessionConnected;
+                SessionConnectionErrored += OnSessionConnectionErrored;
+                SessionAuthenticated += handler;
+            }
+            catch (Exception)
+            {
+                UnsubscribeAll();
+                throw;
+            }
+
+            await PrivateThis.SetProposal(fallbackId, new ProposalStruct
+            {
+                Expiry = Clock.CalculateExpiry(authParams.Expiration ?? Clock.FIVE_MINUTES),
+                Id = fallbackId,
+                Proposer = participant,
+                PairingTopic = pairingData.Topic,
+                Relays = proposal.Relays,
+                OptionalNamespaces = proposal.OptionalNamespaces
+            });
+
+
+            return new AuthenticateData(pairingData.Uri, approvalTask.Task);
+
+            async void OnSessionConnected(object sender, SessionStruct session)
+            {
+                if (approvalTask.Task.IsCompleted)
+                {
+                    return;
+                }
+
+                UnsubscribeAll();
+
+                session.Self.PublicKey = publicKey;
+                await PrivateThis.SetExpiry(session.Topic, session.Expiry.Value);
+                await Client.Session.Set(session.Topic, session);
+
+                if (!string.IsNullOrWhiteSpace(pairingData.Topic))
+                {
+                    await Client.CoreClient.Pairing.UpdateMetadata(pairingData.Topic, session.Peer.Metadata);
+                }
+
+                approvalTask.SetResult(session);
+            }
+
+            void OnSessionConnectionErrored(object sender, Exception exception)
+            {
+                UnsubscribeAll();
+                approvalTask.SetException(exception);
+            }
+
+            async void OnSessionAuthenticated(object sender, SessionAuthenticatedEventArgs args, long fallbackProposalId)
+            {
+                if (approvalTask.Task.IsCompleted)
+                {
+                    return;
+                }
+
+                await PrivateThis.DeleteProposal(fallbackProposalId);
+                approvalTask.SetResult(args.Session);
+                UnsubscribeAll();
+            }
+
+            void UnsubscribeAll()
+            {
+                SessionConnected -= OnSessionConnected;
+                SessionConnectionErrored -= OnSessionConnectionErrored;
+                SessionAuthenticated -= handler;
+            }
+        }
+
+        public Task RejectSessionAuthenticate(RejectParams rejectParams)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDictionary<long, AuthPendingRequest> PendingAuthRequests { get; } = new Dictionary<long, AuthPendingRequest>();
+
+        public string FormatMessage(AuthPayloadParams payloadParams, string iss)
+        {
+            throw new NotImplementedException();
+        }
+
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        ///     Initialize the Engine. This loads any persistant state and connects to the WalletConnect
-        ///     relay server
-        /// </summary>
-        /// <returns></returns>
-        public async Task Init()
-        {
-            if (!_initialized)
-            {
-                SetupEvents();
-
-                await PrivateThis.Cleanup();
-                await RegisterRelayerEvents();
-                RegisterExpirerEvents();
-                _initialized = true;
-            }
-        }
-
-        /// <summary>
-        ///     The name of this Engine module
-        /// </summary>
-        public string Name
-        {
-            get => $"{Client.Name}-engine";
-        }
-
-        /// <summary>
-        ///     The context string for this Engine module
-        /// </summary>
-        public string Context
-        {
-            get => Name;
         }
 
         private void SetupEvents()
@@ -951,7 +1155,7 @@ namespace Reown.Sign
         private async Task RegisterRelayerEvents()
         {
             _messageDisposeHandlers =
-                new List<DisposeHandlerToken>
+                new[]
                 {
                     await MessageHandler.HandleMessageType<SessionPropose, SessionProposeResponse>(
                         PrivateThis.OnSessionProposeRequest,
@@ -979,7 +1183,11 @@ namespace Reown.Sign
 
                     await MessageHandler.HandleMessageType<SessionEvent<JToken>, bool>(
                         PrivateThis.OnSessionEventRequest,
-                        null)
+                        null),
+
+                    await MessageHandler.HandleMessageType<AuthenticateRequest, AuthenticateResponse>(
+                        PrivateThis.OnAuthenticateRequest,
+                        PrivateThis.OnAuthenticateResponse)
                 };
         }
 
@@ -1015,7 +1223,7 @@ namespace Reown.Sign
                 }
 
                 _disposeActions.Clear();
-                _messageDisposeHandlers.Clear();
+                _messageDisposeHandlers = Array.Empty<DisposeHandlerToken>();
             }
 
             Disposed = true;

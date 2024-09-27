@@ -301,7 +301,7 @@ namespace Reown.Sign
         {
             foreach (var account in accounts)
             {
-                if (!Utils.IsValidAccountId(account))
+                if (!Core.Utils.IsValidAccountId(account))
                 {
                     throw new FormatException($"{context}, account {account} should be a string and conform to 'namespace:chainId:address' format.");
                 }
@@ -346,7 +346,7 @@ namespace Reown.Sign
 
         private void ValidateNamespacesChainId(Namespaces namespaces, string chainId)
         {
-            if (!Utils.IsValidChainId(chainId))
+            if (!Core.Utils.IsValidChainId(chainId))
             {
                 throw new FormatException($"ChainId {chainId} should be a string and conform to CAIP-2.");
             }
@@ -450,6 +450,42 @@ namespace Reown.Sign
             }
 
             return compatible;
+        }
+
+        void IEnginePrivate.ValidateAuthParams(AuthParams authParams)
+        {
+            if (authParams.Chains == null || authParams.Chains.Length == 0)
+            {
+                throw new ArgumentException("Chains should be a non-empty array.");
+            }
+
+            if (string.IsNullOrWhiteSpace(authParams.Uri))
+            {
+                throw new ArgumentException("Uri should be a non-empty string.");
+            }
+
+            if (string.IsNullOrWhiteSpace(authParams.Domain))
+            {
+                throw new ArgumentException("Domain should be a non-empty string.");
+            }
+
+            if (string.IsNullOrWhiteSpace(authParams.Nonce))
+            {
+                throw new ArgumentException("Nonce should be a non-empty string.");
+            }
+
+            // Reject multi-namespace requests
+            var uniqueNamespaces = authParams.Chains.Select(chain => chain.Split(":")[0]).Distinct().ToArray();
+            if (uniqueNamespaces.Length > 1)
+            {
+                throw new ArgumentException("Multi-namespace requests are not supported. Please request single namespace only.");
+            }
+
+            var @namespace = authParams.Chains[0].Split(":")[0];
+            if (@namespace != "eip155")
+            {
+                throw new ArgumentException("Only eip155 namespace is supported for authenticated sessions. Please use .connect() for non-eip155 chains.");
+            }
         }
     }
 }

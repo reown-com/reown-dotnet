@@ -16,6 +16,7 @@ namespace Reown.WalletKit.Controllers
         private bool _initialized;
 
         public event EventHandler<SessionStruct> SessionExpired;
+        public event EventHandler<AuthenticateRequest> SessionAuthenticate; 
         public event EventHandler<SessionProposalEvent> SessionProposed;
         public event EventHandler<SessionStruct> SessionConnected;
         public event EventHandler<Exception> SessionConnectionErrored;
@@ -137,6 +138,7 @@ namespace Reown.WalletKit.Controllers
         private void InitializeEventListeners()
         {
             // Propagate sign events
+            SignClient.SessionAuthenticateRequest += (sender, @event) => SessionAuthenticate?.Invoke(sender, @event);
             SignClient.SessionProposed += (sender, @event) => this.SessionProposed?.Invoke(sender, @event);
             SignClient.SessionDeleted += (sender, @event) => this.SessionDeleted?.Invoke(sender, @event);
             SignClient.SessionPinged += (sender, @event) => this.SessionPinged?.Invoke(sender, @event);

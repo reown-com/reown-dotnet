@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,11 +9,16 @@ using Reown.Core.Common.Logging;
 using Reown.Core.Common.Model.Errors;
 using Reown.Core.Common.Utils;
 using Reown.Core.Models.Expirer;
+using Reown.Core.Models.Relay;
 using Reown.Core.Network.Models;
+using Reown.Sign.Constants;
+using Reown.Sign.Controllers;
 using Reown.Sign.Interfaces;
 using Reown.Sign.Models;
+using Reown.Sign.Models.Engine;
 using Reown.Sign.Models.Engine.Events;
 using Reown.Sign.Models.Engine.Methods;
+using Reown.Sign.Utils;
 
 namespace Reown.Sign
 {
@@ -56,7 +62,6 @@ namespace Reown.Sign
         async Task IEnginePrivate.OnSessionProposeResponse(string topic, JsonRpcResponse<SessionProposeResponse> payload)
         {
             var id = payload.Id;
-            logger.Log($"Got session propose response with id {id}");
             if (payload.IsError)
             {
                 await Client.Proposal.Delete(id, Error.FromErrorType(ErrorType.USER_DISCONNECTED));
@@ -77,8 +82,7 @@ namespace Reown.Sign
                 proposal.SessionTopic = sessionTopic;
                 await Client.Proposal.Set(id, proposal);
                 await Client.CoreClient.Pairing.Activate(topic);
-                logger.Log($"Pairing activated for topic {topic}");
-
+ 
                 var attempts = 5;
                 do
                 {
@@ -104,7 +108,6 @@ namespace Reown.Sign
         {
             var id = payload.Id;
             var @params = payload.Params;
-            logger.Log($"got session settle request with {id}");
             try
             {
                 await PrivateThis.IsValidSessionSettleRequest(@params);
@@ -145,8 +148,6 @@ namespace Reown.Sign
             }
             catch (ReownNetworkException e)
             {
-                logger.LogError("got error while performing session settle");
-                logger.LogError(e);
                 await MessageHandler.SendError<SessionSettle, bool>(id, topic, Error.FromException(e));
             }
         }
@@ -322,6 +323,131 @@ namespace Reown.Sign
             catch (ReownNetworkException e)
             {
                 await MessageHandler.SendError<SessionEvent<JToken>, bool>(id, topic, Error.FromException(e));
+            }
+        }
+
+        async Task IEnginePrivate.OnAuthenticateRequest(string topic, JsonRpcRequest<AuthenticateRequest> payload)
+        {
+            try
+            {
+                var id = payload.Id;
+                var @params = payload.Params;
+
+                var hash = HashUtils.HashMessage(JsonConvert.SerializeObject(payload));
+                var verifyContext = await VerifyContext(hash, @params.Requester.Metadata);
+
+                var request = new AuthPendingRequest
+                {
+                    Id = id,
+                    PairingTopic = @params.Payload.PairingTopic,
+                    Requester = @params.Requester,
+                    PayloadParams = @params.Payload,
+                    Expiry = @params.Expiry,
+                    VerifyContext = verifyContext
+                };
+
+                await PrivateThis.SetAuthRequest(id, request);
+
+                SessionAuthenticateRequest?.Invoke(this, @params);
+            }
+            catch (ReownNetworkException e)
+            {
+                await MessageHandler.SendError<AuthenticateRequest, SessionAuthenticateAutoReject>(payload.Id, topic, Error.FromException(e));
+            }
+        }
+
+        async Task IEnginePrivate.OnAuthenticateResponse(string topic, JsonRpcResponse<AuthenticateResponse> payload)
+        {
+            var id = payload.Id;
+
+            // Delete this auth request on response
+            // We're using payload from the wallet to establish the session so we don't need to keep this around
+            await Task.WhenAll(
+                PrivateThis.DeletePendingSessionRequest(id, Error.FromErrorType(ErrorType.USER_DISCONNECTED)),
+                PrivateThis.SetExpiry(topic, Clock.CalculateExpiry(SessionExpiry))
+            );
+
+            if (payload.IsError)
+            {
+                var error = Error.FromErrorType(ErrorType.USER_DISCONNECTED);
+                //TODO: handle error
+            }
+            else
+            {
+                var cacaos = payload.Result.Cacaos;
+                var responder = payload.Result.Responder;
+
+                var approvedMethods = new List<string>();
+                var approvedAccounts = new List<string>();
+                foreach (var cacao in cacaos)
+                {
+                    var isValid = await cacao.VerifySignature(Client.CoreClient.ProjectId);
+                    if (!isValid)
+                    {
+                        throw new IOException("CACAO signature verification failed");
+                    }
+
+                    var approvedChains = new List<string>
+                    {
+                        CacaoUtils.ExtractNamespacedDidChainId(cacao.Payload.Iss)
+                    };
+                    var parsedAddress = CacaoUtils.ExtractDidAddress(cacao.Payload.Iss);
+
+
+                    if (ReCapUtils.TryGetRecapFromResources(cacao.Payload.Resources, out var recapStr))
+                    {
+                        var methodsFromRecap = ReCapUtils.GetMethodsFromRecap(recapStr);
+                        var chainsFromRecap = ReCapUtils.GetChainsFromRecap(recapStr);
+                        approvedMethods.AddRange(methodsFromRecap);
+                        approvedChains.AddRange(chainsFromRecap);
+                    }
+
+                    approvedAccounts.AddRange(approvedChains.Select(chain => $"{chain}:{parsedAddress}"));
+                }
+
+                var publicKey = Client.Auth.Keys.Get(AuthConstants.AuthPublicKeyName).PublicKey;
+                var sessionTopic = await Client.CoreClient.Crypto.GenerateSharedKey(publicKey, responder.PublicKey);
+
+                SessionStruct session = default;
+
+                if (approvedMethods.Count != 0)
+                {
+                    session = new SessionStruct
+                    {
+                        Topic = sessionTopic,
+                        Acknowledged = true,
+                        Self = new Participant
+                        {
+                            PublicKey = publicKey,
+                            Metadata = Client.Metadata
+                        },
+                        Peer = responder,
+                        Controller = responder.PublicKey,
+                        Expiry = Clock.CalculateExpiry(SessionExpiry),
+                        // RequiredNamespaces = new RequiredNamespaces(),
+                        Namespaces = Namespaces.FromAuth(approvedMethods.ToArray(), approvedAccounts.ToArray()),
+                        Relay = new ProtocolOptions
+                        {
+                            Protocol = "irn"
+                        }
+                    };
+
+                    await Client.CoreClient.Relayer.Subscribe(sessionTopic);
+                    await Client.Session.Set(sessionTopic, session);
+
+                    if (!string.IsNullOrWhiteSpace(topic))
+                    {
+                        await Client.CoreClient.Pairing.UpdateMetadata(topic, responder.Metadata);
+                    }
+
+                    session = Client.Session.Get(sessionTopic);
+                }
+
+                SessionAuthenticated?.Invoke(this, new SessionAuthenticatedEventArgs
+                {
+                    Session = session,
+                    Auths = cacaos
+                });
             }
         }
 

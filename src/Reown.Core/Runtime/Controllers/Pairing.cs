@@ -206,7 +206,7 @@ namespace Reown.Core.Controllers
         ///     A new instance of <see cref="CreatePairingData" /> that includes the pairing topic and
         ///     uri
         /// </returns>
-        public async Task<CreatePairingData> Create()
+        public async Task<CreatePairingData> Create(string[] methods = null)
         {
             var symKeyRaw = new byte[KeyLength];
             RandomNumberGenerator.Fill(symKeyRaw);
@@ -224,12 +224,17 @@ namespace Reown.Core.Controllers
                 Relay = relay,
                 Active = false
             };
+            
             var uri = $"{ICoreClient.Protocol}:{topic}@{ICoreClient.Version}?"
                 .AddQueryParam("symKey", symKey)
-                .AddQueryParam("relay-protocol", relay.Protocol);
+                .AddQueryParam("relay-protocol", relay.Protocol)
+                .AddQueryParam("expiryTimestamp", expiry.ToString());
 
             if (!string.IsNullOrWhiteSpace(relay.Data))
                 uri = uri.AddQueryParam("relay-data", relay.Data);
+
+            if (methods is { Length: > 0 })
+                uri = uri.AddQueryParam("methods", string.Join(",", methods));
 
             await Store.Set(topic, pairing);
             await CoreClient.Relayer.Subscribe(topic);

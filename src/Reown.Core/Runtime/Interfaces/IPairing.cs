@@ -55,7 +55,7 @@ namespace Reown.Core.Interfaces
         ///     A new instance of <see cref="CreatePairingData" /> that includes the pairing topic and
         ///     uri
         /// </returns>
-        Task<CreatePairingData> Create();
+        Task<CreatePairingData> Create(string[] methods = null);
 
         /// <summary>
         ///     Activate a previously created pairing at the given topic

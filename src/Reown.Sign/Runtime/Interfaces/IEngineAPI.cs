@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Reown.Core.Models;
@@ -35,6 +36,18 @@ namespace Reown.Sign.Interfaces
         ///     Event Side: Wallet
         /// </summary>
         event EventHandler<PairingEvent> PairingExpired;
+
+        /// <summary>
+        ///     This event is invoked when a new session authentication request is received.
+        ///     Event Side: Wallet
+        /// </summary>
+        event EventHandler<AuthenticateRequest> SessionAuthenticateRequest;
+
+        /// <summary>
+        ///     This event is invoked when a new session authentication response is received.
+        ///     Event Side: dApp
+        /// </summary>
+        event EventHandler<SessionAuthenticatedEventArgs> SessionAuthenticated;
 
         /// <summary>
         ///     This event is invoked when a new session is proposed. This is usually invoked
@@ -351,5 +364,14 @@ namespace Reown.Sign.Interfaces
         /// </summary>
         /// <param name="reason">An (optional) error reason for the disconnect</param>
         Task Disconnect(Error reason = null);
+
+
+        Task<AuthenticateData> Authenticate(AuthParams authParams);
+
+        Task RejectSessionAuthenticate(RejectParams rejectParams);
+
+        IDictionary<long, AuthPendingRequest> PendingAuthRequests { get; }
+
+        string FormatMessage(AuthPayloadParams payloadParams, string iss);
     }
 }
