@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -49,7 +50,11 @@ namespace Reown.Sign.Models.Cacao
                 ? $"Resources:\n{string.Join('\n', Payload.Resources.Select((resource) => $"- {resource}"))}"
                 : null;
 
-            //TODO decode recaps and add to the statement
+            if (ReCapUtils.TryGetRecapFromResources(Payload.Resources, out var recapStr))
+            {
+                var decoded = ReCapUtils.DecodeRecap(recapStr);
+                statement = FormatStatementFromRecap(decoded, statement);
+            }
 
             var message = string.Join('\n', new[]
                 {
@@ -67,6 +72,49 @@ namespace Reown.Sign.Models.Cacao
             );
 
             return message;
+        }
+
+        public string FormatStatementFromRecap(ReCap recap, string statement = "")
+        {
+            ReCapUtils.ValidateRecap(recap);
+
+            const string statementBase = "I further authorize the stated URI to perform the following actions on my behalf: ";
+
+            if (statement.Contains(statementBase))
+                return statement;
+
+            var statementForRecap = new List<string>();
+            var currentCounter = 0;
+            foreach (var resource in recap.Att.Keys)
+            {
+                var actions = (recap.Att[resource] as Dictionary<string, object>)!.Keys.Select(ability => new
+                {
+                    Ability = ability.Split("/")[0],
+                    Action = ability.Split("/")[1]
+                });
+
+                actions = actions.OrderBy(action => action.Action);
+                var uniqueAbilities = new Dictionary<string, List<string>>();
+                foreach (var action in actions)
+                {
+                    if (!uniqueAbilities.ContainsKey(action.Ability))
+                        uniqueAbilities[action.Ability] = new List<string>();
+
+                    uniqueAbilities[action.Ability].Add(action.Action);
+                }
+
+                var abilities = uniqueAbilities.Keys.Select(ability =>
+                {
+                    currentCounter++;
+                    return $"({currentCounter}) '{ability}': '{string.Join("', '", uniqueAbilities[ability])}' for '{resource}'.";
+                });
+
+                statementForRecap.Add(string.Join(", ", abilities).Replace(".,", "."));
+            }
+
+            var recapStatement = string.Join(" ", statementForRecap);
+            recapStatement = $"{statementBase}{recapStatement}";
+            return $"{statement} {recapStatement}";
         }
     }
 }

@@ -5,51 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2f5f8ac7-0622-47ce-9f54-e7355eaeafc5" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/LowerCaseNamingStrategy.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Constants/AuthConstants.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/Auth.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/AuthKeyStore.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/AuthPairingTopics.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/AuthPendingRequests.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IAuth.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/AuthKey.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/AuthPairing.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/AuthPayloadParams.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/AuthPendingRequest.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoHeader.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoObject.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoPayload.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoSignature.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/AuthParams.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/AuthenticateData.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/AuthenticateRequest.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/AuthenticateResponse.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionAuthenticate.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionAuthenticateAutoReject.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/SessionAuthenticatedEventArgs.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/CacaoUtils.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/ReCapUtils.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignatureTests.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Reown.sln.DotSettings" beforeDir="false" afterPath="$PROJECT_DIR$/Reown.sln.DotSettings" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Pairing.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Pairing.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IPairing.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IPairing.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Verify/VerifiedContext.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Verify/VerifiedContext.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Reown.Sign.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Reown.Sign.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/AddressProvider.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/AddressProvider.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IEngineAPI.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IEngineAPI.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IEnginePrivate.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IEnginePrivate.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/ISignClient.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/ISignClient.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineTasks.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineTasks.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineValidation.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineValidation.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Namespaces.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Namespaces.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Participant.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Participant.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/SessionStruct.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/SessionStruct.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/SignClient.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/SignClient.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.WalletKit/Runtime/Controllers/WalletKitEngine.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.WalletKit/Runtime/Controllers/WalletKitEngine.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.WalletKit/Runtime/Interfaces/IWalletKitApi.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.WalletKit/Runtime/Interfaces/IWalletKitApi.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoObject.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoObject.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -193,7 +152,7 @@
       <workItem from="1726748023409" duration="2308000" />
       <workItem from="1726755540126" duration="3376000" />
       <workItem from="1727339917018" duration="3755000" />
-      <workItem from="1727345502559" duration="23391000" />
+      <workItem from="1727345502559" duration="28386000" />
     </task>
     <servers />
   </component>

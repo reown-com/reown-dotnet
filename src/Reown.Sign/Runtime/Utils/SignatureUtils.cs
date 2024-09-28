@@ -22,6 +22,9 @@ namespace Reown.Sign.Utils
             string chainId,
             string projectId)
         {
+            if (string.IsNullOrWhiteSpace(cacaoSignature.S))
+                throw new ArgumentException("VerifySignature Failed: CacaoSignature S is null or empty");
+            
             return cacaoSignature.T switch
             {
                 CacaoSignatureType.Eip191 => IsValidEip191Signature(address, reconstructedMessage, cacaoSignature.S),
