@@ -5,10 +5,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2f5f8ac7-0622-47ce-9f54-e7355eaeafc5" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignatureTests.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionAuthenticateReject.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/Reown.Sign.Test/CacaoTests.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/Reown.Sign.Test/RecapTests.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Errors/ErrorType.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Errors/ErrorType.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Errors/SdkErrors.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Errors/SdkErrors.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IEngineAPI.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IEngineAPI.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/AuthPayloadParams.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/AuthPayloadParams.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoObject.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoObject.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/AuthParams.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/AuthParams.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Namespaces.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Namespaces.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/SignClient.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/SignClient.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/CacaoUtils.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/CacaoUtils.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/ReCapUtils.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/ReCapUtils.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,12 +45,11 @@
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/2a3105e7355248488912e34f9ff5cbebc7e00/40/2dee53a6/Array.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/3dca2853e68e477588e1512c381be5001b600/90/6e5af1a7/ProcessorExtensions.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/7b93b1e91bbc4c87a18d9a96d41d778c4b5e00/80/3431c94f/Logger.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/8bc9cdb23bc146bcaaae0bb9e45e5d46d9dc00/2a/6ebc1a4b/IDisposable.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/b8b10b8247cb413eab5175c26a5956a755a8/a2/e51fb4db/ITestOutputHelper.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/c15184cdf8254e74a8a6ee96bd1b8738d82000/73/c6452c68/ICollection.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/c4acef6dc8fd4983a0f89a748794a2009000/f9/a14a1b68/BlockHeaderEncoder.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/cce4b5a89a7e4f9aa748463a385e24378c00/9f/d9a7e723/List`1.cs" root0="FORCE_HIGHLIGHTING" />
@@ -53,6 +63,7 @@
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/9ec14bf1a6ca9b18c9e62147b1cadf0959b3acbfc5c8c2b9d5c6fa12030/StringEnumConverter.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/bf9021a960b74107a7e141aa06bc9d8a0a53c929178c2fb95b1597be8af8dc/ExceptionDispatchInfo.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/bfe6d7ebbed9d3d854a76aee4fdb9ee59579753e7230885a72fcd7521c3bde/NamingStrategy.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/df6bc5501fb85deae91441163833d580a2eb466322fdde053a3e60694c1d9b/StringAsserts.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/playground/Reown.Playground.Unity/Assets/Scripts/Test.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/AppKitCore.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Interfaces/IKeyChain.cs" root0="FORCE_HIGHLIGHTING" />
@@ -100,23 +111,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;b28ffd12-0193-4c7b-b16b-7260c922df2a.executor&quot;: &quot;Debug&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;feat/1ca&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;rider.code.cleanup.on.save&quot;: &quot;true&quot;,
-    &quot;rider.code.cleanup.on.save.only.changed.lines&quot;: &quot;true&quot;,
-    &quot;rider.code.cleanup.on.save.profile&quot;: &quot;Built-in: Reformat &amp; Apply Syntax Style&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;actions.on.save&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "b28ffd12-0193-4c7b-b16b-7260c922df2a.executor": "Debug",
+    "git-widget-placeholder": "#3 on feat/1ca",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "rider.code.cleanup.on.save": "true",
+    "rider.code.cleanup.on.save.only.changed.lines": "true",
+    "rider.code.cleanup.on.save.profile": "Built-in: Reformat & Apply Syntax Style",
+    "settings.editor.selected.configurable": "actions.on.save",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
+  <component name="RiderTodoViewSettings" groupByProject="false" />
   <component name="RunManager" selected="Attach to Unity Editor.Attach to Unity Editor">
     <configuration name="Attach to Unity Editor" type="UNITY_DEBUG_RUN_CONFIGURATION" factoryName="Unity Debug" show_console_on_std_err="false" show_console_on_std_out="false" port="50000" address="localhost">
       <option name="allowRunningInParallel" value="false" />
@@ -153,11 +165,92 @@
       <workItem from="1726755540126" duration="3376000" />
       <workItem from="1727339917018" duration="3755000" />
       <workItem from="1727345502559" duration="28386000" />
+      <workItem from="1727685426906" duration="18255000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="UnitTestsCoverage.Settings">
+    <option name="coveragePercentColumnWidth" value="150" />
+    <option name="sortOrder" value="DESCENDING" />
+    <option name="sortedColumn" value="1" />
+    <option name="symbolColumnWidth" value="427" />
+    <coverage-tree-state>
+      <expand>
+        <path>
+          <item name="rootNode" type="c53c71d1:RiderDotCoverCoverageTreeModel$RootNode" />
+          <item name="Total 1% 26364/26570" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+        </path>
+        <path>
+          <item name="rootNode" type="c53c71d1:RiderDotCoverCoverageTreeModel$RootNode" />
+          <item name="Total 1% 26364/26570" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 2% 5126/5226" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+        </path>
+        <path>
+          <item name="rootNode" type="c53c71d1:RiderDotCoverCoverageTreeModel$RootNode" />
+          <item name="Total 1% 26364/26570" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 2% 5126/5226" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="(1.0.0.0, net8.0) 6% 1642/1742" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+        </path>
+        <path>
+          <item name="rootNode" type="c53c71d1:RiderDotCoverCoverageTreeModel$RootNode" />
+          <item name="Total 1% 26364/26570" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 2% 5126/5226" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="(1.0.0.0, net8.0) 6% 1642/1742" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 6% 1642/1742" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+        </path>
+        <path>
+          <item name="rootNode" type="c53c71d1:RiderDotCoverCoverageTreeModel$RootNode" />
+          <item name="Total 1% 26364/26570" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 2% 5126/5226" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="(1.0.0.0, net8.0) 6% 1642/1742" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 6% 1642/1742" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Utils 54% 84/184" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+        </path>
+        <path>
+          <item name="rootNode" type="c53c71d1:RiderDotCoverCoverageTreeModel$RootNode" />
+          <item name="Total 1% 26364/26570" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 2% 5126/5226" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="(1.0.0.0, net8.0) 6% 1642/1742" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 6% 1642/1742" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Utils 54% 84/184" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="ReCapUtils 71% 41/139" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+        </path>
+        <path>
+          <item name="rootNode" type="c53c71d1:RiderDotCoverCoverageTreeModel$RootNode" />
+          <item name="Total 1% 26364/26570" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 2% 5126/5226" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="(1.0.0.0, net8.0) 6% 1642/1742" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 6% 1642/1742" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Utils 54% 84/184" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="ReCapUtils 71% 41/139" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="FormatStatementFromRecap(ReCap,string) 96% 1/26" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+        </path>
+        <path>
+          <item name="rootNode" type="c53c71d1:RiderDotCoverCoverageTreeModel$RootNode" />
+          <item name="Total 1% 26364/26570" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 2% 5126/5226" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="(1.0.0.0, net8.0) 6% 1642/1742" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 6% 1642/1742" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Utils 54% 84/184" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="ReCapUtils 71% 41/139" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="GetChainsFromRecap(string) 88% 2/17" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+        </path>
+        <path>
+          <item name="rootNode" type="c53c71d1:RiderDotCoverCoverageTreeModel$RootNode" />
+          <item name="Total 1% 26364/26570" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 2% 5126/5226" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="(1.0.0.0, net8.0) 6% 1642/1742" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 6% 1642/1742" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Utils 54% 84/184" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="ReCapUtils 71% 41/139" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="AssignAbilityToActions(string,string[],Dictionary&lt;string,object&gt;) 86% 2/14" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+        </path>
+      </expand>
+      <select />
+    </coverage-tree-state>
   </component>
   <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
   <component name="UnityProjectDiscoverer">
@@ -417,6 +510,19 @@
           </properties>
           <option name="timeStamp" value="58" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/ReCapUtils.cs</url>
+          <line>307</line>
+          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/ReCapUtils.cs" containingFunctionPresentation="Method 'FormatStatementFromRecap'">
+            <startOffsets>
+              <option value="11412" />
+            </startOffsets>
+            <endOffsets>
+              <option value="11469" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="61" />
+        </line-breakpoint>
         <breakpoint enabled="true" suspend="NONE" type="DotNet Exception Breakpoints">
           <properties exception="System.Collections.Generic.KeyNotFoundException" isInternal="false" displayValue="KeyNotFoundException" namespaceName="System.Collections.Generic">
             <option name="internal" value="false" />
@@ -463,6 +569,7 @@
     <pin-to-top-manager>
       <pinned-members>
         <PinnedItemInfo parentTag="Type#Reown.Core.Core" memberName="Context" />
+        <PinnedItemInfo parentTag="Type#Reown.Sign.Utils.AttValue" memberName="Properties" />
       </pinned-members>
     </pin-to-top-manager>
   </component>

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using Org.BouncyCastle.Utilities.Collections;
+using Reown.Core;
 using Reown.Core.Common;
 using Reown.Core.Common.Events;
 using Reown.Core.Common.Logging;
@@ -19,6 +21,7 @@ using Reown.Core.Network.Models;
 using Reown.Sign.Constants;
 using Reown.Sign.Interfaces;
 using Reown.Sign.Models;
+using Reown.Sign.Models.Cacao;
 using Reown.Sign.Models.Engine;
 using Reown.Sign.Models.Engine.Events;
 using Reown.Sign.Models.Engine.Methods;
@@ -965,10 +968,29 @@ namespace Reown.Sign
 
             if (authParams.Methods is { Length: > 0 })
             {
+                ReownLogger.Log("Methods provided, creating recap");
+                
                 var chainId = authParams.Chains[0];
                 var @namespace = chainId.Split(':')[0];
+                var recapStr = ReCapUtils.CreateEncodedRecap(@namespace, "request", authParams.Methods);
 
-                //TODO: recaps
+                ReownLogger.Log($"Created recap: {recapStr}");
+
+                authParams.Resources ??= new List<string>();
+
+                if (!ReCapUtils.TryGetRecapFromResources(authParams.Resources, out var existingRecap))
+                {
+                    authParams.Resources.Add(recapStr);
+                }
+                else
+                {
+                    // Per ReCaps spec, recap must occupy the last position in the resources array
+                    // using .RemoveAt to remove the last element given we already checked it's a recap and will replace it
+                    authParams.Resources.RemoveAt(authParams.Resources.Count - 1);
+
+                    var mergedRecap = ReCapUtils.MergeEncodedRecaps(recapStr, existingRecap);
+                    authParams.Resources.Add(mergedRecap);
+                }
             }
 
             var authPayloadParams = new AuthPayloadParams
@@ -998,7 +1020,7 @@ namespace Reown.Sign
                 Requester = participant,
                 ExpiryTimestamp = Clock.CalculateExpiry(authParams.Expiration ?? Clock.ONE_HOUR)
             };
-
+            
             // Build namespaces for fallback session proposal
             var namespaces = new Dictionary<string, ProposedNamespace>
             {
@@ -1117,11 +1139,136 @@ namespace Reown.Sign
             }
         }
 
-        public Task RejectSessionAuthenticate(RejectParams rejectParams)
+        public async Task RejectSessionAuthenticate(RejectParams rejectParams)
         {
-            throw new NotImplementedException();
+            IsInitialized();
+
+            var pendingRequest = Client.Auth.PendingRequests.Get(rejectParams.Id);
+
+            if (pendingRequest == null)
+                throw new InvalidOperationException($"No pending request found for the id {rejectParams.Id}");
+
+            // var receiverPublicKey = pendingRequest.Requester.PublicKey;
+            var senderPublicKey = await Client.CoreClient.Crypto.GenerateKeyPair();
+            var responseTopic = Client.CoreClient.Crypto.HashKey(senderPublicKey);
+
+            await MessageHandler.SendError<SessionAuthenticate, SessionAuthenticateReject>(rejectParams.Id, responseTopic, rejectParams.Reason);
+
+            await Client.Auth.PendingRequests.Delete(rejectParams.Id, Error.FromErrorType(ErrorType.USER_DISCONNECTED));
+            await Client.Proposal.Delete(rejectParams.Id, Error.FromErrorType(ErrorType.USER_DISCONNECTED));
         }
 
+        public async Task<SessionStruct> ApproveSessionAuthenticate(long requestId, CacaoObject[] auths)
+        {
+            IsInitialized();
+
+            var pendingRequest = Client.Auth.PendingRequests.Get(requestId);
+
+            if (pendingRequest == null)
+                throw new InvalidOperationException($"No pending request found for the requestId {requestId}");
+
+            var receiverPublicKey = pendingRequest.Requester.PublicKey;
+            var senderPublicKey = await Client.CoreClient.Crypto.GenerateKeyPair();
+            var responseTopic = Client.CoreClient.Crypto.HashKey(senderPublicKey);
+
+            var approvedMethods = new HashSet<string>();
+            var approvedAccounts = new HashSet<string>();
+            foreach (var cacao in auths)
+            {
+                var isValid = await cacao.VerifySignature(Client.CoreClient.ProjectId);
+
+                if (!isValid)
+                {
+                    var error = Error.FromErrorType(ErrorType.SESSION_SETTLEMENT_FAILED);
+                    await MessageHandler.SendError<SessionAuthenticate, SessionAuthenticateAutoReject>(requestId, responseTopic, error);
+
+                    throw new InvalidOperationException("Invalid cacao signature");
+                }
+
+                var approvedChains = new HashSet<string>
+                {
+                    CacaoUtils.ExtractDidChainId(cacao.Payload.Iss)
+                };
+
+                var address = CacaoUtils.ExtractDidAddress(cacao.Payload.Iss);
+
+                if (ReCapUtils.TryGetRecapFromResources(cacao.Payload.Resources, out var recap))
+                {
+                    var methodsFromRecap = ReCapUtils.GetMethodsFromRecap(recap);
+                    var chainsFromRecap = ReCapUtils.GetChainsFromRecap(recap);
+
+                    approvedMethods.UnionWith(methodsFromRecap);
+                    approvedChains.UnionWith(chainsFromRecap);
+                }
+
+                foreach (var approvedChain in approvedChains)
+                {
+                    approvedAccounts.Add($"{approvedChain}:{address}");
+                }
+            }
+
+            ReownLogger.Log($"Approved methods: {string.Join(", ", approvedMethods)}");
+            ReownLogger.Log($"Approved accounts: {string.Join(", ", approvedAccounts)}");
+
+            var sessionTopic = await Client.CoreClient.Crypto.GenerateSharedKey(senderPublicKey, receiverPublicKey);
+
+            SessionStruct session = default;
+            if (approvedMethods.Any())
+            {
+                session = new SessionStruct
+                {
+                    Topic = sessionTopic,
+                    Acknowledged = true,
+                    Self = new Participant
+                    {
+                        PublicKey = senderPublicKey,
+                        Metadata = Client.Metadata
+                    },
+                    Peer = new Participant
+                    {
+                        PublicKey = receiverPublicKey,
+                        Metadata = pendingRequest.Requester.Metadata
+                    },
+                    Controller = receiverPublicKey,
+                    Expiry = Clock.CalculateExpiry(SessionExpiry),
+                    Namespaces = Namespaces.FromAuth(approvedMethods, approvedAccounts),
+                    Relay = new ProtocolOptions
+                    {
+                        Protocol = RelayProtocols.Default
+                    },
+                    PairingTopic = pendingRequest.PairingTopic
+                };
+
+                ReownLogger.Log($"Approving session with topic {sessionTopic}");
+                await Client.CoreClient.Relayer.Subscribe(sessionTopic);
+                await Client.Session.Set(sessionTopic, session);
+
+                ReownLogger.Log($"Updating session metadata for pairing topic {pendingRequest.PairingTopic}");
+                await Client.CoreClient.Pairing.UpdateMetadata(pendingRequest.PairingTopic, session.Peer.Metadata);
+            }
+
+            ReownLogger.Log("Sending response to session authenticate request");
+            await MessageHandler.SendResult<SessionAuthenticate, AuthenticateResponse>(requestId, responseTopic, new AuthenticateResponse
+            {
+                Cacaos = auths,
+                Responder = new Participant
+                {
+                    PublicKey = senderPublicKey,
+                    Metadata = Client.Metadata
+                }
+            });
+
+            await Client.Auth.PendingRequests.Delete(requestId, new Error
+            {
+                Code = 0,
+                Message = "fulfilled"
+            });
+            await Client.CoreClient.Pairing.Activate(pendingRequest.PairingTopic);
+
+            return session;
+        }
+
+        // TODO: remove?
         public IDictionary<long, AuthPendingRequest> PendingAuthRequests { get; } = new Dictionary<long, AuthPendingRequest>();
 
         public string FormatMessage(AuthPayloadParams payloadParams, string iss)

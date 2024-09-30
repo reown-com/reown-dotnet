@@ -42,6 +42,9 @@ namespace Reown.Core.Common.Model.Errors
         // 6000 (Reason)
         USER_DISCONNECTED = 6000,
 
+        // 7000 (Failure)
+        SESSION_SETTLEMENT_FAILED = 7000,
+
         // 8000 (Session)
         SESSION_REQUEST_EXPIRED = 8000,
 

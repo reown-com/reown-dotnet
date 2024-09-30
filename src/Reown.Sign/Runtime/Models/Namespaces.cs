@@ -85,16 +85,15 @@ namespace Reown.Sign.Models
             return namespaces;
         }
 
-        public static Namespaces FromAuth(string[] methods, string[] accounts)
+        public static Namespaces FromAuth(ICollection<string> methods, ICollection<string> accounts)
         {
-            accounts = Array.ConvertAll(accounts, account => account.Replace("did:pkh:", string.Empty));
-
-            var namespaces = FromAccounts(accounts);
+            var formattedAccounts = accounts.Select(account => account.Replace("did:pkh:", string.Empty)).ToArray();
+            var namespaces = FromAccounts(formattedAccounts);
 
             foreach (var values in namespaces.Values)
             {
                 values.Methods = values.Methods == null
-                    ? methods
+                    ? methods.ToArray()
                     : values.Methods.Concat(methods).ToArray();
 
                 values.Events = new[]

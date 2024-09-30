@@ -88,6 +88,9 @@
                 case ErrorType.USER_DISCONNECTED:
                     errorMessage = "User disconnected.";
                     break;
+                case ErrorType.SESSION_SETTLEMENT_FAILED:
+                    errorMessage = "Session settlement failed.";
+                    break;
                 case ErrorType.UNKNOWN:
                     errorMessage = "Unknown error {params}";
                     break;

@@ -16,6 +16,7 @@ using Reown.Core.Storage;
 using Reown.Sign.Controllers;
 using Reown.Sign.Interfaces;
 using Reown.Sign.Models;
+using Reown.Sign.Models.Cacao;
 using Reown.Sign.Models.Engine;
 using Reown.Sign.Models.Engine.Events;
 using Reown.Sign.Models.Engine.Methods;
@@ -472,6 +473,11 @@ namespace Reown.Sign
         public Task RejectSessionAuthenticate(RejectParams rejectParams)
         {
             return Engine.RejectSessionAuthenticate(rejectParams);
+        }
+
+        public Task<SessionStruct> ApproveSessionAuthenticate(long requestId, CacaoObject[] auths)
+        {
+            return Engine.ApproveSessionAuthenticate(requestId, auths);
         }
 
         IDictionary<long, AuthPendingRequest> IEngineAPI.PendingAuthRequests

@@ -8,6 +8,7 @@ using Reown.Core.Models.Pairing;
 using Reown.Core.Models.Relay;
 using Reown.Core.Network.Models;
 using Reown.Sign.Models;
+using Reown.Sign.Models.Cacao;
 using Reown.Sign.Models.Engine;
 using Reown.Sign.Models.Engine.Events;
 using Reown.Sign.Models.Engine.Methods;
@@ -369,6 +370,8 @@ namespace Reown.Sign.Interfaces
         Task<AuthenticateData> Authenticate(AuthParams authParams);
 
         Task RejectSessionAuthenticate(RejectParams rejectParams);
+
+        Task<SessionStruct> ApproveSessionAuthenticate(long requestId, CacaoObject[] auths);
 
         IDictionary<long, AuthPendingRequest> PendingAuthRequests { get; }
 

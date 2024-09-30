@@ -1,5 +1,6 @@
 #nullable enable
 
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace Reown.Sign.Models
@@ -37,7 +38,7 @@ namespace Reown.Sign.Models
         public string? RequestId;
 
         [JsonProperty("resources", NullValueHandling = NullValueHandling.Ignore)]
-        public string[]? Resources;
+        public List<string>? Resources;
 
         [JsonProperty("pairingTopic", NullValueHandling = NullValueHandling.Ignore)]
         public string? PairingTopic;
@@ -53,7 +54,7 @@ namespace Reown.Sign.Models
         {
         }
 
-        public AuthPayloadParams(string[] chains, string domain, string nonce, string? aud, string? type, string? nbf, string? exp, string? iat, string? statement, string? requestId, string[]? resources, string? pairingTopic, string[]? methods, string? version)
+        public AuthPayloadParams(string[] chains, string domain, string nonce, string? aud, string? type, string? nbf, string? exp, string? iat, string? statement, string? requestId, List<string>? resources, string? pairingTopic, string[]? methods, string? version)
         {
             Chains = chains;
             Domain = domain;

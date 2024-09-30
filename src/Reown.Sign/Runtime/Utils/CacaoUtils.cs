@@ -35,11 +35,6 @@ namespace Reown.Sign.Utils
             return segments.Length == 0 ? null : segments[^1];
         }
 
-        public static string ToRfc3339(this DateTime dateTime)
-        {
-            return dateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ", CultureInfo.InvariantCulture);
-        }
-
         public static string ToRfc3339(this DateTimeOffset dateTimeOffset)
         {
             return dateTimeOffset.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ", CultureInfo.InvariantCulture);
