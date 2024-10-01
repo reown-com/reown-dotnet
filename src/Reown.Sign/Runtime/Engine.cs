@@ -997,6 +997,7 @@ namespace Reown.Sign
             {
                 Type = "caip122",
                 Chains = authParams.Chains,
+                Methods = authParams.Methods,
                 Statement = authParams.Statement,
                 Aud = authParams.Uri,
                 Domain = authParams.Domain,

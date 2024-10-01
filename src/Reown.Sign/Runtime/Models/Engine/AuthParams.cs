@@ -34,9 +34,6 @@ namespace Reown.Sign.Models.Engine
         [JsonProperty("resources", NullValueHandling = NullValueHandling.Ignore)]
         public List<string>? Resources;
 
-        [JsonProperty("pairingTopic", NullValueHandling = NullValueHandling.Ignore)]
-        public string? PairingTopic;
-
         [JsonProperty("methods", NullValueHandling = NullValueHandling.Ignore)]
         public string[]? Methods;
 
@@ -44,7 +41,7 @@ namespace Reown.Sign.Models.Engine
         {
         }
 
-        public AuthParams(string[] chains, string domain, string nonce, string uri, long? nbf, long? exp, string? statement, string? requestId, List<string>? resources, string? pairingTopic, string[]? methods)
+        public AuthParams(string[] chains, string domain, string nonce, string uri, long? nbf, long? exp, string? statement, string? requestId, List<string>? resources, string[]? methods)
         {
             Chains = chains;
             Domain = domain;
@@ -55,7 +52,6 @@ namespace Reown.Sign.Models.Engine
             Statement = statement;
             RequestId = requestId;
             Resources = resources;
-            PairingTopic = pairingTopic;
             Methods = methods;
         }
     }

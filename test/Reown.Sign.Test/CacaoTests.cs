@@ -13,7 +13,7 @@ public class CacaoTests
         _testOutputHelper = testOutputHelper;
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "unit")]
     public void FormatMessage_WithoutRecap_ReturnsExpectedMessage()
     {
         var payload = new CacaoPayload(

@@ -75,6 +75,14 @@ namespace Reown.Sign.Utils
 
             return abilitiesDictionary;
         }
+
+        public static bool TryGetDecodedRecapFromResources(IEnumerable<string> resources, out ReCap recap)
+        {
+            var success = TryGetRecapFromResources(resources, out var recapStr);
+            recap = success ? DecodeRecap(recapStr) : null;
+
+            return success;
+        }
         
         public static bool TryGetRecapFromResources(IEnumerable<string> resources, out string recap)
         {
@@ -97,11 +105,15 @@ namespace Reown.Sign.Utils
         public static string[] GetMethodsFromRecap(string recapStr)
         {
             var decodedRecap = DecodeRecap(recapStr);
+            return GetMethodsFromRecap(decodedRecap);
+        }
 
+        public static string[] GetMethodsFromRecap(ReCap recap)
+        {
             try
             {
                 // Methods are only available for eip155 as per the current implementation
-                return decodedRecap.Att["eip155"] is { } resources
+                return recap.Att["eip155"] is { } resources
                     ? resources.Properties.Keys.Select(ability => ability.Split("/")[1]).ToArray()
                     : Array.Empty<string>();
             }
@@ -159,6 +171,10 @@ namespace Reown.Sign.Utils
         {
             var paddedRecap = recapStr.Replace("urn:recap:", string.Empty);
 
+            paddedRecap = paddedRecap.TrimEnd('=');
+            var paddingNeeded = (4 - paddedRecap.Length % 4) % 4;
+            paddedRecap = paddedRecap.PadRight(paddedRecap.Length + paddingNeeded, '=');
+            
             var decodedRecap = Convert.FromBase64String(paddedRecap);
             var decodedRecapStr = System.Text.Encoding.UTF8.GetString(decodedRecap);
             var recap = JsonConvert.DeserializeObject<ReCap>(decodedRecapStr);
@@ -193,12 +209,8 @@ namespace Reown.Sign.Utils
 
                     foreach (var limitToken in limits)
                     {
-                        if (limitToken is not JObject limitObject)
+                        if (limitToken is not JObject)
                             throw new ArgumentException($"Each limit for ability '{key}' must be an object. Invalid limit: {limitToken}");
-
-                        var limitDict = limitObject.ToObject<Dictionary<string, object>>();
-                        if (limitDict == null || limitDict.Count == 0)
-                            throw new ArgumentException($"Each limit object for ability '{key}' must contain at least one key-value pair.");
                     }
                 }
             }
@@ -219,53 +231,91 @@ namespace Reown.Sign.Utils
 
             var mergedRecap = new ReCap
             {
-                Att = new Dictionary<string, AttValue>()
+                Att = new Dictionary<string, AttValue>(StringComparer.Ordinal)
             };
 
-            // Merge the keys from both recaps
-            var keys = recap1.Att.Keys
-                .Concat(recap2.Att.Keys)
-                .Distinct()
-                .OrderBy(k => k, StringComparer.Ordinal)
-                .ToList();
+            var allKeys = recap1.Att.Keys.Union(recap2.Att.Keys, StringComparer.Ordinal).OrderBy(k => k);
 
-            foreach (var key in keys)
+            foreach (var key in allKeys)
             {
-                if (!mergedRecap.Att.ContainsKey(key))
+                recap1.Att.TryGetValue(key, out var value1);
+                recap2.Att.TryGetValue(key, out var value2);
+
+                var mergedValue = new AttValue
                 {
-                    mergedRecap.Att[key] = new AttValue
+                    Properties = new Dictionary<string, JToken>(StringComparer.Ordinal)
+                };
+
+                var allActions = (value1?.Properties?.Keys ?? Enumerable.Empty<string>())
+                    .Union(value2?.Properties?.Keys ?? Enumerable.Empty<string>(), StringComparer.Ordinal)
+                    .OrderBy(a => a);
+
+                foreach (var action in allActions)
+                {
+                    JToken property1 = null;
+                    JToken property2 = null;
+
+                    value1?.Properties?.TryGetValue(action, out property1);
+                    value2?.Properties?.TryGetValue(action, out property2);
+
+                    JToken mergedProperty;
+
+                    if (property1 == null)
+                        mergedProperty = property2;
+                    else if (property2 == null)
+                        mergedProperty = property1;
+                    else
                     {
-                        Properties = new Dictionary<string, JToken>()
-                    };
+                        switch (property1)
+                        {
+                            case JArray arr1 when property2 is JArray arr2:
+                            {
+                                var mergedArray = new JArray();
+                                foreach (var item1 in arr1)
+                                {
+                                    if (item1 is JObject obj1)
+                                    {
+                                        var mergedItem = obj1.DeepClone();
+                                        foreach (var item2 in arr2)
+                                            if (item2 is JObject obj2)
+                                                ((JObject)mergedItem).Merge(obj2, new JsonMergeSettings
+                                                {
+                                                    MergeArrayHandling = MergeArrayHandling.Union
+                                                });
+
+                                        mergedArray.Add(mergedItem);
+                                    }
+                                    else
+                                    {
+                                        mergedArray.Add(item1);
+                                    }
+                                }
+
+                                mergedProperty = mergedArray;
+                                break;
+                            }
+                            case JObject obj1 when property2 is JObject obj2:
+                                mergedProperty = obj1.DeepClone();
+                                ((JObject)mergedProperty).Merge(obj2, new JsonMergeSettings
+                                {
+                                    MergeArrayHandling = MergeArrayHandling.Union
+                                });
+                                break;
+                            default:
+                                mergedProperty = property1;
+                                break;
+                        }
+                    }
+
+                    mergedValue.Properties[action] = mergedProperty;
                 }
 
-                var mergedProperties = mergedRecap.Att[key].Properties;
-
-                // Get actions from both recaps for the current key
-                var actions1 = recap1.Att.TryGetValue(key, out var value1) ? value1.Properties.Keys : Enumerable.Empty<string>();
-                var actions2 = recap2.Att.TryGetValue(key, out var value2) ? value2.Properties.Keys : Enumerable.Empty<string>();
-
-                var actions = actions1
-                    .Concat(actions2)
-                    .Distinct()
-                    .OrderBy(a => a, StringComparer.Ordinal)
-                    .ToList();
-
-                foreach (var action in actions)
-                {
-                    if (recap1.Att.ContainsKey(key) && recap1.Att[key].Properties.ContainsKey(action))
-                    {
-                        mergedProperties[action] = recap1.Att[key].Properties[action];
-                    }
-                    else if (recap2.Att.ContainsKey(key) && recap2.Att[key].Properties.ContainsKey(action))
-                    {
-                        mergedProperties[action] = recap2.Att[key].Properties[action];
-                    }
-                }
+                mergedRecap.Att[key] = mergedValue;
             }
 
+            ValidateRecap(mergedRecap);
             return mergedRecap;
-        }
+        } 
 
         public static string FormatStatementFromRecap(ReCap recap, string statement = "")
         {
