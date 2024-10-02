@@ -337,7 +337,7 @@ public class RecapTests
         const string recapStr =
             "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvZXRoX3NpZ25UeXBlZERhdGFfdjQiOlt7ImNoYWlucyI6WyJlaXAxNTU6MSIsImVpcDE1NToyIiwiZWlwMTU1OjMiXX1dLCJyZXF1ZXN0L3BlcnNvbmFsX3NpZ24iOlt7ImNoYWlucyI6WyJlaXAxNTU6MSIsImVpcDE1NToyIiwiZWlwMTU1OjMiXX1dfX19";
 
-        var methods = ReCapUtils.GetMethodsFromRecap(recapStr);
+        var methods = ReCapUtils.GetActionsFromRecap(recapStr);
 
         var expectedMethods = new[]
         {

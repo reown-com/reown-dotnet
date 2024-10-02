@@ -51,6 +51,32 @@ public class AuthenticateTests : IClassFixture<SignClientFixture>
         var tcs = new TaskCompletionSource<bool>();
         wallet.SessionAuthenticateRequest += async (sender, args) =>
         {
+            // Validate that the dapp has both `session_authenticate` & `session_proposal` stored
+            // And expirer configured
+            var pendingProposals = dapp.Proposal.Values;
+            Assert.Single(pendingProposals);
+            Assert.Contains($"id:{pendingProposals[0].Id}", dapp.CoreClient.Expirer.Keys);
+            Assert.NotNull(dapp.CoreClient.Expirer.Get(pendingProposals[0].Id));
+            Assert.True(dapp.CoreClient.Expirer.Get(pendingProposals[0].Id).Expiry > 0);
+
+            var pendingAuthRequests = dapp.Auth.PendingRequests.Values;
+            Assert.Single(pendingAuthRequests);
+            Assert.Contains($"id:{pendingAuthRequests[0].Id}", dapp.CoreClient.Expirer.Keys);
+            Assert.NotNull(dapp.CoreClient.Expirer.Get(pendingAuthRequests[0].Id));
+            Assert.True(dapp.CoreClient.Expirer.Get(pendingAuthRequests[0].Id).Expiry > 0);
+            Assert.Equal(args.Payload.RequestId, pendingAuthRequests[0].Id);
+
+            // Validate that the wallet doesn't have any pending proposals
+            var pendingProposalsWallet = wallet.Proposal.Values;
+            Assert.Empty(pendingProposalsWallet);
+
+            args.Payload.Populate([
+                "eip155:1"
+            ], [
+                "personal_sign",
+                "eth_sendTransaction"
+            ]);
+            
             _testOutputHelper.WriteLine("SessionAuthenticateRequest");
             tcs.SetResult(true);
         };

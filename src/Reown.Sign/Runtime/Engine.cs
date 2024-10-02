@@ -1090,6 +1090,16 @@ namespace Reown.Sign
                 OptionalNamespaces = proposal.OptionalNamespaces
             });
 
+            await Client.Auth.PendingRequests.Set(authId, new AuthPendingRequest
+            {
+                Id = authId,
+                Requester = participant,
+                PairingTopic = pairingData.Topic,
+                PayloadParams = request.Payload,
+                Expiry = request.ExpiryTimestamp
+            });
+            Client.CoreClient.Expirer.Set(authId, request.ExpiryTimestamp);
+
 
             return new AuthenticateData(pairingData.Uri, approvalTask.Task);
 
@@ -1195,7 +1205,7 @@ namespace Reown.Sign
 
                 if (ReCapUtils.TryGetRecapFromResources(cacao.Payload.Resources, out var recap))
                 {
-                    var methodsFromRecap = ReCapUtils.GetMethodsFromRecap(recap);
+                    var methodsFromRecap = ReCapUtils.GetActionsFromRecap(recap);
                     var chainsFromRecap = ReCapUtils.GetChainsFromRecap(recap);
 
                     approvedMethods.UnionWith(methodsFromRecap);

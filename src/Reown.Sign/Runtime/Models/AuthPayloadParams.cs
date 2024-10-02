@@ -1,7 +1,10 @@
 #nullable enable
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
+using Reown.Sign.Utils;
 
 namespace Reown.Sign.Models
 {
@@ -35,7 +38,7 @@ namespace Reown.Sign.Models
         public string? Statement;
 
         [JsonProperty("requestId", NullValueHandling = NullValueHandling.Ignore)]
-        public string? RequestId;
+        public long? RequestId;
 
         [JsonProperty("resources", NullValueHandling = NullValueHandling.Ignore)]
         public List<string>? Resources;
@@ -54,7 +57,7 @@ namespace Reown.Sign.Models
         {
         }
 
-        public AuthPayloadParams(string[] chains, string domain, string nonce, string? aud, string? type, string? nbf, string? exp, string? iat, string? statement, string? requestId, List<string>? resources, string? pairingTopic, string[]? methods, string? version)
+        public AuthPayloadParams(string[] chains, string domain, string nonce, string? aud, string? type, string? nbf, string? exp, string? iat, string? statement, long? requestId, List<string>? resources, string? pairingTopic, string[]? methods, string? version)
         {
             Chains = chains;
             Domain = domain;
@@ -70,6 +73,38 @@ namespace Reown.Sign.Models
             PairingTopic = pairingTopic;
             Methods = methods;
             Version = version;
+        }
+
+        public void Populate(ICollection<string> supportedCains, ICollection<string> supportedMethods)
+        {
+            var approvedChains = supportedCains.Intersect(Chains);
+            if (!approvedChains.Any())
+            {
+                throw new InvalidOperationException("No approved chains found");
+            }
+
+            var statement = Statement ?? string.Empty;
+
+            if (!ReCapUtils.TryGetDecodedRecapFromResources(Resources, out var recap))
+                throw new InvalidOperationException("Recap not found in resources");
+
+            var actionsFromRecap = ReCapUtils.GetActionsFromRecap(recap);
+            var approvedActions = actionsFromRecap.Intersect(supportedMethods).ToArray();
+            if (approvedActions.Length == 0)
+                throw new InvalidOperationException($"Supported methods don't satisfy the requested: {string.Join(", ", actionsFromRecap)}. "
+                                                    + $"Supported methods: {string.Join(", ", supportedMethods)}");
+
+            var updatedResources = Resources ?? new List<string>();
+            var formattedActions = ReCapUtils.AssignAbilityToActions("request", approvedActions, new Dictionary<string, object>
+            {
+                { "chains", approvedChains }
+            });
+
+            recap.AddResources("eip115", formattedActions);
+
+            updatedResources.RemoveAt(updatedResources.Count - 1);
+            updatedResources.Add(ReCapUtils.EncodeRecap(recap));
+            Resources = updatedResources;
         }
     }
 }

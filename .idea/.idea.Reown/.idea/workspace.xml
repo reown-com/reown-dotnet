@@ -5,14 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2f5f8ac7-0622-47ce-9f54-e7355eaeafc5" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/test/Reown.Sign.Test/AuthenticateTests.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/AuthPayloadParams.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/AuthPayloadParams.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/AuthParams.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/AuthParams.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/ReCapUtils.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/ReCapUtils.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Reown.Sign.Test/CacaoTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Reown.Sign.Test/CacaoTests.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Reown.Sign.Test/NamespaceTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Reown.Sign.Test/NamespaceTests.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/Reown.Sign.Test/AuthenticateTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Reown.Sign.Test/AuthenticateTests.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/Reown.Sign.Test/RecapTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Reown.Sign.Test/RecapTests.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -43,6 +41,7 @@
     <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/143fc8d4c0774c6da3542325b58a6b32b4a0/37/b1a1ab61/Dictionary`2.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/2a3105e7355248488912e34f9ff5cbebc7e00/40/2dee53a6/Array.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/3dca2853e68e477588e1512c381be5001b600/90/6e5af1a7/ProcessorExtensions.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/7b93b1e91bbc4c87a18d9a96d41d778c4b5e00/80/3431c94f/Logger.cs" root0="FORCE_HIGHLIGHTING" />
@@ -165,7 +164,7 @@
       <workItem from="1726755540126" duration="3376000" />
       <workItem from="1727339917018" duration="3755000" />
       <workItem from="1727345502559" duration="28386000" />
-      <workItem from="1727685426906" duration="34843000" />
+      <workItem from="1727685426906" duration="47226000" />
     </task>
     <servers />
   </component>
@@ -181,42 +180,42 @@
       <expand>
         <path>
           <item name="rootNode" type="c53c71d1:RiderDotCoverCoverageTreeModel$RootNode" />
-          <item name="Total 1% 26472/26757" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Total 1% 26603/26876" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
         </path>
         <path>
           <item name="rootNode" type="c53c71d1:RiderDotCoverCoverageTreeModel$RootNode" />
-          <item name="Total 1% 26472/26757" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
-          <item name="Reown.Sign 2% 5211/5340" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Total 1% 26603/26876" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 2% 5328/5445" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
         </path>
         <path>
           <item name="rootNode" type="c53c71d1:RiderDotCoverCoverageTreeModel$RootNode" />
-          <item name="Total 1% 26472/26757" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
-          <item name="Reown.Sign 2% 5211/5340" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
-          <item name="(1.0.0.0, net8.0) 7% 1651/1780" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Total 1% 26603/26876" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 2% 5328/5445" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="(1.0.0.0, net8.0) 6% 1698/1815" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
         </path>
         <path>
           <item name="rootNode" type="c53c71d1:RiderDotCoverCoverageTreeModel$RootNode" />
-          <item name="Total 1% 26472/26757" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
-          <item name="Reown.Sign 2% 5211/5340" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
-          <item name="(1.0.0.0, net8.0) 7% 1651/1780" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
-          <item name="Reown.Sign 7% 1651/1780" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Total 1% 26603/26876" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 2% 5328/5445" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="(1.0.0.0, net8.0) 6% 1698/1815" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 6% 1698/1815" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
         </path>
         <path>
           <item name="rootNode" type="c53c71d1:RiderDotCoverCoverageTreeModel$RootNode" />
-          <item name="Total 1% 26472/26757" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
-          <item name="Reown.Sign 2% 5211/5340" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
-          <item name="(1.0.0.0, net8.0) 7% 1651/1780" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
-          <item name="Reown.Sign 7% 1651/1780" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
-          <item name="Utils 60% 86/215" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Total 1% 26603/26876" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 2% 5328/5445" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="(1.0.0.0, net8.0) 6% 1698/1815" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 6% 1698/1815" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Utils 50% 117/234" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
         </path>
         <path>
           <item name="rootNode" type="c53c71d1:RiderDotCoverCoverageTreeModel$RootNode" />
-          <item name="Total 1% 26472/26757" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
-          <item name="Reown.Sign 2% 5211/5340" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
-          <item name="(1.0.0.0, net8.0) 7% 1651/1780" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
-          <item name="Reown.Sign 7% 1651/1780" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
-          <item name="Utils 60% 86/215" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
-          <item name="ReCapUtils 75% 43/170" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Total 1% 26603/26876" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 2% 5328/5445" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="(1.0.0.0, net8.0) 6% 1698/1815" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Reown.Sign 6% 1698/1815" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="Utils 50% 117/234" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
+          <item name="ReCapUtils 68% 55/170" type="8b8fad3a:RiderDotCoverCoverageTreeNode" />
         </path>
       </expand>
       <select />
@@ -481,27 +480,14 @@
           <option name="timeStamp" value="58" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/AuthenticateTests.cs</url>
-          <line>53</line>
-          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/AuthenticateTests.cs" containingFunctionPresentation="Lambda expression inside Method 'TestAuthenticate'">
-            <startOffsets>
-              <option value="1523" />
-            </startOffsets>
-            <endOffsets>
-              <option value="1581" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="92" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
           <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs</url>
-          <line>354</line>
+          <line>356</line>
           <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" containingFunctionPresentation="Method 'OnAuthenticateRequest'">
             <startOffsets>
-              <option value="13180" />
+              <option value="13229" />
             </startOffsets>
             <endOffsets>
-              <option value="13306" />
+              <option value="13355" />
             </endOffsets>
           </properties>
           <option name="timeStamp" value="93" />

@@ -10,6 +10,47 @@ namespace Reown.Sign.Utils
     {
         [JsonProperty("att")]
         public Dictionary<string, AttValue> Att;
+
+        public void AddResources(string resource, Dictionary<string, Dictionary<string, object>[]> actions)
+        {
+            if (string.IsNullOrWhiteSpace(resource))
+                throw new ArgumentNullException(nameof(resource));
+
+            if (actions == null || actions.Count == 0)
+                throw new ArgumentException("Actions cannot be null or empty.", nameof(actions));
+
+            if (Att == null)
+                throw new InvalidOperationException("ReCap object is not initialized. Att is null.");
+
+            if (Att.TryGetValue(resource, out var attValue))
+            {
+                foreach (var action in actions)
+                {
+                    var value = JToken.FromObject(action.Value);
+                    if (attValue.Properties.TryAdd(action.Key, value))
+                        continue;
+
+                    if (attValue.Properties[action.Key] is JArray arr)
+                    {
+                        arr.Merge(value, new JsonMergeSettings
+                        {
+                            MergeArrayHandling = MergeArrayHandling.Union
+                        });
+                    }
+                    else throw new InvalidOperationException($"Unable to merge action '{action.Key}' into existing resource '{resource}'.");
+                }
+            }
+            else
+            {
+                Att[resource] = new AttValue
+                {
+                    Properties = actions.ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => JToken.FromObject(kvp.Value)
+                    )
+                };
+            }
+        }
     }
 
     public class AttValue
@@ -49,7 +90,7 @@ namespace Reown.Sign.Utils
 
         public static Dictionary<string, Dictionary<string, object>[]> AssignAbilityToActions(
             string ability,
-            string[] actions,
+            IEnumerable<string> actions,
             Dictionary<string, object> limits = null)
         {
             if (string.IsNullOrWhiteSpace(ability))
@@ -102,13 +143,13 @@ namespace Reown.Sign.Utils
             return !string.IsNullOrWhiteSpace(resource) && resource.StartsWith("urn:recap");
         }
 
-        public static string[] GetMethodsFromRecap(string recapStr)
+        public static string[] GetActionsFromRecap(string recapStr)
         {
             var decodedRecap = DecodeRecap(recapStr);
-            return GetMethodsFromRecap(decodedRecap);
+            return GetActionsFromRecap(decodedRecap);
         }
 
-        public static string[] GetMethodsFromRecap(ReCap recap)
+        public static string[] GetActionsFromRecap(ReCap recap)
         {
             try
             {

@@ -346,6 +346,8 @@ namespace Reown.Sign
                     VerifyContext = verifyContext
                 };
 
+                @params.Payload.RequestId = id;
+
                 await PrivateThis.SetAuthRequest(id, request);
 
                 SessionAuthenticateRequest?.Invoke(this, @params);
@@ -396,7 +398,7 @@ namespace Reown.Sign
 
                     if (ReCapUtils.TryGetRecapFromResources(cacao.Payload.Resources, out var recapStr))
                     {
-                        var methodsFromRecap = ReCapUtils.GetMethodsFromRecap(recapStr);
+                        var methodsFromRecap = ReCapUtils.GetActionsFromRecap(recapStr);
                         var chainsFromRecap = ReCapUtils.GetChainsFromRecap(recapStr);
                         approvedMethods.AddRange(methodsFromRecap);
                         approvedChains.AddRange(chainsFromRecap);
