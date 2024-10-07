@@ -10,12 +10,20 @@ namespace Reown.Sign.Utils
             return string.IsNullOrWhiteSpace(iss) ? null : iss.Split(":");
         }
 
-        public static string ExtractDidChainId(string iss)
+        /// <summary>
+        ///     Extracts CAIP-2 Chain ID reference from the issuer string.
+        ///     For example: did:pkh:eip155:1:0x3613699A6c5D8BC97a08805876c8005543125F09 -> 1
+        /// </summary>
+        public static string ExtractDidChainIdReference(string iss)
         {
             return string.IsNullOrWhiteSpace(iss) ? null : ExtractDidAddressSegments(iss)[3];
         }
 
-        public static string ExtractNamespacedDidChainId(string iss)
+        /// <summary>
+        ///     Extracts CAIP-2 Chain ID from the issuer string.
+        ///     For example: did:pkh:eip155:1:0x3613699A6c5D8BC97a08805876c8005543125F09 -> eip155:1
+        /// </summary>
+        public static string ExtractDidChainId(string iss)
         {
             if (string.IsNullOrWhiteSpace(iss))
                 return null;

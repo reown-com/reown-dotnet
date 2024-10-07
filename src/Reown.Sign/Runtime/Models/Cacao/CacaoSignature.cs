@@ -13,7 +13,7 @@ namespace Reown.Sign.Models.Cacao
         Eip1271
     }
 
-    public readonly struct CacaoSignature
+    public class CacaoSignature
     {
         [JsonProperty("t")]
         public readonly CacaoSignatureType T;

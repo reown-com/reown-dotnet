@@ -4,6 +4,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using Reown.Core.Common.Model.Errors;
 using Reown.Core.Interfaces;
+using Reown.Core.Models.Pairing;
 using Reown.Core.Models.Relay;
 using Reown.Core.Network.Models;
 using Reown.Sign.Interfaces;

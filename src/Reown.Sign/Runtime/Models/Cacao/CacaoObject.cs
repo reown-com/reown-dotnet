@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Reown.Sign.Utils;
@@ -9,7 +7,7 @@ namespace Reown.Sign.Models.Cacao
     /// <summary>
     ///     CAIP-74 Cacao object
     /// </summary>
-    public readonly struct CacaoObject
+    public class CacaoObject
     {
         [JsonProperty("h")]
         public readonly CacaoHeader Header;
@@ -37,41 +35,7 @@ namespace Reown.Sign.Models.Cacao
 
         public string FormatMessage()
         {
-            var iss = Payload.Iss;
-            var header = $"{Payload.Domain} wants you to sign in with your Ethereum account:";
-            var walletAddress = CacaoUtils.ExtractDidAddress(iss);
-            var statement = Payload.Statement;
-            var uri = $"\nURI: {Payload.Aud}";
-            var version = $"Version: {Payload.Version}";
-            var chainId = $"Chain ID: {CacaoUtils.ExtractDidChainId(iss)}";
-            var nonce = $"Nonce: {Payload.Nonce}";
-            var issuedAt = $"Issued At: {Payload.IssuedAt}";
-            var resources = Payload.Resources is { Length: > 0 }
-                ? $"Resources:\n{string.Join('\n', Payload.Resources.Select(resource => $"- {resource}"))}"
-                : null;
-
-            if (ReCapUtils.TryGetRecapFromResources(Payload.Resources, out var recapStr))
-            {
-                var decoded = ReCapUtils.DecodeRecap(recapStr);
-                statement = ReCapUtils.FormatStatementFromRecap(decoded, statement);
-            }
-
-            var message = string.Join('\n', new[]
-                {
-                    header,
-                    walletAddress,
-                    statement,
-                    uri,
-                    version,
-                    chainId,
-                    nonce,
-                    issuedAt,
-                    resources
-                }
-                .Where(val => !string.IsNullOrWhiteSpace(val))
-            );
-
-            return message;
+            return Payload.FormatMessage();
         }
     }
 }

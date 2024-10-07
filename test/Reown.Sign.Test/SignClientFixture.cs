@@ -68,19 +68,26 @@ public class SignClientFixture : TwoClientsFixture<SignClient>
 
     public override async Task DisposeAndReset()
     {
-        await WaitForNoPendingRequests(ClientA);
-        await WaitForNoPendingRequests(ClientB);
-
-        await Task.WhenAll(
-            ClientA.CoreClient.Storage.Clear(),
-            ClientB.CoreClient.Storage.Clear()
-        );
+        if (ClientA?.CoreClient != null)
+        {
+            await WaitForNoPendingRequests(ClientA);
+            await ClientA.CoreClient.Storage.Clear();
+        }
+        
+        if (ClientB?.CoreClient != null)
+        {
+            await WaitForNoPendingRequests(ClientB);
+            await ClientB.CoreClient.Storage.Clear();
+        }
 
         await base.DisposeAndReset();
     }
 
     protected async Task WaitForNoPendingRequests(SignClient client)
     {
+        if (client?.PendingSessionRequests == null)
+            return;
+        
         while (client.PendingSessionRequests.Length > 0)
         {
             ReownLogger.Log($"Waiting for {client.PendingSessionRequests.Length} requests to finish sending");

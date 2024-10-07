@@ -364,7 +364,7 @@ namespace Reown.Sign.Utils
 
             const string statementBase = "I further authorize the stated URI to perform the following actions on my behalf: ";
 
-            if (statement.Contains(statementBase))
+            if (!string.IsNullOrWhiteSpace(statement) && statement.Contains(statementBase))
                 return statement;
 
             var statementForRecap = new List<string>();

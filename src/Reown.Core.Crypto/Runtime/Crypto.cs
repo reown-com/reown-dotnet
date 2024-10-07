@@ -345,7 +345,7 @@ namespace Reown.Core.Crypto
             var validatedOptions = ValidateEncoding(options);
             var isTypeOne = IsTypeOneEnvelope(validatedOptions);
 
-            if (isTypeOne)
+            if (isTypeOne && options != null)
             {
                 var selfPublicKey = options.SenderPublicKey;
                 var peerPublicKey = options.ReceiverPublicKey;
@@ -455,7 +455,7 @@ namespace Reown.Core.Crypto
             return clientId;
         }
 
-        private EncodingValidation ValidateEncoding(EncodeOptions options)
+        private static EncodingValidation ValidateEncoding(EncodeOptions options)
         {
             var type = options?.Type ?? Type0;
             if (type == Type1)
@@ -490,10 +490,11 @@ namespace Reown.Core.Crypto
             });
         }
 
-        private bool IsTypeOneEnvelope(EncodingValidation param)
+        private static bool IsTypeOneEnvelope(EncodingValidation param)
         {
-            return param.Type == Type1 && !string.IsNullOrWhiteSpace(param.SenderPublicKey) &&
-                   !string.IsNullOrWhiteSpace(param.ReceiverPublicKey);
+            return param.Type == Type1
+                   && !string.IsNullOrWhiteSpace(param.SenderPublicKey)
+                   && !string.IsNullOrWhiteSpace(param.ReceiverPublicKey);
         }
 
         private EncodingParams Deserialize(string encoded)

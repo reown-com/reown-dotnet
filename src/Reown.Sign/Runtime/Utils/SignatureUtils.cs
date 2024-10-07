@@ -47,6 +47,9 @@ namespace Reown.Sign.Utils
             string chainId,
             string projectId)
         {
+            if (!Core.Utils.IsValidChainId(chainId))
+                throw new FormatException($"Chain Id doesn't satisfy the CAIP-2 format. chainId: {chainId}");
+            
             const string eip1271MagicValue = "0x1626ba7e";
             const string dynamicTypeOffset = "0000000000000000000000000000000000000000000000000000000000000040";
             const string dynamicTypeLength = "0000000000000000000000000000000000000000000000000000000000000041";

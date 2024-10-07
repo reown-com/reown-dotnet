@@ -241,7 +241,7 @@ namespace Reown.Sign
         ///     The proposal the connecting peer wants to connect using. You must approve or reject
         ///     the proposal
         /// </returns>
-        public Task<ProposalStruct> Pair(string uri)
+        public Task<PairingStruct> Pair(string uri)
         {
             return Engine.Pair(uri);
         }
@@ -485,9 +485,9 @@ namespace Reown.Sign
             get => Engine.PendingAuthRequests;
         }
 
-        public string FormatMessage(AuthPayloadParams payloadParams, string iss)
+        public string FormatAuthMessage(AuthPayloadParams payloadParams, string iss)
         {
-            return Engine.FormatMessage(payloadParams, iss);
+            return Engine.FormatAuthMessage(payloadParams, iss);
         }
 
         public void Dispose()

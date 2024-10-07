@@ -92,15 +92,18 @@ namespace Reown.Core.Controllers
             int? pathEnd = uri.IndexOf("?", StringComparison.Ordinal) != -1
                 ? uri.IndexOf("?", StringComparison.Ordinal)
                 : null;
-            var protocol = uri.Substring(0, pathStart);
+            var protocol = uri[..pathStart];
 
-            string path;
-            if (pathEnd != null) path = uri.Substring(pathStart + 1, (int)pathEnd - (pathStart + 1));
-            else path = uri.Substring(pathStart + 1);
+            var path = pathEnd != null ? uri.Substring(pathStart + 1, (int)pathEnd - (pathStart + 1)) : uri[(pathStart + 1)..];
 
             var requiredValues = path.Split("@");
             var queryString = pathEnd != null ? uri[(int)pathEnd..] : "";
             var queryParams = UrlUtils.ParseQs(queryString);
+
+            var methodsParam = queryParams.GetValueOrDefault("methods");
+            var methods = !string.IsNullOrEmpty(methodsParam)
+                ? methodsParam.Split(",")
+                : null;
 
             var result = new UriParameters
             {
@@ -112,7 +115,8 @@ namespace Reown.Core.Controllers
                 {
                     Protocol = queryParams["relay-protocol"],
                     Data = queryParams.GetValueOrDefault("relay-data")
-                }
+                },
+                Methods = methods
             };
 
             return result;
@@ -162,6 +166,7 @@ namespace Reown.Core.Controllers
             var topic = uriParams.Topic;
             var symKey = uriParams.SymKey;
             var relay = uriParams.Relay;
+            var methods = uriParams.Methods;
 
             if (Store.Keys.Contains(topic))
             {
@@ -179,15 +184,12 @@ namespace Reown.Core.Controllers
                 Topic = topic,
                 Relay = relay,
                 Expiry = expiry,
-                Active = false
+                Active = false,
+                Methods = methods
             };
 
             await Store.Set(topic, pairing);
             await CoreClient.Crypto.SetSymKey(symKey, topic);
-            await CoreClient.Relayer.Subscribe(topic, new SubscribeOptions
-            {
-                Relay = relay
-            });
 
             CoreClient.Expirer.Set(topic, expiry);
 
@@ -195,6 +197,11 @@ namespace Reown.Core.Controllers
             {
                 await ActivatePairing(topic);
             }
+            
+            await CoreClient.Relayer.Subscribe(topic, new SubscribeOptions
+            {
+                Relay = relay
+            });
 
             return pairing;
         }

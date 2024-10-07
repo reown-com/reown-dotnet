@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using Org.BouncyCastle.Utilities.Collections;
-using Reown.Core;
 using Reown.Core.Common;
 using Reown.Core.Common.Events;
 using Reown.Core.Common.Logging;
 using Reown.Core.Common.Model.Errors;
 using Reown.Core.Common.Model.Relay;
 using Reown.Core.Common.Utils;
+using Reown.Core.Crypto.Models;
 using Reown.Core.Interfaces;
 using Reown.Core.Models;
 using Reown.Core.Models.MessageHandler;
@@ -510,36 +509,37 @@ namespace Reown.Sign
         ///     The proposal the connecting peer wants to connect using. You must approve or reject
         ///     the proposal
         /// </returns>
-        public async Task<ProposalStruct> Pair(string uri)
+        public async Task<PairingStruct> Pair(string uri)
         {
             IsInitialized();
-            var pairing = await Client.CoreClient.Pairing.Pair(uri);
-            var topic = pairing.Topic;
+            return await Client.CoreClient.Pairing.Pair(uri);
 
-            var sessionProposeTask = new TaskCompletionSource<ProposalStruct>();
+            // var topic = pairing.Topic;
 
-            EventUtils.ListenOnce<SessionProposalEvent>(
-                (sender, args) =>
-                {
-                    var proposal = args.Proposal;
-                    if (topic != proposal.PairingTopic)
-                        return;
+            // var sessionProposeTask = new TaskCompletionSource<ProposalStruct>();
 
-                    if (args.VerifiedContext.Validation == Validation.Invalid)
-                    {
-                        sessionProposeTask.SetException(new Exception(
-                            $"Could not validate, invalid validation status {args.VerifiedContext.Validation} for origin {args.VerifiedContext.Origin}"));
-                    }
-                    else
-                    {
-                        sessionProposeTask.SetResult(proposal);
-                    }
-                },
-                h => Client.SessionProposed += h,
-                h => Client.SessionProposed -= h
-            );
-
-            return await sessionProposeTask.Task;
+            // EventUtils.ListenOnce<SessionProposalEvent>(
+            //     (sender, args) =>
+            //     {
+            //         var proposal = args.Proposal;
+            //         if (topic != proposal.PairingTopic)
+            //             return;
+            //
+            //         if (args.VerifiedContext.Validation == Validation.Invalid)
+            //         {
+            //             sessionProposeTask.SetException(new Exception(
+            //                 $"Could not validate, invalid validation status {args.VerifiedContext.Validation} for origin {args.VerifiedContext.Origin}"));
+            //         }
+            //         else
+            //         {
+            //             sessionProposeTask.SetResult(proposal);
+            //         }
+            //     },
+            //     h => Client.SessionProposed += h,
+            //     h => Client.SessionProposed -= h
+            // );
+            //
+            // return await sessionProposeTask.Task;
         }
 
         /// <summary>
@@ -1006,7 +1006,8 @@ namespace Reown.Sign
                 Iat = DateTimeOffset.UtcNow.ToRfc3339(),
                 Exp = authParams.Expiration.ToString(),
                 Nbf = authParams.NotBefore.ToString(),
-                Resources = authParams.Resources
+                Resources = authParams.Resources,
+                PairingTopic = pairingData.Topic
             };
 
             var participant = new Participant
@@ -1100,7 +1101,6 @@ namespace Reown.Sign
             });
             Client.CoreClient.Expirer.Set(authId, request.ExpiryTimestamp);
 
-
             return new AuthenticateData(pairingData.Uri, approvalTask.Task);
 
             async void OnSessionConnected(object sender, SessionStruct session)
@@ -1180,7 +1180,14 @@ namespace Reown.Sign
 
             var receiverPublicKey = pendingRequest.Requester.PublicKey;
             var senderPublicKey = await Client.CoreClient.Crypto.GenerateKeyPair();
-            var responseTopic = Client.CoreClient.Crypto.HashKey(senderPublicKey);
+            var responseTopic = Client.CoreClient.Crypto.HashKey(receiverPublicKey);
+
+            var encodeOpts = new EncodeOptions
+            {
+                Type = 1,
+                ReceiverPublicKey = receiverPublicKey,
+                SenderPublicKey = senderPublicKey
+            };
 
             var approvedMethods = new HashSet<string>();
             var approvedAccounts = new HashSet<string>();
@@ -1191,7 +1198,7 @@ namespace Reown.Sign
                 if (!isValid)
                 {
                     var error = Error.FromErrorType(ErrorType.SESSION_SETTLEMENT_FAILED);
-                    await MessageHandler.SendError<SessionAuthenticate, SessionAuthenticateAutoReject>(requestId, responseTopic, error);
+                    await MessageHandler.SendError<SessionAuthenticate, SessionAuthenticateAutoReject>(requestId, responseTopic, error, encodeOpts);
 
                     throw new InvalidOperationException("Invalid cacao signature");
                 }
@@ -1267,7 +1274,7 @@ namespace Reown.Sign
                     PublicKey = senderPublicKey,
                     Metadata = Client.Metadata
                 }
-            });
+            }, encodeOpts);
 
             await Client.Auth.PendingRequests.Delete(requestId, new Error
             {
@@ -1282,9 +1289,10 @@ namespace Reown.Sign
         // TODO: remove?
         public IDictionary<long, AuthPendingRequest> PendingAuthRequests { get; } = new Dictionary<long, AuthPendingRequest>();
 
-        public string FormatMessage(AuthPayloadParams payloadParams, string iss)
+        public string FormatAuthMessage(AuthPayloadParams payloadParams, string iss)
         {
-            throw new NotImplementedException();
+            var cacaoPayload = CacaoPayload.FromAuthPayloadParams(payloadParams, iss);
+            return cacaoPayload.FormatMessage();
         }
 
         public void Dispose()

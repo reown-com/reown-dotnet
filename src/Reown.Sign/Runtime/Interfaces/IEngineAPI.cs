@@ -173,7 +173,7 @@ namespace Reown.Sign.Interfaces
         ///     The proposal the connecting peer wants to connect using. You must approve or reject
         ///     the proposal
         /// </returns>
-        Task<ProposalStruct> Pair(string uri);
+        Task<PairingStruct> Pair(string uri);
 
         /// <summary>
         ///     Approve a proposal that was recently paired. If the given proposal was not from a recent pairing,
@@ -375,6 +375,6 @@ namespace Reown.Sign.Interfaces
 
         IDictionary<long, AuthPendingRequest> PendingAuthRequests { get; }
 
-        string FormatMessage(AuthPayloadParams payloadParams, string iss);
+        string FormatAuthMessage(AuthPayloadParams payloadParams, string iss);
     }
 }

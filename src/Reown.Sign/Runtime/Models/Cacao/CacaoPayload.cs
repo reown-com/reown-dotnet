@@ -1,10 +1,13 @@
 #nullable enable
 
+using System;
+using System.Linq;
 using Newtonsoft.Json;
+using Reown.Sign.Utils;
 
 namespace Reown.Sign.Models.Cacao
 {
-    public readonly struct CacaoPayload
+    public class CacaoPayload
     {
         [JsonProperty("domain")]
         public readonly string Domain;
@@ -63,6 +66,66 @@ namespace Reown.Sign.Models.Cacao
             Statement = statement;
             RequestId = requestId;
             Resources = resources;
+        }
+
+        public static CacaoPayload FromAuthPayloadParams(AuthPayloadParams authPayloadParams, string iss)
+        {
+            return new CacaoPayload(
+                authPayloadParams.Domain,
+                iss,
+                authPayloadParams.Aud,
+                authPayloadParams.Version,
+                authPayloadParams.Nonce,
+                authPayloadParams.Iat,
+                authPayloadParams.Nbf,
+                authPayloadParams.Exp,
+                authPayloadParams.Statement,
+                authPayloadParams.RequestId?.ToString(),
+                authPayloadParams.Resources.ToArray()
+            );
+        }
+
+        public string FormatMessage()
+        {
+            if (!Iss.StartsWith("did:pkh:"))
+            {
+                throw new InvalidOperationException($"Invalid issuer: {Iss}. Expected 'did:pkh:'.");
+            }
+
+            var header = $"{Domain} wants you to sign in with your Ethereum account:";
+            var walletAddress = CacaoUtils.ExtractDidAddress(Iss);
+            var statement = Statement;
+            var uri = $"\nURI: {Aud}";
+            var version = $"Version: {Version}";
+            var chainId = $"Chain ID: {CacaoUtils.ExtractDidChainIdReference(Iss)}";
+            var nonce = $"Nonce: {Nonce}";
+            var issuedAt = $"Issued At: {IssuedAt}";
+            var resources = Resources is { Length: > 0 }
+                ? $"Resources:\n{string.Join('\n', Resources.Select(resource => $"- {resource}"))}"
+                : null;
+
+            if (ReCapUtils.TryGetRecapFromResources(Resources, out var recapStr))
+            {
+                var decoded = ReCapUtils.DecodeRecap(recapStr);
+                statement = ReCapUtils.FormatStatementFromRecap(decoded, statement);
+            }
+
+            var message = string.Join('\n', new[]
+                {
+                    header,
+                    walletAddress,
+                    statement,
+                    uri,
+                    version,
+                    chainId,
+                    nonce,
+                    issuedAt,
+                    resources
+                }
+                .Where(val => !string.IsNullOrWhiteSpace(val))
+            );
+
+            return message;
         }
     }
 }

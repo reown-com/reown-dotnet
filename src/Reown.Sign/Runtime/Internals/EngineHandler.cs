@@ -391,7 +391,7 @@ namespace Reown.Sign
 
                     var approvedChains = new List<string>
                     {
-                        CacaoUtils.ExtractNamespacedDidChainId(cacao.Payload.Iss)
+                        CacaoUtils.ExtractDidChainIdReference(cacao.Payload.Iss)
                     };
                     var parsedAddress = CacaoUtils.ExtractDidAddress(cacao.Payload.Iss);
 
