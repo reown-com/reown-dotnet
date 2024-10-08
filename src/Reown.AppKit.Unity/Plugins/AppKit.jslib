@@ -65,6 +65,8 @@ mergeInto(LibraryManager.library, {
         const projectId = parameters.projectId;
         const metadata = parameters.metadata;
         const chains = parameters.chains;
+        const includeWalletIds = parameters.includeWalletIds;
+        const excludeWalletIds = parameters.excludeWalletIds;
 
         const enableOnramp = parameters.enableOnramp;
         const enableAnalytics = parameters.enableAnalytics;
@@ -110,8 +112,10 @@ mergeInto(LibraryManager.library, {
                 enableOnramp: enableOnramp,
                 enableAnalytics: enableAnalytics,
                 disableAppend: true,
+                includeWalletIds: includeWalletIds,
+                excludeWalletIds: excludeWalletIds
             });
-
+            
             // Store the configuration and modal globally
             _appKitConfig = {
                 config: config,
