@@ -367,6 +367,8 @@ namespace Reown.Sign.Interfaces
         Task Disconnect(Error reason = null);
 
 
+        bool HasSessionAuthenticateRequestSubscribers { get; }
+        
         Task<AuthenticateData> Authenticate(AuthParams authParams);
 
         Task RejectSessionAuthenticate(RejectParams rejectParams);

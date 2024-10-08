@@ -25,12 +25,13 @@ namespace Reown.Core.Controllers
     {
         private const int KeyLength = 32;
         private readonly HashSet<string> _registeredMethods = new();
+        private readonly Dictionary<string, string[]> _expectedPairingMethos = new();
 
-        private readonly EventHandlerMap<JsonRpcResponse<bool>> PairingPingResponseEvents = new();
+        private readonly EventHandlerMap<JsonRpcResponse<bool>> _pairingPingResponseEvents = new();
         private bool _initialized;
         protected bool Disposed;
-        private DisposeHandlerToken pairingDeleteMessageHandler;
-        private DisposeHandlerToken pairingPingMessageHandler;
+        private DisposeHandlerToken _pairingDeleteMessageHandler;
+        private DisposeHandlerToken _pairingPingMessageHandler;
 
         /// <summary>
         ///     Create a new instance of the Pairing module using the given <see cref="ICoreClient" /> module
@@ -76,7 +77,29 @@ namespace Reown.Core.Controllers
         {
             get => Store.Values;
         }
+        
+        public event EventHandler<PairingCreatedEventArgs> PairingCreated;
 
+        public event EventHandler<PairingEvent> PairingExpired;
+        public event EventHandler<PairingEvent> PairingPinged;
+        public event EventHandler<PairingEvent> PairingDeleted;
+
+        /// <summary>
+        ///     Initialize this pairing module. This will restore all active / inactive pairings
+        ///     from storage
+        /// </summary>
+        public async Task Init()
+        {
+            if (!_initialized)
+            {
+                await Store.Init();
+                await Cleanup();
+                await RegisterTypedMessages();
+                RegisterEvents();
+                _initialized = true;
+            }
+        }
+        
         /// <summary>
         ///     Parse a session proposal URI and return all information in the URI in a
         ///     new <see cref="UriParameters" /> object
@@ -88,10 +111,8 @@ namespace Reown.Core.Controllers
         /// </returns>
         public UriParameters ParseUri(string uri)
         {
-            var pathStart = uri.IndexOf(":", StringComparison.Ordinal);
-            int? pathEnd = uri.IndexOf("?", StringComparison.Ordinal) != -1
-                ? uri.IndexOf("?", StringComparison.Ordinal)
-                : null;
+            var pathStart = uri.IndexOf(':');
+            int? pathEnd = uri.Contains('?') ? uri.IndexOf('?') : null;
             var protocol = uri[..pathStart];
 
             var path = pathEnd != null ? uri.Substring(pathStart + 1, (int)pathEnd - (pathStart + 1)) : uri[(pathStart + 1)..];
@@ -120,32 +141,6 @@ namespace Reown.Core.Controllers
             };
 
             return result;
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        public event EventHandler<PairingEvent> PairingExpired;
-        public event EventHandler<PairingEvent> PairingPinged;
-        public event EventHandler<PairingEvent> PairingDeleted;
-
-        /// <summary>
-        ///     Initialize this pairing module. This will restore all active / inactive pairings
-        ///     from storage
-        /// </summary>
-        public async Task Init()
-        {
-            if (!_initialized)
-            {
-                await Store.Init();
-                await Cleanup();
-                await RegisterTypedMessages();
-                RegisterExpirerEvents();
-                _initialized = true;
-            }
         }
 
         /// <summary>
@@ -198,6 +193,11 @@ namespace Reown.Core.Controllers
                 await ActivatePairing(topic);
             }
             
+            PairingCreated?.Invoke(this, new PairingCreatedEventArgs
+            {
+                Pairing = pairing
+            });
+            
             await CoreClient.Relayer.Subscribe(topic, new SubscribeOptions
             {
                 Relay = relay
@@ -245,6 +245,12 @@ namespace Reown.Core.Controllers
 
             await Store.Set(topic, pairing);
             await CoreClient.Relayer.Subscribe(topic);
+            
+            PairingCreated?.Invoke(this, new PairingCreatedEventArgs
+            {
+                Pairing = pairing
+            });
+            
             CoreClient.Expirer.Set(topic, expiry);
 
             return new CreatePairingData
@@ -320,7 +326,7 @@ namespace Reown.Core.Controllers
                 var id = await CoreClient.MessageHandler.SendRequest<PairingPing, bool>(topic, new PairingPing());
                 var done = new TaskCompletionSource<bool>();
 
-                PairingPingResponseEvents.ListenOnce($"pairing_ping{id}", (sender, args) =>
+                _pairingPingResponseEvents.ListenOnce($"pairing_ping{id}", (sender, args) =>
                 {
                     if (args.IsError)
                         done.SetException(args.Error.ToException());
@@ -354,15 +360,27 @@ namespace Reown.Core.Controllers
             }
         }
 
-        private void RegisterExpirerEvents()
+        private void RegisterEvents()
         {
+            PairingCreated += PairingCreatedCallback;
             CoreClient.Expirer.Expired += ExpiredCallback;
+        }
+        
+        private void PairingCreatedCallback(object sender, PairingCreatedEventArgs e)
+        {
+            if (e.Pairing.Methods is { Length: > 0 })
+                _expectedPairingMethos[e.Pairing.Topic] = e.Pairing.Methods;
         }
 
         private async Task RegisterTypedMessages()
         {
-            pairingDeleteMessageHandler = await CoreClient.MessageHandler.HandleMessageType<PairingDelete, bool>(OnPairingDeleteRequest, null);
-            pairingPingMessageHandler = await CoreClient.MessageHandler.HandleMessageType<PairingPing, bool>(OnPairingPingRequest, OnPairingPingResponse);
+            _pairingDeleteMessageHandler = await CoreClient.MessageHandler.HandleMessageType<PairingDelete, bool>(OnPairingDeleteRequest, null);
+            _pairingPingMessageHandler = await CoreClient.MessageHandler.HandleMessageType<PairingPing, bool>(OnPairingPingRequest, OnPairingPingResponse);
+        }
+
+        public bool TryGetExpectedMethods(string topic, out string[] methods)
+        {
+            return _expectedPairingMethos.TryGetValue(topic, out methods);
         }
 
         private async Task ActivatePairing(string topic)
@@ -382,6 +400,8 @@ namespace Reown.Core.Controllers
             var expirerHasDeleted = !CoreClient.Expirer.Has(topic);
             var pairingHasDeleted = !Store.Keys.Contains(topic);
             var symKeyHasDeleted = !await CoreClient.Crypto.HasKeys(topic);
+            
+            _ = _expectedPairingMethos.Remove(topic);
 
             await CoreClient.Relayer.Unsubscribe(topic);
             await Task.WhenAll(
@@ -485,7 +505,7 @@ namespace Reown.Core.Controllers
                 Topic = topic
             });
 
-            PairingPingResponseEvents[$"pairing_ping{id}"](this, payload);
+            _pairingPingResponseEvents[$"pairing_ping{id}"](this, payload);
         }
 
         private async Task OnPairingDeleteRequest(string topic, JsonRpcRequest<PairingDelete> payload)
@@ -536,6 +556,12 @@ namespace Reown.Core.Controllers
                 });
             }
         }
+        
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         protected virtual void Dispose(bool disposing)
         {
@@ -544,8 +570,9 @@ namespace Reown.Core.Controllers
             if (disposing)
             {
                 Store?.Dispose();
-                pairingDeleteMessageHandler.Dispose();
-                pairingPingMessageHandler.Dispose();
+                PairingCreated -= PairingCreatedCallback;
+                _pairingDeleteMessageHandler.Dispose();
+                _pairingPingMessageHandler.Dispose();
             }
 
             Disposed = true;

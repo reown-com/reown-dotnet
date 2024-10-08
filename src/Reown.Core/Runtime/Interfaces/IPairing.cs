@@ -26,6 +26,8 @@ namespace Reown.Core.Interfaces
         /// </summary>
         ICoreClient CoreClient { get; }
 
+        event EventHandler<PairingCreatedEventArgs> PairingCreated;
+        
         event EventHandler<PairingEvent> PairingExpired;
 
         event EventHandler<PairingEvent> PairingPinged;
@@ -106,5 +108,10 @@ namespace Reown.Core.Interfaces
         ///     parsed from the given uri
         /// </returns>
         UriParameters ParseUri(string uri);
+        
+        /// <summary>
+        ///     Get the expected methods for a given pairing topic
+        /// </summary>
+        public bool TryGetExpectedMethods(string topic, out string[] methods);
     }
 }

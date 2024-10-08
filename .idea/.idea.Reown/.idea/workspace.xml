@@ -5,29 +5,47 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2f5f8ac7-0622-47ce-9f54-e7355eaeafc5" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Utils/LowerCaseNamingStrategy.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing/PairingCreatedEventArgs.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing/PairingCreatedEventArgs.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Constants.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Constants/AuthConstants.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/Auth.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/AuthKeyStore.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/AuthPairingTopics.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/AuthPendingRequests.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IAuth.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/AuthKey.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/AuthPairing.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/AuthPayloadParams.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/AuthPendingRequest.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoHeader.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoObject.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoPayload.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoSignature.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/AuthParams.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/AuthenticateData.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/AuthenticateResponse.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionAuthenticate.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionAuthenticateAutoReject.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/Methods/SessionAuthenticateReject.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/SessionAuthenticatedEventArgs.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/CacaoUtils.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/ReCapUtils.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs.meta" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Crypto.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Crypto.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core.Network.WebSocket/WebsocketConnection.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core.Network.WebSocket/WebsocketConnection.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Pairing.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/Pairing.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/TypedMessageHandler.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/TypedMessageHandler.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing/PairingStruct.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing/PairingStruct.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing/UriParameters.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing/UriParameters.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IPairing.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Interfaces/IPairing.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing/PairingEvent.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Models/Pairing/PairingEvent.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IEngineAPI.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IEngineAPI.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoObject.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoObject.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoPayload.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoPayload.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoSignature.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoSignature.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/AuthenticateResponse.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/AuthenticateResponse.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/ProposalStruct.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/ProposalStruct.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/SignClient.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/SignClient.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/CacaoUtils.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/CacaoUtils.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/ReCapUtils.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/ReCapUtils.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/Reown.Sign.Test/AuthenticateTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Reown.Sign.Test/AuthenticateTests.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Reown.Sign.Test/SignClientFixture.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignClientFixture.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Rown.TestUtils/CryptoWalletFixture.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Rown.TestUtils/CryptoWalletFixture.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/Reown.WalletKit.Test/SignTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Reown.WalletKit.Test/SignTests.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,6 +71,22 @@
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
@@ -165,22 +199,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;b28ffd12-0193-4c7b-b16b-7260c922df2a.executor&quot;: &quot;Debug&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;#3 on feat/1ca&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;rider.code.cleanup.on.save.only.changed.lines&quot;: &quot;true&quot;,
-    &quot;rider.code.cleanup.on.save.profile&quot;: &quot;Built-in: Reformat &amp; Apply Syntax Style&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;actions.on.save&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "b28ffd12-0193-4c7b-b16b-7260c922df2a.executor": "Debug",
+    "git-widget-placeholder": "#3 on feat/1ca",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "rider.code.cleanup.on.save.only.changed.lines": "true",
+    "rider.code.cleanup.on.save.profile": "Built-in: Reformat & Apply Syntax Style",
+    "settings.editor.selected.configurable": "actions.on.save",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected="Attach to Unity Editor.Attach to Unity Editor">
     <configuration name="Attach to Unity Editor" type="UNITY_DEBUG_RUN_CONFIGURATION" factoryName="Unity Debug" show_console_on_std_err="false" show_console_on_std_out="false" port="50000" address="localhost">
       <option name="allowRunningInParallel" value="false" />
@@ -286,403 +320,6 @@
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs</url>
-          <line>460</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" containingFunctionPresentation="Method 'ExpiredCallback'">
-            <startOffsets>
-              <option value="17697" />
-            </startOffsets>
-            <endOffsets>
-              <option value="17698" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="94" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs</url>
-          <line>49</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs" containingFunctionPresentation="Method 'IsValidEip1271Signature'">
-            <startOffsets>
-              <option value="1979" />
-            </startOffsets>
-            <endOffsets>
-              <option value="2019" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="99" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs</url>
-          <line>50</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs" containingFunctionPresentation="Method 'IsValidEip1271Signature'">
-            <startOffsets>
-              <option value="2036" />
-            </startOffsets>
-            <endOffsets>
-              <option value="2129" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="100" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs</url>
-          <line>67</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs" containingFunctionPresentation="Method 'IsValidEip1271Signature'">
-            <startOffsets>
-              <option value="2928" />
-            </startOffsets>
-            <endOffsets>
-              <option value="2965" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="101" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs</url>
-          <line>93</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs" containingFunctionPresentation="Method 'IsValidEip1271Signature'">
-            <startOffsets>
-              <option value="3938" />
-            </startOffsets>
-            <endOffsets>
-              <option value="4022" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="102" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs</url>
-          <line>100</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs" containingFunctionPresentation="Method 'IsValidEip1271Signature'">
-            <startOffsets>
-              <option value="4240" />
-            </startOffsets>
-            <endOffsets>
-              <option value="4265" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="103" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs</url>
-          <line>95</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs" containingFunctionPresentation="Method 'IsValidEip1271Signature'">
-            <startOffsets>
-              <option value="4040" />
-            </startOffsets>
-            <endOffsets>
-              <option value="4061" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="104" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs</url>
-          <line>1030</line>
-          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" containingFunctionPresentation="Method 'TestAddressProviderDefaultsSaving'">
-            <startOffsets>
-              <option value="34660" />
-            </startOffsets>
-            <endOffsets>
-              <option value="34746" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="115" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs</url>
-          <line>1103</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" containingFunctionPresentation="Method 'Authenticate'">
-            <startOffsets>
-              <option value="45666" />
-            </startOffsets>
-            <endOffsets>
-              <option value="45730" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="116" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs</url>
-          <line>1107</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" containingFunctionPresentation="Local function 'OnSessionConnected'">
-            <startOffsets>
-              <option value="45842" />
-            </startOffsets>
-            <endOffsets>
-              <option value="45876" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="117" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs</url>
-          <line>1109</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" containingFunctionPresentation="Local function 'OnSessionConnected'">
-            <startOffsets>
-              <option value="45915" />
-            </startOffsets>
-            <endOffsets>
-              <option value="45922" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="118" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs</url>
-          <line>1118</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" containingFunctionPresentation="Local function 'OnSessionConnected'">
-            <startOffsets>
-              <option value="46194" />
-            </startOffsets>
-            <endOffsets>
-              <option value="46244" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="119" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs</url>
-          <line>1123</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" containingFunctionPresentation="Local function 'OnSessionConnected'">
-            <startOffsets>
-              <option value="46408" />
-            </startOffsets>
-            <endOffsets>
-              <option value="46440" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="120" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs</url>
-          <line>1129</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" containingFunctionPresentation="Local function 'OnSessionConnectionErrored'">
-            <startOffsets>
-              <option value="46600" />
-            </startOffsets>
-            <endOffsets>
-              <option value="46637" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="121" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs</url>
-          <line>1134</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" containingFunctionPresentation="Local function 'OnSessionAuthenticated'">
-            <startOffsets>
-              <option value="46805" />
-            </startOffsets>
-            <endOffsets>
-              <option value="46839" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="122" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs</url>
-          <line>1146</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" containingFunctionPresentation="Local function 'UnsubscribeAll'">
-            <startOffsets>
-              <option value="47142" />
-            </startOffsets>
-            <endOffsets>
-              <option value="47181" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="123" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs</url>
-          <line>447</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" containingFunctionPresentation="Method 'OnAuthenticateResponse'">
-            <startOffsets>
-              <option value="17244" />
-            </startOffsets>
-            <endOffsets>
-              <option value="17424" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="124" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs</url>
-          <line>414</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" containingFunctionPresentation="Method 'OnAuthenticateResponse'">
-            <startOffsets>
-              <option value="15847" />
-            </startOffsets>
-            <endOffsets>
-              <option value="15878" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="125" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs</url>
-          <line>366</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" containingFunctionPresentation="Method 'OnAuthenticateResponse'">
-            <startOffsets>
-              <option value="13720" />
-            </startOffsets>
-            <endOffsets>
-              <option value="13948" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="126" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs</url>
-          <line>371</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" containingFunctionPresentation="Method 'OnAuthenticateResponse'">
-            <startOffsets>
-              <option value="13962" />
-            </startOffsets>
-            <endOffsets>
-              <option value="13982" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="127" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs</url>
-          <line>383</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" containingFunctionPresentation="Method 'OnAuthenticateResponse'">
-            <startOffsets>
-              <option value="14401" />
-            </startOffsets>
-            <endOffsets>
-              <option value="14430" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="128" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <dependency id="0" />
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs</url>
-          <line>1200</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" containingFunctionPresentation="Method 'ApproveSessionAuthenticate'">
-            <startOffsets>
-              <option value="49556" />
-            </startOffsets>
-            <endOffsets>
-              <option value="49684" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="131" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <dependency id="1" />
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs</url>
-          <line>1233</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" containingFunctionPresentation="Method 'ApproveSessionAuthenticate'">
-            <startOffsets>
-              <option value="50996" />
-            </startOffsets>
-            <endOffsets>
-              <option value="51022" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="132" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <dependency id="2" />
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs</url>
-          <line>1268</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" containingFunctionPresentation="Method 'ApproveSessionAuthenticate'">
-            <startOffsets>
-              <option value="52583" />
-            </startOffsets>
-            <endOffsets>
-              <option value="52958" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="133" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <dependency master-id="2" />
-          <url>file://$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/TypedMessageHandler.cs</url>
-          <line>291</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/TypedMessageHandler.cs" containingFunctionPresentation="Local function 'InspectResponseRaw'">
-            <startOffsets>
-              <option value="12171" />
-            </startOffsets>
-            <endOffsets>
-              <option value="12239" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="136" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <dependency master-id="0" />
-          <url>file://$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/TypedMessageHandler.cs</url>
-          <line>271</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/TypedMessageHandler.cs" containingFunctionPresentation="Local function 'InspectResponseRaw'">
-            <startOffsets>
-              <option value="11552" />
-            </startOffsets>
-            <endOffsets>
-              <option value="11572" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="137" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs</url>
-          <line>1191</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" containingFunctionPresentation="Method 'ApproveSessionAuthenticate'">
-            <startOffsets>
-              <option value="49151" />
-            </startOffsets>
-            <endOffsets>
-              <option value="49195" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="138" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <dependency master-id="1" />
-          <url>file://$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Crypto.cs</url>
-          <line>344</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Crypto.cs" containingFunctionPresentation="Method 'Encode'">
-            <startOffsets>
-              <option value="13202" />
-            </startOffsets>
-            <endOffsets>
-              <option value="13251" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="139" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <dependency master-id="1" />
-          <url>file://$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Crypto.cs</url>
-          <line>349</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Crypto.cs" containingFunctionPresentation="Method 'Encode'">
-            <startOffsets>
-              <option value="13394" />
-            </startOffsets>
-            <endOffsets>
-              <option value="13438" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="140" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Crypto.cs</url>
-          <line>358</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Core.Crypto/Runtime/Crypto.cs" containingFunctionPresentation="Method 'Encode'">
-            <startOffsets>
-              <option value="13835" />
-            </startOffsets>
-            <endOffsets>
-              <option value="14057" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="141" />
-        </line-breakpoint>
         <breakpoint enabled="true" suspend="NONE" type="DotNet Exception Breakpoints">
           <properties exception="System.Collections.Generic.KeyNotFoundException" isInternal="false" displayValue="KeyNotFoundException" namespaceName="System.Collections.Generic">
             <option name="internal" value="false" />
@@ -730,6 +367,7 @@
       <pinned-members>
         <PinnedItemInfo parentTag="Type#Reown.Core.Core" memberName="Context" />
         <PinnedItemInfo parentTag="Type#Reown.Sign.Utils.AttValue" memberName="Properties" />
+        <PinnedItemInfo parentTag="Type#Reown.Core.Crypto.Models.EncodingParams" memberName="Sealed" />
       </pinned-members>
     </pin-to-top-manager>
   </component>

@@ -91,6 +91,11 @@ namespace Reown.Sign
         /// </summary>
         public ISignClient Client { get; }
 
+        public bool HasSessionAuthenticateRequestSubscribers
+        {
+            get => SessionAuthenticateRequest != null;
+        }
+
         /// <summary>
         ///     This event is invoked when the given session has expired
         ///     Event Side: dApp & Wallet
@@ -957,6 +962,11 @@ namespace Reown.Sign
             var publicKey = await Client.CoreClient.Crypto.GenerateKeyPair();
             var responseTopic = Client.CoreClient.Crypto.HashKey(publicKey);
 
+            Client.CoreClient.MessageHandler.SetDecodeOptionsForTopic(new DecodeOptions
+            {
+                ReceiverPublicKey = publicKey
+            }, responseTopic);
+                
             await Task.WhenAll(
                 Client.Auth.Keys.Set(AuthConstants.AuthPublicKeyName, new AuthKey(responseTopic, publicKey)),
                 Client.Auth.Pairings.Set(responseTopic, new AuthPairing(responseTopic, pairingData.Topic))
@@ -1057,7 +1067,8 @@ namespace Reown.Sign
 
             long authId = default;
             long fallbackId = default;
-            EventHandler<SessionAuthenticatedEventArgs> handler = null;
+            EventHandler<SessionAuthenticatedEventArgs> sessionAuthHandler = null;
+            EventHandler<SessionStruct> sessionConnectedHandler = null;
             var approvalTask = new TaskCompletionSource<SessionStruct>();
             try
             {
@@ -1069,11 +1080,12 @@ namespace Reown.Sign
                 authId = ids[0];
                 fallbackId = ids[1];
 
-                handler = (sender, session) => OnSessionAuthenticated(sender, session, fallbackId);
+                sessionAuthHandler = (sender, session) => OnSessionAuthenticated(sender, session, fallbackId);
+                sessionConnectedHandler = (sender, session) => OnSessionConnected(sender, session, fallbackId);
 
-                SessionConnected += OnSessionConnected;
+                SessionConnected += sessionConnectedHandler;
                 SessionConnectionErrored += OnSessionConnectionErrored;
-                SessionAuthenticated += handler;
+                SessionAuthenticated += sessionAuthHandler;
             }
             catch (Exception)
             {
@@ -1103,7 +1115,7 @@ namespace Reown.Sign
 
             return new AuthenticateData(pairingData.Uri, approvalTask.Task);
 
-            async void OnSessionConnected(object sender, SessionStruct session)
+            async void OnSessionConnected(object sender, SessionStruct session, long fallbackProposalId)
             {
                 if (approvalTask.Task.IsCompleted)
                 {
@@ -1120,7 +1132,8 @@ namespace Reown.Sign
                 {
                     await Client.CoreClient.Pairing.UpdateMetadata(pairingData.Topic, session.Peer.Metadata);
                 }
-
+                
+                await PrivateThis.DeleteProposal(fallbackProposalId);
                 approvalTask.SetResult(session);
             }
 
@@ -1144,9 +1157,9 @@ namespace Reown.Sign
 
             void UnsubscribeAll()
             {
-                SessionConnected -= OnSessionConnected;
+                SessionConnected -= sessionConnectedHandler;
                 SessionConnectionErrored -= OnSessionConnectionErrored;
-                SessionAuthenticated -= handler;
+                SessionAuthenticated -= sessionAuthHandler;
             }
         }
 

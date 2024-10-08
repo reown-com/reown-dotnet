@@ -389,12 +389,8 @@ namespace Reown.Sign
                         throw new IOException("CACAO signature verification failed");
                     }
 
-                    var approvedChains = new List<string>
-                    {
-                        CacaoUtils.ExtractDidChainIdReference(cacao.Payload.Iss)
-                    };
+                    var approvedChains = new List<string>();
                     var parsedAddress = CacaoUtils.ExtractDidAddress(cacao.Payload.Iss);
-
 
                     if (ReCapUtils.TryGetRecapFromResources(cacao.Payload.Resources, out var recapStr))
                     {
@@ -433,14 +429,15 @@ namespace Reown.Sign
                             Protocol = "irn"
                         }
                     };
-
+                    
                     await Client.CoreClient.Relayer.Subscribe(sessionTopic);
                     await Client.Session.Set(sessionTopic, session);
 
-                    if (!string.IsNullOrWhiteSpace(topic))
-                    {
-                        await Client.CoreClient.Pairing.UpdateMetadata(topic, responder.Metadata);
-                    }
+                    // TODO: pairing topic
+                    // if (!string.IsNullOrWhiteSpace(topic))
+                    // {
+                    //     await Client.CoreClient.Pairing.UpdateMetadata(topic, responder.Metadata);
+                    // }
 
                     session = Client.Session.Get(sessionTopic);
                 }

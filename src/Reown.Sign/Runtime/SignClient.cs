@@ -167,6 +167,11 @@ namespace Reown.Sign
 
         public IAuth Auth { get; }
 
+        public bool HasSessionAuthenticateRequestSubscribers
+        {
+            get => Engine.HasSessionAuthenticateRequestSubscribers;
+        }
+
         public event EventHandler<SessionStruct> SessionExpired;
         public event EventHandler<SessionAuthenticate> SessionAuthenticateRequest;
         public event EventHandler<SessionAuthenticatedEventArgs> SessionAuthenticated;
