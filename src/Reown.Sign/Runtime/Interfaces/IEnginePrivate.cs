@@ -20,6 +20,8 @@ namespace Reown.Sign.Interfaces
 
         internal Task SetAuthRequest(long id, AuthPendingRequest request);
 
+        internal bool ShouldIgnorePairingRequest(string topic, string method);
+
         internal Task Cleanup();
 
         internal Task OnSessionProposeRequest(string topic, JsonRpcRequest<SessionPropose> payload);

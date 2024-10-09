@@ -274,9 +274,6 @@ namespace Reown.Core.Controllers
 
                 var payload = e.Payload;
 
-                if (ShouldIgnorePairingRequest(topic, payload.Method))
-                    return;
-
                 JsonRpcRecord<T, TR> record;
                 try
                 {
@@ -334,18 +331,6 @@ namespace Reown.Core.Controllers
                 _requestCallbacksMap[method].Remove(RequestCallback);
                 _responseCallbacksMap[method].Remove(ResponseCallback);
             });
-        }
-        
-        // TODO: move to Engine handler?
-        private bool ShouldIgnorePairingRequest(string topic, string method)
-        {
-            if (!CoreClient.Pairing.TryGetExpectedMethods(topic, out var expectedMethods))
-                return false;
-            
-            if (expectedMethods.Contains(method))
-                return false;
-
-            throw new NotImplementedException();
         }
 
         public void SetDecodeOptionsForTopic(DecodeOptions options, string topic)

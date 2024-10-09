@@ -49,6 +49,9 @@ namespace Reown.Core.Common.Model.Errors
         SESSION_REQUEST_EXPIRED = 8000,
 
         // 9000 (Unknown)
-        UNKNOWN = 9000
+        UNKNOWN = 9000,
+
+        // 10000 (Pairing)
+        WC_METHOD_UNSUPPORTED = 10001
     }
 }

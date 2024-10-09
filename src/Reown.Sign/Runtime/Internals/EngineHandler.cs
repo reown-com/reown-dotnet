@@ -26,6 +26,9 @@ namespace Reown.Sign
     {
         async Task IEnginePrivate.OnSessionProposeRequest(string topic, JsonRpcRequest<SessionPropose> payload)
         {
+            if (PrivateThis.ShouldIgnorePairingRequest(topic, payload.Method))
+                return;
+            
             var @params = payload.Params;
             var id = payload.Id;
             try
@@ -360,19 +363,16 @@ namespace Reown.Sign
 
         async Task IEnginePrivate.OnAuthenticateResponse(string topic, JsonRpcResponse<AuthenticateResponse> payload)
         {
-            var id = payload.Id;
-
             // Delete this auth request on response
             // We're using payload from the wallet to establish the session so we don't need to keep this around
-            await Task.WhenAll(
-                PrivateThis.DeletePendingSessionRequest(id, Error.FromErrorType(ErrorType.USER_DISCONNECTED)),
-                PrivateThis.SetExpiry(topic, Clock.CalculateExpiry(SessionExpiry))
-            );
+            await Client.Auth.PendingRequests.Delete(payload.Id, Error.FromErrorType(ErrorType.GENERIC));
 
             if (payload.IsError)
             {
-                var error = Error.FromErrorType(ErrorType.USER_DISCONNECTED);
-                //TODO: handle error
+                if (payload.Error.Code == Error.FromErrorType(ErrorType.WC_METHOD_UNSUPPORTED).Code)
+                    return;
+
+                throw ReownNetworkException.FromType((ErrorType)payload.Error.Code);
             }
             else
             {
