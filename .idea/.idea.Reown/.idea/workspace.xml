@@ -6,13 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="2f5f8ac7-0622-47ce-9f54-e7355eaeafc5" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Errors/ErrorType.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Errors/ErrorType.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Errors/SdkErrors.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core.Common/Runtime/Model/Errors/SdkErrors.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/TypedMessageHandler.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Core/Runtime/Controllers/TypedMessageHandler.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IEnginePrivate.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Interfaces/IEnginePrivate.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineTasks.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineTasks.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineValidation.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineValidation.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/AuthPayloadParams.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/AuthPayloadParams.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/Reown.Sign.Test/AuthenticateTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Reown.Sign.Test/AuthenticateTests.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -96,6 +94,10 @@
     <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/143fc8d4c0774c6da3542325b58a6b32b4a0/37/b1a1ab61/Dictionary`2.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/2a3105e7355248488912e34f9ff5cbebc7e00/40/2dee53a6/Array.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/3dca2853e68e477588e1512c381be5001b600/90/6e5af1a7/ProcessorExtensions.cs" root0="FORCE_HIGHLIGHTING" />
@@ -105,6 +107,7 @@
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/b8b10b8247cb413eab5175c26a5956a755a8/a2/e51fb4db/ITestOutputHelper.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/c15184cdf8254e74a8a6ee96bd1b8738d82000/73/c6452c68/ICollection.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/c4acef6dc8fd4983a0f89a748794a2009000/f9/a14a1b68/BlockHeaderEncoder.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/cce4b5a89a7e4f9aa748463a385e24378c00/15/211f5cc0/HashSet`1.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/cce4b5a89a7e4f9aa748463a385e24378c00/9f/d9a7e723/List`1.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/cce4b5a89a7e4f9aa748463a385e24378c00/bc/28fd3e52/CollectionExtensions.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/24276f5a960c41c7b74713aa84cb1cae4672f89e225b6dcd2fe9b297a3a39/TaskAwaiter.cs" root0="FORCE_HIGHLIGHTING" />
@@ -329,56 +332,147 @@
           <option name="timeStamp" value="54" />
         </breakpoint>
         <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs</url>
-          <line>1152</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" containingFunctionPresentation="Local function 'OnSessionAuthenticated'">
-            <startOffsets>
-              <option value="47587" />
-            </startOffsets>
-            <endOffsets>
-              <option value="47640" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="171" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs</url>
-          <line>1147</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" containingFunctionPresentation="Local function 'OnSessionAuthenticated'">
-            <startOffsets>
-              <option value="47471" />
-            </startOffsets>
-            <endOffsets>
-              <option value="47505" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="172" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs</url>
-          <line>1153</line>
-          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" containingFunctionPresentation="Local function 'OnSessionAuthenticated'">
-            <startOffsets>
-              <option value="47657" />
-            </startOffsets>
-            <endOffsets>
-              <option value="47694" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="174" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
           <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/AuthenticateTests.cs</url>
-          <line>254</line>
-          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/AuthenticateTests.cs" containingFunctionPresentation="Method 'TestAuthenticate_SingleSignature_SomeChainsAndMethods'">
+          <line>622</line>
+          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/AuthenticateTests.cs" containingFunctionPresentation="Lambda expression inside Method 'TestAuthenticate_NoWcAuthenticateInUri'">
             <startOffsets>
-              <option value="10944" />
+              <option value="26865" />
             </startOffsets>
             <endOffsets>
-              <option value="10982" />
+              <option value="26919" />
             </endOffsets>
           </properties>
-          <option name="timeStamp" value="177" />
+          <option name="timeStamp" value="189" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineValidation.cs</url>
+          <line>368</line>
+          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineValidation.cs" containingFunctionPresentation="Method 'ValidateConformingNamespaces'">
+            <startOffsets>
+              <option value="12999" />
+            </startOffsets>
+            <endOffsets>
+              <option value="13061" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="190" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineValidation.cs</url>
+          <line>95</line>
+          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineValidation.cs" containingFunctionPresentation="Method 'IsValidApprove'">
+            <startOffsets>
+              <option value="3207" />
+            </startOffsets>
+            <endOffsets>
+              <option value="3289" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="191" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs</url>
+          <line>27</line>
+          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" containingFunctionPresentation="Method 'OnSessionProposeRequest'">
+            <startOffsets>
+              <option value="777" />
+            </startOffsets>
+            <endOffsets>
+              <option value="843" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="192" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs</url>
+          <line>30</line>
+          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" containingFunctionPresentation="Method 'OnSessionProposeRequest'">
+            <startOffsets>
+              <option value="893" />
+            </startOffsets>
+            <endOffsets>
+              <option value="922" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="193" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs</url>
+          <line>28</line>
+          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" containingFunctionPresentation="Method 'OnSessionProposeRequest'">
+            <startOffsets>
+              <option value="860" />
+            </startOffsets>
+            <endOffsets>
+              <option value="867" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="194" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineTasks.cs</url>
+          <line>98</line>
+          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineTasks.cs" containingFunctionPresentation="Method 'ShouldIgnorePairingRequest'">
+            <startOffsets>
+              <option value="3847" />
+            </startOffsets>
+            <endOffsets>
+              <option value="3932" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="195" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineTasks.cs</url>
+          <line>99</line>
+          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineTasks.cs" containingFunctionPresentation="Method 'ShouldIgnorePairingRequest'">
+            <startOffsets>
+              <option value="3949" />
+            </startOffsets>
+            <endOffsets>
+              <option value="3962" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="196" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineTasks.cs</url>
+          <line>101</line>
+          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineTasks.cs" containingFunctionPresentation="Method 'ShouldIgnorePairingRequest'">
+            <startOffsets>
+              <option value="3976" />
+            </startOffsets>
+            <endOffsets>
+              <option value="4013" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="197" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineTasks.cs</url>
+          <line>102</line>
+          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineTasks.cs" containingFunctionPresentation="Method 'ShouldIgnorePairingRequest'">
+            <startOffsets>
+              <option value="4030" />
+            </startOffsets>
+            <endOffsets>
+              <option value="4043" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="198" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineTasks.cs</url>
+          <line>104</line>
+          <properties documentPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineTasks.cs" containingFunctionPresentation="Method 'ShouldIgnorePairingRequest'">
+            <startOffsets>
+              <option value="4057" />
+            </startOffsets>
+            <endOffsets>
+              <option value="4166" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="199" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

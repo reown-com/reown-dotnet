@@ -169,7 +169,7 @@ namespace Reown.Sign
 
         public bool HasSessionAuthenticateRequestSubscribers
         {
-            get => Engine.HasSessionAuthenticateRequestSubscribers;
+            get => SessionAuthenticateRequest != null;
         }
 
         public event EventHandler<SessionStruct> SessionExpired;

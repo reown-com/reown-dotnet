@@ -77,7 +77,7 @@ namespace Reown.Sign.Models
 
         public void Populate(ICollection<string> supportedCains, ICollection<string> supportedMethods)
         {
-            var approvedChains = supportedCains.Intersect(Chains);
+            var approvedChains = supportedCains.Intersect(Chains).ToArray();
             if (!approvedChains.Any())
             {
                 throw new InvalidOperationException("No approved chains found");
@@ -104,6 +104,9 @@ namespace Reown.Sign.Models
 
             updatedResources.RemoveAt(updatedResources.Count - 1);
             updatedResources.Add(ReCapUtils.EncodeRecap(recap));
+            Chains = approvedChains;
+            Methods = approvedActions;
+            Statement = ReCapUtils.FormatStatementFromRecap(recap, statement);
             Resources = updatedResources;
         }
     }

@@ -832,8 +832,6 @@ public class SignTests : IClassFixture<SignClientFixture>
     
                 var approveData = await walletClient.Approve(approveParams);
                 await approveData.Acknowledged();
-
-                await Task.Delay(500);
                 
                 tcs.SetResult();
             };
@@ -991,8 +989,6 @@ public class SignTests : IClassFixture<SignClientFixture>
     
             var approveData = await walletClient.Approve(approveParams);
             await approveData.Acknowledged();
-            
-            await Task.Delay(500);
             
             tcs.SetResult();
         };

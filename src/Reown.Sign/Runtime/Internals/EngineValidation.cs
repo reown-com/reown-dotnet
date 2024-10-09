@@ -363,6 +363,9 @@ namespace Reown.Sign
             Namespaces namespaces,
             string context)
         {
+            if (requiredNamespaces == null)
+                return;
+            
             var requiredNamespaceKeys = requiredNamespaces.Keys.ToArray();
             var namespaceKeys = namespaces.Keys.ToArray();
 

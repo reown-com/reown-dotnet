@@ -4,6 +4,7 @@ using Nethereum.Util;
 using Newtonsoft.Json;
 using Reown.Core.Common.Utils;
 using Reown.Core.Network.Models;
+using Reown.Sign.Models;
 using Reown.Sign.Models.Cacao;
 using Reown.Sign.Models.Engine;
 using Reown.TestUtils;
@@ -341,6 +342,365 @@ public class AuthenticateTests : IClassFixture<SignClientFixture>, IClassFixture
         Assert.Empty(wallet.Auth.PendingRequests.Values);
         Assert.Empty(dapp.Proposal.Values);
         Assert.Empty(dapp.Auth.PendingRequests.Values);
+
+        await _signClientFixture.DisposeAndReset();
+    }
+
+    // This test simulates the scenario where the wallet supports all the requested chains and methods
+    [Fact]
+    public async Task TestAuthenticate_MultipleSignatures_AllChainsAndMethods()
+    {
+        await _signClientFixture.WaitForClientsReady();
+
+        var dapp = _signClientFixture.ClientA;
+        var wallet = _signClientFixture.ClientB;
+
+        var authParams = GetTestAuthParams();
+
+        var tcs = new TaskCompletionSource();
+        wallet.SessionAuthenticateRequest += async (sender, args) =>
+        {
+            Assert.NotNull(args.Payload.RequestId);
+
+            args.Payload.Populate(authParams.Chains, authParams.Methods!);
+
+            var auths = new List<CacaoObject>();
+            foreach (var chainId in args.Payload.Chains)
+            {
+                var iss = $"did:pkh:{chainId}:{_cryptoWalletFixture.WalletAddress}";
+                var cacaoPayload = CacaoPayload.FromAuthPayloadParams(args.Payload, iss);
+                var message = cacaoPayload.FormatMessage();
+                var signature = await _cryptoWalletFixture.SignMessage(message);
+                var cacaoSignature = new CacaoSignature(CacaoSignatureType.Eip191, signature);
+                var cacao = new CacaoObject(CacaoHeader.Caip112, cacaoPayload, cacaoSignature);
+
+                auths.Add(cacao);
+            }
+
+            Assert.NotEmpty(auths);
+
+            await wallet.ApproveSessionAuthenticate(args.Payload.RequestId.Value, auths.ToArray());
+
+            tcs.SetResult();
+        };
+
+        wallet.SessionProposed += (_, _) => throw new InvalidOperationException("Wallet should not emit session_proposal");
+
+        var authData = await dapp.Authenticate(authParams);
+        _ = await wallet.Pair(authData.Uri);
+
+        await tcs.Task;
+
+        var dappSession = await authData.Approval;
+        var walletSession = wallet.Session.Values.First();
+
+        var walletNamespacesJson = JsonConvert.SerializeObject(walletSession.Namespaces);
+        var dappSessionNamespacesJson = JsonConvert.SerializeObject(dappSession.Namespaces);
+        Assert.Equal(walletNamespacesJson, dappSessionNamespacesJson);
+
+        var message = "Hello, .NET!";
+        wallet.SessionRequestEvents<PersonalSign, string>().OnRequest += async args =>
+        {
+            var personalSignMessage = @args.Request.Params[0];
+            var signature = await _cryptoWalletFixture.SignMessage(personalSignMessage);
+            args.Response = signature;
+        };
+
+        var signature = await dapp.Request<PersonalSign, string>(dappSession.Topic, [message, _cryptoWalletFixture.WalletAddress], "eip155:1");
+        var recoveredAddress = new EthereumMessageSigner().EncodeUTF8AndEcRecover(message, signature);
+        Assert.True(recoveredAddress.IsTheSameAddress(_cryptoWalletFixture.WalletAddress));
+
+        // Confirm that all pending proposals and auth requests have been cleared
+        Assert.Empty(wallet.Proposal.Values);
+        Assert.Empty(wallet.Auth.PendingRequests.Values);
+        Assert.Empty(dapp.Proposal.Values);
+        Assert.Empty(dapp.Auth.PendingRequests.Values);
+
+        await _signClientFixture.DisposeAndReset();
+    }
+
+    // This test simulates the scenario where the wallet supports subset of requested chains and all methods
+    [Fact]
+    public async Task TestAuthenticate_MultipleSignatures_SomeChainsAllMethods()
+    {
+        await _signClientFixture.WaitForClientsReady();
+
+        var dapp = _signClientFixture.ClientA;
+        var wallet = _signClientFixture.ClientB;
+
+        var requestedChains = new[]
+        {
+            "eip155:1",
+            "eip155:2"
+        };
+        var supportedChains = requestedChains.Take(1).ToArray();
+        var authParams = GetTestAuthParams(requestedChains);
+
+        var tcs = new TaskCompletionSource();
+        wallet.SessionAuthenticateRequest += async (sender, args) =>
+        {
+            var authPayload = args.Payload;
+            Assert.NotNull(authPayload.RequestId);
+
+            authPayload.Populate(supportedChains, authParams.Methods!);
+            Assert.Equal(supportedChains, authPayload.Chains);
+
+            var auths = new List<CacaoObject>();
+            foreach (var chainId in authPayload.Chains)
+            {
+                var iss = $"did:pkh:{chainId}:{_cryptoWalletFixture.WalletAddress}";
+                var cacaoPayload = CacaoPayload.FromAuthPayloadParams(authPayload, iss);
+                var message = cacaoPayload.FormatMessage();
+                var signature = await _cryptoWalletFixture.SignMessage(message);
+                var cacaoSignature = new CacaoSignature(CacaoSignatureType.Eip191, signature);
+                var cacao = new CacaoObject(CacaoHeader.Caip112, cacaoPayload, cacaoSignature);
+
+                auths.Add(cacao);
+            }
+
+            Assert.Equal(supportedChains.Length, auths.Count);
+
+            await wallet.ApproveSessionAuthenticate(authPayload.RequestId.Value, auths.ToArray());
+
+            tcs.SetResult();
+        };
+
+        wallet.SessionProposed += (_, _) => throw new InvalidOperationException("Wallet should not emit session_proposal");
+
+        var authData = await dapp.Authenticate(authParams);
+        _ = await wallet.Pair(authData.Uri);
+
+        await tcs.Task;
+
+        var dappSession = await authData.Approval;
+        var walletSession = wallet.Session.Values.First();
+
+        var walletNamespacesJson = JsonConvert.SerializeObject(walletSession.Namespaces);
+        var dappSessionNamespacesJson = JsonConvert.SerializeObject(dappSession.Namespaces);
+        Assert.Equal(walletNamespacesJson, dappSessionNamespacesJson);
+
+        var message = "Hello, .NET!";
+        wallet.SessionRequestEvents<PersonalSign, string>().OnRequest += async args =>
+        {
+            var personalSignMessage = args.Request.Params[0];
+            var signature = await _cryptoWalletFixture.SignMessage(personalSignMessage);
+            args.Response = signature;
+        };
+
+        var signature = await dapp.Request<PersonalSign, string>(dappSession.Topic, [message, _cryptoWalletFixture.WalletAddress], "eip155:1");
+        var recoveredAddress = new EthereumMessageSigner().EncodeUTF8AndEcRecover(message, signature);
+        Assert.True(recoveredAddress.IsTheSameAddress(_cryptoWalletFixture.WalletAddress));
+
+        // Confirm that all pending proposals and auth requests have been cleared
+        Assert.Empty(wallet.Proposal.Values);
+        Assert.Empty(wallet.Auth.PendingRequests.Values);
+        Assert.Empty(dapp.Proposal.Values);
+        Assert.Empty(dapp.Auth.PendingRequests.Values);
+
+        await _signClientFixture.DisposeAndReset();
+    }
+
+    // This test simulates the scenario where the wallet supports subset of requested chains and methods
+    [Fact]
+    public async Task TestAuthenticate_MultipleSignatures_SomeChainsAndMethods()
+    {
+        await _signClientFixture.WaitForClientsReady();
+
+        var dapp = _signClientFixture.ClientA;
+        var wallet = _signClientFixture.ClientB;
+
+        var requestedChains = new[]
+        {
+            "eip155:1",
+            "eip155:2"
+        };
+        var supportedChains = requestedChains.Take(1).ToArray();
+        var requestedMethods = new[]
+        {
+            "personal_sign",
+            "eth_chainId",
+            "eth_signTypedData_v4"
+        };
+        var supportedMethods = requestedMethods.Take(1).ToArray();
+        var authParams = GetTestAuthParams(requestedChains, requestedMethods);
+
+        var tcs = new TaskCompletionSource();
+        wallet.SessionAuthenticateRequest += async (sender, args) =>
+        {
+            var authPayload = args.Payload;
+            Assert.NotNull(authPayload.RequestId);
+
+            authPayload.Populate(supportedChains, supportedMethods);
+            Assert.Equal(supportedChains, authPayload.Chains);
+            Assert.Equal(supportedMethods, authPayload.Methods);
+
+            var auths = new List<CacaoObject>();
+            foreach (var chainId in authPayload.Chains)
+            {
+                var iss = $"did:pkh:{chainId}:{_cryptoWalletFixture.WalletAddress}";
+                var cacaoPayload = CacaoPayload.FromAuthPayloadParams(authPayload, iss);
+                var message = cacaoPayload.FormatMessage();
+                var signature = await _cryptoWalletFixture.SignMessage(message);
+                var cacaoSignature = new CacaoSignature(CacaoSignatureType.Eip191, signature);
+                var cacao = new CacaoObject(CacaoHeader.Caip112, cacaoPayload, cacaoSignature);
+
+                auths.Add(cacao);
+            }
+
+            Assert.Equal(supportedChains.Length, auths.Count);
+
+            await wallet.ApproveSessionAuthenticate(authPayload.RequestId.Value, auths.ToArray());
+
+            tcs.SetResult();
+        };
+
+        wallet.SessionProposed += (_, _) => throw new InvalidOperationException("Wallet should not emit session_proposal");
+
+        var authData = await dapp.Authenticate(authParams);
+        _ = await wallet.Pair(authData.Uri);
+
+        await tcs.Task;
+
+        var dappSession = await authData.Approval;
+        var walletSession = wallet.Session.Values.First();
+
+        var walletNamespacesJson = JsonConvert.SerializeObject(walletSession.Namespaces);
+        var dappSessionNamespacesJson = JsonConvert.SerializeObject(dappSession.Namespaces);
+        Assert.Equal(walletNamespacesJson, dappSessionNamespacesJson);
+
+        var message = "Hello, .NET!";
+        wallet.SessionRequestEvents<PersonalSign, string>().OnRequest += async args =>
+        {
+            var personalSignMessage = args.Request.Params[0];
+            var signature = await _cryptoWalletFixture.SignMessage(personalSignMessage);
+            args.Response = signature;
+        };
+
+        var signature = await dapp.Request<PersonalSign, string>(dappSession.Topic, [message, _cryptoWalletFixture.WalletAddress], "eip155:1");
+        var recoveredAddress = new EthereumMessageSigner().EncodeUTF8AndEcRecover(message, signature);
+        Assert.True(recoveredAddress.IsTheSameAddress(_cryptoWalletFixture.WalletAddress));
+
+        // Confirm that all pending proposals and auth requests have been cleared
+        Assert.Empty(wallet.Proposal.Values);
+        Assert.Empty(wallet.Auth.PendingRequests.Values);
+        Assert.Empty(dapp.Proposal.Values);
+        Assert.Empty(dapp.Auth.PendingRequests.Values);
+
+        await _signClientFixture.DisposeAndReset();
+    }
+
+    // Should establish normal sign session when URI doesn't specify `wc_sessionAuthenticate` method"
+    [Fact]
+    public async Task TestAuthenticate_NoWcAuthenticateInUri()
+    {
+        await _signClientFixture.WaitForClientsReady();
+
+        var dapp = _signClientFixture.ClientA;
+        var wallet = _signClientFixture.ClientB;
+
+        var authParams = GetTestAuthParams();
+
+        var authData = await dapp.Authenticate(authParams);
+
+        Assert.False(string.IsNullOrWhiteSpace(authData.Uri));
+        Assert.Contains("wc_sessionAuthenticate", authData.Uri);
+
+        var updatedUri = authData.Uri.Replace("&methods=wc_sessionAuthenticate", string.Empty);
+
+        wallet.SessionProposed += async (_, e) =>
+        {
+            var approvedNamespaces = new Namespaces(e.Proposal.OptionalNamespaces);
+            approvedNamespaces["eip155"]
+                .WithAccount($"eip155:1:{_cryptoWalletFixture.WalletAddress}")
+                .WithAccount($"eip155:2:{_cryptoWalletFixture.WalletAddress}");
+
+            var approveParams = new ApproveParams
+            {
+                Id = e.Id,
+                Namespaces = approvedNamespaces
+            };
+
+            var approveData = await wallet.Approve(approveParams);
+            await approveData.Acknowledged();
+        };
+
+        _ = await wallet.Pair(updatedUri);
+
+        var dappSession = await authData.Approval;
+        var walletSession = wallet.Session.Values.First();
+
+        var walletNamespacesJson = JsonConvert.SerializeObject(walletSession.Namespaces);
+        var dappSessionNamespacesJson = JsonConvert.SerializeObject(dappSession.Namespaces);
+        Assert.Equal(walletNamespacesJson, dappSessionNamespacesJson);
+
+        var message = "Hello, .NET!";
+        wallet.SessionRequestEvents<PersonalSign, string>().OnRequest += async args =>
+        {
+            var personalSignMessage = args.Request.Params[0];
+            var signature = await _cryptoWalletFixture.SignMessage(personalSignMessage);
+            args.Response = signature;
+        };
+
+        var signature = await dapp.Request<PersonalSign, string>(dappSession.Topic, [message, _cryptoWalletFixture.WalletAddress], "eip155:1");
+        var recoveredAddress = new EthereumMessageSigner().EncodeUTF8AndEcRecover(message, signature);
+        Assert.True(recoveredAddress.IsTheSameAddress(_cryptoWalletFixture.WalletAddress));
+
+        await _signClientFixture.DisposeAndReset();
+    }
+
+    // Should establish normal sign session when wallet hasn't subscribed to SessionAuthenticateRequest event
+    [Fact]
+    public async Task TestAuthenticate_NoWcAuthenticateListeners()
+    {
+        await _signClientFixture.WaitForClientsReady();
+
+        var dapp = _signClientFixture.ClientA;
+        var wallet = _signClientFixture.ClientB;
+
+        var authParams = GetTestAuthParams();
+
+        var authData = await dapp.Authenticate(authParams);
+
+        Assert.False(string.IsNullOrWhiteSpace(authData.Uri));
+        Assert.Contains("wc_sessionAuthenticate", authData.Uri);
+
+        wallet.SessionProposed += async (_, e) =>
+        {
+            var approvedNamespaces = new Namespaces(e.Proposal.OptionalNamespaces);
+            approvedNamespaces["eip155"]
+                .WithAccount($"eip155:1:{_cryptoWalletFixture.WalletAddress}")
+                .WithAccount($"eip155:2:{_cryptoWalletFixture.WalletAddress}");
+
+            var approveParams = new ApproveParams
+            {
+                Id = e.Id,
+                Namespaces = approvedNamespaces
+            };
+
+            var approveData = await wallet.Approve(approveParams);
+            await approveData.Acknowledged();
+        };
+
+        _ = await wallet.Pair(authData.Uri);
+
+        var dappSession = await authData.Approval;
+        var walletSession = wallet.Session.Values.First();
+
+        var walletNamespacesJson = JsonConvert.SerializeObject(walletSession.Namespaces);
+        var dappSessionNamespacesJson = JsonConvert.SerializeObject(dappSession.Namespaces);
+        Assert.Equal(walletNamespacesJson, dappSessionNamespacesJson);
+
+        var message = "Hello, .NET!";
+        wallet.SessionRequestEvents<PersonalSign, string>().OnRequest += async args =>
+        {
+            var personalSignMessage = args.Request.Params[0];
+            var signature = await _cryptoWalletFixture.SignMessage(personalSignMessage);
+            args.Response = signature;
+        };
+
+        var signature = await dapp.Request<PersonalSign, string>(dappSession.Topic, [message, _cryptoWalletFixture.WalletAddress], "eip155:1");
+        var recoveredAddress = new EthereumMessageSigner().EncodeUTF8AndEcRecover(message, signature);
+        Assert.True(recoveredAddress.IsTheSameAddress(_cryptoWalletFixture.WalletAddress));
 
         await _signClientFixture.DisposeAndReset();
     }

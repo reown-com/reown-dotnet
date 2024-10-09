@@ -12,7 +12,6 @@ using Reown.Core.Models.Expirer;
 using Reown.Core.Models.Relay;
 using Reown.Core.Network.Models;
 using Reown.Sign.Constants;
-using Reown.Sign.Controllers;
 using Reown.Sign.Interfaces;
 using Reown.Sign.Models;
 using Reown.Sign.Models.Engine;
@@ -379,8 +378,8 @@ namespace Reown.Sign
                 var cacaos = payload.Result.Cacaos;
                 var responder = payload.Result.Responder;
 
-                var approvedMethods = new List<string>();
-                var approvedAccounts = new List<string>();
+                var approvedMethods = new HashSet<string>();
+                var approvedAccounts = new HashSet<string>();
                 foreach (var cacao in cacaos)
                 {
                     var isValid = await cacao.VerifySignature(Client.CoreClient.ProjectId);
@@ -389,18 +388,18 @@ namespace Reown.Sign
                         throw new IOException("CACAO signature verification failed");
                     }
 
-                    var approvedChains = new List<string>();
+                    var approvedChains = new HashSet<string>();
                     var parsedAddress = CacaoUtils.ExtractDidAddress(cacao.Payload.Iss);
 
                     if (ReCapUtils.TryGetRecapFromResources(cacao.Payload.Resources, out var recapStr))
                     {
                         var methodsFromRecap = ReCapUtils.GetActionsFromRecap(recapStr);
                         var chainsFromRecap = ReCapUtils.GetChainsFromRecap(recapStr);
-                        approvedMethods.AddRange(methodsFromRecap);
-                        approvedChains.AddRange(chainsFromRecap);
+                        approvedMethods.UnionWith(methodsFromRecap);
+                        approvedChains.UnionWith(chainsFromRecap);
                     }
 
-                    approvedAccounts.AddRange(approvedChains.Select(chain => $"{chain}:{parsedAddress}"));
+                    approvedAccounts.UnionWith(approvedChains.Select(chain => $"{chain}:{parsedAddress}"));
                 }
 
                 var publicKey = Client.Auth.Keys.Get(AuthConstants.AuthPublicKeyName).PublicKey;
@@ -422,7 +421,6 @@ namespace Reown.Sign
                         Peer = responder,
                         Controller = responder.PublicKey,
                         Expiry = Clock.CalculateExpiry(SessionExpiry),
-                        // RequiredNamespaces = new RequiredNamespaces(),
                         Namespaces = Namespaces.FromAuth(approvedMethods.ToArray(), approvedAccounts.ToArray()),
                         Relay = new ProtocolOptions
                         {
