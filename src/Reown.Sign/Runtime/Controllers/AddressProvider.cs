@@ -23,6 +23,7 @@ namespace Reown.Sign.Controllers
             Sessions = client.Session;
 
             // set the first connected session to the default one
+            client.SessionAuthenticated += ClientOnSessionAuthenticated;
             client.SessionConnected += ClientOnSessionConnected;
             client.SessionDeleted += ClientOnSessionDeleted;
             client.SessionUpdateRequest += ClientOnSessionUpdated;
@@ -165,6 +166,12 @@ namespace Reown.Sign.Controllers
                 DefaultSession = default;
                 await UpdateDefaultChainIdAndNamespaceAsync();
             }
+        }
+
+        private async void ClientOnSessionAuthenticated(object sender, SessionAuthenticatedEventArgs e)
+        {
+            DefaultSession = e.Session;
+            await UpdateDefaultChainIdAndNamespaceAsync();
         }
 
         private async void ClientOnSessionConnected(object sender, SessionStruct e)

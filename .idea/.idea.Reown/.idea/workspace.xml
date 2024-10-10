@@ -6,11 +6,23 @@
   <component name="ChangeListManager">
     <list default="true" id="2f5f8ac7-0622-47ce-9f54-e7355eaeafc5" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineHandler.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineValidation.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Internals/EngineValidation.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sample/Reown.AppKit.Unity/Assets/Scripts/AppKitInit.cs" beforeDir="false" afterPath="$PROJECT_DIR$/sample/Reown.AppKit.Unity/Assets/Scripts/AppKitInit.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sample/Reown.AppKit.Unity/Assets/Scripts/Dapp.cs" beforeDir="false" afterPath="$PROJECT_DIR$/sample/Reown.AppKit.Unity/Assets/Scripts/Dapp.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/AppKitConfig.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/AppKitConfig.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Connectors/Connector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Connectors/Connector.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Connectors/WalletConnect/WalletConnectConnectionProposal.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Connectors/WalletConnect/WalletConnectConnectionProposal.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Connectors/WalletConnect/WalletConnectConnector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Connectors/WalletConnect/WalletConnectConnector.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Connectors/WebGl/WebGlConnector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Connectors/WebGl/WebGlConnector.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Controllers/ConnectorController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Controllers/ConnectorController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Model/AppKitApi/Wallet.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Model/AppKitApi/Wallet.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Presenters/ConnectPresenter.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Presenters/ConnectPresenter.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/AddressProvider.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/AddressProvider.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/AuthPayloadParams.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/AuthPayloadParams.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Reown.Sign.Test/AuthenticateTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Reown.Sign.Test/AuthenticateTests.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Reown.Sign.Test/SignTests.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoPayload.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoPayload.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/AuthParams.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/AuthParams.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/Reown.Sign.Test/CacaoTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Reown.Sign.Test/CacaoTests.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -110,6 +122,7 @@
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/cce4b5a89a7e4f9aa748463a385e24378c00/15/211f5cc0/HashSet`1.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/cce4b5a89a7e4f9aa748463a385e24378c00/9f/d9a7e723/List`1.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/cce4b5a89a7e4f9aa748463a385e24378c00/bc/28fd3e52/CollectionExtensions.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/1ba467d187f9beb61b281fed2c5721cbe8e64e3b41e4abadf81685961273b2e/AddressUtil.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/24276f5a960c41c7b74713aa84cb1cae4672f89e225b6dcd2fe9b297a3a39/TaskAwaiter.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/29ea32a76b2a6b8eb246f247df6a6a86d887384b4c31db2a35effccdd86c24/JsonSerializerInternalReader.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/3655ee8e105dde88e3c3852245cbe52b18e4021afa7235fd8e79e0ce258d1d/CollectionAsserts.cs" root0="FORCE_HIGHLIGHTING" />
@@ -120,6 +133,7 @@
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/8bc33c76c1b4ce503e92c9426e77372e63dc92fc0785c7f4318021c8afc8/CamelCaseNamingStrategy.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/96ccfd5052d879c2c4cc1a3d98c2a0e79f2ad1276b6f898052efa720edbebb/JsonConverter.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/9ec14bf1a6ca9b18c9e62147b1cadf0959b3acbfc5c8c2b9d5c6fa12030/StringEnumConverter.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/abf4e15f184ab5972a8d164c58776fc8f429c8bb76a360c6be8e5e8267b673/AddressExtensions.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/bf9021a960b74107a7e141aa06bc9d8a0a53c929178c2fb95b1597be8af8dc/ExceptionDispatchInfo.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/bfe6d7ebbed9d3d854a76aee4fdb9ee59579753e7230885a72fcd7521c3bde/NamingStrategy.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/df6bc5501fb85deae91441163833d580a2eb466322fdde053a3e60694c1d9b/StringAsserts.cs" root0="FORCE_HIGHLIGHTING" />
@@ -473,6 +487,19 @@
             </endOffsets>
           </properties>
           <option name="timeStamp" value="199" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/test/Reown.Sign.Test/CacaoTests.cs</url>
+          <line>45</line>
+          <properties documentPath="$PROJECT_DIR$/test/Reown.Sign.Test/CacaoTests.cs" containingFunctionPresentation="Method 'FormatMessage_WithoutRecap_ReturnsExpectedMessage'">
+            <startOffsets>
+              <option value="1680" />
+            </startOffsets>
+            <endOffsets>
+              <option value="1728" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="201" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

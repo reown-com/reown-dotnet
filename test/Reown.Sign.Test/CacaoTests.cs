@@ -36,6 +36,8 @@ public class CacaoTests
                                        Chain ID: 1
                                        Nonce: 1
                                        Issued At: 2024-02-19T09:29:21.394Z
+                                       Expiration Time: 2024-02-19T09:29:21.394Z
+                                       Not Before: 2024-02-19T09:29:21.394Z
                                        """;
 
         var cacaoObject = new CacaoObject(new CacaoHeader(), payload, new CacaoSignature(CacaoSignatureType.Eip1271, "--"));

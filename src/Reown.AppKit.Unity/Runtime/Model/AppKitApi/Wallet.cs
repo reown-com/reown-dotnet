@@ -12,6 +12,8 @@ namespace Reown.AppKit.Unity.Model
 
         [JsonProperty("image_id")] public string ImageId { get; set; }
 
+        [JsonProperty("image_url")] public string ImageUrl { get; set; }
+
         [JsonProperty("order")] public int Order { get; set; }
 
         [JsonProperty("mobile_link")] public string MobileLink { get; set; }

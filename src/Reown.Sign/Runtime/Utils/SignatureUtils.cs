@@ -3,7 +3,9 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Nethereum.Signer;
+using Nethereum.Util;
 using Newtonsoft.Json;
+using Reown.Core.Common.Logging;
 using Reown.Core.Common.Utils;
 using Reown.Core.Models.Eth;
 using Reown.Core.Network.Models;
@@ -33,11 +35,13 @@ namespace Reown.Sign.Utils
             };
         }
 
-        private static bool IsValidEip191Signature(string address, string reconstructedMessage, string cacaoSignatureS)
+        private static bool IsValidEip191Signature(string address, string reconstructedMessage, string cacaoSignature)
         {
+            ReownLogger.Log("IsValidEip191Signature");
             var signer = new EthereumMessageSigner();
-            var recoveredAddress = signer.EncodeUTF8AndEcRecover(reconstructedMessage, cacaoSignatureS);
-            return string.Equals(recoveredAddress, address, StringComparison.CurrentCultureIgnoreCase);
+            var recoveredAddress = signer.EncodeUTF8AndEcRecover(reconstructedMessage, cacaoSignature);
+            ReownLogger.Log($"Recovered Address: {recoveredAddress}");
+            return recoveredAddress.IsTheSameAddress(address);
         }
 
         private static async Task<bool> IsValidEip1271Signature(

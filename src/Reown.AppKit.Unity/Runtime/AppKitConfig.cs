@@ -1,4 +1,5 @@
 using System;
+using Reown.AppKit.Unity.Model;
 
 namespace Reown.AppKit.Unity
 {
@@ -26,6 +27,8 @@ namespace Reown.AppKit.Unity
             ChainConstants.Chains.Ronin
         };
 
+        public Wallet[] customWallets;
+
         public readonly Metadata Metadata;
         public readonly string ProjectId;
 
@@ -52,16 +55,16 @@ namespace Reown.AppKit.Unity
             IconUrl = iconUrl;
             Redirect = redirect ?? new RedirectData();
         }
-        
-        public static implicit operator Reown.Core.Metadata(Metadata metadata)
+
+        public static implicit operator Core.Metadata(Metadata metadata)
         {
-            return new Reown.Core.Metadata
+            return new Core.Metadata
             {
                 Name = metadata.Name,
                 Description = metadata.Description,
                 Url = metadata.Url,
                 Icons = new[] { metadata.IconUrl },
-                Redirect = new Reown.Core.Models.RedirectData
+                Redirect = new Core.Models.RedirectData
                 {
                     Native = metadata.Redirect.Native,
                     Universal = metadata.Redirect.Universal

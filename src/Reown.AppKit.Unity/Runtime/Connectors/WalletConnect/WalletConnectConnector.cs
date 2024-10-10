@@ -29,6 +29,7 @@ namespace Reown.AppKit.Unity
 
             _signClient.SubscribeToSessionEvent("chainChanged", ActiveChainIdChangedHandler);
 
+            _signClient.SessionAuthenticated += SessionAuthenticatedHandler;
             _signClient.SessionConnectedUnity += SessionConnectedHandler;
             _signClient.SessionUpdatedUnity += ActiveSessionChangedHandler;
             _signClient.SessionDisconnectedUnity += SessionDeletedHandler;
@@ -58,6 +59,12 @@ namespace Reown.AppKit.Unity
 
             OnChainChanged(new ChainChangedEventArgs(sessionEvent.ChainId));
             OnAccountChanged(new AccountChangedEventArgs(GetCurrentAccount()));
+        }
+
+        private void SessionAuthenticatedHandler(object sender, SessionAuthenticatedEventArgs e)
+        {
+            AppKit.NotificationController.Notify(NotificationType.Success, "Session authenticated");
+            IsAccountConnected = true;
         }
 
         private void SessionConnectedHandler(object sender, SessionStruct e)
@@ -177,7 +184,7 @@ namespace Reown.AppKit.Unity
             return Task.FromResult(GetCurrentAccount());
         }
 
-        protected override Task<Account[]> GetAccountsCore()
+        protected override Task<Account[]> GetAccountsAsyncCore()
         {
             var caipAddresses = _signClient.AddressProvider.AllAddresses();
             return Task.FromResult(caipAddresses.Select(caip25Address => new Account(caip25Address.Address, caip25Address.ChainId)).ToArray());

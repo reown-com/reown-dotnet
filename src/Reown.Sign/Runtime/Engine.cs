@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Org.BouncyCastle.Ocsp;
 using Reown.Core.Common;
 using Reown.Core.Common.Events;
 using Reown.Core.Common.Logging;
@@ -1014,11 +1016,14 @@ namespace Reown.Sign
                 Version = "1",
                 Nonce = authParams.Nonce,
                 Iat = DateTimeOffset.UtcNow.ToRfc3339(),
-                Exp = authParams.Expiration.ToString(),
-                Nbf = authParams.NotBefore.ToString(),
+                Exp = authParams.Expiration?.ToString(),
+                Nbf = authParams.NotBefore?.ToString(),
                 Resources = authParams.Resources,
                 PairingTopic = pairingData.Topic
             };
+
+            var json = JsonConvert.SerializeObject(authPayloadParams);
+            ReownLogger.Log(json);
 
             var participant = new Participant
             {
@@ -1030,7 +1035,7 @@ namespace Reown.Sign
             {
                 Payload = authPayloadParams,
                 Requester = participant,
-                ExpiryTimestamp = Clock.CalculateExpiry(authParams.Expiration ?? Clock.ONE_HOUR)
+                ExpiryTimestamp = Clock.CalculateExpiry(long.TryParse(authParams.Expiration, out var exp) ? exp : Clock.ONE_HOUR)
             };
             
             // Build namespaces for fallback session proposal
@@ -1062,7 +1067,8 @@ namespace Reown.Sign
                         Protocol = RelayProtocols.Default
                     }
                 },
-                Proposer = participant
+                Proposer = participant,
+                RequiredNamespaces = new RequiredNamespaces()
             };
 
             long authId = default;
@@ -1095,7 +1101,7 @@ namespace Reown.Sign
 
             await PrivateThis.SetProposal(fallbackId, new ProposalStruct
             {
-                Expiry = Clock.CalculateExpiry(authParams.Expiration ?? Clock.FIVE_MINUTES),
+                Expiry = Clock.CalculateExpiry(long.TryParse(authParams.Expiration, out var fallbackExp) ? fallbackExp : Clock.ONE_HOUR),
                 Id = fallbackId,
                 Proposer = participant,
                 PairingTopic = pairingData.Topic,

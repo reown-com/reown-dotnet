@@ -1,6 +1,7 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
 
 namespace Reown.Sign.Models.Engine
@@ -19,11 +20,11 @@ namespace Reown.Sign.Models.Engine
         [JsonProperty("uri")]
         public string Uri;
 
-        [JsonProperty("nbf", NullValueHandling = NullValueHandling.Ignore)]
-        public long? NotBefore;
+        [JsonProperty("nbf", NullValueHandling = NullValueHandling.Include)]
+        public string NotBefore;
 
-        [JsonProperty("exp", NullValueHandling = NullValueHandling.Ignore)]
-        public long? Expiration;
+        [JsonProperty("exp", NullValueHandling = NullValueHandling.Include)]
+        public string Expiration;
 
         [JsonProperty("statement", NullValueHandling = NullValueHandling.Ignore)]
         public string? Statement;
@@ -41,7 +42,7 @@ namespace Reown.Sign.Models.Engine
         {
         }
 
-        public AuthParams(string[] chains, string domain, string nonce, string uri, long? nbf, long? exp, string? statement, string? requestId, List<string>? resources, string[]? methods)
+        public AuthParams(string[] chains, string domain, string nonce, string uri, string? nbf, string? exp, string? statement, string? requestId, List<string>? resources, string[]? methods)
         {
             Chains = chains;
             Domain = domain;

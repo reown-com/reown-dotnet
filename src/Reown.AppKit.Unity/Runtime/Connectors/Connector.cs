@@ -51,7 +51,7 @@ namespace Reown.AppKit.Unity
             if (isResumed)
             {
                 IsAccountConnected = true;
-                OnAccountConnected(new AccountConnectedEventArgs(GetAccountAsync, GetAccounts));
+                OnAccountConnected(new AccountConnectedEventArgs(GetAccountAsync, GetAccountsAsync));
             }
 
             return isResumed;
@@ -95,12 +95,12 @@ namespace Reown.AppKit.Unity
             return GetAccountAsyncCore();
         }
 
-        public Task<Account[]> GetAccounts()
+        public Task<Account[]> GetAccountsAsync()
         {
             if (!IsAccountConnected)
                 throw new Exception("No account connected"); // TODO: use custom ex type
 
-            return GetAccountsCore();
+            return GetAccountsAsyncCore();
         }
 
         protected virtual void ConnectionConnectedHandler(ConnectionProposal connectionProposal)
@@ -111,7 +111,7 @@ namespace Reown.AppKit.Unity
 
             _connectionProposals.Clear();
             Debug.Log("Connector calls OnAccountConnected");
-            OnAccountConnected(new AccountConnectedEventArgs(GetAccountAsync, GetAccounts));
+            OnAccountConnected(new AccountConnectedEventArgs(GetAccountAsync, GetAccountsAsync));
         }
 
         protected virtual void OnAccountConnected(AccountConnectedEventArgs e)
@@ -151,7 +151,7 @@ namespace Reown.AppKit.Unity
 
         protected abstract Task<Account> GetAccountAsyncCore();
 
-        protected abstract Task<Account[]> GetAccountsCore();
+        protected abstract Task<Account[]> GetAccountsAsyncCore();
 
         public class AccountConnectedEventArgs : EventArgs
         {

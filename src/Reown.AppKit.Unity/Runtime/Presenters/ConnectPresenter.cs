@@ -1,11 +1,11 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using UnityEngine;
-using UnityEngine.UIElements;
 using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Model;
 using Reown.AppKit.Unity.Utils;
+using UnityEngine;
+using UnityEngine.UIElements;
 using DeviceType = Reown.AppKit.Unity.Utils.DeviceType;
 
 namespace Reown.AppKit.Unity
@@ -71,6 +71,21 @@ namespace Reown.AppKit.Unity
             if (recentWalletExists)
                 count++;
 
+            if (AppKit.Config.customWallets is { Length: > 0 })
+            {
+                foreach (var customWallet in AppKit.Config.customWallets)
+                {
+                    if (count-- <= 0)
+                        break;
+
+                    var walletListItem = BuildWalletListItem(customWallet);
+                    View.Add(walletListItem);
+                }
+            }
+
+            if (count <= 0)
+                return;
+            
             var response = await AppKit.ApiController.GetWallets(1, count);
 
             foreach (var wallet in response.Data)

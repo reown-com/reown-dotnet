@@ -19,22 +19,22 @@ namespace Reown.Sign.Models
         [JsonProperty("nonce")]
         public string Nonce;
 
-        [JsonProperty("aud", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty("aud", NullValueHandling = NullValueHandling.Include)]
         public string? Aud;
 
-        [JsonProperty("type", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty("type", NullValueHandling = NullValueHandling.Include)]
         public string? Type;
 
-        [JsonProperty("nbf", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty("nbf", NullValueHandling = NullValueHandling.Include)]
         public string? Nbf;
 
-        [JsonProperty("exp", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty("exp", NullValueHandling = NullValueHandling.Include)]
         public string? Exp;
 
-        [JsonProperty("iat", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty("iat", NullValueHandling = NullValueHandling.Include)]
         public string? Iat;
 
-        [JsonProperty("statement", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty("statement", NullValueHandling = NullValueHandling.Include)]
         public string? Statement;
 
         [JsonProperty("requestId", NullValueHandling = NullValueHandling.Ignore)]

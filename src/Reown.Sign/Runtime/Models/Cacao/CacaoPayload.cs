@@ -94,12 +94,14 @@ namespace Reown.Sign.Models.Cacao
 
             var header = $"{Domain} wants you to sign in with your Ethereum account:";
             var walletAddress = CacaoUtils.ExtractDidAddress(Iss);
-            var statement = Statement;
+            var statement = Statement != null ? $"\n{Statement}" : null;
             var uri = $"\nURI: {Aud}";
             var version = $"Version: {Version}";
             var chainId = $"Chain ID: {CacaoUtils.ExtractDidChainIdReference(Iss)}";
             var nonce = $"Nonce: {Nonce}";
             var issuedAt = $"Issued At: {IssuedAt}";
+            var expirationTime = Expiration != null ? $"Expiration Time: {Expiration}" : null;
+            var notBefore = NotBefore != null ? $"Not Before: {NotBefore}" : null;
             var resources = Resources is { Length: > 0 }
                 ? $"Resources:\n{string.Join('\n', Resources.Select(resource => $"- {resource}"))}"
                 : null;
@@ -107,7 +109,7 @@ namespace Reown.Sign.Models.Cacao
             if (ReCapUtils.TryGetRecapFromResources(Resources, out var recapStr))
             {
                 var decoded = ReCapUtils.DecodeRecap(recapStr);
-                statement = ReCapUtils.FormatStatementFromRecap(decoded, statement);
+                statement ??= ReCapUtils.FormatStatementFromRecap(decoded, statement);
             }
 
             var message = string.Join('\n', new[]
@@ -120,6 +122,8 @@ namespace Reown.Sign.Models.Cacao
                     chainId,
                     nonce,
                     issuedAt,
+                    expirationTime,
+                    notBefore,
                     resources
                 }
                 .Where(val => !string.IsNullOrWhiteSpace(val))
