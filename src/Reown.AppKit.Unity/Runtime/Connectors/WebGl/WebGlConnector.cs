@@ -118,7 +118,7 @@ namespace Reown.AppKit.Unity
             return new Account(wagmiAccount.address, $"eip155:{wagmiAccount.chainId}");
         }
 
-        protected override async Task<Account[]> GetAccountsCore()
+        protected override async Task<Account[]> GetAccountsAsyncCore()
         {
             var wagmiAccount = await WagmiInterop.GetAccountAsync();
             var chainId = $"eip155:{wagmiAccount.chainId}";
@@ -137,7 +137,7 @@ namespace Reown.AppKit.Unity
             if (_lastAccountStatus == "connected" && previousLastAccountStatus != "connected")
             {
                 IsAccountConnected = true;
-                var accountConnectedEventArgs = new AccountConnectedEventArgs(GetAccountAsync, GetAccounts);
+                var accountConnectedEventArgs = new AccountConnectedEventArgs(GetAccountAsync, GetAccountsAsync);
                 OnAccountConnected(accountConnectedEventArgs);
             }
             else if (_lastAccountStatus == "disconnected" && previousLastAccountStatus != "disconnected")

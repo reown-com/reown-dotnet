@@ -14,7 +14,7 @@ public class NamespaceTests
         Assert.Contains("newMethod", ns.Methods);
     }
 
-    [Fact] [Trait("Category", "unit")] [Trait("Category", "unit")]
+    [Fact] [Trait("Category", "unit")]
     public void WithChain_AppendsNewChain_WhenChainsIsNull()
     {
         var ns = new Namespace();
@@ -23,7 +23,7 @@ public class NamespaceTests
         Assert.Contains("newChain", ns.Chains);
     }
 
-    [Fact] [Trait("Category", "unit")] [Trait("Category", "unit")]
+    [Fact] [Trait("Category", "unit")]
     public void WithChain_AppendsNewChain_WhenChainsIsNotNull()
     {
         var ns = new Namespace();

@@ -4,8 +4,8 @@ using Reown.Core;
 namespace Reown.Sign.Models
 {
     /// <summary>
-    ///     A class that represents a participant. This store the public key and additional metadata
-    ///     about the participant
+    ///     A class that represents a participant.
+    ///     Stores the public key and additional metadata about the participant.
     /// </summary>
     public class Participant
     {

@@ -1,8 +1,10 @@
-using mixpanel;
 using Reown.AppKit.Unity;
+using Reown.AppKit.Unity.Model;
+using Reown.Core.Common.Logging;
 using Skibitsky.Unity;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityLogger = Reown.Sign.Unity.UnityLogger;
 
 namespace Sample
 {
@@ -12,6 +14,8 @@ namespace Sample
 
         private async void Start()
         {
+            ReownLogger.Instance = new UnityLogger();
+            
             Debug.Log($"[AppKit Init] Initializing AppKit...");
             await AppKit.InitializeAsync(
                 new AppKitConfig(
@@ -27,6 +31,9 @@ namespace Sample
                         }
                     )
                 )
+                {
+                    customWallets = GetCustomWallets()
+                }
             );
 
 #if !UNITY_WEBGL
@@ -36,6 +43,19 @@ namespace Sample
 
             Debug.Log($"[AppKit Init] AppKit initialized. Loading menu scene...");
             SceneManager.LoadScene(_menuScene);
+        }
+
+        private Wallet[] GetCustomWallets()
+        {
+            return new[]
+            {
+                new Wallet
+                {
+                    Name = "Swift Wallet",
+                    // ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/main/media/flutter-icon.png",
+                    MobileLink = "walletapp://"
+                }
+            };
         }
     }
 }
