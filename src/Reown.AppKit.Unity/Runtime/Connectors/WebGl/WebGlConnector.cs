@@ -42,7 +42,8 @@ namespace Reown.AppKit.Unity
                 excludeWalletIds = appKitConfig.excludedWalletIds ?? Array.Empty<string>(),
                 
                 enableOnramp = appKitConfig.enableOnramp,
-                enableAnalytics = appKitConfig.enableAnalytics
+                enableAnalytics = appKitConfig.enableAnalytics,
+                enableCoinbaseWallet = appKitConfig.enableCoinbaseWallet
             };
 
             var parametersJson = JsonConvert.SerializeObject(parameters);
@@ -179,6 +180,7 @@ namespace Reown.AppKit.Unity
 
         public bool enableOnramp;
         public bool enableAnalytics;
+        public bool enableCoinbaseWallet;
     }
 #endif
 }

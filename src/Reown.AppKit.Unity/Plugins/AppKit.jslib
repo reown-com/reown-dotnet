@@ -70,6 +70,7 @@ mergeInto(LibraryManager.library, {
 
         const enableOnramp = parameters.enableOnramp;
         const enableAnalytics = parameters.enableAnalytics;
+        const enableCoinbaseWallet = parameters.enableCoinbaseWallet;
 
         // Load the scripts and initialize the configuration
         import("https://cdn.jsdelivr.net/npm/@web3modal/cdn@5.1.2/dist/wagmi.js").then(CDNW3M => {
@@ -97,10 +98,10 @@ mergeInto(LibraryManager.library, {
                 connectors: [
                     walletConnect({projectId, metadata, showQrModal: false}),
                     injected({shimDisconnect: true}),
-                    coinbaseWallet({
+                    ...(enableCoinbaseWallet ? [coinbaseWallet({
                         appName: metadata.name,
                         appLogoUrl: metadata.icons[0]
-                    })
+                    })] : [])
                 ]
             });
 
