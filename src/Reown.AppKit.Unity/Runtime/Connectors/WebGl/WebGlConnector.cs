@@ -4,7 +4,6 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using AOT;
 using Newtonsoft.Json;
-using UnityEngine;
 using Reown.AppKit.Unity.WebGl.Modal;
 using Reown.AppKit.Unity.WebGl.Wagmi;
 using Reown.Sign.Unity;
@@ -172,7 +171,7 @@ namespace Reown.AppKit.Unity
     internal class WebGlInitializeParameters
     {
         public string projectId;
-        public Reown.Core.metadata metadata;
+        public Core.Metadata metadata;
         public string[] chains;
 
         public bool enableOnramp;
