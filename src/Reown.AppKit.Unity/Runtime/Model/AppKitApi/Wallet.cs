@@ -1,4 +1,6 @@
 using Newtonsoft.Json;
+using Reown.AppKit.Unity.Utils;
+using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Model
 {
@@ -25,5 +27,10 @@ namespace Reown.AppKit.Unity.Model
         [JsonProperty("app_store")] public string AppStore { get; set; }
 
         [JsonProperty("play_store")] public string PlayStore { get; set; }
+
+        public RemoteSprite<Image> Image
+        {
+            get => RemoteSpriteFactory.GetRemoteSprite<Image>(ImageUrl ?? $"https://api.web3modal.com/getWalletImage/{ImageId}");
+        }
     }
 }

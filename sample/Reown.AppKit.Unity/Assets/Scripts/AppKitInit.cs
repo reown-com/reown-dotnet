@@ -1,3 +1,4 @@
+using mixpanel;
 using Reown.AppKit.Unity;
 using Reown.AppKit.Unity.Model;
 using Reown.Core.Common.Logging;
@@ -18,21 +19,21 @@ namespace Sample
             
             Debug.Log($"[AppKit Init] Initializing AppKit...");
             await AppKit.InitializeAsync(
-                new AppKitConfig(
-                    projectId: "884a108399b5e7c9bc00bd9be4ccb2cc",
-                    new Metadata( 
-                        name: "AppKit Unity", 
-                        description: "AppKit Unity Sample", 
-                        url: "https://reown.com",
-                        iconUrl: "https://raw.githubusercontent.com/reown-com/reown-dotnet/main/media/appkit-icon.png",
+                new AppKitConfig
+                {
+                    projectId = "884a108399b5e7c9bc00bd9be4ccb2cc",
+                    metadata = new Metadata(
+                        "AppKit Unity",
+                        "AppKit Unity Sample",
+                        "https://reown.com",
+                        "https://raw.githubusercontent.com/reown-com/reown-dotnet/main/media/appkit-icon.png",
                         new RedirectData
                         {
-                            Native = "appkit-sample-unity"
+                            Native = "appkit-sample-unity://"
                         }
-                    )
-                )
-                {
-                    customWallets = GetCustomWallets()
+                    ),
+                    customWallets = GetCustomWallets(),
+                    connectViewWalletsCountMobile = 5
                 }
             );
 
@@ -47,15 +48,54 @@ namespace Sample
 
         private Wallet[] GetCustomWallets()
         {
+#if UNITY_IOS && !UNITY_EDITOR
             return new[]
             {
                 new Wallet
                 {
                     Name = "Swift Wallet",
-                    // ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/main/media/flutter-icon.png",
+                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/main/media/walletkit-icon.png",
                     MobileLink = "walletapp://"
+                },
+                new Wallet
+                {
+                    Name = "React Native Wallet",
+                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/main/media/walletkit-icon.png",
+                    MobileLink = "rn-web3wallet://"
+                },
+                new Wallet
+                {
+                    Name = "Flutter Wallet Prod",
+                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/main/media/walletkit-icon.png",
+                    MobileLink = "wcflutterwallet://"
                 }
             };
+#endif
+
+#if UNITY_ANDROID && !UNITY_EDITOR
+            return new[]
+            {
+                new Wallet
+                {
+                    Name = "Kotlin Wallet",
+                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/main/media/walletkit-icon.png",
+                    MobileLink = "kotlin-web3wallet://"
+                },
+                new Wallet
+                {
+                    Name = "React Native Wallet",
+                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/main/media/walletkit-icon.png",
+                    MobileLink = "rn-web3wallet://"
+                },
+                new Wallet
+                {
+                    Name = "Flutter Wallet Prod",
+                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/main/media/walletkit-icon.png",
+                    MobileLink = "wcflutterwallet://"
+                }
+            };
+#endif
+            return null;
         }
     }
 }

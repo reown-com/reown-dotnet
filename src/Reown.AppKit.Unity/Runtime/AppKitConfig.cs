@@ -29,13 +29,17 @@ namespace Reown.AppKit.Unity
 
         public Wallet[] customWallets;
 
-        public readonly Metadata Metadata;
-        public readonly string ProjectId;
+        public Metadata metadata;
+        public string projectId;
 
+        public AppKitConfig()
+        {
+        }
+        
         public AppKitConfig(string projectId, Metadata metadata)
         {
-            ProjectId = projectId;
-            Metadata = metadata;
+            this.projectId = projectId;
+            this.metadata = metadata;
         }
     }
 

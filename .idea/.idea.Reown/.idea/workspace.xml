@@ -6,23 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="2f5f8ac7-0622-47ce-9f54-e7355eaeafc5" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Reown/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sample/Reown.AppKit.Unity/Assets/Scripts/AppKitInit.cs" beforeDir="false" afterPath="$PROJECT_DIR$/sample/Reown.AppKit.Unity/Assets/Scripts/AppKitInit.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sample/Reown.AppKit.Unity/Assets/Scripts/Dapp.cs" beforeDir="false" afterPath="$PROJECT_DIR$/sample/Reown.AppKit.Unity/Assets/Scripts/Dapp.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/AppKitConfig.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/AppKitConfig.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Connectors/Connector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Connectors/Connector.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Connectors/WalletConnect/WalletConnectConnectionProposal.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Connectors/WalletConnect/WalletConnectConnectionProposal.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Connectors/WalletConnect/WalletConnectConnector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Connectors/WalletConnect/WalletConnectConnector.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Connectors/WebGl/WebGlConnector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Connectors/WebGl/WebGlConnector.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Controllers/ConnectorController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Controllers/ConnectorController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Model/AppKitApi/Wallet.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Model/AppKitApi/Wallet.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Presenters/ConnectPresenter.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.AppKit.Unity/Runtime/Presenters/ConnectPresenter.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/AddressProvider.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Controllers/AddressProvider.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Engine.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/AuthPayloadParams.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/AuthPayloadParams.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoPayload.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Cacao/CacaoPayload.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/AuthParams.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Models/Engine/AuthParams.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reown.Sign/Runtime/Utils/SignatureUtils.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Reown.Sign.Test/CacaoTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Reown.Sign.Test/CacaoTests.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

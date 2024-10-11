@@ -38,8 +38,8 @@ namespace Reown.AppKit.Unity
 
             var parameters = new WebGlInitializeParameters
             {
-                projectId = appKitConfig.ProjectId,
-                metadata = appKitConfig.Metadata,
+                projectId = appKitConfig.projectId,
+                metadata = appKitConfig.metadata,
                 chains = viemChainNames,
                 enableOnramp = web3ModalConfig.enableOnramp,
                 enableAnalytics = web3ModalConfig.enableAnalytics
@@ -172,7 +172,7 @@ namespace Reown.AppKit.Unity
     internal class WebGlInitializeParameters
     {
         public string projectId;
-        public Reown.Core.Metadata metadata;
+        public Reown.Core.metadata metadata;
         public string[] chains;
 
         public bool enableOnramp;

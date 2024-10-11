@@ -114,10 +114,7 @@ namespace Reown.AppKit.Unity
 
         protected virtual void CreateRecentWalletButton(Wallet recentWallet)
         {
-            var remoteSprite =
-                RemoteSpriteFactory.GetRemoteSprite<Image>(
-                    $"https://api.web3modal.com/getWalletImage/{recentWallet.ImageId}");
-            var listItem = new ListItem(recentWallet.Name, remoteSprite, () => OnWalletListItemClick(recentWallet));
+            var listItem = new ListItem(recentWallet.Name, recentWallet.Image, () => OnWalletListItemClick(recentWallet));
             listItem.RightSlot.Add(new Tag("RECENT", Tag.TagType.Info));
             View.Add(listItem);
         }
@@ -130,14 +127,10 @@ namespace Reown.AppKit.Unity
 
         protected virtual ListItem BuildWalletListItem(Wallet wallet)
         {
-            var remoteSprite =
-                RemoteSpriteFactory.GetRemoteSprite<Image>(
-                    $"https://api.web3modal.com/getWalletImage/{wallet.ImageId}");
-
             var walletClosure = wallet;
             var isWalletInstalled = WalletUtils.IsWalletInstalled(wallet);
             var walletStatusIcon = isWalletInstalled ? StatusIconType.Success : StatusIconType.None;
-            var walletListItem = new ListItem(wallet.Name, remoteSprite, () => OnWalletListItemClick(walletClosure), statusIconType: walletStatusIcon);
+            var walletListItem = new ListItem(wallet.Name, wallet.Image, () => OnWalletListItemClick(walletClosure), statusIconType: walletStatusIcon);
             return walletListItem;
         }
 
