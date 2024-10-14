@@ -13,6 +13,7 @@ namespace Reown.AppKit.Unity
 
         public bool enableOnramp = true; // Currently supported only in WebGL
         public bool enableAnalytics = true;
+        public bool enableCoinbaseWallet = true; // Currently supported only in WebGL
 
         public Chain[] supportedChains =
         {
