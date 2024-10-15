@@ -110,9 +110,9 @@ namespace Reown.AppKit.Unity
             return ActiveConnector.GetAccountAsync();
         }
 
-        protected override Task<Account[]> GetAccountsCore()
+        protected override Task<Account[]> GetAccountsAsyncCore()
         {
-            return ActiveConnector.GetAccounts();
+            return ActiveConnector.GetAccountsAsync();
         }
 
         public bool TryGetConnector<T>(ConnectorType connectorType, out T connector) where T : Connector

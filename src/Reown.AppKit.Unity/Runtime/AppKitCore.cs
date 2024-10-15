@@ -102,9 +102,9 @@ namespace Reown.AppKit.Unity
         {
             SignClient = await SignClientUnity.Create(new SignClientOptions
             {
-                Name = Config.Metadata.Name,
-                ProjectId = Config.ProjectId,
-                Metadata = Config.Metadata
+                Name = Config.metadata.Name,
+                ProjectId = Config.projectId,
+                Metadata = Config.metadata
             });
         }
 

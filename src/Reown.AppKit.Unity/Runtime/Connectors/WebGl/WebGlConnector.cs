@@ -4,7 +4,6 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using AOT;
 using Newtonsoft.Json;
-using UnityEngine;
 using Reown.AppKit.Unity.WebGl.Modal;
 using Reown.AppKit.Unity.WebGl.Wagmi;
 using Reown.Sign.Unity;
@@ -35,8 +34,8 @@ namespace Reown.AppKit.Unity
 
             var parameters = new WebGlInitializeParameters
             {
-                projectId = appKitConfig.ProjectId,
-                metadata = appKitConfig.Metadata,
+                projectId = appKitConfig.projectId,
+                metadata = appKitConfig.metadata,
                 chains = viemChainNames,
                 includeWalletIds = appKitConfig.includedWalletIds ?? Array.Empty<string>(),
                 excludeWalletIds = appKitConfig.excludedWalletIds ?? Array.Empty<string>(),
@@ -119,7 +118,7 @@ namespace Reown.AppKit.Unity
             return new Account(wagmiAccount.address, $"eip155:{wagmiAccount.chainId}");
         }
 
-        protected override async Task<Account[]> GetAccountsCore()
+        protected override async Task<Account[]> GetAccountsAsyncCore()
         {
             var wagmiAccount = await WagmiInterop.GetAccountAsync();
             var chainId = $"eip155:{wagmiAccount.chainId}";
@@ -138,7 +137,7 @@ namespace Reown.AppKit.Unity
             if (_lastAccountStatus == "connected" && previousLastAccountStatus != "connected")
             {
                 IsAccountConnected = true;
-                var accountConnectedEventArgs = new AccountConnectedEventArgs(GetAccountAsync, GetAccounts);
+                var accountConnectedEventArgs = new AccountConnectedEventArgs(GetAccountAsync, GetAccountsAsync);
                 OnAccountConnected(accountConnectedEventArgs);
             }
             else if (_lastAccountStatus == "disconnected" && previousLastAccountStatus != "disconnected")
@@ -173,7 +172,7 @@ namespace Reown.AppKit.Unity
     internal class WebGlInitializeParameters
     {
         public string projectId;
-        public Reown.Core.Metadata metadata;
+        public Core.Metadata metadata;
         public string[] chains;
         public string[] includeWalletIds;
         public string[] excludeWalletIds;

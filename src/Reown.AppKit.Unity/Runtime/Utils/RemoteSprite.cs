@@ -97,7 +97,7 @@ namespace Reown.AppKit.Unity.Utils
             {
                 uwr.SetRequestHeader("accept", "image/jpeg,image/png");
 
-                uwr.SetRequestHeader("x-project-id", AppKit.Config.ProjectId);
+                uwr.SetRequestHeader("x-project-id", AppKit.Config.projectId);
                 uwr.SetRequestHeader("x-sdk-type", "appkit");
                 uwr.SetRequestHeader("x-sdk-version", SignMetadata.Version);
 

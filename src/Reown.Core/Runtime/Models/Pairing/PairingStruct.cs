@@ -49,5 +49,10 @@ namespace Reown.Core.Models.Pairing
         /// </summary>
         [JsonProperty("peerMetadata")]
         public Metadata PeerMetadata;
+
+        /// <summary>
+        ///    The pairing methods
+        /// </summary>
+        public string[] Methods;
     }
 }

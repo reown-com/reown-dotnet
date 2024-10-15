@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Reown.Core.Network.Models;
 using Reown.Sign.Models;
+using Reown.Sign.Models.Engine;
 using Reown.Sign.Models.Engine.Events;
 
 namespace Reown.WalletKit.Interfaces
@@ -10,7 +11,7 @@ namespace Reown.WalletKit.Interfaces
     public interface IWalletKitApi
     {
         event EventHandler<SessionStruct> SessionExpired;
-    
+        
         event EventHandler<SessionProposalEvent> SessionProposed;
     
         event EventHandler<SessionStruct> SessionConnected;

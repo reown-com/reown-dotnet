@@ -25,12 +25,13 @@ namespace Reown.Core.Controllers
     {
         private const int KeyLength = 32;
         private readonly HashSet<string> _registeredMethods = new();
+        private readonly Dictionary<string, string[]> _expectedPairingMethos = new();
 
-        private readonly EventHandlerMap<JsonRpcResponse<bool>> PairingPingResponseEvents = new();
+        private readonly EventHandlerMap<JsonRpcResponse<bool>> _pairingPingResponseEvents = new();
         private bool _initialized;
         protected bool Disposed;
-        private DisposeHandlerToken pairingDeleteMessageHandler;
-        private DisposeHandlerToken pairingPingMessageHandler;
+        private DisposeHandlerToken _pairingDeleteMessageHandler;
+        private DisposeHandlerToken _pairingPingMessageHandler;
 
         /// <summary>
         ///     Create a new instance of the Pairing module using the given <see cref="ICoreClient" /> module
@@ -76,53 +77,8 @@ namespace Reown.Core.Controllers
         {
             get => Store.Values;
         }
-
-        /// <summary>
-        ///     Parse a session proposal URI and return all information in the URI in a
-        ///     new <see cref="UriParameters" /> object
-        /// </summary>
-        /// <param name="uri">The uri to parse</param>
-        /// <returns>
-        ///     A new <see cref="UriParameters" /> object that contains all data
-        ///     parsed from the given uri
-        /// </returns>
-        public UriParameters ParseUri(string uri)
-        {
-            var pathStart = uri.IndexOf(":", StringComparison.Ordinal);
-            int? pathEnd = uri.IndexOf("?", StringComparison.Ordinal) != -1
-                ? uri.IndexOf("?", StringComparison.Ordinal)
-                : null;
-            var protocol = uri.Substring(0, pathStart);
-
-            string path;
-            if (pathEnd != null) path = uri.Substring(pathStart + 1, (int)pathEnd - (pathStart + 1));
-            else path = uri.Substring(pathStart + 1);
-
-            var requiredValues = path.Split("@");
-            var queryString = pathEnd != null ? uri[(int)pathEnd..] : "";
-            var queryParams = UrlUtils.ParseQs(queryString);
-
-            var result = new UriParameters
-            {
-                Protocol = protocol,
-                Topic = requiredValues[0],
-                Version = int.Parse(requiredValues[1]),
-                SymKey = queryParams["symKey"],
-                Relay = new ProtocolOptions
-                {
-                    Protocol = queryParams["relay-protocol"],
-                    Data = queryParams.GetValueOrDefault("relay-data")
-                }
-            };
-
-            return result;
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+        
+        public event EventHandler<PairingCreatedEventArgs> PairingCreated;
 
         public event EventHandler<PairingEvent> PairingExpired;
         public event EventHandler<PairingEvent> PairingPinged;
@@ -139,9 +95,52 @@ namespace Reown.Core.Controllers
                 await Store.Init();
                 await Cleanup();
                 await RegisterTypedMessages();
-                RegisterExpirerEvents();
+                RegisterEvents();
                 _initialized = true;
             }
+        }
+        
+        /// <summary>
+        ///     Parse a session proposal URI and return all information in the URI in a
+        ///     new <see cref="UriParameters" /> object
+        /// </summary>
+        /// <param name="uri">The uri to parse</param>
+        /// <returns>
+        ///     A new <see cref="UriParameters" /> object that contains all data
+        ///     parsed from the given uri
+        /// </returns>
+        public UriParameters ParseUri(string uri)
+        {
+            var pathStart = uri.IndexOf(':');
+            int? pathEnd = uri.Contains('?') ? uri.IndexOf('?') : null;
+            var protocol = uri[..pathStart];
+
+            var path = pathEnd != null ? uri.Substring(pathStart + 1, (int)pathEnd - (pathStart + 1)) : uri[(pathStart + 1)..];
+
+            var requiredValues = path.Split("@");
+            var queryString = pathEnd != null ? uri[(int)pathEnd..] : "";
+            var queryParams = UrlUtils.ParseQs(queryString);
+
+            var methodsParam = queryParams.GetValueOrDefault("methods");
+            var methods = !string.IsNullOrEmpty(methodsParam)
+                ? methodsParam.Split(",")
+                : null;
+
+            var result = new UriParameters
+            {
+                Protocol = protocol,
+                Topic = requiredValues[0],
+                Version = int.Parse(requiredValues[1]),
+                SymKey = queryParams["symKey"],
+                Relay = new ProtocolOptions
+                {
+                    Protocol = queryParams["relay-protocol"],
+                    Data = queryParams.GetValueOrDefault("relay-data")
+                },
+                Methods = methods
+            };
+
+            return result;
         }
 
         /// <summary>
@@ -162,6 +161,7 @@ namespace Reown.Core.Controllers
             var topic = uriParams.Topic;
             var symKey = uriParams.SymKey;
             var relay = uriParams.Relay;
+            var methods = uriParams.Methods;
 
             if (Store.Keys.Contains(topic))
             {
@@ -179,15 +179,12 @@ namespace Reown.Core.Controllers
                 Topic = topic,
                 Relay = relay,
                 Expiry = expiry,
-                Active = false
+                Active = false,
+                Methods = methods
             };
 
             await Store.Set(topic, pairing);
             await CoreClient.Crypto.SetSymKey(symKey, topic);
-            await CoreClient.Relayer.Subscribe(topic, new SubscribeOptions
-            {
-                Relay = relay
-            });
 
             CoreClient.Expirer.Set(topic, expiry);
 
@@ -195,6 +192,16 @@ namespace Reown.Core.Controllers
             {
                 await ActivatePairing(topic);
             }
+            
+            PairingCreated?.Invoke(this, new PairingCreatedEventArgs
+            {
+                Pairing = pairing
+            });
+            
+            await CoreClient.Relayer.Subscribe(topic, new SubscribeOptions
+            {
+                Relay = relay
+            });
 
             return pairing;
         }
@@ -206,7 +213,7 @@ namespace Reown.Core.Controllers
         ///     A new instance of <see cref="CreatePairingData" /> that includes the pairing topic and
         ///     uri
         /// </returns>
-        public async Task<CreatePairingData> Create()
+        public async Task<CreatePairingData> Create(string[] methods = null)
         {
             var symKeyRaw = new byte[KeyLength];
             RandomNumberGenerator.Fill(symKeyRaw);
@@ -224,15 +231,26 @@ namespace Reown.Core.Controllers
                 Relay = relay,
                 Active = false
             };
+            
             var uri = $"{ICoreClient.Protocol}:{topic}@{ICoreClient.Version}?"
                 .AddQueryParam("symKey", symKey)
-                .AddQueryParam("relay-protocol", relay.Protocol);
+                .AddQueryParam("relay-protocol", relay.Protocol)
+                .AddQueryParam("expiryTimestamp", expiry.ToString());
 
             if (!string.IsNullOrWhiteSpace(relay.Data))
                 uri = uri.AddQueryParam("relay-data", relay.Data);
 
+            if (methods is { Length: > 0 })
+                uri = uri.AddQueryParam("methods", string.Join(",", methods));
+
             await Store.Set(topic, pairing);
             await CoreClient.Relayer.Subscribe(topic);
+            
+            PairingCreated?.Invoke(this, new PairingCreatedEventArgs
+            {
+                Pairing = pairing
+            });
+            
             CoreClient.Expirer.Set(topic, expiry);
 
             return new CreatePairingData
@@ -308,7 +326,7 @@ namespace Reown.Core.Controllers
                 var id = await CoreClient.MessageHandler.SendRequest<PairingPing, bool>(topic, new PairingPing());
                 var done = new TaskCompletionSource<bool>();
 
-                PairingPingResponseEvents.ListenOnce($"pairing_ping{id}", (sender, args) =>
+                _pairingPingResponseEvents.ListenOnce($"pairing_ping{id}", (sender, args) =>
                 {
                     if (args.IsError)
                         done.SetException(args.Error.ToException());
@@ -342,15 +360,27 @@ namespace Reown.Core.Controllers
             }
         }
 
-        private void RegisterExpirerEvents()
+        private void RegisterEvents()
         {
+            PairingCreated += PairingCreatedCallback;
             CoreClient.Expirer.Expired += ExpiredCallback;
+        }
+        
+        private void PairingCreatedCallback(object sender, PairingCreatedEventArgs e)
+        {
+            if (e.Pairing.Methods is { Length: > 0 })
+                _expectedPairingMethos[e.Pairing.Topic] = e.Pairing.Methods;
         }
 
         private async Task RegisterTypedMessages()
         {
-            pairingDeleteMessageHandler = await CoreClient.MessageHandler.HandleMessageType<PairingDelete, bool>(OnPairingDeleteRequest, null);
-            pairingPingMessageHandler = await CoreClient.MessageHandler.HandleMessageType<PairingPing, bool>(OnPairingPingRequest, OnPairingPingResponse);
+            _pairingDeleteMessageHandler = await CoreClient.MessageHandler.HandleMessageType<PairingDelete, bool>(OnPairingDeleteRequest, null);
+            _pairingPingMessageHandler = await CoreClient.MessageHandler.HandleMessageType<PairingPing, bool>(OnPairingPingRequest, OnPairingPingResponse);
+        }
+
+        public bool TryGetExpectedMethods(string topic, out string[] methods)
+        {
+            return _expectedPairingMethos.TryGetValue(topic, out methods);
         }
 
         private async Task ActivatePairing(string topic)
@@ -370,6 +400,8 @@ namespace Reown.Core.Controllers
             var expirerHasDeleted = !CoreClient.Expirer.Has(topic);
             var pairingHasDeleted = !Store.Keys.Contains(topic);
             var symKeyHasDeleted = !await CoreClient.Crypto.HasKeys(topic);
+            
+            _ = _expectedPairingMethos.Remove(topic);
 
             await CoreClient.Relayer.Unsubscribe(topic);
             await Task.WhenAll(
@@ -473,7 +505,7 @@ namespace Reown.Core.Controllers
                 Topic = topic
             });
 
-            PairingPingResponseEvents[$"pairing_ping{id}"](this, payload);
+            _pairingPingResponseEvents[$"pairing_ping{id}"](this, payload);
         }
 
         private async Task OnPairingDeleteRequest(string topic, JsonRpcRequest<PairingDelete> payload)
@@ -524,6 +556,12 @@ namespace Reown.Core.Controllers
                 });
             }
         }
+        
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         protected virtual void Dispose(bool disposing)
         {
@@ -532,8 +570,9 @@ namespace Reown.Core.Controllers
             if (disposing)
             {
                 Store?.Dispose();
-                pairingDeleteMessageHandler.Dispose();
-                pairingPingMessageHandler.Dispose();
+                PairingCreated -= PairingCreatedCallback;
+                _pairingDeleteMessageHandler.Dispose();
+                _pairingPingMessageHandler.Dispose();
             }
 
             Disposed = true;

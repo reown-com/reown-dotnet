@@ -1,8 +1,9 @@
+using System;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UIElements;
 using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Utils;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity
 {
@@ -36,7 +37,7 @@ namespace Reown.AppKit.Unity
             if (!AppKit.ConnectorController
                     .TryGetConnector<WalletConnectConnector>
                         (ConnectorType.WalletConnect, out var connector))
-                throw new System.Exception("No WC connector"); // TODO: use custom exception
+                throw new Exception("No WC connector"); // TODO: use custom exception
 
             if (_connectionProposal == null || _connectionProposal.IsConnected)
             {
@@ -48,8 +49,7 @@ namespace Reown.AppKit.Unity
 
             if (WalletUtils.TryGetLastViewedWallet(out var wallet))
             {
-                var remoteSprite = RemoteSpriteFactory.GetRemoteSprite<Image>($"https://api.web3modal.com/getWalletImage/{wallet.ImageId}");
-                View.EnableWalletIcon(remoteSprite);
+                View.EnableWalletIcon(wallet.Image);
             }
             else
             {

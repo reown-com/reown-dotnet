@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Reown.Core;
@@ -15,6 +16,7 @@ using Reown.Core.Storage;
 using Reown.Sign.Controllers;
 using Reown.Sign.Interfaces;
 using Reown.Sign.Models;
+using Reown.Sign.Models.Cacao;
 using Reown.Sign.Models.Engine;
 using Reown.Sign.Models.Engine.Events;
 using Reown.Sign.Models.Engine.Methods;
@@ -92,6 +94,7 @@ namespace Reown.Sign
             Proposal = new Proposal(CoreClient);
             Engine = new Engine(this);
             AddressProvider = new AddressProvider(this);
+            Auth = new Auth(CoreClient);
 
             SetupEvents();
         }
@@ -162,7 +165,16 @@ namespace Reown.Sign
             get => VERSION;
         }
 
+        public IAuth Auth { get; }
+
+        public bool HasSessionAuthenticateRequestSubscribers
+        {
+            get => SessionAuthenticateRequest != null;
+        }
+
         public event EventHandler<SessionStruct> SessionExpired;
+        public event EventHandler<SessionAuthenticate> SessionAuthenticateRequest;
+        public event EventHandler<SessionAuthenticatedEventArgs> SessionAuthenticated;
         public event EventHandler<PairingEvent> PairingExpired;
         public event EventHandler<SessionProposalEvent> SessionProposed;
         public event EventHandler<SessionStruct> SessionConnected;
@@ -177,6 +189,20 @@ namespace Reown.Sign
         public event EventHandler<SessionStruct> SessionApproved;
         public event EventHandler<PairingEvent> PairingPinged;
         public event EventHandler<PairingEvent> PairingDeleted;
+
+        /// <summary>
+        ///     Create a new <see cref="SignClient" /> instance with the given <see cref="SignClientOptions" />
+        ///     and initialize it.
+        /// </summary>
+        /// <param name="options">The options to initialize the new <see cref="SignClient" /> with</param>
+        /// <returns>A new and fully initialized <see cref="SignClient" /></returns>
+        public static async Task<SignClient> Init(SignClientOptions options)
+        {
+            var client = new SignClient(options);
+            await client.Initialize();
+
+            return client;
+        }
 
         public void SubscribeToSessionEvent(string eventName, EventHandler<SessionEvent<JToken>> handler)
         {
@@ -220,7 +246,7 @@ namespace Reown.Sign
         ///     The proposal the connecting peer wants to connect using. You must approve or reject
         ///     the proposal
         /// </returns>
-        public Task<ProposalStruct> Pair(string uri)
+        public Task<PairingStruct> Pair(string uri)
         {
             return Engine.Pair(uri);
         }
@@ -444,24 +470,35 @@ namespace Reown.Sign
             return Engine.Disconnect(reason);
         }
 
+        public Task<AuthenticateData> Authenticate(AuthParams authParams)
+        {
+            return Engine.Authenticate(authParams);
+        }
+
+        public Task RejectSessionAuthenticate(RejectParams rejectParams)
+        {
+            return Engine.RejectSessionAuthenticate(rejectParams);
+        }
+
+        public Task<SessionStruct> ApproveSessionAuthenticate(long requestId, CacaoObject[] auths)
+        {
+            return Engine.ApproveSessionAuthenticate(requestId, auths);
+        }
+
+        IDictionary<long, AuthPendingRequest> IEngineAPI.PendingAuthRequests
+        {
+            get => Engine.PendingAuthRequests;
+        }
+
+        public string FormatAuthMessage(AuthPayloadParams payloadParams, string iss)
+        {
+            return Engine.FormatAuthMessage(payloadParams, iss);
+        }
+
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        ///     Create a new <see cref="SignClient" /> instance with the given <see cref="SignClientOptions" />
-        ///     and initialize it.
-        /// </summary>
-        /// <param name="options">The options to initialize the new <see cref="SignClient" /> with</param>
-        /// <returns>A new and fully initialized <see cref="SignClient" /></returns>
-        public static async Task<SignClient> Init(SignClientOptions options)
-        {
-            var client = new SignClient(options);
-            await client.Initialize();
-
-            return client;
         }
 
         private void SetupEvents()
@@ -472,6 +509,8 @@ namespace Reown.Sign
         private void WrapEngineEvents()
         {
             Engine.SessionExpired += (sender, @struct) => SessionExpired?.Invoke(sender, @struct);
+            Engine.SessionAuthenticateRequest += (sender, @event) => SessionAuthenticateRequest?.Invoke(sender, @event);
+            Engine.SessionAuthenticated += (sender, @event) => SessionAuthenticated?.Invoke(sender, @event);
             Engine.PairingExpired += (sender, @struct) => PairingExpired?.Invoke(sender, @struct);
             Engine.SessionProposed += (sender, @event) => SessionProposed?.Invoke(sender, @event);
             Engine.SessionConnected += (sender, @struct) => SessionConnected?.Invoke(sender, @struct);
@@ -497,6 +536,7 @@ namespace Reown.Sign
             await Session.Init();
             await Proposal.Init();
             await Engine.Init();
+            await Auth.Init();
         }
 
         protected virtual void Dispose(bool disposing)

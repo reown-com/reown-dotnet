@@ -8,7 +8,7 @@ namespace Reown.AppKit.Unity.Http
     {
         protected override Task<HttpResponseContext> SendAsyncCore(HttpRequestContext requestContext, CancellationToken cancellationToken, Func<HttpRequestContext, CancellationToken, Task<HttpResponseContext>> next)
         {
-            requestContext.RequestHeaders["x-project-id"] = AppKit.Config.ProjectId;
+            requestContext.RequestHeaders["x-project-id"] = AppKit.Config.projectId;
             requestContext.RequestHeaders["x-sdk-type"] = "appkit";
             requestContext.RequestHeaders["x-sdk-version"] = AppKit.Version;
 

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using UnityEngine;
-using UnityEngine.UIElements;
 using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Model;
 using Reown.AppKit.Unity.Utils;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity
 {
@@ -46,8 +46,7 @@ namespace Reown.AppKit.Unity
             if (WalletUtils.TryGetLastViewedWallet(out var wallet))
             {
                 _wallet = wallet;
-                var remoteSprite = RemoteSpriteFactory.GetRemoteSprite<Image>($"https://api.web3modal.com/getWalletImage/{wallet.ImageId}");
-                View.SetWalletInfo(remoteSprite, string.Format(ContinueInTextTemplate, wallet.Name));
+                View.SetWalletInfo(wallet.Image, string.Format(ContinueInTextTemplate, wallet.Name));
             }
         }
 

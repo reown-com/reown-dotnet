@@ -1,8 +1,8 @@
 using Reown.AppKit.Unity;
+using Sample.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
-using Sample.UI;
 using Button = UnityEngine.UIElements.Button;
 
 namespace Sample

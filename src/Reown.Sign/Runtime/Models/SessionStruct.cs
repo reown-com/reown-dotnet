@@ -158,7 +158,7 @@ namespace Reown.Sign.Models
                 throw new ArgumentException("chainId is null or empty");
             }
 
-            if (!Utils.IsValidChainId(chainId))
+            if (!Core.Utils.IsValidChainId(chainId))
             {
                 throw new ArgumentException("The format of 'chainId' is invalid. Must be in the format of 'namespace:chainId' (e.g. 'eip155:10'). See CAIP-2 for more information.");
             }

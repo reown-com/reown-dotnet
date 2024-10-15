@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Reown.Core.Models;
@@ -7,6 +8,7 @@ using Reown.Core.Models.Pairing;
 using Reown.Core.Models.Relay;
 using Reown.Core.Network.Models;
 using Reown.Sign.Models;
+using Reown.Sign.Models.Cacao;
 using Reown.Sign.Models.Engine;
 using Reown.Sign.Models.Engine.Events;
 using Reown.Sign.Models.Engine.Methods;
@@ -35,6 +37,18 @@ namespace Reown.Sign.Interfaces
         ///     Event Side: Wallet
         /// </summary>
         event EventHandler<PairingEvent> PairingExpired;
+
+        /// <summary>
+        ///     This event is invoked when a new session authentication request is received.
+        ///     Event Side: Wallet
+        /// </summary>
+        event EventHandler<SessionAuthenticate> SessionAuthenticateRequest;
+
+        /// <summary>
+        ///     This event is invoked when a new session authentication response is received.
+        ///     Event Side: dApp
+        /// </summary>
+        event EventHandler<SessionAuthenticatedEventArgs> SessionAuthenticated;
 
         /// <summary>
         ///     This event is invoked when a new session is proposed. This is usually invoked
@@ -159,7 +173,7 @@ namespace Reown.Sign.Interfaces
         ///     The proposal the connecting peer wants to connect using. You must approve or reject
         ///     the proposal
         /// </returns>
-        Task<ProposalStruct> Pair(string uri);
+        Task<PairingStruct> Pair(string uri);
 
         /// <summary>
         ///     Approve a proposal that was recently paired. If the given proposal was not from a recent pairing,
@@ -351,5 +365,18 @@ namespace Reown.Sign.Interfaces
         /// </summary>
         /// <param name="reason">An (optional) error reason for the disconnect</param>
         Task Disconnect(Error reason = null);
+
+
+        bool HasSessionAuthenticateRequestSubscribers { get; }
+        
+        Task<AuthenticateData> Authenticate(AuthParams authParams);
+
+        Task RejectSessionAuthenticate(RejectParams rejectParams);
+
+        Task<SessionStruct> ApproveSessionAuthenticate(long requestId, CacaoObject[] auths);
+
+        IDictionary<long, AuthPendingRequest> PendingAuthRequests { get; }
+
+        string FormatAuthMessage(AuthPayloadParams payloadParams, string iss);
     }
 }

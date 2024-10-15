@@ -7,32 +7,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: |
-            8.0.x
-
-      - name: Restore dependencies
-        run: dotnet restore
-        working-directory: ./
-
-      - name: Build
-        run: dotnet build Reown.NoUnity.slnf --no-restore
-        working-directory: ./
-
   test:
-    needs: build
-    runs-on: ubuntu-latest
     strategy:
       matrix:
+        os: [ubuntu-latest, windows-latest]
         test-type: [unit-tests, integration-tests]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4

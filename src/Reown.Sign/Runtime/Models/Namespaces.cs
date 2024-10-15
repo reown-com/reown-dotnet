@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Reown.Sign.Models
 {
@@ -48,6 +50,60 @@ namespace Reown.Sign.Models
             }
 
             return this;
+        }
+
+        public static Namespaces FromAccounts(string[] accounts)
+        {
+            var namespaces = new Namespaces();
+            foreach (var account in accounts)
+            {
+                var split = account.Split(":");
+                var @namespace = split[0];
+                var chainId = split[1];
+                if (!namespaces.ContainsKey(@namespace))
+                {
+                    namespaces[@namespace] = new Namespace
+                    {
+                        Accounts = new[]
+                        {
+                            account
+                        },
+                        Chains = new[]
+                        {
+                            $"{@namespace}:{chainId}"
+                        },
+                        Events = Array.Empty<string>()
+                    };
+                }
+                else
+                {
+                    namespaces[@namespace].Accounts = namespaces[@namespace].Accounts.Append(account).ToArray();
+                    namespaces[@namespace].Chains = namespaces[@namespace].Chains.Append($"{@namespace}:{chainId}").ToArray();
+                }
+            }
+
+            return namespaces;
+        }
+
+        public static Namespaces FromAuth(ICollection<string> methods, ICollection<string> accounts)
+        {
+            var formattedAccounts = accounts.Select(account => account.Replace("did:pkh:", string.Empty)).ToArray();
+            var namespaces = FromAccounts(formattedAccounts);
+
+            foreach (var values in namespaces.Values)
+            {
+                values.Methods = values.Methods == null
+                    ? methods.ToArray()
+                    : values.Methods.Concat(methods).ToArray();
+
+                values.Events = new[]
+                {
+                    "chainChanged",
+                    "accountsChanged"
+                };
+            }
+
+            return namespaces;
         }
     }
 }

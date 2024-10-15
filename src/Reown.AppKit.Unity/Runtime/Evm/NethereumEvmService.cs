@@ -56,7 +56,7 @@ namespace Reown.AppKit.Unity
 
         private static string CreateRpcUrl(string chainId)
         {
-            return $"https://rpc.walletconnect.com/v1?chainId={chainId}&projectId={AppKit.Config.ProjectId}";
+            return $"https://rpc.walletconnect.com/v1?chainId={chainId}&projectId={AppKit.Config.projectId}";
         }
 
 

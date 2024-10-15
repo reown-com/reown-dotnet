@@ -26,8 +26,8 @@ public class CryptoWalletFixture
 
     public CryptoWalletFixture()
     {
-        this._wallet = new Wallet(Wordlist.English, WordCount.Twelve);
-        this._iss = $"did:pkh:eip155:1:{this.WalletAddress}";
+        _wallet = new Wallet(Wordlist.English, WordCount.Twelve);
+        _iss = $"did:pkh:eip155:1:{WalletAddress}";
     }
 
     public Task<string> SignMessage(string message)
