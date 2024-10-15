@@ -1,6 +1,9 @@
 # Unity
 bin.meta
 
+# JetBrains
+.idea
+
 # User-specific files
 *.rsuser
 *.suo
