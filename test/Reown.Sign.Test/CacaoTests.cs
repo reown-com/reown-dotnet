@@ -40,9 +40,12 @@ public class CacaoTests
                                        Not Before: 2024-02-19T09:29:21.394Z
                                        """;
 
+        // Normalize line endings
+        var normalizedMessage = expectedMessage.Replace("\r\n", "\n");
+        
         var cacaoObject = new CacaoObject(new CacaoHeader(), payload, new CacaoSignature(CacaoSignatureType.Eip1271, "--"));
         var formattedMessage = cacaoObject.FormatMessage();
 
-        Assert.Equal(expectedMessage, formattedMessage);
+        Assert.Equal(normalizedMessage, formattedMessage);
     }
 }
