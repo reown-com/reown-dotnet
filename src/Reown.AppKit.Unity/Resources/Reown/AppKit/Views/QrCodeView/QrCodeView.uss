@@ -61,8 +61,8 @@
 }
 
 #qrcode-view__logo-container {
-    width: 75;
-    height: 75;
+    width: 65;
+    height: 65;
     padding: 6;
     background-color: white;
     justify-content: center;

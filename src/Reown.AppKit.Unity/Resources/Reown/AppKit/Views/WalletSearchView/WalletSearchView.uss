@@ -29,3 +29,7 @@
     align-self: center;
     max-width: 360;
 }
+
+#wallet-search-view__left-slot {
+    flex-grow: 1;
+}
