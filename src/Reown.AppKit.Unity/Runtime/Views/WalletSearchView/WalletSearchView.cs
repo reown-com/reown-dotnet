@@ -58,6 +58,7 @@ namespace Reown.AppKit.Unity.Components
                 vectorImage = Resources.Load<VectorImage>("Reown/AppKit/Icons/icon_medium_magnifier")
             });
             searchInput.RegisterCallback<ChangeEvent<string>>(evt => SearchInputValueChanged?.Invoke(evt.newValue));
+            searchInput.SetPlaceholder("Search wallet");
 
             // --- ScrollView
             scrollView = this.Q<ScrollView>();

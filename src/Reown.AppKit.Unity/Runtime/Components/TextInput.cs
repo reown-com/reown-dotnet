@@ -42,5 +42,12 @@ namespace Reown.AppKit.Unity.Components
                 container
             );
         }
+        
+        public void SetPlaceholder(string placeholder)
+        {
+#if UNITY_6000_0_OR_NEWER
+            _textField.textEdition.placeholder = placeholder;
+#endif
+        }
     }
 }
