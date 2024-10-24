@@ -1,0 +1,53 @@
+@import url("/Packages/com.reown.appkit.unity/UI Toolkit/AppKit Base Theme.tss");
+
+* {
+    -unity-font-definition: resource("TF2 Font/TF2 Build SDF Regular");
+    
+    --ro-color-accent-100: #bf5139;
+
+    --ro-accent-glass-090: rgba(156, 81, 65, 0.9);
+    --ro-accent-glass-080: rgba(156, 81, 65, 0.8);
+    --ro-accent-glass-020: rgba(156, 81, 65, 0.2);
+    --ro-accent-glass-015: rgba(156, 81, 65, 0.15);
+    --ro-accent-glass-010: rgba(156, 81, 65, 0.1);
+    --ro-accent-glass-005: rgba(156, 81, 65, 0.05);
+    --ro-accent-glass-002: rgba(156, 81, 65, 0.02);
+
+
+    --ro-border-radius-5xs: 0px;
+    --ro-border-radius-4xs: 0px;
+    --ro-border-radius-3xs: 0px;
+    --ro-border-radius-xxs: 2px;
+    --ro-border-radius-xs: 4px;
+    --ro-border-radius-s: 5px;
+    --ro-border-radius-m: 8px;
+    --ro-border-radius-l: 12px;
+    --ro-border-radius-3xl: 20px;
+    --ro-border-radius-full: 1000px;
+    
+
+    --ro-font-size-micro: 10px;
+    --ro-font-size-tiny: 12px;
+    --ro-font-size-small: 14px;
+    --ro-font-size-paragraph: 16px;
+    --ro-font-size-large: 28px;
+    --ro-font-size-medium-title: 22px;
+    --ro-font-size-2xl: 38px;
+}
+
+Modal {
+    --ro-modal-bg-color: rgba(34, 29, 27, 0.7);
+    --ro-modal-border-color: #9a9085;
+    --ro-modal-border-width: 3px;
+    --ro-modal-width-desktop: 500px;
+}
+
+ModalHeader {
+    --ro-modal-header-bg-color: #1f1e1f;
+    --ro-modal-header-border-color: #9a9085;
+}
+
+QrCode {
+    --ro-qrcode-bg-color: #1f1e1f;
+    --ro-qrcode-fg-color: #f4edec;
+}
