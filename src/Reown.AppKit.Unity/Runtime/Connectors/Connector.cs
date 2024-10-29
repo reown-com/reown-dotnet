@@ -73,9 +73,6 @@ namespace Reown.AppKit.Unity
 
         public async Task DisconnectAsync()
         {
-            if (!IsAccountConnected)
-                throw new Exception("No account connected"); // TODO: use custom ex type
-
             await DisconnectAsyncCore();
         }
 

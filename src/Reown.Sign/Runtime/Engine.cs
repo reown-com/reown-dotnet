@@ -520,33 +520,6 @@ namespace Reown.Sign
         {
             IsInitialized();
             return await Client.CoreClient.Pairing.Pair(uri);
-
-            // var topic = pairing.Topic;
-
-            // var sessionProposeTask = new TaskCompletionSource<ProposalStruct>();
-
-            // EventUtils.ListenOnce<SessionProposalEvent>(
-            //     (sender, args) =>
-            //     {
-            //         var proposal = args.Proposal;
-            //         if (topic != proposal.PairingTopic)
-            //             return;
-            //
-            //         if (args.VerifiedContext.Validation == Validation.Invalid)
-            //         {
-            //             sessionProposeTask.SetException(new Exception(
-            //                 $"Could not validate, invalid validation status {args.VerifiedContext.Validation} for origin {args.VerifiedContext.Origin}"));
-            //         }
-            //         else
-            //         {
-            //             sessionProposeTask.SetResult(proposal);
-            //         }
-            //     },
-            //     h => Client.SessionProposed += h,
-            //     h => Client.SessionProposed -= h
-            // );
-            //
-            // return await sessionProposeTask.Task;
         }
 
         /// <summary>

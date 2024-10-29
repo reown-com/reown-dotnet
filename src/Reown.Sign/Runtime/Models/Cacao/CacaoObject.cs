@@ -25,12 +25,12 @@ namespace Reown.Sign.Models.Cacao
             Signature = signature;
         }
 
-        public async Task<bool> VerifySignature(string projectId)
+        public async Task<bool> VerifySignature(string projectId, string rpcUrl = null)
         {
             var reconstructed = FormatMessage();
             var walletAddress = CacaoUtils.ExtractDidAddress(Payload.Iss);
             var chainId = CacaoUtils.ExtractDidChainId(Payload.Iss);
-            return await SignatureUtils.VerifySignature(walletAddress, reconstructed, Signature, chainId, projectId);
+            return await SignatureUtils.VerifySignature(walletAddress, reconstructed, Signature, chainId, projectId, rpcUrl);
         }
 
         public string FormatMessage()

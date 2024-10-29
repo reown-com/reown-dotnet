@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using UnityEngine;
 using Reown.AppKit.Unity.Http;
 using Reown.Core.Common.Logging;
+using UnityEngine;
 
 namespace Reown.AppKit.Unity
 {
@@ -24,7 +24,7 @@ namespace Reown.AppKit.Unity
             return;
 #endif
 
-            if (!AppKit.Config.enableAnalytics)
+            if (!config.enableAnalytics)
             {
                 _state = AnalyticsState.Disabled;
                 return;

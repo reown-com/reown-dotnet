@@ -17,33 +17,19 @@ namespace Reown.AppKit.Unity
 
         private readonly ISignClient _client;
         private readonly ConnectOptions _connectOptions;
+        private readonly SiweController _siweController;
         private readonly WaitForSecondsRealtime _refreshInterval = new(240); // 4 minutes
 
         private bool _disposed;
 
-        // --- 1CA
-        private readonly AuthParams _authParams;
-
-        public WalletConnectConnectionProposal(Connector connector, ISignClient signClient, ConnectOptions connectOptions) : base(connector)
+        public WalletConnectConnectionProposal(Connector connector, ISignClient signClient, ConnectOptions connectOptions, SiweController siweController) : base(connector)
         {
             _client = signClient;
             _connectOptions = connectOptions;
-
-            // --- 1CA
-            _authParams = new AuthParams(
-                connectOptions.OptionalNamespaces.Values.First().Chains,
-                "https://reown.com",
-                "1",
-                "https://reown.com",
-                null,
-                null,
-                null,
-                null,
-                null,
-                connectOptions.OptionalNamespaces.Values.First().Methods
-            );
+            _siweController = siweController;
+            
             _client.SessionAuthenticated += OnSessionAuthenticated;
-
+            _client.SessionConnected += OnSessionConnected;
             _client.SessionConnectionErrored += OnSessionConnectionErrored;
 
             RefreshConnection();
@@ -53,6 +39,12 @@ namespace Reown.AppKit.Unity
 
         private void OnSessionAuthenticated(object sender, SessionAuthenticatedEventArgs e)
         {
+            Debug.Log("Session authenticated");
+        }
+
+        private void OnSessionConnected(object sender, SessionStruct e)
+        {
+            Debug.Log("Session connected");
         }
 
         private void OnSessionConnectionErrored(object sender, Exception e)
@@ -88,15 +80,47 @@ namespace Reown.AppKit.Unity
             if (_disposed)
                 throw new ObjectDisposedException(nameof(WalletConnectConnectionProposal));
 
-            // --- 1CA
             try
             {
-                var authData = await _client.Authenticate(_authParams);
-                Uri = authData.Uri;
-                
-                connectionUpdated?.Invoke(this);
+                if (_siweController.IsEnabled)
+                {
+                    var nonce = await _siweController.GetNonceAsync();
+                    var siweParams = _siweController.Config.GetMessageParams();
 
-                await authData.Approval;
+                    var proposedNamespace = _connectOptions.OptionalNamespaces.Values.First();
+                    var chains = proposedNamespace.Chains;
+                    var methods = proposedNamespace.Methods;
+
+                    var authParams = new AuthParams(
+                        chains,
+                        siweParams.Domain,
+                        nonce,
+                        siweParams.Domain,
+                        null,
+                        null,
+                        siweParams.Statement,
+                        null,
+                        null,
+                        methods
+                    );
+
+                    var authData = await _client.Authenticate(authParams);
+                    Uri = authData.Uri;
+
+                    connectionUpdated?.Invoke(this);
+
+                    await authData.Approval;
+                }
+                else
+                {
+                    var connectedData = await _client.Connect(_connectOptions);
+                    Uri = connectedData.Uri;
+
+                    connectionUpdated?.Invoke(this);
+
+                    await connectedData.Approval;
+                }
+
                 IsConnected = true;
                 connected?.Invoke(this);
             }
@@ -109,27 +133,6 @@ namespace Reown.AppKit.Unity
             {
                 Debug.LogError($"[WCCP] Exception: {e.Message}");
             }
-
-            // try
-            // {
-            //     var connectedData = await _client.Connect(_connectOptions);
-            //     Uri = connectedData.Uri;
-            //
-            //     connectionUpdated?.Invoke(this);
-            //
-            //     await connectedData.Approval;
-            //     IsConnected = true;
-            //     connected?.Invoke(this);
-            // }
-            // catch (ReownNetworkException e) when (e.CodeType == ErrorType.DISAPPROVED_CHAINS)
-            // {
-            //     // Wallet declined connection, don't throw/log.
-            //     // The `OnSessionConnectionErrored` will handle the error.
-            // }
-            // catch (Exception e)
-            // {
-            //     Debug.LogException(e);
-            // }
         }
 
         protected override void Dispose(bool disposing)

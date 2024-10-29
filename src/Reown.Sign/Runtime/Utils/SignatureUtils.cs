@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Nethereum.Signer;
 using Nethereum.Util;
 using Newtonsoft.Json;
-using Reown.Core.Common.Logging;
 using Reown.Core.Common.Utils;
 using Reown.Core.Models.Eth;
 using Reown.Core.Network.Models;
@@ -22,7 +21,8 @@ namespace Reown.Sign.Utils
             string reconstructedMessage,
             CacaoSignature cacaoSignature,
             string chainId,
-            string projectId)
+            string projectId,
+            string rpcUrl = null)
         {
             if (string.IsNullOrWhiteSpace(cacaoSignature.S))
                 throw new ArgumentException("VerifySignature Failed: CacaoSignature S is null or empty");
@@ -30,17 +30,15 @@ namespace Reown.Sign.Utils
             return cacaoSignature.T switch
             {
                 CacaoSignatureType.Eip191 => IsValidEip191Signature(address, reconstructedMessage, cacaoSignature.S),
-                CacaoSignatureType.Eip1271 => await IsValidEip1271Signature(address, reconstructedMessage, cacaoSignature.S, chainId, projectId),
+                CacaoSignatureType.Eip1271 => await IsValidEip1271Signature(address, reconstructedMessage, cacaoSignature.S, chainId, projectId, rpcUrl),
                 _ => throw new ArgumentException($"VerifySignature Failed: Attempted to verify CacaoSignature with unknown type {cacaoSignature.T}")
             };
         }
 
         private static bool IsValidEip191Signature(string address, string reconstructedMessage, string cacaoSignature)
         {
-            ReownLogger.Log("IsValidEip191Signature");
             var signer = new EthereumMessageSigner();
             var recoveredAddress = signer.EncodeUTF8AndEcRecover(reconstructedMessage, cacaoSignature);
-            ReownLogger.Log($"Recovered Address: {recoveredAddress}");
             return recoveredAddress.IsTheSameAddress(address);
         }
 
@@ -49,7 +47,8 @@ namespace Reown.Sign.Utils
             string reconstructedMessage,
             string cacaoSignatureS,
             string chainId,
-            string projectId)
+            string projectId,
+            string rpcUrl = null)
         {
             if (!Core.Utils.IsValidChainId(chainId))
                 throw new FormatException($"Chain Id doesn't satisfy the CAIP-2 format. chainId: {chainId}");
@@ -68,14 +67,19 @@ namespace Reown.Sign.Utils
                 dynamicTypeLength +
                 nonPrefixedSignature;
 
-            string result = null;
+            string result;
             using (var client = new HttpClient())
             {
-                var builder = new UriBuilder(DefaultRpcUrl)
+                var uri = rpcUrl;
+                if (string.IsNullOrWhiteSpace(uri))
                 {
-                    Query = $"chainId={chainId}&projectId={projectId}"
-                };
-
+                    var builder = new UriBuilder(DefaultRpcUrl)
+                    {
+                        Query = $"chainId={chainId}&projectId={projectId}"
+                    };
+                    uri = builder.Uri.ToString();
+                }
+                
                 var rpcRequest = new JsonRpcRequest<object[]>("eth_call", new object[]
                 {
                     new EthCall
@@ -86,11 +90,11 @@ namespace Reown.Sign.Utils
                     "latest"
                 });
 
-                var httpResponse = await client.PostAsync(builder.Uri, new StringContent(JsonConvert.SerializeObject(rpcRequest)));
+                var httpResponse = await client.PostAsync(uri, new StringContent(JsonConvert.SerializeObject(rpcRequest)));
 
                 if (httpResponse is not { IsSuccessStatusCode: true })
                 {
-                    throw new HttpRequestException($"Failed to call RPC endpoint {builder.Uri} with status code {httpResponse?.StatusCode}");
+                    throw new HttpRequestException($"Failed to call RPC endpoint {uri} with status code {httpResponse?.StatusCode}");
                 }
 
                 var jsonResponse = await httpResponse.Content.ReadAsStringAsync();

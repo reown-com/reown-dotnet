@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Reown.Sign.Interfaces;
 using Reown.Sign.Unity;
 using UnityEngine;
 using UnityEngine.Scripting;
@@ -20,6 +19,7 @@ namespace Reown.AppKit.Unity
         public static NotificationController NotificationController { get; protected set; }
         public static NetworkController NetworkController { get; protected set; }
         public static EventsController EventsController { get; protected set; }
+        public static SiweController SiweController { get; protected set; }
 
         public static EvmService Evm { get; protected set; }
 

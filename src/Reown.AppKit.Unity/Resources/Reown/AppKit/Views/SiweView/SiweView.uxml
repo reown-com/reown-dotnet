@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="SiweView.uss"/>
+    <ui:VisualElement>
+        <Reown.AppKit.Unity.Components.Button name="siwe-view__approve-button" size="Large" variant="Accent"/>
+    </ui:VisualElement>
+</ui:UXML>

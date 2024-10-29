@@ -69,12 +69,22 @@ namespace Reown.AppKit.Unity
 
         private void SessionConnectedHandler(object sender, SessionStruct e)
         {
-            AppKit.NotificationController.Notify(NotificationType.Success, "Session connected");
-            IsAccountConnected = true;
+            if (AppKit.SiweController.IsEnabled)
+            {
+                // do siwe
+            }
+            else
+            {
+                AppKit.NotificationController.Notify(NotificationType.Success, "Session connected");
+                IsAccountConnected = true;
+            }
         }
 
         private void SessionDeletedHandler(object sender, EventArgs e)
         {
+            if (!IsAccountConnected)
+                return;
+            
             IsAccountConnected = false;
             OnAccountDisconnected(AccountDisconnectedEventArgs.Empty);
         }
@@ -129,7 +139,7 @@ namespace Reown.AppKit.Unity
                         }
                     )
             };
-            _connectionProposal = new WalletConnectConnectionProposal(this, _signClient, connectOptions);
+            _connectionProposal = new WalletConnectConnectionProposal(this, _signClient, connectOptions, AppKit.SiweController);
             return _connectionProposal;
         }
 

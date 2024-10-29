@@ -15,6 +15,8 @@ namespace Reown.AppKit.Unity
         public bool enableOnramp = true; // Currently supported only in WebGL
         public bool enableAnalytics = true;
 
+        public SiweConfig siweConfig;
+
         public Chain[] supportedChains =
         {
             ChainConstants.Chains.Ethereum,
