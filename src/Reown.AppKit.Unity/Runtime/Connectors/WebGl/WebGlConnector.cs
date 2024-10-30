@@ -10,7 +10,6 @@ using Reown.Sign.Unity;
 
 namespace Reown.AppKit.Unity
 {
-    //TODO: webgl
 #if UNITY_WEBGL
     public class WebGlConnector : Connector
     {
@@ -26,11 +25,9 @@ namespace Reown.AppKit.Unity
             Type = ConnectorType.WebGl;
         }
 
-        protected override async Task InitializeAsyncCore(AppKitConfig web3ModalConfig, SignClientUnity _)
+        protected override async Task InitializeAsyncCore(AppKitConfig appKitConfig, SignClientUnity _)
         {
-            var appKitConfig = AppKit.Config;
-
-            var viemChainNames = web3ModalConfig.supportedChains
+            var viemChainNames = appKitConfig.supportedChains
                 .Where(c => !string.IsNullOrWhiteSpace(c.ViemName))
                 .Select(c => c.ViemName)
                 .ToArray();
@@ -40,8 +37,12 @@ namespace Reown.AppKit.Unity
                 projectId = appKitConfig.projectId,
                 metadata = appKitConfig.metadata,
                 chains = viemChainNames,
-                enableOnramp = web3ModalConfig.enableOnramp,
-                enableAnalytics = web3ModalConfig.enableAnalytics
+                includeWalletIds = appKitConfig.includedWalletIds ?? Array.Empty<string>(),
+                excludeWalletIds = appKitConfig.excludedWalletIds ?? Array.Empty<string>(),
+                
+                enableOnramp = appKitConfig.enableOnramp,
+                enableAnalytics = appKitConfig.enableAnalytics,
+                enableCoinbaseWallet = appKitConfig.enableCoinbaseWallet
             };
 
             var parametersJson = JsonConvert.SerializeObject(parameters);
@@ -173,9 +174,12 @@ namespace Reown.AppKit.Unity
         public string projectId;
         public Core.Metadata metadata;
         public string[] chains;
+        public string[] includeWalletIds;
+        public string[] excludeWalletIds;
 
         public bool enableOnramp;
         public bool enableAnalytics;
+        public bool enableCoinbaseWallet;
     }
 #endif
 }
