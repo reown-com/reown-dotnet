@@ -6,7 +6,8 @@ namespace Reown.AppKit.Unity.WebGl.Modal
     public class ModalState
     {
         public bool open;
-        public int selectedNetworkId;
+        public string selectedNetworkId;
+        public bool loading;
     }
     
     [Serializable]

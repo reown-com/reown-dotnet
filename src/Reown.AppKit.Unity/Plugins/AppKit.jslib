@@ -65,61 +65,42 @@ mergeInto(LibraryManager.library, {
         const projectId = parameters.projectId;
         const metadata = parameters.metadata;
         const chains = parameters.chains;
-        const includeWalletIds = parameters.includeWalletIds;
-        const excludeWalletIds = parameters.excludeWalletIds;
 
         const enableOnramp = parameters.enableOnramp;
         const enableAnalytics = parameters.enableAnalytics;
-        const enableCoinbaseWallet = parameters.enableCoinbaseWallet;
 
         // Load the scripts and initialize the configuration
-        import("https://cdn.jsdelivr.net/npm/@web3modal/cdn@5.1.2/dist/wagmi.js").then(CDNW3M => {
+        import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.2.1/dist/appkit.js").then(CDNW3M => {
+            console.log("CDNW3M", CDNW3M)
             const WagmiCore = CDNW3M['WagmiCore'];
-            const Chains = CDNW3M['Chains'];
-            const Web3modal = CDNW3M['Web3modal'];
-            const Connectors = CDNW3M['Connectors'];
+            const Chains = CDNW3M['networks'];
+            const WagmiAdapter = CDNW3M['WagmiAdapter'];
+            const reconnect = WagmiCore['reconnect']
+            const createAppKit = CDNW3M['createAppKit']
 
-            const createWeb3Modal = Web3modal['createWeb3Modal'];
-            const coinbaseWallet = Connectors['coinbaseWallet'];
-            const walletConnect = Connectors['walletConnect'];
-            const injected = Connectors['injected'];
-            const createConfig = WagmiCore['createConfig'];
-            const http = WagmiCore['http'];
-            const reconnect = WagmiCore['reconnect'];
+            const chainsArr = chains.map(chainName => Chains[chainName]);
 
-            const chainsMap = chains.map(chainName => Chains[chainName]);
+            const wagmiAdapter = new WagmiAdapter({
+                networks: chainsArr,
+                projectId
+            })
 
-            const config = createConfig({
-                chains: chainsMap,
-                transports: chains.reduce((acc, chainName) => {
-                    acc[Chains[chainName].id] = http();
-                    return acc;
-                }, {}),
-                connectors: [
-                    walletConnect({projectId, metadata, showQrModal: false}),
-                    injected({shimDisconnect: true}),
-                    ...(enableCoinbaseWallet ? [coinbaseWallet({
-                        appName: metadata.name,
-                        appLogoUrl: metadata.icons[0]
-                    })] : [])
-                ]
-            });
-
-            reconnect(config);
-
-            const modal = createWeb3Modal({
-                wagmiConfig: config,
+            const modal = createAppKit({
+                adapters: [wagmiAdapter],
+                networks: chainsArr,
+                metadata: metadata,
                 projectId,
-                enableOnramp: enableOnramp,
-                enableAnalytics: enableAnalytics,
-                disableAppend: true,
-                includeWalletIds: includeWalletIds,
-                excludeWalletIds: excludeWalletIds
-            });
-            
+                features: {
+                    analytics: enableAnalytics,
+                    onramp: enableOnramp
+                }
+            })
+
+            reconnect(wagmiAdapter.wagmiConfig);
+
             // Store the configuration and modal globally
             _appKitConfig = {
-                config: config,
+                config: wagmiAdapter.wagmiConfig,
                 modal: modal,
                 wagmiCore: WagmiCore
             };
@@ -220,9 +201,10 @@ mergeInto(LibraryManager.library, {
     ModalSubscribeState__deps: ['$SerializeJson'],
     ModalSubscribeState: function (callbackPtr) {
         _appKitConfig.modal.subscribeState(newState => {
-            const newStateStr = stringToNewUTF8(SerializeJson(newState));
-            {{{makeDynCall('vi', 'callbackPtr')}}}(newStateStr);
-            _free(newStateStr);
+            const json = SerializeJson(newState);
+            const dataStr = stringToNewUTF8(json);
+            {{{makeDynCall('vi', 'callbackPtr')}}}(dataStr);
+            _free(dataStr);
         });
     },
 });
