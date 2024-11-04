@@ -70,13 +70,12 @@ mergeInto(LibraryManager.library, {
         const enableAnalytics = parameters.enableAnalytics;
 
         // Load the scripts and initialize the configuration
-        import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.2.1/dist/appkit.js").then(CDNW3M => {
-            console.log("CDNW3M", CDNW3M)
-            const WagmiCore = CDNW3M['WagmiCore'];
-            const Chains = CDNW3M['networks'];
-            const WagmiAdapter = CDNW3M['WagmiAdapter'];
-            const reconnect = WagmiCore['reconnect']
-            const createAppKit = CDNW3M['createAppKit']
+        import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.2.1/dist/appkit.js").then(AppKit => {
+            const WagmiCore = AppKit['WagmiCore'];
+            const WagmiAdapter = AppKit['WagmiAdapter'];
+            const Chains = AppKit['networks'];
+            const reconnect = WagmiCore['reconnect'];
+            const createAppKit = AppKit['createAppKit'];
 
             const chainsArr = chains.map(chainName => Chains[chainName]);
 
@@ -104,7 +103,6 @@ mergeInto(LibraryManager.library, {
                 modal: modal,
                 wagmiCore: WagmiCore
             };
-
 
             // Insert the container into the DOM at the canvas's original position
             const canvas = document.getElementsByTagName('canvas')[0];
