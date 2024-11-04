@@ -4,15 +4,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using AOT;
 using Newtonsoft.Json;
+using Reown.AppKit.Unity.WebGl.Wagmi;
 
 namespace Reown.AppKit.Unity.WebGl.Modal
 {
     public static class ModalInterop
     {
+#if UNITY_WEBGL 
         [DllImport("__Internal")]
+#endif
         private static extern void ModalCall(int id, string methodName, string payload, InteropService.ExternalMethodCallback callback);
 
+#if UNITY_WEBGL 
         [DllImport("__Internal")]
+#endif
         private static extern void ModalSubscribeState(Action<string> callback);
         
         public static event Action<ModalState> StateChanged;
