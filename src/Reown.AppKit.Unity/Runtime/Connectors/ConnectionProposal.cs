@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 
 namespace Reown.AppKit.Unity
 {
@@ -18,10 +19,17 @@ namespace Reown.AppKit.Unity
             remove => connected -= value;
         }
 
+        public event Action<SignatureRequest> SignatureRequested
+        {
+            add => signatureRequested += value;
+            remove => signatureRequested -= value;
+        }
+
         public readonly Connector connector;
 
         protected Action<ConnectionProposal> connectionUpdated;
         protected Action<ConnectionProposal> connected;
+        protected Action<SignatureRequest> signatureRequested;
 
         private bool _disposed;
 
@@ -48,6 +56,12 @@ namespace Reown.AppKit.Unity
             }
 
             _disposed = true;
+        }
+
+        public class SignatureRequest
+        {
+            public Func<Task> ApproveAsync { get; set; }
+            public Func<Task> RejectAsync { get; set; }
         }
     }
 }

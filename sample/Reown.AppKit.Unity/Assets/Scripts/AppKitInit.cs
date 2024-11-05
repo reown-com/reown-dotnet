@@ -16,6 +16,15 @@ namespace Sample
         private async void Start()
         {
             ReownLogger.Instance = new UnityLogger();
+
+            var siweConfig = new SiweConfig
+            {
+                GetMessageParams = () => new SiweMessageParams
+                {
+                    Domain = "my-domain",
+                    Uri = "my-uri"
+                }
+            };
             
             Debug.Log($"[AppKit Init] Initializing AppKit...");
             await AppKit.InitializeAsync(
@@ -33,9 +42,11 @@ namespace Sample
                         }
                     ),
                     customWallets = GetCustomWallets(),
-                    connectViewWalletsCountMobile = 5
+                    connectViewWalletsCountMobile = 5,
+                    siweConfig = siweConfig
                 }
             );
+            
 
 #if !UNITY_WEBGL
             var clientId = await AppKit.Instance.SignClient.CoreClient.Crypto.GetClientId();

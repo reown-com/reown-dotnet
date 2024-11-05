@@ -37,7 +37,7 @@ namespace Reown.AppKit.Unity
             NotificationController = new NotificationController();
             NetworkController = new NetworkControllerCore();
             EventsController = new EventsController();
-            SiweController = new SiweController(ConnectorController, Config.siweConfig);
+            SiweController = new SiweController();
 
 #if UNITY_WEBGL && !UNITY_EDITOR
             Evm = new WagmiEvmService();

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Reown.Sign.Models.Cacao;
 
 namespace Reown.AppKit.Unity
 {
@@ -102,6 +103,13 @@ namespace Reown.AppKit.Unity
     {
         public string Message { get; set; }
         public string Signature { get; set; }
+        public CacaoObject Cacao { get; set; }
+    }
+
+    public class SiweMessage
+    {
+        public string Message { get; set; }
+        public SiweCreateMessageArgs CreateMessageArgs { get; set; }
     }
 
     public class SiweSession

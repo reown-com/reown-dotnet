@@ -81,7 +81,7 @@ namespace Reown.Sign.Models.Cacao
                 authPayloadParams.Exp,
                 authPayloadParams.Statement,
                 authPayloadParams.RequestId?.ToString(),
-                authPayloadParams.Resources.ToArray()
+                authPayloadParams.Resources?.ToArray()
             );
         }
 

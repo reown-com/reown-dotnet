@@ -2,9 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Reown.Core.Common.Model.Errors;
 using Reown.Sign.Interfaces;
 using Reown.Sign.Models;
+using Reown.Sign.Models.Cacao;
 using Reown.Sign.Models.Engine;
 using Reown.Sign.Unity;
 using UnityEngine;
@@ -39,12 +41,25 @@ namespace Reown.AppKit.Unity
 
         private void OnSessionAuthenticated(object sender, SessionAuthenticatedEventArgs e)
         {
-            Debug.Log("Session authenticated");
+            IsConnected = true;
+            connected?.Invoke(this);
         }
 
         private void OnSessionConnected(object sender, SessionStruct e)
         {
-            Debug.Log("Session connected");
+            if (_siweController.IsEnabled)
+            {
+                signatureRequested?.Invoke(new SignatureRequest
+                {
+                    RejectAsync = RejectSignatureRequest,
+                    ApproveAsync = ApproveSignatureRequest
+                });
+            }
+            else
+            {
+                IsConnected = true;
+                connected?.Invoke(this);
+            }
         }
 
         private void OnSessionConnectionErrored(object sender, Exception e)
@@ -72,6 +87,58 @@ namespace Reown.AppKit.Unity
                 if (!_disposed)
                     RefreshConnection();
 #pragma warning enable S2589
+            }
+        }
+
+        private async Task RejectSignatureRequest()
+        {
+            await _client.Disconnect();
+        }
+
+        private async Task ApproveSignatureRequest()
+        {
+            // Wait 1 second before sending personal_sign request
+            // to make sure the connection is fully established.
+            await Task.Delay(TimeSpan.FromSeconds(1));
+
+            try
+            {
+                var caip25Address = _client.AddressProvider.CurrentAddress();
+                var ethAddress = caip25Address.Address;
+                var ethChainId = caip25Address.ChainId.Split(':')[1];
+
+                var siweMessage = await _siweController.CreateMessageAsync(ethAddress, ethChainId);
+
+                var signature = await AppKit.Evm.SignMessageAsync(siweMessage.Message);
+                var cacaoPayload = SiweUtils.CreateCacaoPayload(siweMessage.CreateMessageArgs);
+                var cacaoSignature = new CacaoSignature(CacaoSignatureType.Eip191, signature);
+                var cacao = new CacaoObject(CacaoHeader.Caip112, cacaoPayload, cacaoSignature);
+
+                var isSignatureValid = await _siweController.VerifyMessageAsync(new SiweVerifyMessageArgs
+                {
+                    Message = siweMessage.Message,
+                    Signature = signature,
+                    Cacao = cacao
+                });
+
+                Debug.Log($"Signature is valid: {isSignatureValid}");
+
+                if (isSignatureValid)
+                {
+                    var siweSession = await _siweController.GetSessionAsync();
+                    
+                    
+                    IsConnected = true;
+                    connected?.Invoke(this);
+                }
+                else
+                {
+                    await RejectSignatureRequest();
+                }
+            }
+            catch (Exception)
+            {
+                await RejectSignatureRequest();
             }
         }
 
@@ -120,9 +187,6 @@ namespace Reown.AppKit.Unity
 
                     await connectedData.Approval;
                 }
-
-                IsConnected = true;
-                connected?.Invoke(this);
             }
             catch (ReownNetworkException e) when (e.CodeType == ErrorType.DISAPPROVED_CHAINS)
             {

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Reown.Sign.Unity;
-using UnityEngine;
 
 namespace Reown.AppKit.Unity
 {
@@ -102,12 +101,12 @@ namespace Reown.AppKit.Unity
 
         protected virtual void ConnectionConnectedHandler(ConnectionProposal connectionProposal)
         {
-            Debug.Log("Connector. ConnectionConnectedHandler");
             foreach (var c in _connectionProposals)
                 c.Dispose();
 
             _connectionProposals.Clear();
-            Debug.Log("Connector calls OnAccountConnected");
+            IsAccountConnected = true;
+            AppKit.NotificationController.Notify(NotificationType.Success, "Connected!");
             OnAccountConnected(new AccountConnectedEventArgs(GetAccountAsync, GetAccountsAsync));
         }
 

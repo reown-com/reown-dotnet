@@ -20,6 +20,12 @@ namespace Reown.AppKit.Unity
 
         public static string FormatMessage(SiweCreateMessageArgs args)
         {
+            var cacaoPayload = CreateCacaoPayload(args);
+            return cacaoPayload.FormatMessage();
+        }
+
+        public static CacaoPayload CreateCacaoPayload(SiweCreateMessageArgs args)
+        {
             var payloadParams = new AuthPayloadParams(
                 new[]
                 {
@@ -40,10 +46,9 @@ namespace Reown.AppKit.Unity
                 args.Version
             );
 
-            var iss = $"did:pkh:{args.Address}";
+            var iss = $"did:pkh:eip155:{args.ChainId}:{args.Address}";
             var cacaoPayload = CacaoPayload.FromAuthPayloadParams(payloadParams, iss);
-
-            return cacaoPayload.FormatMessage();
+            return cacaoPayload;
         }
     }
 }

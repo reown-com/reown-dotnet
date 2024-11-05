@@ -1,19 +1,26 @@
+using System;
 using System.Threading.Tasks;
 
 namespace Reown.AppKit.Unity
 {
     public class SiweController
     {
-        public SiweConfig Config { get; }
-
         public bool IsEnabled
         {
             get => Config is { Enabled: true };
         }
 
-        public SiweController(ConnectorController connectorController, SiweConfig config)
+        public SiweConfig Config
         {
-            Config = config;
+            get => AppKit.Config.siweConfig;
+        }
+
+        public SiweController()
+        {
+            if (AppKit.Config.siweConfig?.GetMessageParams == null)
+            {
+                throw new InvalidOperationException("GetMessageParams function is required in SiweConfig.");
+            }
         }
 
         public async ValueTask<string> GetNonceAsync()
@@ -26,10 +33,10 @@ namespace Reown.AppKit.Unity
             return SiweUtils.GenerateNonce();
         }
 
-        public async ValueTask<string> CreateMessageAsync(string ethAddress, string ethChainId)
+        public async ValueTask<SiweMessage> CreateMessageAsync(string ethAddress, string ethChainId)
         {
             var nonce = await GetNonceAsync();
-            var messageParams = Config.GetMessageParams();
+            var messageParams = AppKit.Config.siweConfig.GetMessageParams();
 
             var createMessageArgs = new SiweCreateMessageArgs(messageParams)
             {
@@ -38,9 +45,35 @@ namespace Reown.AppKit.Unity
                 ChainId = ethChainId
             };
 
-            return Config.CreateMessage != null
+            var message = Config.CreateMessage != null
                 ? Config.CreateMessage(createMessageArgs)
                 : SiweUtils.FormatMessage(createMessageArgs);
+
+            return new SiweMessage
+            {
+                Message = message,
+                CreateMessageArgs = createMessageArgs
+            };
+        }
+
+        public async ValueTask<bool> VerifyMessageAsync(SiweVerifyMessageArgs args)
+        {
+            if (Config.VerifyMessage != null)
+            {
+                return await Config.VerifyMessage(args);
+            }
+
+            return await args.Cacao.VerifySignature(AppKit.Config.projectId);
+        }
+        
+        public async ValueTask<SiweSession> GetSessionAsync()
+        {
+            if (Config.GetSession != null)
+            {
+                return await Config.GetSession();
+            }
+
+            return null;
         }
     }
 }

@@ -28,9 +28,7 @@ namespace Reown.AppKit.Unity
             DappSupportedChains = config.supportedChains;
 
             _signClient.SubscribeToSessionEvent("chainChanged", ActiveChainIdChangedHandler);
-
-            _signClient.SessionAuthenticated += SessionAuthenticatedHandler;
-            _signClient.SessionConnectedUnity += SessionConnectedHandler;
+            
             _signClient.SessionUpdatedUnity += ActiveSessionChangedHandler;
             _signClient.SessionDisconnectedUnity += SessionDeletedHandler;
 
@@ -60,26 +58,7 @@ namespace Reown.AppKit.Unity
             OnChainChanged(new ChainChangedEventArgs(sessionEvent.ChainId));
             OnAccountChanged(new AccountChangedEventArgs(GetCurrentAccount()));
         }
-
-        private void SessionAuthenticatedHandler(object sender, SessionAuthenticatedEventArgs e)
-        {
-            AppKit.NotificationController.Notify(NotificationType.Success, "Session authenticated");
-            IsAccountConnected = true;
-        }
-
-        private void SessionConnectedHandler(object sender, SessionStruct e)
-        {
-            if (AppKit.SiweController.IsEnabled)
-            {
-                // do siwe
-            }
-            else
-            {
-                AppKit.NotificationController.Notify(NotificationType.Success, "Session connected");
-                IsAccountConnected = true;
-            }
-        }
-
+        
         private void SessionDeletedHandler(object sender, EventArgs e)
         {
             if (!IsAccountConnected)
