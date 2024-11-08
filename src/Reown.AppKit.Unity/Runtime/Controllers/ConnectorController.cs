@@ -62,6 +62,7 @@ namespace Reown.AppKit.Unity
             walletConnectConnector.AccountDisconnected += ConnectorAccountDisconnectedHandler;
             walletConnectConnector.AccountChanged += AccountChangedHandler;
             walletConnectConnector.ChainChanged += ChainChangedHandler;
+            walletConnectConnector.SignatureRequested += SignatureRequestedHandler;
             _connectors.Add(ConnectorType.WalletConnect, walletConnectConnector);
 #endif
 
@@ -70,6 +71,7 @@ namespace Reown.AppKit.Unity
 
         protected override async Task<bool> TryResumeSessionAsyncCore()
         {
+            Debug.Log("[ConnectorController] TryResumeSessionAsyncCore");
             if (ActiveConnector != null)
                 return await ActiveConnector.TryResumeSessionAsync();
 
@@ -124,7 +126,7 @@ namespace Reown.AppKit.Unity
 
         private static bool TryGetLastConnector(out ConnectorType connectorType)
         {
-            const string key = "W3M_LAST_CONNECTOR_TYPE";
+            const string key = "RE_LAST_CONNECTOR_TYPE";
 
             if (PlayerPrefs.HasKey(key))
             {
@@ -139,7 +141,7 @@ namespace Reown.AppKit.Unity
 
         private void ConnectorAccountConnected(Connector connector, AccountConnectedEventArgs e)
         {
-            PlayerPrefs.SetInt("W3M_LAST_CONNECTOR_TYPE", (int)connector.Type);
+            PlayerPrefs.SetInt("RE_LAST_CONNECTOR_TYPE", (int)connector.Type);
             ActiveConnector = connector;
 
             OnAccountConnected(e);
@@ -161,9 +163,19 @@ namespace Reown.AppKit.Unity
             OnChainChanged(e);
         }
 
+        private void SignatureRequestedHandler(object sender, SignatureRequest e)
+        {
+            Debug.Log("[ConnectorController] SignatureRequestedHandler");
+            PlayerPrefs.SetInt("RE_LAST_CONNECTOR_TYPE", (int)e.Connector.Type);
+            ActiveConnector = e.Connector;
+
+            OnSignatureRequested();
+        }
+
         protected override void ConnectionConnectedHandler(ConnectionProposal connectionProposal)
         {
-            PlayerPrefs.SetInt("W3M_LAST_CONNECTOR_TYPE", (int)connectionProposal.connector.Type);
+            PlayerPrefs.SetInt("RE_LAST_CONNECTOR_TYPE", (int)connectionProposal.connector.Type);
+            AppKit.NotificationController.Notify(NotificationType.Success, "Connected!");
 
             base.ConnectionConnectedHandler(connectionProposal);
         }

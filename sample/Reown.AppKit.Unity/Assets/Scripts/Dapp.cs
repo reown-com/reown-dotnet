@@ -145,7 +145,7 @@ namespace Sample
                 {
                     RefreshButtons();
 
-                    if (e.Chain == null)
+                    if (e.NewChain == null)
                     {
                         Notification.ShowMessage("Unsupported chain");
                         return;

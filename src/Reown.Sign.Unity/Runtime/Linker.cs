@@ -182,7 +182,7 @@ namespace Reown.Sign.Unity
         {
             deeplink = null;
 
-            deeplink = PlayerPrefs.GetString("RO_RECENT_WALLET_DEEPLINK");
+            deeplink = PlayerPrefs.GetString("RE_RECENT_WALLET_DEEPLINK");
 
             if (string.IsNullOrWhiteSpace(deeplink))
                 return false;

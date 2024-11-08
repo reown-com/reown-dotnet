@@ -1,7 +1,7 @@
-using UnityEngine;
-using UnityEngine.UIElements;
 using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Utils;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity
 {
@@ -29,7 +29,7 @@ namespace Reown.AppKit.Unity
             if (!IsVisible)
                 return;
 
-            if (e.Chain == null)
+            if (e.NewChain == null)
                 Router.GoBack();
             else
                 AppKit.CloseModal();

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
-using Reown.Core;
 using Reown.Core.Interfaces;
 using Reown.Core.Models.Relay;
 
@@ -88,7 +87,7 @@ namespace Reown.Sign.Models
         {
             ValidateChainIdAndTopic(chainId);
 
-            var namespaceStr = chainId.Split(':')[0];
+            var namespaceStr = Core.Utils.ExtractChainNamespace(chainId);
 
             if (!Namespaces.TryGetValue(namespaceStr, out var defaultNamespace))
             {

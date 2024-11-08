@@ -43,7 +43,6 @@ namespace Reown.AppKit.Unity
             {
                 _connectionProposal = (WalletConnectConnectionProposal)connector.Connect();
                 _connectionProposal.ConnectionUpdated += ConnectionProposalUpdatedHandler;
-                _connectionProposal.SignatureRequested += SignatureRequestedHandler;
             }
 
             View.qrCode.Data = _connectionProposal.Uri;
@@ -67,12 +66,6 @@ namespace Reown.AppKit.Unity
         private void ConnectionProposalUpdatedHandler(ConnectionProposal connectionProposal)
         {
             View.qrCode.Data = _connectionProposal.Uri;
-        }
-
-        private async void SignatureRequestedHandler(ConnectionProposal.SignatureRequest signatureRequest)
-        {
-            // TODO: show signature request dialog
-            await signatureRequest.ApproveAsync();
         }
 
         private void AccountConnectedHandler(object sender, Connector.AccountConnectedEventArgs e)

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Reown.Sign.Models;
 using Reown.Sign.Models.Engine;
@@ -8,6 +9,7 @@ using Reown.Sign.Models.Engine.Methods;
 using Reown.Sign.Nethereum;
 using Reown.Sign.Nethereum.Model;
 using Reown.Sign.Unity;
+using UnityEngine;
 
 namespace Reown.AppKit.Unity
 {
@@ -34,8 +36,7 @@ namespace Reown.AppKit.Unity
 
             return Task.CompletedTask;
         }
-
-
+        
         private void ActiveSessionChangedHandler(object sender, SessionStruct e)
         {
             if (string.IsNullOrWhiteSpace(e.Topic))
@@ -58,8 +59,8 @@ namespace Reown.AppKit.Unity
             OnChainChanged(new ChainChangedEventArgs(sessionEvent.ChainId));
             OnAccountChanged(new AccountChangedEventArgs(GetCurrentAccount()));
         }
-        
-        private void SessionDeletedHandler(object sender, EventArgs e)
+
+        private async void SessionDeletedHandler(object sender, EventArgs e)
         {
             if (!IsAccountConnected)
                 return;
@@ -68,9 +69,42 @@ namespace Reown.AppKit.Unity
             OnAccountDisconnected(AccountDisconnectedEventArgs.Empty);
         }
 
-        protected override Task<bool> TryResumeSessionAsyncCore()
+        protected override async Task<bool> TryResumeSessionAsyncCore()
         {
-            return _signClient.TryResumeSessionAsync();
+            Debug.Log("[WalletConnectConnector] TryResumeSessionAsyncCore");
+            var isResumed = await _signClient.TryResumeSessionAsync();
+
+            if (isResumed && AppKit.SiweController.IsEnabled)
+            {
+                var siweSessionJson = PlayerPrefs.GetString(SiweController.SessionPlayerPrefsKey);
+
+                // If no siwe session is found, request signature
+                if (string.IsNullOrWhiteSpace(siweSessionJson))
+                {
+                    Debug.Log("[Connector] No Siwe session found. Requesting signature.");
+                    OnSignatureRequested();
+                    return true;
+                }
+
+                var account = await GetAccountAsyncCore();
+                var siweSession = JsonConvert.DeserializeObject<SiweSession>(siweSessionJson);
+
+                Debug.Log($"[Connector] Siwe session found: {siweSessionJson}");
+
+                var addressesMatch = string.Equals(siweSession.EthAddress, account.Address, StringComparison.InvariantCultureIgnoreCase);
+                var chainsMatch = siweSession.EthChainIds.Contains(Core.Utils.ExtractChainReference(account.ChainId));
+
+                // If siwe session found, but it doesn't match the sign session, request signature (i.e. new siwe session)
+                if (!addressesMatch || !chainsMatch)
+                {
+                    OnSignatureRequested();
+                    return true;
+                }
+
+                return true;
+            }
+
+            return isResumed;
         }
 
         protected override ConnectionProposal ConnectCore()
@@ -78,9 +112,11 @@ namespace Reown.AppKit.Unity
             if (_connectionProposal is { IsConnected: false })
                 return _connectionProposal;
 
+            var activeChain = AppKit.NetworkController.ActiveChain;
+            var sortedChains = activeChain != null ? DappSupportedChains.OrderByDescending(chainEntry => chainEntry.ChainId == activeChain.ChainId) : DappSupportedChains;
             var connectOptions = new ConnectOptions
             {
-                OptionalNamespaces = DappSupportedChains
+                OptionalNamespaces = sortedChains
                     .GroupBy(chainEntry => chainEntry.ChainNamespace)
                     .ToDictionary(
                         group => group.Key,

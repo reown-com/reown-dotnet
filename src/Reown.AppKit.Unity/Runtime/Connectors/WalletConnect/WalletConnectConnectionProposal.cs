@@ -2,13 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Reown.Core.Common.Model.Errors;
 using Reown.Sign.Interfaces;
 using Reown.Sign.Models;
-using Reown.Sign.Models.Cacao;
 using Reown.Sign.Models.Engine;
 using Reown.Sign.Unity;
+using Reown.Sign.Utils;
 using UnityEngine;
 
 namespace Reown.AppKit.Unity
@@ -29,40 +28,67 @@ namespace Reown.AppKit.Unity
             _client = signClient;
             _connectOptions = connectOptions;
             _siweController = siweController;
-            
-            _client.SessionAuthenticated += OnSessionAuthenticated;
-            _client.SessionConnected += OnSessionConnected;
-            _client.SessionConnectionErrored += OnSessionConnectionErrored;
+
+            _client.SessionAuthenticated += SessionAuthenticatedHandler;
+            _client.SessionConnected += SessionConnectedHandler;
+            _client.SessionConnectionErrored += SessionConnectionErroredHandler;
 
             RefreshConnection();
 
             UnityEventsDispatcher.Instance.StartCoroutine(RefreshOnIntervalRoutine());
         }
 
-        private void OnSessionAuthenticated(object sender, SessionAuthenticatedEventArgs e)
+        private async void SessionAuthenticatedHandler(object sender, SessionAuthenticatedEventArgs e)
         {
+            try
+            {
+                var cacao = e.Auths[0];
+                var message = cacao.FormatMessage();
+
+                var isSignatureValid = await _siweController.VerifyMessageAsync(new SiweVerifyMessageArgs
+                {
+                    Message = message,
+                    Signature = cacao.Signature.S,
+                    Cacao = cacao
+                });
+
+                if (!isSignatureValid)
+                {
+                    await _client.Disconnect();
+                    return;
+                }
+
+                var chainId = CacaoUtils.ExtractDidChainId(cacao.Payload.Iss);
+                Debug.Log($"Authenticated chain id: {chainId}");
+                _ = await _siweController.GetSessionAsync(new GetSiweSessionArgs
+                {
+                    Address = CacaoUtils.ExtractDidAddress(cacao.Payload.Iss),
+                    ChainIds = new[]
+                    {
+                        // Convert CAIP-2 chain ID to Ethereum chain ID (chain reference)
+                        Core.Utils.ExtractChainReference(chainId)
+                    }
+                });
+
+                IsSignarureRequested = false;
+                IsConnected = true;
+                connected?.Invoke(this);
+            }
+            catch (Exception)
+            {
+                await _client.Disconnect();
+                throw;
+            }
+        }
+
+        private void SessionConnectedHandler(object sender, SessionStruct e)
+        {
+            IsSignarureRequested = _siweController.IsEnabled;
             IsConnected = true;
             connected?.Invoke(this);
         }
 
-        private void OnSessionConnected(object sender, SessionStruct e)
-        {
-            if (_siweController.IsEnabled)
-            {
-                signatureRequested?.Invoke(new SignatureRequest
-                {
-                    RejectAsync = RejectSignatureRequest,
-                    ApproveAsync = ApproveSignatureRequest
-                });
-            }
-            else
-            {
-                IsConnected = true;
-                connected?.Invoke(this);
-            }
-        }
-
-        private void OnSessionConnectionErrored(object sender, Exception e)
+        private void SessionConnectionErroredHandler(object sender, Exception e)
         {
             AppKit.NotificationController.Notify(NotificationType.Error, e.Message);
             RefreshConnection();
@@ -87,58 +113,6 @@ namespace Reown.AppKit.Unity
                 if (!_disposed)
                     RefreshConnection();
 #pragma warning enable S2589
-            }
-        }
-
-        private async Task RejectSignatureRequest()
-        {
-            await _client.Disconnect();
-        }
-
-        private async Task ApproveSignatureRequest()
-        {
-            // Wait 1 second before sending personal_sign request
-            // to make sure the connection is fully established.
-            await Task.Delay(TimeSpan.FromSeconds(1));
-
-            try
-            {
-                var caip25Address = _client.AddressProvider.CurrentAddress();
-                var ethAddress = caip25Address.Address;
-                var ethChainId = caip25Address.ChainId.Split(':')[1];
-
-                var siweMessage = await _siweController.CreateMessageAsync(ethAddress, ethChainId);
-
-                var signature = await AppKit.Evm.SignMessageAsync(siweMessage.Message);
-                var cacaoPayload = SiweUtils.CreateCacaoPayload(siweMessage.CreateMessageArgs);
-                var cacaoSignature = new CacaoSignature(CacaoSignatureType.Eip191, signature);
-                var cacao = new CacaoObject(CacaoHeader.Caip112, cacaoPayload, cacaoSignature);
-
-                var isSignatureValid = await _siweController.VerifyMessageAsync(new SiweVerifyMessageArgs
-                {
-                    Message = siweMessage.Message,
-                    Signature = signature,
-                    Cacao = cacao
-                });
-
-                Debug.Log($"Signature is valid: {isSignatureValid}");
-
-                if (isSignatureValid)
-                {
-                    var siweSession = await _siweController.GetSessionAsync();
-                    
-                    
-                    IsConnected = true;
-                    connected?.Invoke(this);
-                }
-                else
-                {
-                    await RejectSignatureRequest();
-                }
-            }
-            catch (Exception)
-            {
-                await RejectSignatureRequest();
             }
         }
 
@@ -191,7 +165,7 @@ namespace Reown.AppKit.Unity
             catch (ReownNetworkException e) when (e.CodeType == ErrorType.DISAPPROVED_CHAINS)
             {
                 // Wallet declined connection, don't throw/log.
-                // The `OnSessionConnectionErrored` will handle the error.
+                // The `SessionConnectionErroredHandler` will handle the error.
             }
             catch (Exception e)
             {
@@ -204,7 +178,7 @@ namespace Reown.AppKit.Unity
             if (!_disposed)
             {
                 if (disposing)
-                    _client.SessionConnectionErrored -= OnSessionConnectionErrored;
+                    _client.SessionConnectionErrored -= SessionConnectionErroredHandler;
 
                 _disposed = true;
                 base.Dispose(disposing);

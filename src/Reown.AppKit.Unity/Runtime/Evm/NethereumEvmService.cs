@@ -37,8 +37,8 @@ namespace Reown.AppKit.Unity
 
         private void ChainChangedHandler(object sender, NetworkController.ChainChangedEventArgs e)
         {
-            if (e.Chain != null)
-                UpdateWeb3Instance(e.Chain.ChainId);
+            if (e.NewChain != null)
+                UpdateWeb3Instance(e.NewChain.ChainId);
         }
 
         private void SetInitialWeb3Instance()

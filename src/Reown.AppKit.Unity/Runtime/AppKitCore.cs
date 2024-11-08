@@ -109,7 +109,7 @@ namespace Reown.AppKit.Unity
             });
         }
 
-        private static async void AccountConnectedHandler(object sender, Connector.AccountConnectedEventArgs e)
+        private static void AccountConnectedHandler(object sender, Connector.AccountConnectedEventArgs e)
         {
             if (WalletUtils.TryGetLastViewedWallet(out var lastViewedWallet))
                 WalletUtils.SetRecentWallet(lastViewedWallet);

@@ -34,14 +34,14 @@ namespace Reown.AppKit.Unity
         ///     Called after <see cref="VerifyMessage" /> succeeds.
         ///     The backend session should store the associated address and chainIds and return it via the <see cref="GetSession" /> method.
         /// </summary>
-        public Func<ValueTask<SiweSession>> GetSession { get; set; }
+        public Func<GetSiweSessionArgs, ValueTask<SiweSession>> GetSession { get; set; }
 
         /// <summary>
         ///     Called when the wallet disconnects if <see cref="SignOutOnWalletDisconnect" /> is true,
         ///     and/or when the account changes if <see cref="SignOutOnAccountChange" /> is true,
-        ///     and/or when the network changes if <see cref="SignOutOnNetworkChange" /> is true.
+        ///     and/or when the network changes if <see cref="SignOutOnChainChange" /> is true.
         /// </summary>
-        public Func<ValueTask<bool>> SignOut { get; set; }
+        public Func<ValueTask> SignOut { get; set; }
 
         public bool Enabled { get; set; } = true;
 
@@ -49,7 +49,7 @@ namespace Reown.AppKit.Unity
 
         public bool SignOutOnAccountChange { get; set; } = true;
 
-        public bool SignOutOnNetworkChange { get; set; } = true;
+        public bool SignOutOnChainChange { get; set; } = true;
 
         public event Action<SiweSession> SignInSuccess;
 
@@ -106,15 +106,32 @@ namespace Reown.AppKit.Unity
         public CacaoObject Cacao { get; set; }
     }
 
+    public class GetSiweSessionArgs
+    {
+        public string Address { get; set; }
+        public string[] ChainIds { get; set; }
+    }
+
     public class SiweMessage
     {
         public string Message { get; set; }
         public SiweCreateMessageArgs CreateMessageArgs { get; set; }
     }
 
+    [Serializable]
     public class SiweSession
     {
-        public string Address { get; set; } // Ethereum (0x...) address
-        public string[] ChainIds { get; set; } // Ethereum chain IDs
+        public string EthAddress { get; set; } // Ethereum (0x...) address
+        public string[] EthChainIds { get; set; } // Ethereum chain IDs
+
+        public SiweSession()
+        {
+        }
+
+        public SiweSession(GetSiweSessionArgs args)
+        {
+            EthAddress = args.Address;
+            EthChainIds = args.ChainIds;
+        }
     }
 }

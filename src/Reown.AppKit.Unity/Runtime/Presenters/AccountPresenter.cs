@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using UnityEngine;
-using UnityEngine.UIElements;
 using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Utils;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity
 {
@@ -62,7 +62,7 @@ namespace Reown.AppKit.Unity
 
         private void ChainChangedHandler(object sender, NetworkController.ChainChangedEventArgs e)
         {
-            UpdateNetworkButton(e.Chain);
+            UpdateNetworkButton(e.NewChain);
         }
 
         // Creates the buttons at the bottom of the account view.
@@ -189,7 +189,7 @@ namespace Reown.AppKit.Unity
         {
             var address = AppKit.AccountController.Address;
             GUIUtility.systemCopyBuffer = address;
-            AppKit.NotificationController.Notify(NotificationType.Success, "Address copied");
+            AppKit.NotificationController.Notify(NotificationType.Success, "EthAddress copied");
         }
 
         private void ButtonsSetEnabled(bool value)

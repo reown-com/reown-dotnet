@@ -1,4 +1,3 @@
-using mixpanel;
 using Reown.AppKit.Unity;
 using Reown.AppKit.Unity.Model;
 using Reown.Core.Common.Logging;
@@ -25,6 +24,9 @@ namespace Sample
                     Uri = "my-uri"
                 }
             };
+
+            siweConfig.SignInSuccess += args => { Debug.Log($"[AppKit Init] siwe Sign in success: {args}"); };
+            siweConfig.SignOutSuccess += () => { Debug.Log("[AppKit Init] siwe Sign out success"); };
             
             Debug.Log($"[AppKit Init] Initializing AppKit...");
             await AppKit.InitializeAsync(
@@ -46,6 +48,12 @@ namespace Sample
                     siweConfig = siweConfig
                 }
             );
+
+            AppKit.ConnectorController.SignatureRequested += async (_, args) =>
+            {
+                Debug.Log($"[AppKit Init] Signature requested: {args}");
+                await args.ApproveAsync();
+            };
             
 
 #if !UNITY_WEBGL

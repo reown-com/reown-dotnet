@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Org.BouncyCastle.Ocsp;
 using Reown.Core.Common;
 using Reown.Core.Common.Events;
 using Reown.Core.Common.Logging;
@@ -17,7 +16,6 @@ using Reown.Core.Models;
 using Reown.Core.Models.MessageHandler;
 using Reown.Core.Models.Pairing;
 using Reown.Core.Models.Relay;
-using Reown.Core.Models.Verify;
 using Reown.Core.Network.Models;
 using Reown.Sign.Constants;
 using Reown.Sign.Interfaces;
@@ -956,7 +954,7 @@ namespace Reown.Sign
                 ReownLogger.Log("Methods provided, creating recap");
                 
                 var chainId = authParams.Chains[0];
-                var @namespace = chainId.Split(':')[0];
+                var @namespace = Core.Utils.ExtractChainNamespace(chainId);
                 var recapStr = ReCapUtils.CreateEncodedRecap(@namespace, "request", authParams.Methods);
 
                 ReownLogger.Log($"Created recap: {recapStr}");
@@ -994,9 +992,6 @@ namespace Reown.Sign
                 Resources = authParams.Resources,
                 PairingTopic = pairingData.Topic
             };
-
-            var json = JsonConvert.SerializeObject(authPayloadParams);
-            ReownLogger.Log(json);
 
             var participant = new Participant
             {

@@ -30,6 +30,20 @@ namespace Reown.Core
             return SessionIdRegex.IsMatch(chainId);
         }
 
+        public static string ExtractChainReference(string chainId)
+        {
+            ReadOnlySpan<char> span = chainId;
+            var index = span.LastIndexOf(':');
+            return index >= 0 ? span[(index + 1)..].ToString() : chainId;
+        }
+
+        public static string ExtractChainNamespace(string chainId)
+        {
+            ReadOnlySpan<char> span = chainId;
+            var index = span.LastIndexOf(':');
+            return index >= 0 ? span[..index].ToString() : chainId;
+        }
+
         public static bool IsValidAccountId(string account)
         {
             if (string.IsNullOrWhiteSpace(account) || !account.Contains(':'))

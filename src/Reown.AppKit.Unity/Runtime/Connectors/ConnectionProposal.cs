@@ -1,11 +1,12 @@
 using System;
-using System.Threading.Tasks;
 
 namespace Reown.AppKit.Unity
 {
     public class ConnectionProposal : IDisposable
     {
         public bool IsConnected { get; protected set; }
+        
+        public bool IsSignarureRequested { get; protected set; }
 
         public event Action<ConnectionProposal> ConnectionUpdated
         {
@@ -18,18 +19,11 @@ namespace Reown.AppKit.Unity
             add => connected += value;
             remove => connected -= value;
         }
-
-        public event Action<SignatureRequest> SignatureRequested
-        {
-            add => signatureRequested += value;
-            remove => signatureRequested -= value;
-        }
-
+        
         public readonly Connector connector;
 
         protected Action<ConnectionProposal> connectionUpdated;
         protected Action<ConnectionProposal> connected;
-        protected Action<SignatureRequest> signatureRequested;
 
         private bool _disposed;
 
@@ -56,12 +50,6 @@ namespace Reown.AppKit.Unity
             }
 
             _disposed = true;
-        }
-
-        public class SignatureRequest
-        {
-            public Func<Task> ApproveAsync { get; set; }
-            public Func<Task> RejectAsync { get; set; }
         }
     }
 }
