@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Reown.Sign.Models.Cacao;
 
 namespace Reown.AppKit.Unity
@@ -121,7 +122,10 @@ namespace Reown.AppKit.Unity
     [Serializable]
     public class SiweSession
     {
+        [JsonProperty("ethAddress")]
         public string EthAddress { get; set; } // Ethereum (0x...) address
+
+        [JsonProperty("ethChainIds")]
         public string[] EthChainIds { get; set; } // Ethereum chain IDs
 
         public SiweSession()

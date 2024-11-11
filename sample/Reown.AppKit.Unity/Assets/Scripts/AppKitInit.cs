@@ -6,6 +6,10 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityLogger = Reown.Sign.Unity.UnityLogger;
 
+#if !UNITY_WEBGL
+using mixpanel;
+#endif
+
 namespace Sample
 {
     public class AppKitInit : MonoBehaviour
@@ -52,7 +56,8 @@ namespace Sample
             AppKit.ConnectorController.SignatureRequested += async (_, args) =>
             {
                 Debug.Log($"[AppKit Init] Signature requested: {args}");
-                await args.ApproveAsync();
+                AppKit.OpenModal(ViewType.Siwe);
+                // await args.ApproveAsync();
             };
             
 
