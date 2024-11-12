@@ -1,3 +1,5 @@
+using System;
+using Reown.AppKit.Unity.Utils;
 using Reown.AppKit.Unity.Views.SiweView;
 using UnityEngine.UIElements;
 
@@ -10,10 +12,36 @@ namespace Reown.AppKit.Unity
             get => "Sign In";
         }
 
+        public override bool EnableCloseButton
+        {
+            get => false;
+        }
+
+        private SignatureRequest _lastSignatureRequest;
         private bool _success;
+        private bool _disposed;
+        private RemoteSprite<Image> _walletLogo;
+
+        private readonly RemoteSprite<Image> _appLogo;
 
         public SiwePresenter(RouterController router, VisualElement parent, bool hideView = true) : base(router, parent, hideView)
         {
+            var appName = AppKit.Config.metadata.Name;
+            if (!string.IsNullOrWhiteSpace(appName))
+            {
+                View.Title = $"{appName} wants to connect to your wallet";
+            }
+
+            var appLogoUrl = AppKit.Config.metadata.IconUrl;
+            if (!string.IsNullOrWhiteSpace(appLogoUrl))
+            {
+                _appLogo = RemoteSpriteFactory.GetRemoteSprite<Image>(appLogoUrl);
+                _appLogo.SubscribeImage(View.LogoAppImage);
+            }
+
+            View.CancelButtonClicked += RejectButtonClickedHandler;
+            View.ApproveButtonClicked += ApproveButtonClickedHandler;
+            
             AppKit.SiweController.Config.SignInSuccess += SignInSuccessHandler;
             AppKit.SiweController.Config.SignOutSuccess += SignOutSuccessHandler;
 
@@ -23,6 +51,7 @@ namespace Reown.AppKit.Unity
         private void SignInSuccessHandler(SiweSession siweSession)
         {
             _success = true;
+            Router.CloseAllViews();
         }
 
         private void SignOutSuccessHandler()
@@ -32,6 +61,22 @@ namespace Reown.AppKit.Unity
 
         private void SignatureRequestedHandler(object sender, SignatureRequest e)
         {
+            _lastSignatureRequest = e;
+        }
+
+        protected override void OnVisibleCore()
+        {
+            base.OnVisibleCore();
+
+            _walletLogo?.UnsubscribeImage(View.LogoWalletImage);
+
+            if (WalletUtils.TryGetRecentWallet(out var wallet))
+            {
+                _walletLogo = wallet.Image;
+                _walletLogo.SubscribeImage(View.LogoWalletImage);
+            }
+
+            View.ButtonsEnabled = true;
         }
 
         protected override async void OnHideCore()
@@ -44,15 +89,49 @@ namespace Reown.AppKit.Unity
             }
         }
 
-        public async void OnApproveButtonClick()
+        public async void RejectButtonClickedHandler()
         {
-            // TODO: send personal sign request
+            try
+            {
+                View.ButtonsEnabled = false;
+                AppKit.NotificationController.Notify(NotificationType.Info, "Disconnecting...");
+                await _lastSignatureRequest.RejectAsync();
+            }
+            catch (Exception)
+            {
+                View.ButtonsEnabled = true;
+                throw;
+            }
         }
 
-        public async void OnRejectButtonClick()
+        public async void ApproveButtonClickedHandler()
         {
+            try
+            {
+                View.ButtonsEnabled = false;
+                await _lastSignatureRequest.ApproveAsync();
+            }
+            catch (Exception)
+            {
+                View.ButtonsEnabled = true;
+                throw;
+            }
         }
 
-        // TODO: unsubscribe on dispose
+        protected override void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            if (disposing)
+            {
+                AppKit.SiweController.Config.SignInSuccess -= SignInSuccessHandler;
+                AppKit.SiweController.Config.SignOutSuccess -= SignOutSuccessHandler;
+                AppKit.ConnectorController.SignatureRequested -= SignatureRequestedHandler;
+            }
+
+            _disposed = true;
+            base.Dispose(disposing);
+        }
     }
 }

@@ -189,7 +189,7 @@ namespace Reown.AppKit.Unity
         {
             var address = AppKit.AccountController.Address;
             GUIUtility.systemCopyBuffer = address;
-            AppKit.NotificationController.Notify(NotificationType.Success, "EthAddress copied");
+            AppKit.NotificationController.Notify(NotificationType.Success, "Ethereum address copied");
         }
 
         private void ButtonsSetEnabled(bool value)

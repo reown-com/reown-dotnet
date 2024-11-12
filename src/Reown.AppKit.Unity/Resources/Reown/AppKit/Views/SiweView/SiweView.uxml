@@ -1,14 +1,16 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <Style src="SiweView.uss"/>
     <ui:VisualElement name="siwe-view__logo-container">
-        <ui:Image name="siwe-view__logo-app" class="siwe-view__logo siwe-view__logo-app">
+        <ui:VisualElement name="siwe-view__logo-app-container" class="siwe-view__logo siwe-view__logo-app">
             <ui:Image name="siwe-view__logo-app-placeholder" style="--unity-image: resource('Reown/AppKit/Icons/icon_regular_app');"
                       class="siwe-view__logo-placeholder"/>
-        </ui:Image>
-        <ui:Image name="siwe-view__logo-wallet" class="siwe-view__logo siwe-view__logo-wallet">
-            <ui:Image name="siwe-view__logo-app-placeholder" style="--unity-image: resource('Reown/AppKit/Icons/icon_regular_wallet');"
+            <ui:Image name="siwe-view__logo-app-image"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="siwe-view__logo-wallet-container" class="siwe-view__logo siwe-view__logo-wallet">
+            <ui:Image name="siwe-view__logo-wallet-placeholder" style="--unity-image: resource('Reown/AppKit/Icons/icon_regular_wallet');"
                       class="siwe-view__logo-placeholder"/>
-        </ui:Image>
+            <ui:Image name="siwe-view__logo-wallet-image"/>
+        </ui:VisualElement>
     </ui:VisualElement>
     <ui:VisualElement name="siwe-view__instructions-container">
         <ui:Label name="siwe-view__title" class="text-paragraph"

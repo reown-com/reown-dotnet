@@ -85,9 +85,6 @@ namespace Reown.AppKit.Unity
             if (!IsInitialized)
                 throw new Exception("AppKit not initialized"); // TODO: use custom ex type
 
-            if (IsModalOpen)
-                throw new Exception("AppKit already open"); // TODO: use custom ex type
-
             Instance.OpenModalCore(viewType);
         }
 

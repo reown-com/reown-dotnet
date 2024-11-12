@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -92,13 +91,8 @@ namespace Reown.AppKit.Unity
                 session = new SiweSession(args);
             }
 
-            Debug.Log($"[SiweController] Session is null: {session == null}");
             var json = JsonConvert.SerializeObject(session);
-            Debug.Log($"[SiweController] Session JSON: {json}");
-            Debug.Log($"Thread id: {Thread.CurrentThread.ManagedThreadId}");
             PlayerPrefs.SetString(SessionPlayerPrefsKey, json);
-            // PlayerPrefs.Save();
-            Debug.Log("[SiweController] Session saved to PlayerPrefs.");
 
             Config.OnSignInSuccess(session);
 
@@ -107,7 +101,6 @@ namespace Reown.AppKit.Unity
 
         public async ValueTask DisconnectAsync()
         {
-            Debug.Log("[SiweController] Delete session from PlayerPrefs.");
             PlayerPrefs.DeleteKey(SessionPlayerPrefsKey);
 
             if (Config.SignOut != null)
@@ -115,8 +108,20 @@ namespace Reown.AppKit.Unity
                 await Config.SignOut();
             }
 
-            Debug.Log("[SiweController] Sign out success.");
             Config.OnSignOutSuccess();
+        }
+
+        public bool TryLoadSiweSessionFromStorage(out SiweSession session)
+        {
+            var siweSessionJson = PlayerPrefs.GetString(SessionPlayerPrefsKey);
+            if (string.IsNullOrWhiteSpace(siweSessionJson))
+            {
+                session = null;
+                return false;
+            }
+
+            session = JsonConvert.DeserializeObject<SiweSession>(siweSessionJson);
+            return true;
         }
 
         private async void AccountDisconnectedHandler(object sender, Connector.AccountDisconnectedEventArgs e)
@@ -132,17 +137,15 @@ namespace Reown.AppKit.Unity
             if (!IsEnabled || !Config.SignOutOnChainChange)
                 return;
 
-            var siweSessionJson = PlayerPrefs.GetString(SessionPlayerPrefsKey);
-            if (string.IsNullOrWhiteSpace(siweSessionJson))
+            if (!TryLoadSiweSessionFromStorage(out var siweSession))
                 return;
 
-            var siweSession = JsonConvert.DeserializeObject<SiweSession>(siweSessionJson);
-            if (!siweSession.EthChainIds.Contains(e.NewChain.ChainReference))
-            {
-                await DisconnectAsync();
-                // TODO: request signature instead
-                await AppKit.DisconnectAsync();
-            }
+            if (siweSession.EthChainIds.Contains(e.NewChain.ChainReference))
+                return;
+
+            await DisconnectAsync();
+            // TODO: request signature instead
+            await AppKit.DisconnectAsync();
         }
 
         private async void AccountChangedHandler(object sender, Connector.AccountChangedEventArgs e)
@@ -150,11 +153,8 @@ namespace Reown.AppKit.Unity
             if (!IsEnabled || !Config.SignOutOnAccountChange)
                 return;
 
-            var siweSessionJson = PlayerPrefs.GetString(SessionPlayerPrefsKey);
-            if (string.IsNullOrWhiteSpace(siweSessionJson))
+            if (!TryLoadSiweSessionFromStorage(out var siweSession))
                 return;
-
-            var siweSession = JsonConvert.DeserializeObject<SiweSession>(siweSessionJson);
 
             if (!string.Equals(siweSession.EthAddress, e.Account.Address, StringComparison.InvariantCultureIgnoreCase))
             {

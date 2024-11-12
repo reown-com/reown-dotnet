@@ -114,7 +114,8 @@ namespace Reown.AppKit.Unity
             if (WalletUtils.TryGetLastViewedWallet(out var lastViewedWallet))
                 WalletUtils.SetRecentWallet(lastViewedWallet);
 
-            CloseModal();
+            if (!SiweController.IsEnabled)
+                CloseModal();
         }
 
         private static void AccountDisconnectedHandler(object sender, Connector.AccountDisconnectedEventArgs e)
