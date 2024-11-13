@@ -11,46 +11,46 @@ namespace Reown.Sign.Models
     public class AuthPayloadParams
     {
         [JsonProperty("chains")]
-        public string[] Chains;
+        public string[] Chains { get; set; }
 
         [JsonProperty("domain")]
-        public string Domain;
+        public string Domain { get; set; }
 
         [JsonProperty("nonce")]
-        public string Nonce;
+        public string Nonce { get; set; }
 
         [JsonProperty("aud", NullValueHandling = NullValueHandling.Include)]
-        public string? Aud;
+        public string? Aud { get; set; }
 
         [JsonProperty("type", NullValueHandling = NullValueHandling.Include)]
-        public string? Type;
+        public string? Type { get; set; }
 
         [JsonProperty("nbf", NullValueHandling = NullValueHandling.Include)]
-        public string? Nbf;
+        public string? Nbf { get; set; }
 
         [JsonProperty("exp", NullValueHandling = NullValueHandling.Include)]
-        public string? Exp;
+        public string? Exp { get; set; }
 
         [JsonProperty("iat", NullValueHandling = NullValueHandling.Include)]
-        public string? Iat;
+        public string? Iat { get; set; }
 
         [JsonProperty("statement", NullValueHandling = NullValueHandling.Include)]
-        public string? Statement;
+        public string? Statement { get; set; }
 
         [JsonProperty("requestId", NullValueHandling = NullValueHandling.Ignore)]
-        public long? RequestId;
+        public long? RequestId { get; set; }
 
         [JsonProperty("resources", NullValueHandling = NullValueHandling.Ignore)]
-        public List<string>? Resources;
+        public List<string>? Resources { get; set; }
 
         [JsonProperty("pairingTopic", NullValueHandling = NullValueHandling.Ignore)]
-        public string? PairingTopic;
+        public string? PairingTopic { get; set; }
 
         [JsonProperty("methods", NullValueHandling = NullValueHandling.Ignore)]
-        public string[]? Methods;
+        public string[]? Methods { get; set; }
 
         [JsonProperty("version", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Version;
+        public string? Version { get; set; }
 
 
         public AuthPayloadParams()
@@ -85,17 +85,17 @@ namespace Reown.Sign.Models
 
             var statement = Statement ?? string.Empty;
 
-            if (!ReCapUtils.TryGetDecodedRecapFromResources(Resources, out var recap))
+            if (!ReCap.TryGetDecodedRecapFromResources(Resources, out var recap))
                 throw new InvalidOperationException("Recap not found in resources");
 
-            var actionsFromRecap = ReCapUtils.GetActionsFromRecap(recap);
+            var actionsFromRecap = recap.GetActions();
             var approvedActions = actionsFromRecap.Intersect(supportedMethods).ToArray();
             if (approvedActions.Length == 0)
                 throw new InvalidOperationException($"Supported methods don't satisfy the requested: {string.Join(", ", actionsFromRecap)}. "
                                                     + $"Supported methods: {string.Join(", ", supportedMethods)}");
 
             var updatedResources = Resources ?? new List<string>();
-            var formattedActions = ReCapUtils.AssignAbilityToActions("request", approvedActions, new Dictionary<string, object>
+            var formattedActions = ReCap.AssignAbilityToActions("request", approvedActions, new Dictionary<string, object>
             {
                 { "chains", approvedChains }
             });
@@ -103,10 +103,10 @@ namespace Reown.Sign.Models
             recap.AddResources("eip115", formattedActions);
 
             updatedResources.RemoveAt(updatedResources.Count - 1);
-            updatedResources.Add(ReCapUtils.EncodeRecap(recap));
+            updatedResources.Add(recap.Encode());
             Chains = approvedChains;
             Methods = approvedActions;
-            Statement = ReCapUtils.FormatStatementFromRecap(recap, statement);
+            Statement = recap.FormatStatement(statement);
             Resources = updatedResources;
         }
     }

@@ -10,37 +10,37 @@ namespace Reown.Sign.Models.Cacao
     public class CacaoPayload
     {
         [JsonProperty("domain")]
-        public readonly string Domain;
+        public string Domain { get; }
 
         [JsonProperty("iss")]
-        public readonly string Iss; // did:pkh
+        public string Iss { get; } // did:pkh
 
         [JsonProperty("aud")]
-        public readonly string Aud;
+        public string Aud { get; }
 
         [JsonProperty("version")]
-        public readonly string Version;
+        public string Version { get; }
 
         [JsonProperty("nonce")]
-        public readonly string Nonce;
+        public string Nonce { get; }
 
         [JsonProperty("iat")]
-        public readonly string IssuedAt;
+        public string IssuedAt { get; }
 
         [JsonProperty("nbf")]
-        public readonly string? NotBefore;
+        public string? NotBefore { get; }
 
         [JsonProperty("exp")]
-        public readonly string? Expiration;
+        public string? Expiration { get; }
 
         [JsonProperty("statement", NullValueHandling = NullValueHandling.Ignore)]
-        public readonly string? Statement;
+        public string? Statement { get; }
 
         [JsonProperty("requestId", NullValueHandling = NullValueHandling.Ignore)]
-        public readonly string? RequestId;
+        public string? RequestId { get; }
 
         [JsonProperty("resources", NullValueHandling = NullValueHandling.Ignore)]
-        public readonly string[]? Resources;
+        public string[]? Resources { get; }
 
         public CacaoPayload(
             string domain,
@@ -106,10 +106,10 @@ namespace Reown.Sign.Models.Cacao
                 ? $"Resources:\n{string.Join('\n', Resources.Select(resource => $"- {resource}"))}"
                 : null;
 
-            if (ReCapUtils.TryGetRecapFromResources(Resources, out var recapStr))
+            if (ReCap.TryGetRecapFromResources(Resources, out var recapStr))
             {
-                var decoded = ReCapUtils.DecodeRecap(recapStr);
-                statement ??= ReCapUtils.FormatStatementFromRecap(decoded, statement);
+                var decoded = ReCap.Decode(recapStr);
+                statement ??= decoded.FormatStatement(statement);
             }
 
             var message = string.Join('\n', new[]

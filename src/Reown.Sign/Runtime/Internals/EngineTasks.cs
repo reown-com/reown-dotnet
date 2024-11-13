@@ -16,7 +16,7 @@ namespace Reown.Sign
 {
     public partial class Engine
     {
-        async Task IEnginePrivate.DeletePendingSessionRequest(long id, Error reason, bool expirerHasDeleted = false)
+        async Task IEnginePrivate.DeletePendingSessionRequest(long id, Error reason, bool expirerHasDeleted)
         {
             await Task.WhenAll(
                 Client.PendingRequests.Delete(id, reason),

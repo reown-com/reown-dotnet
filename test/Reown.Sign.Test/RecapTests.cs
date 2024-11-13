@@ -43,7 +43,7 @@ public class RecapTests
     {
         const string resource =
             "urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9leGFtcGxlLmNvbS9waWN0dXJlcy8iOnsiY3J1ZC9kZWxldGUiOlt7fV0sImNydWQvdXBkYXRlIjpbe31dLCJvdGhlci9hY3Rpb24iOlt7fV19LCJtYWlsdG86dXNlcm5hbWVAZXhhbXBsZS5jb20iOnsibXNnL3JlY2VpdmUiOlt7Im1heF9jb3VudCI6NSwidGVtcGxhdGVzIjpbIm5ld3NsZXR0ZXIiLCJtYXJrZXRpbmciXX1dLCJtc2cvc2VuZCI6W3sidG8iOiJzb21lb25lQGVtYWlsLmNvbSJ9LHsidG8iOiJqb2VAZW1haWwuY29tIn1dfX0sInByZiI6WyJ6ZGo3V2o2Rk5TNHJVVWJzaUp2amp4Y3NOcVpkRENTaVlSOHNLUVhmb1BmcFNadUF3Il19\n";
-        Assert.True(ReCapUtils.IsReCap(resource));
+        Assert.True(ReCap.IsReCap(resource));
     }
 
     [Theory]
@@ -53,7 +53,7 @@ public class RecapTests
     [InlineData("")]
     public void IsReCap_WithInvalidResource_ReturnsFalse(string resource)
     {
-        Assert.False(ReCapUtils.IsReCap(resource));
+        Assert.False(ReCap.IsReCap(resource));
     }
 
     [Fact] [Trait("Category", "unit")]
@@ -61,7 +61,7 @@ public class RecapTests
     {
         var (resource, ability, actions, _) = GetRecapProperties();
 
-        var encodedRecap = ReCapUtils.CreateEncodedRecap(resource, ability, actions, null);
+        var encodedRecap = ReCap.CreateEncodedRecap(resource, ability, actions, null);
 
         const string expectedEncodedRecap = "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvZXRoX3NpZ25UeXBlZERhdGFfdjQiOlt7fV0sInJlcXVlc3QvcGVyc29uYWxfc2lnbiI6W3t9XX19fQ";
 
@@ -73,7 +73,7 @@ public class RecapTests
     {
         var (_, ability, actions, limits) = GetRecapProperties();
 
-        Dictionary<string, Dictionary<string, object>[]> result = ReCapUtils.AssignAbilityToActions(ability, actions, limits);
+        Dictionary<string, Dictionary<string, object>[]> result = ReCap.AssignAbilityToActions(ability, actions, limits);
 
         var expected = new Dictionary<string, Dictionary<string, object>[]>
         {
@@ -117,7 +117,7 @@ public class RecapTests
     {
         var (resource, ability, actions, limits) = GetRecapProperties();
 
-        var result = ReCapUtils.CreateRecap(resource, ability, actions, limits);
+        var result = new ReCap(resource, ability, actions, limits);
 
         Assert.NotNull(result);
 
@@ -137,14 +137,14 @@ public class RecapTests
         var (resource, ability, actions, limits) = GetRecapProperties();
         var chains = limits["chains"] as string[];
 
-        var encodedRecap = ReCapUtils.CreateEncodedRecap(resource, ability, actions, limits);
+        var encodedRecap = ReCap.CreateEncodedRecap(resource, ability, actions, limits);
 
         const string expectedEncodedRecap =
             "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvZXRoX3NpZ25UeXBlZERhdGFfdjQiOlt7ImNoYWlucyI6WyJlaXAxNTU6MSIsImVpcDE1NToyIiwiZWlwMTU1OjMiXX1dLCJyZXF1ZXN0L3BlcnNvbmFsX3NpZ24iOlt7ImNoYWlucyI6WyJlaXAxNTU6MSIsImVpcDE1NToyIiwiZWlwMTU1OjMiXX1dfX19";
 
         Assert.Equal(expectedEncodedRecap, encodedRecap);
 
-        var decodedRecap = ReCapUtils.DecodeRecap(encodedRecap);
+        var decodedRecap = ReCap.Decode(encodedRecap);
 
         Assert.NotNull(decodedRecap);
 
@@ -214,8 +214,8 @@ public class RecapTests
         const string validRecap =
             "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvZXRoX3NpZ25UeXBlZERhdGFfdjQiOlt7ImNoYWlucyI6WyJlaXAxNTU6MSIsImVpcDE1NToyIiwiZWlwMTU1OjMiXX1dLCJyZXF1ZXN0L3BlcnNvbmFsX3NpZ24iOlt7ImNoYWlucyI6WyJlaXAxNTU6MSIsImVpcDE1NToyIiwiZWlwMTU1OjMiXX1dfX19";
 
-        var recap = ReCapUtils.DecodeRecap(validRecap);
-        ReCapUtils.ValidateRecap(recap); // Should not throw
+        var recap = ReCap.Decode(validRecap);
+        ReCap.Validate(recap); // Should not throw
     }
 
     [Fact] [Trait("Category", "unit")]
@@ -223,7 +223,7 @@ public class RecapTests
     {
         ReCap recap = null;
 
-        var exception = Assert.Throws<ArgumentException>(() => ReCapUtils.ValidateRecap(recap));
+        var exception = Assert.Throws<ArgumentException>(() => ReCap.Validate(recap));
 
         Assert.Equal("No `att` property found", exception.Message);
     }
@@ -231,12 +231,9 @@ public class RecapTests
     [Fact] [Trait("Category", "unit")]
     public void ValidateRecap_NullAtt_ThrowsArgumentException()
     {
-        var recap = new ReCap
-        {
-            Att = null
-        };
+        var recap = new ReCap(null);
 
-        var exception = Assert.Throws<ArgumentException>(() => ReCapUtils.ValidateRecap(recap));
+        var exception = Assert.Throws<ArgumentException>(() => ReCap.Validate(recap));
 
         Assert.Equal("No `att` property found", exception.Message);
     }
@@ -244,9 +241,7 @@ public class RecapTests
     [Fact] [Trait("Category", "unit")]
     public void ValidateRecap_NullProperties_ThrowsArgumentException()
     {
-        var recap = new ReCap
-        {
-            Att = new Dictionary<string, AttValue>
+        var recap = new ReCap(new Dictionary<string, AttValue>
             {
                 {
                     "resource1", new AttValue
@@ -255,9 +250,9 @@ public class RecapTests
                     }
                 }
             }
-        };
+        );
 
-        var exception = Assert.Throws<ArgumentException>(() => ReCapUtils.ValidateRecap(recap));
+        var exception = Assert.Throws<ArgumentException>(() => ReCap.Validate(recap));
 
         Assert.Contains("Resource object is empty or null", exception.Message);
     }
@@ -265,9 +260,7 @@ public class RecapTests
     [Fact] [Trait("Category", "unit")]
     public void ValidateRecap_EmptyProperties_ThrowsArgumentException()
     {
-        var recap = new ReCap
-        {
-            Att = new Dictionary<string, AttValue>
+        var recap = new ReCap(new Dictionary<string, AttValue>
             {
                 {
                     "resource1", new AttValue
@@ -276,9 +269,9 @@ public class RecapTests
                     }
                 }
             }
-        };
+        );
 
-        var exception = Assert.Throws<ArgumentException>(() => ReCapUtils.ValidateRecap(recap));
+        var exception = Assert.Throws<ArgumentException>(() => ReCap.Validate(recap));
 
         Assert.Contains("Resource object is empty or null", exception.Message);
     }
@@ -286,9 +279,7 @@ public class RecapTests
     [Fact] [Trait("Category", "unit")]
     public void ValidateRecap_AbilityNotJArray_ThrowsArgumentException()
     {
-        var recap = new ReCap
-        {
-            Att = new Dictionary<string, AttValue>
+        var recap = new ReCap(new Dictionary<string, AttValue>
             {
                 {
                     "resource1", new AttValue
@@ -300,9 +291,9 @@ public class RecapTests
                     }
                 }
             }
-        };
+        );
 
-        var exception = Assert.Throws<ArgumentException>(() => ReCapUtils.ValidateRecap(recap));
+        var exception = Assert.Throws<ArgumentException>(() => ReCap.Validate(recap));
 
         Assert.Contains("Ability 'ability1' must be an array.", exception.Message);
     }
@@ -310,9 +301,7 @@ public class RecapTests
     [Fact] [Trait("Category", "unit")]
     public void ValidateRecap_EmptyLimitsArray_ThrowsArgumentException()
     {
-        var recap = new ReCap
-        {
-            Att = new Dictionary<string, AttValue>
+        var recap = new ReCap(new Dictionary<string, AttValue>
             {
                 {
                     "resource1", new AttValue
@@ -324,9 +313,9 @@ public class RecapTests
                     }
                 }
             }
-        };
+        );
 
-        var exception = Assert.Throws<ArgumentException>(() => ReCapUtils.ValidateRecap(recap));
+        var exception = Assert.Throws<ArgumentException>(() => ReCap.Validate(recap));
 
         Assert.Contains("Value of ability 'ability1' is an empty array; it must contain at least one limit object.", exception.Message);
     }
@@ -337,7 +326,7 @@ public class RecapTests
         const string recapStr =
             "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvZXRoX3NpZ25UeXBlZERhdGFfdjQiOlt7ImNoYWlucyI6WyJlaXAxNTU6MSIsImVpcDE1NToyIiwiZWlwMTU1OjMiXX1dLCJyZXF1ZXN0L3BlcnNvbmFsX3NpZ24iOlt7ImNoYWlucyI6WyJlaXAxNTU6MSIsImVpcDE1NToyIiwiZWlwMTU1OjMiXX1dfX19";
 
-        var methods = ReCapUtils.GetActionsFromRecap(recapStr);
+        var methods = ReCap.GetActionsFromEncodedRecap(recapStr);
 
         var expectedMethods = new[]
         {
@@ -354,7 +343,7 @@ public class RecapTests
         const string recapStr =
             "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvZXRoX3NpZ25UeXBlZERhdGFfdjQiOlt7ImNoYWlucyI6WyJlaXAxNTU6MSIsImVpcDE1NToyIiwiZWlwMTU1OjMiXX1dLCJyZXF1ZXN0L3BlcnNvbmFsX3NpZ24iOlt7ImNoYWlucyI6WyJlaXAxNTU6MSIsImVpcDE1NToyIiwiZWlwMTU1OjMiXX1dfX19";
 
-        var chains = ReCapUtils.GetChainsFromRecap(recapStr);
+        var chains = ReCap.GetChainsFromEncodedRecap(recapStr);
 
         var expectedChains = new[]
         {
@@ -372,9 +361,9 @@ public class RecapTests
         const string recapStr =
             "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvZXRoX3NpZ25UeXBlZERhdGFfdjQiOlt7ImNoYWlucyI6WyJlaXAxNTU6MSIsImVpcDE1NToyIiwiZWlwMTU1OjMiXX1dLCJyZXF1ZXN0L3BlcnNvbmFsX3NpZ24iOlt7ImNoYWlucyI6WyJlaXAxNTU6MSIsImVpcDE1NToyIiwiZWlwMTU1OjMiXX1dfX19";
 
-        var recap = ReCapUtils.DecodeRecap(recapStr);
+        var recap = ReCap.Decode(recapStr);
 
-        var formattedStatement = ReCapUtils.FormatStatementFromRecap(recap);
+        var formattedStatement = recap.FormatStatement();
 
         const string expectedStatement = "I further authorize the stated URI to perform the following actions on my behalf: (1) 'request': 'eth_signTypedData_v4', 'personal_sign' for 'eip155'.";
 
@@ -405,7 +394,7 @@ public class RecapTests
             { "chains", chains1 }
         };
 
-        var recap1 = ReCapUtils.CreateRecap(resource, ability, actions1, limits1);
+        var recap1 = new ReCap(resource, ability, actions1, limits1);
 
         var actions2 = new[]
         {
@@ -426,9 +415,9 @@ public class RecapTests
             { "chains", chains2 }
         };
 
-        var recap2 = ReCapUtils.CreateRecap(resource, ability, actions2, limits2);
+        var recap2 = new ReCap(resource, ability, actions2, limits2);
 
-        var mergedRecap = ReCapUtils.MergeRecaps(recap1, recap2);
+        var mergedRecap = ReCap.MergeRecaps(recap1, recap2);
 
 
         var recapJson = JsonConvert.SerializeObject(mergedRecap);
@@ -480,7 +469,7 @@ public class RecapTests
             { "chains", chains1 }
         };
 
-        var recap1 = ReCapUtils.CreateRecap(resource, ability, actions1, limits1);
+        var recap1 = new ReCap(resource, ability, actions1, limits1);
 
         var actions2 = new[]
         {
@@ -491,9 +480,9 @@ public class RecapTests
 
         Dictionary<string, object> limits2 = null;
 
-        var recap2 = ReCapUtils.CreateRecap(resource, ability, actions2, limits2);
+        var recap2 = new ReCap(resource, ability, actions2, limits2);
 
-        var mergedRecap = ReCapUtils.MergeRecaps(recap1, recap2);
+        var mergedRecap = ReCap.MergeRecaps(recap1, recap2);
 
         var recapJson = JsonConvert.SerializeObject(mergedRecap);
         _testOutputHelper.WriteLine(recapJson);
@@ -522,11 +511,11 @@ public class RecapTests
         const string encodedRecap1 = "urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9leGFtcGxlMS5jb20iOnsiY3J1ZC9yZWFkIjpbe31dfX19";
         const string encodedRecap2 = "urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9leGFtcGxlMS5jb20iOnsiY3J1ZC91cGRhdGUiOlt7Im1heF90aW1lcyI6MX1dfSwiaHR0cHM6Ly9leGFtcGxlMi5jb20iOnsiY3J1ZC9kZWxldGUiOlt7fV19fX0==";
 
-        var mergedRecap = ReCapUtils.MergeEncodedRecaps(encodedRecap1, encodedRecap2);
+        var mergedRecap = ReCap.MergeEncodedRecaps(encodedRecap1, encodedRecap2);
 
         const string expectedMergedRecap = "urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9leGFtcGxlMS5jb20iOnsiY3J1ZC9yZWFkIjpbe31dLCJjcnVkL3VwZGF0ZSI6W3sibWF4X3RpbWVzIjoxfV19LCJodHRwczovL2V4YW1wbGUyLmNvbSI6eyJjcnVkL2RlbGV0ZSI6W3t9XX19fQ";
         Assert.Equal(expectedMergedRecap, mergedRecap);
 
-        _ = ReCapUtils.DecodeRecap(mergedRecap);
+        _ = ReCap.Decode(mergedRecap);
     }
 }

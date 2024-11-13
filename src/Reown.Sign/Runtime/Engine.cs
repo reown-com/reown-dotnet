@@ -929,9 +929,7 @@ namespace Reown.Sign
             {
                 "wc_sessionAuthenticate"
             });
-
-            ReownLogger.Log($"Generated new pairing: {pairingData.Uri}");
-
+            
             var publicKey = await Client.CoreClient.Crypto.GenerateKeyPair();
             var responseTopic = Client.CoreClient.Crypto.HashKey(publicKey);
 
@@ -946,22 +944,16 @@ namespace Reown.Sign
             );
 
             await Client.CoreClient.Relayer.Subscribe(responseTopic);
-
-            ReownLogger.Log($"Subscribed to relayer: {responseTopic}. Pairing topic: {pairingData.Topic}");
-
+            
             if (authParams.Methods is { Length: > 0 })
             {
-                ReownLogger.Log("Methods provided, creating recap");
-                
                 var chainId = authParams.Chains[0];
                 var @namespace = Core.Utils.ExtractChainNamespace(chainId);
-                var recapStr = ReCapUtils.CreateEncodedRecap(@namespace, "request", authParams.Methods);
-
-                ReownLogger.Log($"Created recap: {recapStr}");
-
+                var recapStr = ReCap.CreateEncodedRecap(@namespace, "request", authParams.Methods);
+                
                 authParams.Resources ??= new List<string>();
 
-                if (!ReCapUtils.TryGetRecapFromResources(authParams.Resources, out var existingRecap))
+                if (!ReCap.TryGetRecapFromResources(authParams.Resources, out var existingRecap))
                 {
                     authParams.Resources.Add(recapStr);
                 }
@@ -971,7 +963,7 @@ namespace Reown.Sign
                     // using .RemoveAt to remove the last element given we already checked it's a recap and will replace it
                     authParams.Resources.RemoveAt(authParams.Resources.Count - 1);
 
-                    var mergedRecap = ReCapUtils.MergeEncodedRecaps(recapStr, existingRecap);
+                    var mergedRecap = ReCap.MergeEncodedRecaps(recapStr, existingRecap);
                     authParams.Resources.Add(mergedRecap);
                 }
             }
@@ -1146,7 +1138,6 @@ namespace Reown.Sign
             if (pendingRequest == null)
                 throw new InvalidOperationException($"No pending request found for the id {rejectParams.Id}");
 
-            // var receiverPublicKey = pendingRequest.Requester.PublicKey;
             var senderPublicKey = await Client.CoreClient.Crypto.GenerateKeyPair();
             var responseTopic = Client.CoreClient.Crypto.HashKey(senderPublicKey);
 
@@ -1197,10 +1188,10 @@ namespace Reown.Sign
 
                 var address = CacaoUtils.ExtractDidAddress(cacao.Payload.Iss);
 
-                if (ReCapUtils.TryGetRecapFromResources(cacao.Payload.Resources, out var recap))
+                if (ReCap.TryGetRecapFromResources(cacao.Payload.Resources, out var encodedRecap))
                 {
-                    var methodsFromRecap = ReCapUtils.GetActionsFromRecap(recap);
-                    var chainsFromRecap = ReCapUtils.GetChainsFromRecap(recap);
+                    var methodsFromRecap = ReCap.GetActionsFromEncodedRecap(encodedRecap);
+                    var chainsFromRecap = ReCap.GetChainsFromEncodedRecap(encodedRecap);
 
                     approvedMethods.UnionWith(methodsFromRecap);
                     approvedChains.UnionWith(chainsFromRecap);
@@ -1211,9 +1202,6 @@ namespace Reown.Sign
                     approvedAccounts.Add($"{approvedChain}:{address}");
                 }
             }
-
-            ReownLogger.Log($"Approved methods: {string.Join(", ", approvedMethods)}");
-            ReownLogger.Log($"Approved accounts: {string.Join(", ", approvedAccounts)}");
 
             var sessionTopic = await Client.CoreClient.Crypto.GenerateSharedKey(senderPublicKey, receiverPublicKey);
 
@@ -1244,15 +1232,12 @@ namespace Reown.Sign
                     PairingTopic = pendingRequest.PairingTopic
                 };
 
-                ReownLogger.Log($"Approving session with topic {sessionTopic}");
                 await Client.CoreClient.Relayer.Subscribe(sessionTopic);
                 await Client.Session.Set(sessionTopic, session);
 
-                ReownLogger.Log($"Updating session metadata for pairing topic {pendingRequest.PairingTopic}");
                 await Client.CoreClient.Pairing.UpdateMetadata(pendingRequest.PairingTopic, session.Peer.Metadata);
             }
 
-            ReownLogger.Log("Sending response to session authenticate request");
             await MessageHandler.SendResult<SessionAuthenticate, AuthenticateResponse>(requestId, responseTopic, new AuthenticateResponse
             {
                 Cacaos = auths,

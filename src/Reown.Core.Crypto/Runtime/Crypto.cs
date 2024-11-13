@@ -119,10 +119,12 @@ namespace Reown.Core.Crypto
         /// <returns>The hash of the given input as a hex string</returns>
         public string HashKey(string key)
         {
-            using (var sha256 = SHA256.Create())
-            {
-                return sha256.ComputeHash(key.HexToByteArray()).ToHex();
-            }
+#if NET7_0_OR_GREATER
+            return SHA256.HashData(key.HexToByteArray()).ToHex();
+#else
+            using var sha256 = SHA256.Create();
+            return sha256.ComputeHash(key.HexToByteArray()).ToHex();
+#endif
         }
 
         public void Dispose()

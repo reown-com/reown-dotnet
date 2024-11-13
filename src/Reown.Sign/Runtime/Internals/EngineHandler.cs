@@ -391,10 +391,10 @@ namespace Reown.Sign
                     var approvedChains = new HashSet<string>();
                     var parsedAddress = CacaoUtils.ExtractDidAddress(cacao.Payload.Iss);
 
-                    if (ReCapUtils.TryGetRecapFromResources(cacao.Payload.Resources, out var recapStr))
+                    if (ReCap.TryGetRecapFromResources(cacao.Payload.Resources, out var recapStr))
                     {
-                        var methodsFromRecap = ReCapUtils.GetActionsFromRecap(recapStr);
-                        var chainsFromRecap = ReCapUtils.GetChainsFromRecap(recapStr);
+                        var methodsFromRecap = ReCap.GetActionsFromEncodedRecap(recapStr);
+                        var chainsFromRecap = ReCap.GetChainsFromEncodedRecap(recapStr);
                         approvedMethods.UnionWith(methodsFromRecap);
                         approvedChains.UnionWith(chainsFromRecap);
                     }
@@ -430,12 +430,6 @@ namespace Reown.Sign
                     
                     await Client.CoreClient.Relayer.Subscribe(sessionTopic);
                     await Client.Session.Set(sessionTopic, session);
-
-                    // TODO: pairing topic
-                    // if (!string.IsNullOrWhiteSpace(topic))
-                    // {
-                    //     await Client.CoreClient.Pairing.UpdateMetadata(topic, responder.Metadata);
-                    // }
 
                     session = Client.Session.Get(sessionTopic);
                 }
