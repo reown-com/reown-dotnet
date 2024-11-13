@@ -44,11 +44,29 @@ namespace Reown.AppKit.Unity
         /// </summary>
         public Func<ValueTask> SignOut { get; set; }
 
+        /// <summary>
+        ///     If true, the SIWE feature will be enabled.
+        /// </summary>
         public bool Enabled { get; set; } = true;
 
+        /// <summary>
+        ///     If true, the SIWE UI will be opened automatically when a signature request is received.
+        /// </summary>
+        public bool OpenSiweViewOnSignatureRequest { get; set; } = true;
+
+        /// <summary>
+        ///     If true, the SignOut method will be called when the wallet disconnects.
+        /// </summary>
         public bool SignOutOnWalletDisconnect { get; set; } = true;
 
+        /// <summary>
+        ///     If true, the SignOut method will be called when the account changes, prompting user to sign a new SIWE message with the new account.
+        /// </summary>
         public bool SignOutOnAccountChange { get; set; } = true;
+
+        /// <summary>
+        ///     If true, the SignOut method will be called when the network changes, prompting user to sign a new SIWE message with the new network.
+        /// </summary>
 
         public bool SignOutOnChainChange { get; set; } = true;
 

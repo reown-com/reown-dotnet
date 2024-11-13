@@ -71,7 +71,6 @@ namespace Reown.AppKit.Unity
 
         protected override async Task<bool> TryResumeSessionAsyncCore()
         {
-            Debug.Log("[WalletConnectConnector] TryResumeSessionAsyncCore");
             var isResumed = await _signClient.TryResumeSessionAsync();
 
             if (isResumed && AppKit.SiweController.IsEnabled)
@@ -81,16 +80,14 @@ namespace Reown.AppKit.Unity
                 // If no siwe session is found, request signature
                 if (string.IsNullOrWhiteSpace(siweSessionJson))
                 {
-                    Debug.Log("[Connector] No Siwe session found. Requesting signature.");
+                    Debug.Log("[WalletConnectConnector] No Siwe session found. Requesting signature.");
                     OnSignatureRequested();
                     return true;
                 }
 
                 var account = await GetAccountAsyncCore();
                 var siweSession = JsonConvert.DeserializeObject<SiweSession>(siweSessionJson);
-
-                Debug.Log($"[Connector] Siwe session found: {siweSessionJson}");
-
+                
                 var addressesMatch = string.Equals(siweSession.EthAddress, account.Address, StringComparison.InvariantCultureIgnoreCase);
                 var chainsMatch = siweSession.EthChainIds.Contains(Core.Utils.ExtractChainReference(account.ChainId));
 

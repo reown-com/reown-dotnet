@@ -59,13 +59,11 @@ namespace Reown.AppKit.Unity
                 }
 
                 var chainId = CacaoUtils.ExtractDidChainId(cacao.Payload.Iss);
-                Debug.Log($"Authenticated chain id: {chainId}");
                 _ = await _siweController.GetSessionAsync(new GetSiweSessionArgs
                 {
                     Address = CacaoUtils.ExtractDidAddress(cacao.Payload.Iss),
                     ChainIds = new[]
                     {
-                        // Convert CAIP-2 chain ID to Ethereum chain ID (chain reference)
                         Core.Utils.ExtractChainReference(chainId)
                     }
                 });

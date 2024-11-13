@@ -71,7 +71,6 @@ namespace Reown.AppKit.Unity
 
         protected override async Task<bool> TryResumeSessionAsyncCore()
         {
-            Debug.Log("[ConnectorController] TryResumeSessionAsyncCore");
             if (ActiveConnector != null)
                 return await ActiveConnector.TryResumeSessionAsync();
 
@@ -165,7 +164,6 @@ namespace Reown.AppKit.Unity
 
         private void SignatureRequestedHandler(object sender, SignatureRequest e)
         {
-            Debug.Log("[ConnectorController] SignatureRequestedHandler");
             PlayerPrefs.SetInt("RE_LAST_CONNECTOR_TYPE", (int)e.Connector.Type);
             ActiveConnector = e.Connector;
 

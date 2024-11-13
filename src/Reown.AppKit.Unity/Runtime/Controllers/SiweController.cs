@@ -31,6 +31,7 @@ namespace Reown.AppKit.Unity
             AppKit.AccountDisconnected += AccountDisconnectedHandler;
             AppKit.ChainChanged += ChainChangedHandler;
             AppKit.AccountChanged += AccountChangedHandler;
+            AppKit.ConnectorController.SignatureRequested += SignatureRequestedHandler;
         }
 
         public async ValueTask<string> GetNonceAsync()
@@ -99,7 +100,7 @@ namespace Reown.AppKit.Unity
             return session;
         }
 
-        public async ValueTask DisconnectAsync()
+        public async ValueTask SignOutAsync()
         {
             PlayerPrefs.DeleteKey(SessionPlayerPrefsKey);
 
@@ -111,7 +112,7 @@ namespace Reown.AppKit.Unity
             Config.OnSignOutSuccess();
         }
 
-        public bool TryLoadSiweSessionFromStorage(out SiweSession session)
+        public static bool TryLoadSiweSessionFromStorage(out SiweSession session)
         {
             var siweSessionJson = PlayerPrefs.GetString(SessionPlayerPrefsKey);
             if (string.IsNullOrWhiteSpace(siweSessionJson))
@@ -128,7 +129,7 @@ namespace Reown.AppKit.Unity
         {
             if (IsEnabled && Config.SignOutOnWalletDisconnect)
             {
-                await DisconnectAsync();
+                await SignOutAsync();
             }
         }
 
@@ -143,9 +144,8 @@ namespace Reown.AppKit.Unity
             if (siweSession.EthChainIds.Contains(e.NewChain.ChainReference))
                 return;
 
-            await DisconnectAsync();
-            // TODO: request signature instead
-            await AppKit.DisconnectAsync();
+            await SignOutAsync();
+            AppKit.ConnectorController.OnSignatureRequested();
         }
 
         private async void AccountChangedHandler(object sender, Connector.AccountChangedEventArgs e)
@@ -158,9 +158,16 @@ namespace Reown.AppKit.Unity
 
             if (!string.Equals(siweSession.EthAddress, e.Account.Address, StringComparison.InvariantCultureIgnoreCase))
             {
-                await DisconnectAsync();
-                // TODO: request signature instead
-                await AppKit.DisconnectAsync();
+                await SignOutAsync();
+                AppKit.ConnectorController.OnSignatureRequested();
+            }
+        }
+
+        private void SignatureRequestedHandler(object sender, SignatureRequest e)
+        {
+            if (Config.Enabled && Config.OpenSiweViewOnSignatureRequest)
+            {
+                AppKit.OpenModal(ViewType.Siwe);
             }
         }
     }

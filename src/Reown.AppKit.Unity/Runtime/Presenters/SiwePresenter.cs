@@ -21,9 +21,7 @@ namespace Reown.AppKit.Unity
         private bool _success;
         private bool _disposed;
         private RemoteSprite<Image> _walletLogo;
-
-        private readonly RemoteSprite<Image> _appLogo;
-
+        
         public SiwePresenter(RouterController router, VisualElement parent, bool hideView = true) : base(router, parent, hideView)
         {
             var appName = AppKit.Config.metadata.Name;
@@ -32,11 +30,13 @@ namespace Reown.AppKit.Unity
                 View.Title = $"{appName} wants to connect to your wallet";
             }
 
+            // Load app logo on Presenter creation because it's static
             var appLogoUrl = AppKit.Config.metadata.IconUrl;
             if (!string.IsNullOrWhiteSpace(appLogoUrl))
             {
-                _appLogo = RemoteSpriteFactory.GetRemoteSprite<Image>(appLogoUrl);
-                _appLogo.SubscribeImage(View.LogoAppImage);
+                RemoteSpriteFactory
+                    .GetRemoteSprite<Image>(appLogoUrl)
+                    .SubscribeImage(View.LogoAppImage);
             }
 
             View.CancelButtonClicked += RejectButtonClickedHandler;
@@ -51,7 +51,7 @@ namespace Reown.AppKit.Unity
         private void SignInSuccessHandler(SiweSession siweSession)
         {
             _success = true;
-            Router.CloseAllViews();
+            AppKit.CloseModal();
         }
 
         private void SignOutSuccessHandler()
