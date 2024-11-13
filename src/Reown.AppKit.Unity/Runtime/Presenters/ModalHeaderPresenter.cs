@@ -65,6 +65,7 @@ namespace Reown.AppKit.Unity
             if (!e.IsOpen)
             {
                 View.leftSlot.style.visibility = Visibility.Hidden;
+                View.rightSlot.style.visibility = Visibility.Hidden;
             }
         }
 

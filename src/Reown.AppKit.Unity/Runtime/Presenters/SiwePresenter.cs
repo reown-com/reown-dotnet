@@ -95,7 +95,15 @@ namespace Reown.AppKit.Unity
             {
                 View.ButtonsEnabled = false;
                 AppKit.NotificationController.Notify(NotificationType.Info, "Disconnecting...");
-                await _lastSignatureRequest.RejectAsync();
+
+                if (_lastSignatureRequest == null) // This shouldn't happen, but it's better to have a fallback
+                {
+                    await AppKit.ConnectorController.DisconnectAsync();
+                }
+                else
+                {
+                    await _lastSignatureRequest.RejectAsync();
+                }
             }
             catch (Exception)
             {

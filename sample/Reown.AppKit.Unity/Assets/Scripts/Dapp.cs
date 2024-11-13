@@ -34,7 +34,7 @@ namespace Sample
             {
                 new ButtonStruct
                 {
-                    Text = "Connect 1CA",
+                    Text = "Connect",
                     OnClick = OnConnectButton,
                     AccountRequired = false
                 },
