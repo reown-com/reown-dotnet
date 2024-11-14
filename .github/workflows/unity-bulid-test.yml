@@ -42,7 +42,7 @@ jobs:
           buildsPath: Builds
           projectPath: ${{ matrix.projectPath }}
           targetPlatform: ${{ matrix.targetPlatform }}
-          customParameters: -Development -mixpanelToken ${{ secrets.MIXPANEL_TOKEN }} -sentryToken ${{ secrets.SENTRY_TOKEN }}
+          customParameters: ${{ matrix.targetPlatform != 'WebGL' && '-Development' || '' }} -mixpanelToken ${{ secrets.MIXPANEL_TOKEN }} -sentryToken ${{ secrets.SENTRY_TOKEN }}
           buildMethod: UnityBuilderAction.Builder.BuildProject
       - uses: actions/upload-artifact@v3
         with:
