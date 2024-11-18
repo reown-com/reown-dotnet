@@ -37,6 +37,7 @@ namespace Reown.AppKit.Unity
             NotificationController = new NotificationController();
             NetworkController = new NetworkControllerCore();
             EventsController = new EventsController();
+            SiweController = new SiweController();
 
 #if UNITY_WEBGL && !UNITY_EDITOR
             Evm = new WagmiEvmService();
@@ -102,18 +103,19 @@ namespace Reown.AppKit.Unity
         {
             SignClient = await SignClientUnity.Create(new SignClientOptions
             {
-                Name = Config.Metadata.Name,
-                ProjectId = Config.ProjectId,
-                Metadata = Config.Metadata
+                Name = Config.metadata.Name,
+                ProjectId = Config.projectId,
+                Metadata = Config.metadata
             });
         }
 
-        private static async void AccountConnectedHandler(object sender, Connector.AccountConnectedEventArgs e)
+        private static void AccountConnectedHandler(object sender, Connector.AccountConnectedEventArgs e)
         {
             if (WalletUtils.TryGetLastViewedWallet(out var lastViewedWallet))
                 WalletUtils.SetRecentWallet(lastViewedWallet);
 
-            CloseModal();
+            if (!SiweController.IsEnabled)
+                CloseModal();
         }
 
         private static void AccountDisconnectedHandler(object sender, Connector.AccountDisconnectedEventArgs e)

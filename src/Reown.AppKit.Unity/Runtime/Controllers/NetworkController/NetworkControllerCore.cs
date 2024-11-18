@@ -40,13 +40,15 @@ namespace Reown.AppKit.Unity
         {
             var chain = Chains.GetValueOrDefault(e.ChainId);
 
+            var previousChain = ActiveChain;
             ActiveChain = chain;
-            OnChainChanged(new ChainChangedEventArgs(chain));
+            OnChainChanged(new ChainChangedEventArgs(previousChain, chain));
         }
 
         protected override async void ConnectorAccountConnectedHandlerCore(object sender, Connector.AccountConnectedEventArgs e)
         {
             var accounts = await e.GetAccounts();
+            var previousChain = ActiveChain;
 
             if (ActiveChain == null)
             {
@@ -55,7 +57,7 @@ namespace Reown.AppKit.Unity
                 if (Chains.TryGetValue(defaultAccount.ChainId, out var defaultAccountChain))
                 {
                     ActiveChain = defaultAccountChain;
-                    OnChainChanged(new ChainChangedEventArgs(defaultAccountChain));
+                    OnChainChanged(new ChainChangedEventArgs(previousChain, defaultAccountChain));
                     return;
                 }
 
@@ -63,14 +65,14 @@ namespace Reown.AppKit.Unity
                 if (account == default)
                 {
                     ActiveChain = null;
-                    OnChainChanged(new ChainChangedEventArgs(null));
+                    OnChainChanged(new ChainChangedEventArgs(previousChain, null));
                     return;
                 }
 
                 var chain = Chains[account.ChainId];
 
                 ActiveChain = chain;
-                OnChainChanged(new ChainChangedEventArgs(chain));
+                OnChainChanged(new ChainChangedEventArgs(previousChain, chain));
             }
             else
             {
@@ -88,14 +90,14 @@ namespace Reown.AppKit.Unity
                 if (account == default)
                 {
                     ActiveChain = null;
-                    OnChainChanged(new ChainChangedEventArgs(null));
+                    OnChainChanged(new ChainChangedEventArgs(previousChain, null));
                 }
                 else
                 {
                     var chain = Chains[account.ChainId];
 
                     ActiveChain = chain;
-                    OnChainChanged(new ChainChangedEventArgs(chain));
+                    OnChainChanged(new ChainChangedEventArgs(previousChain, chain));
                 }
             }
         }

@@ -58,7 +58,7 @@ namespace Reown.Core.Network.Websocket
         /// </summary>
         public bool Connected
         {
-            get => _socket != null && _socket.NativeClient.State == WebSocketState.Open;
+            get => _socket is { NativeClient: { State: WebSocketState.Open } };
         }
 
         /// <summary>

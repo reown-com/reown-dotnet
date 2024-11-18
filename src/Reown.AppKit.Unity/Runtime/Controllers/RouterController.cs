@@ -96,10 +96,11 @@ namespace Reown.AppKit.Unity
             RegisterModalView(ViewType.Account, new AccountPresenter(this, RootVisualElement));
             RegisterModalView(ViewType.NetworkSearch, new NetworkSearchPresenter(this, RootVisualElement));
             RegisterModalView(ViewType.NetworkLoading, new NetworkLoadingPresenter(this, RootVisualElement));
+            RegisterModalView(ViewType.Siwe, new SiwePresenter(this, RootVisualElement));
         }
     }
 
-    public readonly struct ViewChangedEventArgs
+    public class ViewChangedEventArgs
     {
         public readonly ViewType oldViewType;
         public readonly ViewType newViewType;

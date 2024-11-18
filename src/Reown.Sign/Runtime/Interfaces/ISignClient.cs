@@ -58,5 +58,7 @@ namespace Reown.Sign.Interfaces
         ///     The version of this Sign Client implementation
         /// </summary>
         int Version { get; }
+
+        IAuth Auth { get; }
     }
 }

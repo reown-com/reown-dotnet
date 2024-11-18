@@ -1,4 +1,5 @@
 using System;
+using Reown.AppKit.Unity.Model;
 
 namespace Reown.AppKit.Unity
 {
@@ -15,6 +16,8 @@ namespace Reown.AppKit.Unity
         public bool enableAnalytics = true;
         public bool enableCoinbaseWallet = true; // Currently supported only in WebGL
 
+        public SiweConfig siweConfig;
+
         public Chain[] supportedChains =
         {
             ChainConstants.Chains.Ethereum,
@@ -27,13 +30,19 @@ namespace Reown.AppKit.Unity
             ChainConstants.Chains.Ronin
         };
 
-        public readonly Metadata Metadata;
-        public readonly string ProjectId;
+        public Wallet[] customWallets;
 
+        public Metadata metadata;
+        public string projectId;
+
+        public AppKitConfig()
+        {
+        }
+        
         public AppKitConfig(string projectId, Metadata metadata)
         {
-            ProjectId = projectId;
-            Metadata = metadata;
+            this.projectId = projectId;
+            this.metadata = metadata;
         }
     }
 
@@ -53,16 +62,16 @@ namespace Reown.AppKit.Unity
             IconUrl = iconUrl;
             Redirect = redirect ?? new RedirectData();
         }
-        
-        public static implicit operator Reown.Core.Metadata(Metadata metadata)
+
+        public static implicit operator Core.Metadata(Metadata metadata)
         {
-            return new Reown.Core.Metadata
+            return new Core.Metadata
             {
                 Name = metadata.Name,
                 Description = metadata.Description,
                 Url = metadata.Url,
                 Icons = new[] { metadata.IconUrl },
-                Redirect = new Reown.Core.Models.RedirectData
+                Redirect = new Core.Models.RedirectData
                 {
                     Native = metadata.Redirect.Native,
                     Universal = metadata.Redirect.Universal

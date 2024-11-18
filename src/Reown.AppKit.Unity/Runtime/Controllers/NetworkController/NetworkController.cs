@@ -69,6 +69,9 @@ namespace Reown.AppKit.Unity
 
         protected virtual void OnChainChanged(ChainChangedEventArgs e)
         {
+            if (e.PreviousChain?.ChainId == e.NewChain?.ChainId)
+                return;
+            
             ChainChanged?.Invoke(this, e);
         }
 
@@ -82,11 +85,13 @@ namespace Reown.AppKit.Unity
 
         public class ChainChangedEventArgs : EventArgs
         {
-            public Chain Chain { get; }
+            public Chain PreviousChain { get; }
+            public Chain NewChain { get; }
 
-            public ChainChangedEventArgs(Chain chain)
+            public ChainChangedEventArgs(Chain previousChain, Chain newChain)
             {
-                Chain = chain;
+                PreviousChain = previousChain;
+                NewChain = newChain;
             }
         }
     }

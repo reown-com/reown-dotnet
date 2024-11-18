@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using UnityEngine;
-using UnityEngine.UIElements;
 using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Utils;
 using Reown.Core.Common.Model.Errors;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity
 {
@@ -46,10 +46,10 @@ namespace Reown.AppKit.Unity
 
         private void ChainChangedHandler(object sender, NetworkController.ChainChangedEventArgs e)
         {
-            if (e.Chain == null)
+            if (e.NewChain == null)
                 return;
 
-            HighlightActiveChain(e.Chain.ChainId);
+            HighlightActiveChain(e.NewChain.ChainId);
         }
 
         private void HighlightActiveChain(string chainId)

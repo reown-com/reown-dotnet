@@ -1,5 +1,4 @@
 using System;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity
@@ -10,6 +9,11 @@ namespace Reown.AppKit.Unity
 
         public virtual bool HeaderBorder { get; protected set; } = true;
 
+        /// <summary>
+        ///     If true, the close button will be shown in the modal header.
+        /// </summary>
+        public virtual bool EnableCloseButton { get; protected set; } = true;
+
         public RouterController Router { get; protected set; }
 
         public virtual VisualElement ViewVisualElement { get; protected set; }
@@ -18,18 +22,27 @@ namespace Reown.AppKit.Unity
 
         private bool _disposed;
 
+        /// <summary>
+        ///     Called when the view becomes visible.
+        /// </summary>
         public void OnVisible()
         {
             IsVisible = true;
             OnVisibleCore();
         }
 
+        /// <summary>
+        ///     Called when the view becomes hidden, but still remains in the Router stack.
+        /// </summary>
         public void OnHide()
         {
             IsVisible = false;
             OnHideCore();
         }
 
+        /// <summary>
+        ///     Called when the view is completely removed from the Router stack.
+        /// </summary>
         public void OnDisable()
         {
             IsVisible = false;
@@ -93,6 +106,9 @@ namespace Reown.AppKit.Unity
             BuildView(hideView);
         }
 
+        /// <summary>
+        ///     Builds the view and adds it to the parent view (usually <see cref="RouterController.RootVisualElement" /> of the Router).
+        /// </summary>
         protected void BuildView(bool hideView)
         {
             View = CreateViewInstance();
@@ -100,23 +116,39 @@ namespace Reown.AppKit.Unity
             Parent.Add(View);
         }
 
+        /// <summary>
+        ///     Implements the creation of the view instance.
+        /// </summary>
         protected virtual TView CreateViewInstance()
         {
             return new TView();
         }
 
+        /// <summary>
+        ///     Called when the view becomes visible.
+        /// </summary>
         protected override void OnVisibleCore()
         {
         }
 
+        /// <summary>
+        ///     Called when the view becomes hidden, but still remains in the Router stack.
+        /// </summary>
         protected override void OnHideCore()
         {
         }
 
+        /// <summary>
+        ///     Called when the view is completely removed from the Router stack.
+        /// </summary>
         protected override void OnDisableCore()
         {
         }
 
+        /// <summary>
+        ///     Router will dispose the presenter if it's no longer needed.
+        ///     This happens when another presenter of the same typed is registered in the Router via <see cref="RouterController.RegisterDefaultModalViews" />
+        /// </summary>
         protected override void Dispose(bool disposing)
         {
             if (_disposed)

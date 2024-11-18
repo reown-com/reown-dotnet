@@ -363,7 +363,8 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
                 
                 Assert.Equal(Core.Models.Verify.Validation.Unknown, verifyContext.Validation);
 
-                var signature = ((AccountSignerTransactionManager)_cryptoWalletFixture.CryptoWallet.GetAccount(0).TransactionManager)
+                var signature = ((AccountSignerTransactionManager)_cryptoWalletFixture.CryptoWallet
+                    .GetAccount(0).TransactionManager)
                     .SignTransaction(signTransaction);
 
                 args.Response = signature;
@@ -375,19 +376,18 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
             async Task SendRequest()
             {
                 var result = await _dapp.Request<EthSignTransaction, string>(session.Topic,
-                    new EthSignTransaction()
+                [
+                    new TransactionInput
                     {
-                        new()
-                        {
-                            From = WalletAddress,
-                            To = WalletAddress,
-                            Data = "0x",
-                            Nonce = new HexBigInteger("0x1"),
-                            GasPrice = new HexBigInteger("0x020a7ac094"),
-                            Gas = new HexBigInteger("0x5208"),
-                            Value = new HexBigInteger("0x00")
-                        }
-                    }, TestEthereumChain);
+                        From = WalletAddress,
+                        To = WalletAddress,
+                        Data = "0x",
+                        Nonce = new HexBigInteger("0x1"),
+                        GasPrice = new HexBigInteger("0x020a7ac094"),
+                        Gas = new HexBigInteger("0x5208"),
+                        Value = new HexBigInteger("0x00")
+                    }
+                ], TestEthereumChain);
                 
                 Assert.False(string.IsNullOrWhiteSpace(result));
             }

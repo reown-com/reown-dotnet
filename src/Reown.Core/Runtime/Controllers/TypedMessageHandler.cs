@@ -422,8 +422,7 @@ namespace Reown.Core.Controllers
         {
             var topic = e.Topic;
             var message = e.Message;
-
-
+            
             var options = DecodeOptionForTopic(topic);
 
             var payload = await CoreClient.Crypto.Decode<JsonRpcPayload>(topic, message, options);

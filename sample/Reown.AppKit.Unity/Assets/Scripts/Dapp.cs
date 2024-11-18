@@ -5,6 +5,7 @@ using Nethereum.ABI.EIP712;
 using Nethereum.JsonRpc.Client;
 using Nethereum.Web3;
 using Reown.AppKit.Unity;
+using Reown.Core;
 using UnityEngine;
 using UnityEngine.UIElements;
 using ButtonUtk = UnityEngine.UIElements.Button;
@@ -145,19 +146,20 @@ namespace Sample
                 {
                     RefreshButtons();
 
-                    if (e.Chain == null)
+                    if (e.NewChain == null)
                     {
                         Notification.ShowMessage("Unsupported chain");
                         return;
                     }
                 };
 
-                AppKit.AccountConnected += async (_, e) => { RefreshButtons(); };
+                AppKit.AccountConnected += async (_, e) => RefreshButtons();
 
-                AppKit.AccountDisconnected += (_, _) => { RefreshButtons(); };
+                AppKit.AccountDisconnected += (_, _) => RefreshButtons();
 
-                AppKit.AccountChanged += (_, e) => { RefreshButtons(); };
+                AppKit.AccountChanged += (_, e) => RefreshButtons();
 
+                // After the scene and UI are loaded, try to resume the session from the storage
                 var sessionResumed = await AppKit.ConnectorController.TryResumeSessionAsync();
                 Debug.Log($"Session resumed: {sessionResumed}");
             }
@@ -302,7 +304,11 @@ namespace Sample
                 Contents = "Hello, Bob!"
             };
 
-            typedData.Domain.ChainId = BigInteger.Parse(account.ChainId.Split(":")[1]);
+            // Convert CAIP-2 chain reference to EIP-155 chain ID
+            // This is equivalent to `account.ChainId.Split(":")[1]`, but allocates less memory
+            var ethChainId = Utils.ExtractChainReference(account.ChainId);
+
+            typedData.Domain.ChainId = BigInteger.Parse(ethChainId);
             typedData.SetMessage(mail);
 
             var jsonMessage = typedData.ToJson();

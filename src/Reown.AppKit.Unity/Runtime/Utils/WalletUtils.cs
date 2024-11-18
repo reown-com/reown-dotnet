@@ -27,14 +27,14 @@ namespace Reown.AppKit.Unity.Utils
             if (wallet == null)
                 return;
 
-            PlayerPrefs.SetString("WC_RECENT_WALLET", JsonConvert.SerializeObject(wallet));
+            PlayerPrefs.SetString("RE_RECENT_WALLET", JsonConvert.SerializeObject(wallet));
         }
 
         public static bool TryGetRecentWallet(out Wallet wallet)
         {
             wallet = null;
 
-            var recentWalletJson = PlayerPrefs.GetString("WC_RECENT_WALLET");
+            var recentWalletJson = PlayerPrefs.GetString("RE_RECENT_WALLET");
 
             if (string.IsNullOrWhiteSpace(recentWalletJson))
                 return false;
@@ -49,20 +49,20 @@ namespace Reown.AppKit.Unity.Utils
             if (wallet == null)
                 return;
 
-            PlayerPrefs.SetString("WC_LAST_VIEWED_WALLET", JsonConvert.SerializeObject(wallet));
-            PlayerPrefs.SetString("RO_RECENT_WALLET_DEEPLINK", Application.isMobilePlatform ? wallet.MobileLink : wallet.DesktopLink);
+            PlayerPrefs.SetString("RE_LAST_VIEWED_WALLET", JsonConvert.SerializeObject(wallet));
+            PlayerPrefs.SetString("RE_RECENT_WALLET_DEEPLINK", Application.isMobilePlatform ? wallet.MobileLink : wallet.DesktopLink);
         }
 
         public static void RemoveLastViewedWallet()
         {
-            PlayerPrefs.DeleteKey("WC_LAST_VIEWED_WALLET");
+            PlayerPrefs.DeleteKey("RE_LAST_VIEWED_WALLET");
         }
 
         public static bool TryGetLastViewedWallet(out Wallet wallet)
         {
             wallet = null;
 
-            var recentWalletJson = PlayerPrefs.GetString("WC_LAST_VIEWED_WALLET");
+            var recentWalletJson = PlayerPrefs.GetString("RE_LAST_VIEWED_WALLET");
 
             if (string.IsNullOrWhiteSpace(recentWalletJson))
                 return false;

@@ -1,12 +1,10 @@
-using System;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UIElements;
 using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Model;
 using Reown.AppKit.Unity.Utils;
 using Reown.Sign.Unity;
-using Button = UnityEngine.UIElements.Button;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity
 {
@@ -78,7 +76,7 @@ namespace Reown.AppKit.Unity
             base.OnVisibleCore();
 
             if (!WalletUtils.TryGetLastViewedWallet(out var wallet))
-                throw new Exception("Wallet not found"); // TODO: use custom ex type
+                return;
 
             _wallet = wallet;
             Title = wallet.Name;
@@ -89,7 +87,7 @@ namespace Reown.AppKit.Unity
             SendAnalyticsEvent(wallet);
         }
 
-        private void SendAnalyticsEvent(Wallet wallet)
+        private static void SendAnalyticsEvent(Wallet wallet)
         {
             var eventProperties = new Dictionary<string, object>
             {

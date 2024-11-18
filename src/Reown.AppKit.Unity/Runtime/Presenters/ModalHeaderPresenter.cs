@@ -1,10 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UIElements;
 using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Utils;
 using Reown.Sign.Unity;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity
 {
@@ -65,6 +65,7 @@ namespace Reown.AppKit.Unity
             if (!e.IsOpen)
             {
                 View.leftSlot.style.visibility = Visibility.Hidden;
+                View.rightSlot.style.visibility = Visibility.Hidden;
             }
         }
 
@@ -82,13 +83,15 @@ namespace Reown.AppKit.Unity
             {
                 NotificationType.Error => Snackbar.IconColor.Error,
                 NotificationType.Success => Snackbar.IconColor.Success,
-                _ => Snackbar.IconColor.Success // TODO: change to info
+                NotificationType.Info => Snackbar.IconColor.Info,
+                _ => Snackbar.IconColor.Info
             };
 
             var icon = notification.type switch
             {
                 NotificationType.Error => Resources.Load<VectorImage>("Reown/AppKit/Icons/icon_bold_warningcircle"),
                 NotificationType.Success => Resources.Load<VectorImage>("Reown/AppKit/Icons/icon_bold_checkmark"),
+                NotificationType.Info => Resources.Load<VectorImage>("Reown/AppKit/Icons/icon_bold_info"),
                 _ => Resources.Load<VectorImage>("Reown/AppKit/Icons/icon_bold_warningcircle")
             };
 
@@ -109,6 +112,15 @@ namespace Reown.AppKit.Unity
             if (_leftSlotItems.TryGetValue(args.oldViewType, out var oldItem))
                 oldItem.style.display = DisplayStyle.None;
 
+            if (args.newPresenter == null)
+                return;
+
+            // Right slot
+            View.rightSlot.style.visibility = !args.newPresenter.EnableCloseButton
+                ? Visibility.Hidden
+                : Visibility.Visible;
+
+            // Left slot
             if (_leftSlotItems.TryGetValue(args.newViewType, out var newItem))
             {
                 newItem.style.display = DisplayStyle.Flex;
@@ -119,10 +131,10 @@ namespace Reown.AppKit.Unity
                 View.leftSlot.style.visibility = Visibility.Hidden;
             }
 
-            if (args.newPresenter != null)
-                View.style.borderBottomWidth = args.newPresenter.HeaderBorder
-                    ? 1
-                    : 0;
+            // Header border
+            View.style.borderBottomWidth = args.newPresenter.HeaderBorder
+                ? 1
+                : 0;
         }
 
         protected override void Dispose(bool disposing)

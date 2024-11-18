@@ -5,6 +5,8 @@ namespace Reown.AppKit.Unity
     public class ConnectionProposal : IDisposable
     {
         public bool IsConnected { get; protected set; }
+        
+        public bool IsSignarureRequested { get; protected set; }
 
         public event Action<ConnectionProposal> ConnectionUpdated
         {
@@ -17,7 +19,7 @@ namespace Reown.AppKit.Unity
             add => connected += value;
             remove => connected -= value;
         }
-
+        
         public readonly Connector connector;
 
         protected Action<ConnectionProposal> connectionUpdated;

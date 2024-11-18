@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using UnityEngine;
 
 namespace Reown.AppKit.Unity
 {
@@ -69,6 +68,7 @@ namespace Reown.AppKit.Unity
         WalletSearch,
         Account,
         NetworkSearch,
-        NetworkLoading
+        NetworkLoading,
+        Siwe
     }
 }

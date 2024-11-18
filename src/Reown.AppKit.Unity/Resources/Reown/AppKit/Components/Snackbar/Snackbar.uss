@@ -44,3 +44,11 @@
 .snackbar__icon-container--color-success > .snackbar__icon {
     --unity-image-tint-color: var(--ro-color-success-100);
 }
+
+.snackbar__icon-container--color-info {
+    background-color: var(--ro-accent-glass-005);
+}
+
+.snackbar__icon-container--color-info > .snackbar__icon {
+    --unity-image-tint-color: var(--ro-color-fg-100);
+}

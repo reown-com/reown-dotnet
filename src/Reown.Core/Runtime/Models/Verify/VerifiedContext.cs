@@ -37,7 +37,7 @@ namespace Reown.Core.Models.Verify
             }
         }
 
-        private string AsString(Validation str)
+        private static string AsString(Validation str)
         {
             switch (str)
             {

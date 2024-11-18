@@ -1,8 +1,9 @@
+using System;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UIElements;
 using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Utils;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity
 {
@@ -36,20 +37,19 @@ namespace Reown.AppKit.Unity
             if (!AppKit.ConnectorController
                     .TryGetConnector<WalletConnectConnector>
                         (ConnectorType.WalletConnect, out var connector))
-                throw new System.Exception("No WC connector"); // TODO: use custom exception
+                throw new Exception("No WC connector"); // TODO: use custom exception
 
             if (_connectionProposal == null || _connectionProposal.IsConnected)
             {
                 _connectionProposal = (WalletConnectConnectionProposal)connector.Connect();
-                _connectionProposal.ConnectionUpdated += OnConnectionProposalUpdated;
+                _connectionProposal.ConnectionUpdated += ConnectionProposalUpdatedHandler;
             }
 
             View.qrCode.Data = _connectionProposal.Uri;
 
             if (WalletUtils.TryGetLastViewedWallet(out var wallet))
             {
-                var remoteSprite = RemoteSpriteFactory.GetRemoteSprite<Image>($"https://api.web3modal.com/getWalletImage/{wallet.ImageId}");
-                View.EnableWalletIcon(remoteSprite);
+                View.EnableWalletIcon(wallet.Image);
             }
             else
             {
@@ -63,7 +63,7 @@ namespace Reown.AppKit.Unity
             AppKit.NotificationController.Notify(NotificationType.Success, "Link copied to clipboard");
         }
 
-        private void OnConnectionProposalUpdated(ConnectionProposal connectionProposal)
+        private void ConnectionProposalUpdatedHandler(ConnectionProposal connectionProposal)
         {
             View.qrCode.Data = _connectionProposal.Uri;
         }
