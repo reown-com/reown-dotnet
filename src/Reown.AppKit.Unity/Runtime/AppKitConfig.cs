@@ -37,13 +37,37 @@ namespace Reown.AppKit.Unity
 
         public AppKitConfig()
         {
+            // Exclude Coinbase Wallet on native platforms because it doesn't use WalletConnect protocol
+            // On WebGL the official Coinbase Wallet library is used
+#if !UNITY_WEBGL
+            ExcludeCoinbaseWallet();
+#endif
         }
         
-        public AppKitConfig(string projectId, Metadata metadata)
+        public AppKitConfig(string projectId, Metadata metadata) : this()
         {
             this.projectId = projectId;
             this.metadata = metadata;
         }
+
+#if !UNITY_WEBGL
+        private void ExcludeCoinbaseWallet()
+        {
+            const string cbWalletId = "fd20dc426fb37566d803205b19bbc1d4096b248ac04548e3cfb6b3a38bd033aa";
+
+            if (excludedWalletIds == null || excludedWalletIds.Length == 0)
+            {
+                excludedWalletIds = new[] { cbWalletId };
+            }
+            else if (Array.IndexOf(excludedWalletIds, cbWalletId) == -1)
+            {
+                var newWalletIds = new string[excludedWalletIds.Length + 1];
+                excludedWalletIds.CopyTo(newWalletIds, 0);
+                newWalletIds[^1] = cbWalletId;
+                excludedWalletIds = newWalletIds;
+            }
+        }
+#endif
     }
 
     public class Metadata

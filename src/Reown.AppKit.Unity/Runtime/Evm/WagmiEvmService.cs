@@ -9,7 +9,7 @@ namespace Reown.AppKit.Unity
 #if UNITY_WEBGL
     public class WagmiEvmService : EvmService
     {
-        protected override Task InitializeAsyncCore(SignClientUnity _)
+        protected override Task InitializeAsyncCore(SignClientUnity signClient)
         {
             return Task.CompletedTask;
         }
@@ -32,7 +32,7 @@ namespace Reown.AppKit.Unity
 
         protected override Task<string> SignTypedDataAsyncCore(string dataJson)
         {
-            return WagmiInterop.SignTypedDataAsync(dataJson);;
+            return WagmiInterop.SignTypedDataAsync(dataJson);
         }
 
         protected override Task<bool> VerifyTypedDataSignatureAsyncCore(string address, string dataJson, string signature)
