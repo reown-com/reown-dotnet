@@ -1,16 +1,15 @@
 using System;
 using Newtonsoft.Json;
-using UnityEngine;
 
 namespace Reown.AppKit.Unity.WebGl.Wagmi
 {
-    [SerializeField]
+    [Serializable]
     public class GetBalanceParameter
     {
         public string address;
     }
     
-    [SerializeField]
+    [Serializable]
     public class GetBalanceReturnType
     {
         public string value;

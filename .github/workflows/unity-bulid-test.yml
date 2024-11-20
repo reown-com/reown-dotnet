@@ -39,11 +39,11 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          unityVersion: 2022.3.42f1
+          unityVersion: ${{ matrix.targetPlatform == 'WebGL' && '6000.0.27f1' || '2022.3.42f1' }}
           buildsPath: Builds
           projectPath: ${{ matrix.projectPath }}
           targetPlatform: ${{ matrix.targetPlatform }}
-          customParameters: -Development -mixpanelToken ${{ secrets.MIXPANEL_TOKEN }} -sentryToken ${{ secrets.SENTRY_TOKEN }}
+          customParameters: ${{ matrix.targetPlatform != 'WebGL' && '-Development' || '' }} -mixpanelToken ${{ secrets.MIXPANEL_TOKEN }} -sentryToken ${{ secrets.SENTRY_TOKEN }}
           buildMethod: UnityBuilderAction.Builder.BuildProject
       - uses: actions/upload-artifact@v3
         with:
@@ -73,4 +73,4 @@ jobs:
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           github-comment: true
-          working-directory: Builds/WebGL
+          working-directory: Builds/WebGL/WebGL
