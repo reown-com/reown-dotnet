@@ -7,9 +7,16 @@
 /[Tt]emp/
 /[Oo]bj/
 /[Bb]uild/
-/[Bb]uilds/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
+
+
+/[Bb]uilds/**
+!/[Bb]uilds/
+!/[Bb]uilds/WebGL/
+!/[Bb]uilds/WebGL/WebGL/
+/[Bb]uilds/WebGL/WebGL/**
+!/[Bb]uilds/WebGL/WebGL/vercel.json
 
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data
