@@ -124,4 +124,12 @@ namespace Reown.AppKit.Unity.WebGl.Wagmi
         public string name;
         public string type;
     }
+    
+    [Serializable]
+    public class EstimateGasParameter
+    {
+        public string to;
+        public string value;
+        public string data;
+    }
 }

@@ -157,5 +157,40 @@ namespace Reown.AppKit.Unity
             var transactionInput = new TransactionInput(data, addressTo, new HexBigInteger(value));
             return Web3.Client.SendRequestAsync<string>("eth_sendTransaction", null, transactionInput);
         }
+        
+        
+        // -- Send Raw Transaction ------------------------------------
+
+        protected override Task<string> SendRawTransactionAsyncCore(string signedTransaction)
+        {
+            return Web3.Eth.Transactions.SendRawTransaction.SendRequestAsync(signedTransaction);
+        }
+
+
+        // -- Estimate Gas ---------------------------------------------
+        
+        protected override async Task<BigInteger> EstimateGasAsyncCore(string addressTo, BigInteger value, string data = null)
+        {
+            var transactionInput = new TransactionInput(data, addressTo, new HexBigInteger(value));
+            return await Web3.Eth.Transactions.EstimateGas.SendRequestAsync(transactionInput);
+        }
+
+        protected override async Task<BigInteger> EstimateGasAsyncCore(string contractAddress, string contractAbi, string methodName, BigInteger value = default, params object[] arguments)
+        {
+            var contract = Web3.Eth.GetContract(contractAbi, contractAddress);
+            var function = contract.GetFunction(methodName);
+            
+            var transactionInput = new TransactionInput(function.GetData(arguments), contractAddress, new HexBigInteger(value));
+            return await Web3.Eth.Transactions.EstimateGas.SendRequestAsync(transactionInput);
+        }
+        
+        
+        // -- Get Gas Price -------------------------------------------
+
+        protected override async Task<BigInteger> GetGasPriceAsyncCore()
+        {
+            var hexBigInt = await Web3.Eth.GasPrice.SendRequestAsync();
+            return hexBigInt.Value;
+        }
     }
 }

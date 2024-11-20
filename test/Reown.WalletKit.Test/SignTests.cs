@@ -181,7 +181,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
             }
         }
 
-        [Fact, Trait("Category", "unit")]
+        [Fact] [Trait("Category", "integration")]
         public async Task TestShouldApproveSessionProposal()
         {
             TaskCompletionSource<bool> task1 = new TaskCompletionSource<bool>();
@@ -204,8 +204,8 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
                 _wallet.Pair(uriString)
             );
         }
-        
-        [Fact, Trait("Category", "unit")]
+
+        [Fact] [Trait("Category", "integration")]
         public async Task TestShouldRejectSessionProposal()
         {
             var rejectionError = Error.FromErrorType(ErrorType.USER_DISCONNECTED);
@@ -244,7 +244,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
             );
         }
 
-        [Fact, Trait("Category", "unit")]
+        [Fact] [Trait("Category", "integration")]
         public async Task TestUpdateSession()
         {
             TaskCompletionSource<bool> task1 = new TaskCompletionSource<bool>();
@@ -283,7 +283,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
             );
         }
 
-        [Fact, Trait("Category", "unit")]
+        [Fact] [Trait("Category", "integration")]
         public async Task TestExtendSession()
         {
             TaskCompletionSource<bool> task1 = new TaskCompletionSource<bool>();
@@ -319,7 +319,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
             Assert.True(updatedExpiry > prevExpiry);
         }
 
-        [Fact, Trait("Category", "unit")]
+        [Fact] [Trait("Category", "integration")]
         public async Task TestRespondToSessionRequest()
         {
             TaskCompletionSource<bool> task1 = new TaskCompletionSource<bool>();
@@ -398,7 +398,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
             );
         }
 
-        [Fact, Trait("Category", "unit")]
+        [Fact] [Trait("Category", "integration")]
         public async Task TestWalletDisconnectFromSession()
         {
             TaskCompletionSource<bool> task1 = new TaskCompletionSource<bool>();
@@ -445,8 +445,8 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
                 _wallet.DisconnectSession(session.Topic, reason)
             );
         }
-        
-        [Fact, Trait("Category", "unit")]
+
+        [Fact] [Trait("Category", "integration")]
         public async Task TestDappDisconnectFromSession()
         {
             TaskCompletionSource<bool> task1 = new TaskCompletionSource<bool>();
@@ -494,7 +494,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
             );
         }
 
-        [Fact, Trait("Category", "unit")]
+        [Fact] [Trait("Category", "integration")]
         public async Task TestEmitSessionEvent()
         {
             var pairingTask = new TaskCompletionSource<bool>();
@@ -578,7 +578,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
             await Assert.ThrowsAsync<NamespacesException>(() => _wallet.EmitSessionEvent(session.Topic, valueTypeEventData, "123:321"));
         }
 
-        [Fact, Trait("Category", "unit")]
+        [Fact] [Trait("Category", "integration")]
         public async Task TestGetActiveSessions()
         {
             TaskCompletionSource<bool> task1 = new TaskCompletionSource<bool>();
@@ -619,7 +619,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
             Assert.Equal(session.Topic, sessions.Values.ToArray()[0].Topic);
         }
 
-        [Fact, Trait("Category", "unit")]
+        [Fact] [Trait("Category", "integration")]
         public async Task TestGetPendingSessionProposals()
         {
             TaskCompletionSource<bool> task1 = new TaskCompletionSource<bool>();
@@ -638,7 +638,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
             );
         }
 
-        [Fact, Trait("Category", "unit")]
+        [Fact] [Trait("Category", "integration")]
         public async Task TestGetPendingSessionRequests()
         {
             TaskCompletionSource<bool> task1 = new TaskCompletionSource<bool>();
