@@ -33,7 +33,7 @@ namespace Reown.AppKit.Unity
             if (string.IsNullOrWhiteSpace(address))
                 throw new ArgumentNullException(nameof(address));
 
-            var projectId = AppKit.Config.ProjectId;
+            var projectId = AppKit.Config.projectId;
 
             if (string.IsNullOrWhiteSpace(projectId))
                 throw new InvalidOperationException("Project ID is not set");
@@ -60,7 +60,7 @@ namespace Reown.AppKit.Unity
             if (string.IsNullOrWhiteSpace(address))
                 throw new ArgumentNullException(nameof(address));
 
-            var projectId = AppKit.Config.ProjectId;
+            var projectId = AppKit.Config.projectId;
             return await _httpClient.GetAsync<GetBalanceResponse>($"account/{address}/balance?projectId={projectId}&currency=usd", headers: _getBalanceHeaders);
         }
     }

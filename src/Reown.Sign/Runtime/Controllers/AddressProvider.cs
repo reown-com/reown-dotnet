@@ -23,6 +23,7 @@ namespace Reown.Sign.Controllers
             Sessions = client.Session;
 
             // set the first connected session to the default one
+            client.SessionAuthenticated += ClientOnSessionAuthenticated;
             client.SessionConnected += ClientOnSessionConnected;
             client.SessionDeleted += ClientOnSessionDeleted;
             client.SessionUpdateRequest += ClientOnSessionUpdated;
@@ -109,7 +110,7 @@ namespace Reown.Sign.Controllers
                 throw new ArgumentNullException(nameof(chainId));
             }
 
-            if (!Utils.IsValidChainId(chainId))
+            if (!Core.Utils.IsValidChainId(chainId))
             {
                 throw new ArgumentException("The format of 'chainId' is invalid. Must be in the format of 'namespace:chainId' (e.g. 'eip155:10'). See CAIP-2 for more information.");
             }
@@ -165,6 +166,12 @@ namespace Reown.Sign.Controllers
                 DefaultSession = default;
                 await UpdateDefaultChainIdAndNamespaceAsync();
             }
+        }
+
+        private async void ClientOnSessionAuthenticated(object sender, SessionAuthenticatedEventArgs e)
+        {
+            DefaultSession = e.Session;
+            await UpdateDefaultChainIdAndNamespaceAsync();
         }
 
         private async void ClientOnSessionConnected(object sender, SessionStruct e)

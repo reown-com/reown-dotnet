@@ -1,11 +1,11 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using UnityEngine;
-using UnityEngine.UIElements;
 using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Model;
 using Reown.AppKit.Unity.Utils;
+using UnityEngine;
+using UnityEngine.UIElements;
 using DeviceType = Reown.AppKit.Unity.Utils.DeviceType;
 
 namespace Reown.AppKit.Unity
@@ -71,6 +71,21 @@ namespace Reown.AppKit.Unity
             if (recentWalletExists)
                 count++;
 
+            if (AppKit.Config.customWallets is { Length: > 0 })
+            {
+                foreach (var customWallet in AppKit.Config.customWallets)
+                {
+                    if (count-- <= 0)
+                        break;
+
+                    var walletListItem = BuildWalletListItem(customWallet);
+                    View.Add(walletListItem);
+                }
+            }
+
+            if (count <= 0)
+                return;
+            
             var response = await AppKit.ApiController.GetWallets(1, count);
 
             foreach (var wallet in response.Data)
@@ -99,10 +114,7 @@ namespace Reown.AppKit.Unity
 
         protected virtual void CreateRecentWalletButton(Wallet recentWallet)
         {
-            var remoteSprite =
-                RemoteSpriteFactory.GetRemoteSprite<Image>(
-                    $"https://api.web3modal.com/getWalletImage/{recentWallet.ImageId}");
-            var listItem = new ListItem(recentWallet.Name, remoteSprite, () => OnWalletListItemClick(recentWallet));
+            var listItem = new ListItem(recentWallet.Name, recentWallet.Image, () => OnWalletListItemClick(recentWallet));
             listItem.RightSlot.Add(new Tag("RECENT", Tag.TagType.Info));
             View.Add(listItem);
         }
@@ -115,14 +127,10 @@ namespace Reown.AppKit.Unity
 
         protected virtual ListItem BuildWalletListItem(Wallet wallet)
         {
-            var remoteSprite =
-                RemoteSpriteFactory.GetRemoteSprite<Image>(
-                    $"https://api.web3modal.com/getWalletImage/{wallet.ImageId}");
-
             var walletClosure = wallet;
             var isWalletInstalled = WalletUtils.IsWalletInstalled(wallet);
             var walletStatusIcon = isWalletInstalled ? StatusIconType.Success : StatusIconType.None;
-            var walletListItem = new ListItem(wallet.Name, remoteSprite, () => OnWalletListItemClick(walletClosure), statusIconType: walletStatusIcon);
+            var walletListItem = new ListItem(wallet.Name, wallet.Image, () => OnWalletListItemClick(walletClosure), statusIconType: walletStatusIcon);
             return walletListItem;
         }
 

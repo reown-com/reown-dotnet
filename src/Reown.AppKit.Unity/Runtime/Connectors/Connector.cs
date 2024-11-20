@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Reown.Core.Common.Model.Errors;
+using Reown.Sign.Models.Cacao;
 using Reown.Sign.Unity;
 using UnityEngine;
 
@@ -18,6 +20,7 @@ namespace Reown.AppKit.Unity
 
         public virtual bool IsAccountConnected { get; protected set; }
 
+        public event EventHandler<SignatureRequest> SignatureRequested;
         public event EventHandler<AccountConnectedEventArgs> AccountConnected;
         public event EventHandler<AccountDisconnectedEventArgs> AccountDisconnected;
         public event EventHandler<AccountChangedEventArgs> AccountChanged;
@@ -48,13 +51,13 @@ namespace Reown.AppKit.Unity
 
             var isResumed = await TryResumeSessionAsyncCore();
 
-            if (isResumed)
-            {
-                IsAccountConnected = true;
-                OnAccountConnected(new AccountConnectedEventArgs(GetAccountAsync, GetAccounts));
-            }
+            if (!isResumed)
+                return false;
 
-            return isResumed;
+            IsAccountConnected = true;
+            OnAccountConnected(new AccountConnectedEventArgs(GetAccountAsync, GetAccountsAsync));
+
+            return true;
         }
 
         public ConnectionProposal Connect()
@@ -73,9 +76,6 @@ namespace Reown.AppKit.Unity
 
         public async Task DisconnectAsync()
         {
-            if (!IsAccountConnected)
-                throw new Exception("No account connected"); // TODO: use custom ex type
-
             await DisconnectAsyncCore();
         }
 
@@ -95,27 +95,98 @@ namespace Reown.AppKit.Unity
             return GetAccountAsyncCore();
         }
 
-        public Task<Account[]> GetAccounts()
+        public Task<Account[]> GetAccountsAsync()
         {
             if (!IsAccountConnected)
                 throw new Exception("No account connected"); // TODO: use custom ex type
 
-            return GetAccountsCore();
+            return GetAccountsAsyncCore();
         }
 
         protected virtual void ConnectionConnectedHandler(ConnectionProposal connectionProposal)
         {
-            Debug.Log("Connector. ConnectionConnectedHandler");
-            foreach (var c in _connectionProposals)
-                c.Dispose();
+            OnAccountConnected(new AccountConnectedEventArgs(GetAccountAsync, GetAccountsAsync));
+            if (connectionProposal.IsSignarureRequested)
+            {
+                OnSignatureRequested();
+            }
+        }
 
-            _connectionProposals.Clear();
-            Debug.Log("Connector calls OnAccountConnected");
-            OnAccountConnected(new AccountConnectedEventArgs(GetAccountAsync, GetAccounts));
+        protected virtual async Task ApproveSignatureRequestAsync()
+        {
+            // Wait 1 second before sending personal_sign request
+            // to make sure the connection is fully established.
+            await Task.Delay(TimeSpan.FromSeconds(1));
+
+            try
+            {
+                var account = await GetAccountAsyncCore();
+                var ethAddress = account.Address;
+                var ethChainId = Core.Utils.ExtractChainReference(account.ChainId);
+
+                var siweMessage = await AppKit.SiweController.CreateMessageAsync(ethAddress, ethChainId);
+
+                var signature = await AppKit.Evm.SignMessageAsync(siweMessage.Message);
+                var cacaoPayload = SiweUtils.CreateCacaoPayload(siweMessage.CreateMessageArgs);
+                var cacaoSignature = new CacaoSignature(CacaoSignatureType.Eip191, signature);
+                var cacao = new CacaoObject(CacaoHeader.Caip112, cacaoPayload, cacaoSignature);
+
+                var isSignatureValid = await AppKit.SiweController.VerifyMessageAsync(new SiweVerifyMessageArgs
+                {
+                    Message = siweMessage.Message,
+                    Signature = signature,
+                    Cacao = cacao
+                });
+
+                if (isSignatureValid)
+                {
+                    _ = await AppKit.SiweController.GetSessionAsync(new GetSiweSessionArgs
+                    {
+                        Address = ethAddress,
+                        ChainIds = new[]
+                        {
+                            ethChainId
+                        }
+                    });
+
+                    OnAccountConnected(new AccountConnectedEventArgs(GetAccountAsync, GetAccountsAsync));
+                }
+                else
+                {
+                    await DisconnectAsync();
+                }
+            }
+            catch (Exception e)
+            {
+                if (e is not ReownNetworkException)
+                    Debug.LogException(e);
+
+                await DisconnectAsync();
+            }
+        }
+
+        protected virtual async Task RejectSignatureAsync()
+        {
+            await DisconnectAsync();
+        }
+
+        internal virtual void OnSignatureRequested()
+        {
+            SignatureRequested?.Invoke(this, new SignatureRequest
+            {
+                Connector = this,
+                ApproveAsync = ApproveSignatureRequestAsync,
+                RejectAsync = RejectSignatureAsync
+            });
         }
 
         protected virtual void OnAccountConnected(AccountConnectedEventArgs e)
         {
+            foreach (var c in _connectionProposals)
+                c.Dispose();
+
+            _connectionProposals.Clear();
+            IsAccountConnected = true;
             AccountConnected?.Invoke(this, e);
         }
 
@@ -151,7 +222,7 @@ namespace Reown.AppKit.Unity
 
         protected abstract Task<Account> GetAccountAsyncCore();
 
-        protected abstract Task<Account[]> GetAccountsCore();
+        protected abstract Task<Account[]> GetAccountsAsyncCore();
 
         public class AccountConnectedEventArgs : EventArgs
         {

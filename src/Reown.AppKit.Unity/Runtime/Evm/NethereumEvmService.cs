@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Nethereum.Hex.HexConvertors.Extensions;
@@ -21,26 +22,44 @@ namespace Reown.AppKit.Unity
 
         public IWeb3 Web3 { get; private set; }
 
-        protected override async Task InitializeAsyncCore(SignClientUnity signClient)
+        protected override Task InitializeAsyncCore(SignClientUnity signClient)
         {
             _interceptor = new ReownSignUnityInterceptor(signClient);
 
-            if (AppKit.IsAccountConnected)
-            {
-                var account = await AppKit.GetAccountAsync();
-                var chainId = account.ChainId;
-                UpdateWeb3Instance(chainId);
-            }
+            SetInitialWeb3Instance();
 
             AppKit.ChainChanged += ChainChangedHandler;
+            return Task.CompletedTask;
         }
+        
 
         // -- Nethereum Web3 Instance ---------------------------------
 
         private void ChainChangedHandler(object sender, NetworkController.ChainChangedEventArgs e)
         {
-            if (e.Chain != null)
-                UpdateWeb3Instance(e.Chain.ChainId);
+            if (e.NewChain != null)
+                UpdateWeb3Instance(e.NewChain.ChainId);
+        }
+
+        private void SetInitialWeb3Instance()
+        {
+            if (Web3 != null)
+                return;
+
+            var networkController = AppKit.NetworkController;
+            var activeChain = networkController.ActiveChain;
+            var chainId = string.Empty;
+            if (activeChain != null)
+            {
+                chainId = activeChain.ChainId;
+            }
+            else if (networkController.Chains.Values != null && networkController.Chains.Values.Count != 0)
+            {
+                chainId = networkController.Chains.Values.First().ChainId;
+            }
+
+            if (!string.IsNullOrWhiteSpace(chainId))
+                UpdateWeb3Instance(chainId);
         }
 
         private void UpdateWeb3Instance(string chainId)
@@ -56,7 +75,7 @@ namespace Reown.AppKit.Unity
 
         private static string CreateRpcUrl(string chainId)
         {
-            return $"https://rpc.walletconnect.com/v1?chainId={chainId}&projectId={AppKit.Config.ProjectId}";
+            return $"https://rpc.walletconnect.com/v1?chainId={chainId}&projectId={AppKit.Config.projectId}";
         }
 
 

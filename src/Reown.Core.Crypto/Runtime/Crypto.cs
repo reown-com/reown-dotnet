@@ -119,10 +119,12 @@ namespace Reown.Core.Crypto
         /// <returns>The hash of the given input as a hex string</returns>
         public string HashKey(string key)
         {
-            using (var sha256 = SHA256.Create())
-            {
-                return sha256.ComputeHash(key.HexToByteArray()).ToHex();
-            }
+#if NET7_0_OR_GREATER
+            return SHA256.HashData(key.HexToByteArray()).ToHex();
+#else
+            using var sha256 = SHA256.Create();
+            return sha256.ComputeHash(key.HexToByteArray()).ToHex();
+#endif
         }
 
         public void Dispose()
@@ -345,7 +347,7 @@ namespace Reown.Core.Crypto
             var validatedOptions = ValidateEncoding(options);
             var isTypeOne = IsTypeOneEnvelope(validatedOptions);
 
-            if (isTypeOne)
+            if (isTypeOne && options != null)
             {
                 var selfPublicKey = options.SenderPublicKey;
                 var peerPublicKey = options.ReceiverPublicKey;
@@ -455,7 +457,7 @@ namespace Reown.Core.Crypto
             return clientId;
         }
 
-        private EncodingValidation ValidateEncoding(EncodeOptions options)
+        private static EncodingValidation ValidateEncoding(EncodeOptions options)
         {
             var type = options?.Type ?? Type0;
             if (type == Type1)
@@ -490,10 +492,11 @@ namespace Reown.Core.Crypto
             });
         }
 
-        private bool IsTypeOneEnvelope(EncodingValidation param)
+        private static bool IsTypeOneEnvelope(EncodingValidation param)
         {
-            return param.Type == Type1 && !string.IsNullOrWhiteSpace(param.SenderPublicKey) &&
-                   !string.IsNullOrWhiteSpace(param.ReceiverPublicKey);
+            return param.Type == Type1
+                   && !string.IsNullOrWhiteSpace(param.SenderPublicKey)
+                   && !string.IsNullOrWhiteSpace(param.ReceiverPublicKey);
         }
 
         private EncodingParams Deserialize(string encoded)

@@ -18,6 +18,10 @@ namespace Reown.Sign.Interfaces
 
         internal Task SetProposal(long id, ProposalStruct proposal);
 
+        internal Task SetAuthRequest(long id, AuthPendingRequest request);
+
+        internal bool ShouldIgnorePairingRequest(string topic, string method);
+
         internal Task Cleanup();
 
         internal Task OnSessionProposeRequest(string topic, JsonRpcRequest<SessionPropose> payload);
@@ -69,5 +73,11 @@ namespace Reown.Sign.Interfaces
         internal Task DeletePendingSessionRequest(long id, Error reason, bool expirerHasDeleted = false);
 
         internal Task SetPendingSessionRequest(PendingRequestStruct pendingRequest);
+
+        internal void ValidateAuthParams(AuthParams authParams);
+
+        internal Task OnAuthenticateRequest(string topic, JsonRpcRequest<SessionAuthenticate> payload);
+
+        internal Task OnAuthenticateResponse(string topic, JsonRpcResponse<AuthenticateResponse> payload);
     }
 }

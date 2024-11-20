@@ -5,6 +5,7 @@ using Reown.Core;
 using Reown.Core.Common.Logging;
 using Reown.Core.Common.Model.Errors;
 using Reown.Core.Common.Utils;
+using Reown.Core.Controllers;
 using Reown.Core.Models.Verify;
 using Reown.Core.Network.Models;
 using Reown.Sign.Interfaces;
@@ -15,7 +16,7 @@ namespace Reown.Sign
 {
     public partial class Engine
     {
-        async Task IEnginePrivate.DeletePendingSessionRequest(long id, Error reason, bool expirerHasDeleted = false)
+        async Task IEnginePrivate.DeletePendingSessionRequest(long id, Error reason, bool expirerHasDeleted)
         {
             await Task.WhenAll(
                 Client.PendingRequests.Delete(id, reason),
@@ -84,6 +85,24 @@ namespace Reown.Sign
             await Client.Proposal.Set(id, proposal);
             if (proposal.Expiry != null)
                 Client.CoreClient.Expirer.Set(id, (long)proposal.Expiry);
+        }
+
+        async Task IEnginePrivate.SetAuthRequest(long id, AuthPendingRequest request)
+        {
+            await Client.Auth.PendingRequests.Set(id, request);
+            if (request.Expiry != null)
+                Client.CoreClient.Expirer.Set(id, (long)request.Expiry);
+        }
+
+        bool IEnginePrivate.ShouldIgnorePairingRequest(string topic, string method)
+        {
+            if (!Client.CoreClient.Pairing.TryGetExpectedMethods(topic, out var expectedMethods))
+                return false;
+
+            if (expectedMethods.Contains(method))
+                return false;
+
+            return expectedMethods.Contains("wc_sessionAuthenticate") && Client.HasSessionAuthenticateRequestSubscribers;
         }
 
         Task IEnginePrivate.Cleanup()

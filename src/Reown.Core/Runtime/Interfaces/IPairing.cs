@@ -26,6 +26,8 @@ namespace Reown.Core.Interfaces
         /// </summary>
         ICoreClient CoreClient { get; }
 
+        event EventHandler<PairingCreatedEventArgs> PairingCreated;
+        
         event EventHandler<PairingEvent> PairingExpired;
 
         event EventHandler<PairingEvent> PairingPinged;
@@ -55,7 +57,7 @@ namespace Reown.Core.Interfaces
         ///     A new instance of <see cref="CreatePairingData" /> that includes the pairing topic and
         ///     uri
         /// </returns>
-        Task<CreatePairingData> Create();
+        Task<CreatePairingData> Create(string[] methods = null);
 
         /// <summary>
         ///     Activate a previously created pairing at the given topic
@@ -106,5 +108,10 @@ namespace Reown.Core.Interfaces
         ///     parsed from the given uri
         /// </returns>
         UriParameters ParseUri(string uri);
+        
+        /// <summary>
+        ///     Get the expected methods for a given pairing topic
+        /// </summary>
+        public bool TryGetExpectedMethods(string topic, out string[] methods);
     }
 }

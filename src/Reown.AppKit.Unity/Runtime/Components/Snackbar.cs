@@ -6,10 +6,11 @@ namespace Reown.AppKit.Unity.Components
 {
     public class Snackbar : VisualElement
     {
-        public static readonly string ClassName = "snackbar";
+        public const string ClassName = "snackbar";
         public static readonly string ClassNameIconContainer = $"{ClassName}__icon-container";
         public static readonly string ClassNameIconContainerColorError = $"{ClassNameIconContainer}--color-error";
         public static readonly string ClassNameIconContainerColorSuccess = $"{ClassNameIconContainer}--color-success";
+        public static readonly string ClassNameIconContainerColorInfo = $"{ClassNameIconContainer}--color-info";
         public static readonly string ClassNameIcon = $"{ClassName}__icon";
         public static readonly string ClassNameMessage = $"{ClassName}__message";
 
@@ -29,6 +30,10 @@ namespace Reown.AppKit.Unity.Components
                     case IconColor.Success:
                         _iconContainer.AddToClassList(ClassNameIconContainerColorSuccess);
                         _currentColorClass = ClassNameIconContainerColorSuccess;
+                        break;
+                    case IconColor.Info:
+                        _iconContainer.AddToClassList(ClassNameIconContainerColorInfo);
+                        _currentColorClass = ClassNameIconContainerColorInfo;
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(value), value, null);
@@ -56,7 +61,7 @@ namespace Reown.AppKit.Unity.Components
         {
         }
 
-        public Snackbar() : this(IconColor.Success, "Hello, friend!")
+        public Snackbar() : this(IconColor.Success, "")
         {
         }
 
@@ -77,6 +82,7 @@ namespace Reown.AppKit.Unity.Components
 
         public enum IconColor
         {
+            Info,
             Error,
             Success
         }

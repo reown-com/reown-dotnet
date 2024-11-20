@@ -42,10 +42,16 @@ namespace Reown.Core.Common.Model.Errors
         // 6000 (Reason)
         USER_DISCONNECTED = 6000,
 
+        // 7000 (Failure)
+        SESSION_SETTLEMENT_FAILED = 7000,
+
         // 8000 (Session)
         SESSION_REQUEST_EXPIRED = 8000,
 
         // 9000 (Unknown)
-        UNKNOWN = 9000
+        UNKNOWN = 9000,
+
+        // 10000 (Pairing)
+        WC_METHOD_UNSUPPORTED = 10001
     }
 }

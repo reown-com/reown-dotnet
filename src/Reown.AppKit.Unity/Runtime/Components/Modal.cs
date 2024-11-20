@@ -39,7 +39,7 @@ namespace Reown.AppKit.Unity.Components
             body?.RegisterCallback<GeometryChangedEvent, Modal>(
                 (evt, modal) =>
                 {
-                    var newHeight = Mathf.RoundToInt(evt.newRect.height + header.resolvedStyle.height
+                    var newHeight = Mathf.CeilToInt(evt.newRect.height + header.resolvedStyle.height
 #if UNITY_ANDROID || UNITY_IOS
                         // Bottom safe area
                         + RuntimePanelUtils.ScreenToPanel(panel,

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,11 +9,15 @@ using Reown.Core.Common.Logging;
 using Reown.Core.Common.Model.Errors;
 using Reown.Core.Common.Utils;
 using Reown.Core.Models.Expirer;
+using Reown.Core.Models.Relay;
 using Reown.Core.Network.Models;
+using Reown.Sign.Constants;
 using Reown.Sign.Interfaces;
 using Reown.Sign.Models;
+using Reown.Sign.Models.Engine;
 using Reown.Sign.Models.Engine.Events;
 using Reown.Sign.Models.Engine.Methods;
+using Reown.Sign.Utils;
 
 namespace Reown.Sign
 {
@@ -20,6 +25,9 @@ namespace Reown.Sign
     {
         async Task IEnginePrivate.OnSessionProposeRequest(string topic, JsonRpcRequest<SessionPropose> payload)
         {
+            if (PrivateThis.ShouldIgnorePairingRequest(topic, payload.Method))
+                return;
+            
             var @params = payload.Params;
             var id = payload.Id;
             try
@@ -56,7 +64,6 @@ namespace Reown.Sign
         async Task IEnginePrivate.OnSessionProposeResponse(string topic, JsonRpcResponse<SessionProposeResponse> payload)
         {
             var id = payload.Id;
-            logger.Log($"Got session propose response with id {id}");
             if (payload.IsError)
             {
                 await Client.Proposal.Delete(id, Error.FromErrorType(ErrorType.USER_DISCONNECTED));
@@ -77,8 +84,7 @@ namespace Reown.Sign
                 proposal.SessionTopic = sessionTopic;
                 await Client.Proposal.Set(id, proposal);
                 await Client.CoreClient.Pairing.Activate(topic);
-                logger.Log($"Pairing activated for topic {topic}");
-
+ 
                 var attempts = 5;
                 do
                 {
@@ -104,7 +110,6 @@ namespace Reown.Sign
         {
             var id = payload.Id;
             var @params = payload.Params;
-            logger.Log($"got session settle request with {id}");
             try
             {
                 await PrivateThis.IsValidSessionSettleRequest(@params);
@@ -145,8 +150,6 @@ namespace Reown.Sign
             }
             catch (ReownNetworkException e)
             {
-                logger.LogError("got error while performing session settle");
-                logger.LogError(e);
                 await MessageHandler.SendError<SessionSettle, bool>(id, topic, Error.FromException(e));
             }
         }
@@ -322,6 +325,120 @@ namespace Reown.Sign
             catch (ReownNetworkException e)
             {
                 await MessageHandler.SendError<SessionEvent<JToken>, bool>(id, topic, Error.FromException(e));
+            }
+        }
+
+        async Task IEnginePrivate.OnAuthenticateRequest(string topic, JsonRpcRequest<SessionAuthenticate> payload)
+        {
+            try
+            {
+                var id = payload.Id;
+                var @params = payload.Params;
+
+                var hash = HashUtils.HashMessage(JsonConvert.SerializeObject(payload));
+                var verifyContext = await VerifyContext(hash, @params.Requester.Metadata);
+
+                var request = new AuthPendingRequest
+                {
+                    Id = id,
+                    PairingTopic = @params.Payload.PairingTopic,
+                    Requester = @params.Requester,
+                    PayloadParams = @params.Payload,
+                    Expiry = @params.ExpiryTimestamp,
+                    VerifyContext = verifyContext
+                };
+
+                @params.Payload.RequestId = id;
+
+                await PrivateThis.SetAuthRequest(id, request);
+
+                SessionAuthenticateRequest?.Invoke(this, @params);
+            }
+            catch (ReownNetworkException e)
+            {
+                await MessageHandler.SendError<SessionAuthenticate, SessionAuthenticateAutoReject>(payload.Id, topic, Error.FromException(e));
+            }
+        }
+
+        async Task IEnginePrivate.OnAuthenticateResponse(string topic, JsonRpcResponse<AuthenticateResponse> payload)
+        {
+            // Delete this auth request on response
+            // We're using payload from the wallet to establish the session so we don't need to keep this around
+            await Client.Auth.PendingRequests.Delete(payload.Id, Error.FromErrorType(ErrorType.GENERIC));
+
+            if (payload.IsError)
+            {
+                if (payload.Error.Code == Error.FromErrorType(ErrorType.WC_METHOD_UNSUPPORTED).Code)
+                    return;
+
+                throw ReownNetworkException.FromType((ErrorType)payload.Error.Code);
+            }
+            else
+            {
+                var cacaos = payload.Result.Cacaos;
+                var responder = payload.Result.Responder;
+
+                var approvedMethods = new HashSet<string>();
+                var approvedAccounts = new HashSet<string>();
+                foreach (var cacao in cacaos)
+                {
+                    var isValid = await cacao.VerifySignature(Client.CoreClient.ProjectId);
+                    if (!isValid)
+                    {
+                        throw new IOException("CACAO signature verification failed");
+                    }
+
+                    var approvedChains = new HashSet<string>();
+                    var parsedAddress = CacaoUtils.ExtractDidAddress(cacao.Payload.Iss);
+
+                    if (ReCap.TryGetRecapFromResources(cacao.Payload.Resources, out var recapStr))
+                    {
+                        var methodsFromRecap = ReCap.GetActionsFromEncodedRecap(recapStr);
+                        var chainsFromRecap = ReCap.GetChainsFromEncodedRecap(recapStr);
+                        approvedMethods.UnionWith(methodsFromRecap);
+                        approvedChains.UnionWith(chainsFromRecap);
+                    }
+
+                    approvedAccounts.UnionWith(approvedChains.Select(chain => $"{chain}:{parsedAddress}"));
+                }
+
+                var publicKey = Client.Auth.Keys.Get(AuthConstants.AuthPublicKeyName).PublicKey;
+                var sessionTopic = await Client.CoreClient.Crypto.GenerateSharedKey(publicKey, responder.PublicKey);
+
+                SessionStruct session = default;
+
+                if (approvedMethods.Count != 0)
+                {
+                    session = new SessionStruct
+                    {
+                        Topic = sessionTopic,
+                        Acknowledged = true,
+                        Self = new Participant
+                        {
+                            PublicKey = publicKey,
+                            Metadata = Client.Metadata
+                        },
+                        Peer = responder,
+                        Controller = responder.PublicKey,
+                        Expiry = Clock.CalculateExpiry(SessionExpiry),
+                        Namespaces = Namespaces.FromAuth(approvedMethods.ToArray(), approvedAccounts.ToArray()),
+                        Relay = new ProtocolOptions
+                        {
+                            Protocol = "irn"
+                        }
+                    };
+                    
+                    await Client.CoreClient.Relayer.Subscribe(sessionTopic);
+                    await Client.Session.Set(sessionTopic, session);
+
+                    session = Client.Session.Get(sessionTopic);
+                }
+
+                SessionAuthenticated?.Invoke(this, new SessionAuthenticatedEventArgs
+                {
+                    Session = session,
+                    Auths = cacaos
+                });
             }
         }
 

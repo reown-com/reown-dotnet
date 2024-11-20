@@ -38,5 +38,11 @@ namespace Reown.Core.Models.Pairing
         /// </summary>
         [JsonProperty("version")]
         public int Version;
+
+        /// <summary>
+        ///     Pairing methods
+        /// </summary>
+        [JsonProperty("methods")]
+        public string[] Methods;
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using Newtonsoft.Json;
 
 namespace Reown.Core.Models.Pairing
@@ -8,7 +9,7 @@ namespace Reown.Core.Models.Pairing
     ///     * Pairing Ping
     ///     * Pairing Delete
     /// </summary>
-    public class PairingEvent
+    public class PairingEvent : EventArgs
     {
         /// <summary>
         ///     The ID of the JSON Rpc request that triggered this session event
