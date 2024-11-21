@@ -26,7 +26,7 @@ Image {
     align-items: center;
     border-radius: var(--ro-border-radius-xxs);
     border-width: 1;
-    flex-shrink: 1;
+    width: 100%;
     border-color: var(--ro-gray-glass-005);
     background-color: var(--ro-gray-glass-005);
     color: var(--ro-color-fg-275);
