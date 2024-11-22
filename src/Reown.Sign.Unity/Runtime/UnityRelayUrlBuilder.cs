@@ -46,9 +46,29 @@ namespace Reown.Sign.Unity
             return ("reown-unity", SignMetadata.Version);
         }
 
+        protected override bool TryGetBundleId(out string bundleId)
+        {
+#if UNITY_IOS || UNITY_STANDALONE_OSX
+            bundleId = Application.identifier;
+            return true;
+#else
+            return base.TryGetBundleId(out bundleId);
+#endif
+        }
+
+        protected override bool TryGetPackageName(out string packageName)
+        {
+#if UNITY_ANDROID
+            packageName = Application.identifier;
+            return true;
+#else
+            return base.TryGetPackageName(out packageName);
+#endif
+        }
+
         protected override bool TryGetOrigin(out string origin)
         {
-#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_OSX
+#if UNITY_WEBGL
             origin = Application.identifier;
             return true;
 #else

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Sentry.Protocol;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -23,7 +24,12 @@ namespace Reown.AppKit.Unity
 
         public SiweController()
         {
-            if (AppKit.Config.siweConfig?.GetMessageParams == null)
+            if (AppKit.Config.siweConfig == null)
+            {
+                return;
+            }
+
+            if (AppKit.Config.siweConfig.GetMessageParams == null)
             {
                 throw new InvalidOperationException("GetMessageParams function is required in SiweConfig.");
             }

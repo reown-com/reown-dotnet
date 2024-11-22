@@ -101,6 +101,12 @@ namespace Reown.AppKit.Unity.Utils
                 uwr.SetRequestHeader("x-sdk-type", "appkit");
                 uwr.SetRequestHeader("x-sdk-version", SignMetadata.Version);
 
+                var origin = Application.identifier;
+                if (!string.IsNullOrWhiteSpace(origin))
+                {
+                    uwr.SetRequestHeader("origin", origin);
+                }  
+
                 yield return uwr.SendWebRequest();
 
                 if (uwr.result != UnityWebRequest.Result.Success)

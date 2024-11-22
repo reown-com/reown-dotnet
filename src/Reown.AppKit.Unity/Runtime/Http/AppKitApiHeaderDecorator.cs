@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Reown.AppKit.Unity.Http
 {
@@ -11,6 +12,12 @@ namespace Reown.AppKit.Unity.Http
             requestContext.RequestHeaders["x-project-id"] = AppKit.Config.projectId;
             requestContext.RequestHeaders["x-sdk-type"] = "appkit";
             requestContext.RequestHeaders["x-sdk-version"] = AppKit.Version;
+
+            var origin = Application.identifier;
+            if (!string.IsNullOrWhiteSpace(origin))
+            {
+                requestContext.RequestHeaders["origin"] = origin;
+            }            
 
             return next(requestContext, cancellationToken);
         }
