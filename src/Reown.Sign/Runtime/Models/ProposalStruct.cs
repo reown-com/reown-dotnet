@@ -67,7 +67,7 @@ namespace Reown.Sign.Models
         /// <summary>
         ///     Custom session properties for this proposal request
         /// </summary>
-        [JsonProperty("sessionProperties")]
+        [JsonProperty("sessionProperties", NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<string, string> SessionProperties;
 
         /// <summary>

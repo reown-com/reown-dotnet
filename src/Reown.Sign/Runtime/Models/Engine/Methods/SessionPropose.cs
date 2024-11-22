@@ -43,7 +43,7 @@ namespace Reown.Sign.Models.Engine.Methods
         /// <summary>
         ///     Custom session properties for this session
         /// </summary>
-        [JsonProperty("sessionProperties")]
+        [JsonProperty("sessionProperties", NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<string, string> SessionProperties;
     }
 }
