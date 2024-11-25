@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using Sentry.Protocol;
 using UnityEngine;
 using UnityEngine.Assertions;
 
