@@ -33,7 +33,7 @@ namespace Reown.Sign.Nethereum.Model
         public EthereumChain(string chainIdDecimal, string name, in Currency nativeCurrency, string[] rpcUrls, string[] blockExplorerUrls = null)
         {
             this.chainIdDecimal = chainIdDecimal;
-            chainIdHex = chainIdDecimal.ToHex();
+            chainIdHex = int.Parse(chainIdDecimal).ToHex(true);
             this.name = name;
             this.nativeCurrency = nativeCurrency;
             this.rpcUrls = rpcUrls;
