@@ -106,9 +106,9 @@ namespace Reown.AppKit.Unity
 
         protected override async Task<bool> VerifyMessageSignatureAsyncCore(string address, string message, string signature)
         {
-            var erc6492Service = Web3.Eth.SignatureValidationPredeployContractERC6492;
 
             // -- ERC-6492
+            var erc6492Service = Web3.Eth.SignatureValidationPredeployContractERC6492;
             if (erc6492Service.IsERC6492Signature(signature))
             {
                 return await erc6492Service.IsValidSignatureMessageAsync(address, message, signature.HexToByteArray());
