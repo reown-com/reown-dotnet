@@ -68,7 +68,7 @@ namespace Reown.Sign.Unity
 
         protected override bool TryGetOrigin(out string origin)
         {
-#if UNITY_WEBGL
+#if UNITY_WEBGL && !UNITY_EDITOR
             origin = Application.identifier;
             return true;
 #else

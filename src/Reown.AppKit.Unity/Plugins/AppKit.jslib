@@ -191,7 +191,8 @@ mergeInto(LibraryManager.library, {
     WagmiWatchChainId: function (callbackPtr) {
         _appKitConfig.wagmiCore.watchChainId(_appKitConfig.config, {
             onChange(data) {
-                {{{makeDynCall('vi', 'callbackPtr')}}}(data);
+                const dataStr = stringToNewUTF8(SerializeJson(data));
+                {{{makeDynCall('vi', 'callbackPtr')}}}(dataStr);
                 _free(dataStr);
             }
         });
