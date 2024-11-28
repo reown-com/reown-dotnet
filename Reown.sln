@@ -36,6 +36,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reown.WalletKit.Test", "tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reown.Core.Storage.Test", "test\Reown.Core.Storage.Test\Reown.Core.Storage.Test.csproj", "{F13FA074-D00C-46B9-A7AC-78FCF940165D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reown.Core.Common.Test", "test\Reown.Core.Common.Test\Reown.Core.Common.Test.csproj", "{4C513826-A313-40FA-A6ED-F74A33139809}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -114,5 +116,9 @@ Global
 		{F13FA074-D00C-46B9-A7AC-78FCF940165D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F13FA074-D00C-46B9-A7AC-78FCF940165D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F13FA074-D00C-46B9-A7AC-78FCF940165D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C513826-A313-40FA-A6ED-F74A33139809}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C513826-A313-40FA-A6ED-F74A33139809}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C513826-A313-40FA-A6ED-F74A33139809}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C513826-A313-40FA-A6ED-F74A33139809}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 
 namespace Reown.Core.Common.Utils
@@ -59,6 +60,44 @@ namespace Reown.Core.Common.Utils
             }
 
             return new string(buffer[..(index + charsWritten)]);
+        }
+
+        public static string ToHex(this BigInteger value, bool prefix = false)
+        {
+            if (value.IsZero)
+                return prefix ? "0x0" : "0";
+
+            var byteCount = value.GetByteCount();
+            var prefixLength = prefix ? 2 : 0;
+            var bufferLength = prefixLength + byteCount * 2; // Each byte becomes two hex characters
+
+            var buffer = bufferLength <= 256
+                ? stackalloc char[bufferLength]
+                : new char[bufferLength];
+
+            var success = value.TryFormat(buffer, out var charsWritten, "x");
+            if (!success)
+            {
+                throw new InvalidOperationException("Failed to convert value to hexadecimal.");
+            }
+
+            // Remove unnecessary leading zeros
+            var nonZeroStartIndex = 0;
+            while (nonZeroStartIndex < charsWritten && buffer[nonZeroStartIndex] == '0')
+                nonZeroStartIndex++;
+
+            if (nonZeroStartIndex == charsWritten)
+                return prefix ? "0x0" : "0";
+
+            if (!prefix)
+                return new string(buffer.Slice(nonZeroStartIndex, charsWritten - nonZeroStartIndex));
+
+            var resultLength = charsWritten - nonZeroStartIndex;
+            var resultBuffer = bufferLength <= 256 ? stackalloc char[2 + resultLength] : new char[2 + resultLength];
+            resultBuffer[0] = '0';
+            resultBuffer[1] = 'x';
+            buffer.Slice(nonZeroStartIndex, resultLength).CopyTo(resultBuffer[2..]);
+            return new string(resultBuffer);
         }
 
         public static bool HasHexPrefix(this string value)

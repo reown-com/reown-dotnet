@@ -20,11 +20,19 @@ namespace Reown.AppKit.Unity
         protected override async Task ChangeActiveChainAsyncCore(Chain chain)
         {
             if (AppKit.ConnectorController.IsAccountConnected)
+            {
                 // Request connector to change active chain.
                 // If connector approves the change, it will trigger the ChainChanged event.
                 await AppKit.ConnectorController.ChangeActiveChainAsync(chain);
-            else
+
+                var previousChain = ActiveChain;
                 ActiveChain = chain;
+                OnChainChanged(new ChainChangedEventArgs(previousChain, chain));
+            }
+            else
+            {
+                ActiveChain = chain;
+            }
 
             AppKit.EventsController.SendEvent(new Event
             {
@@ -38,6 +46,9 @@ namespace Reown.AppKit.Unity
 
         protected override void ConnectorChainChangedHandlerCore(object sender, Connector.ChainChangedEventArgs e)
         {
+            if (ActiveChain?.ChainId == e.ChainId)
+                return;
+            
             var chain = Chains.GetValueOrDefault(e.ChainId);
 
             var previousChain = ActiveChain;
