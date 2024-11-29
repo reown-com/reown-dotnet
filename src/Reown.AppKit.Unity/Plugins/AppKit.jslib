@@ -66,11 +66,12 @@ mergeInto(LibraryManager.library, {
         const metadata = parameters.metadata;
         const chains = parameters.chains;
 
+        const enableEmail = parameters.enableEmail;
         const enableOnramp = parameters.enableOnramp;
         const enableAnalytics = parameters.enableAnalytics;
 
         // Load the scripts and initialize the configuration
-        import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.5.0/dist/appkit.js").then(AppKit => {
+        import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.5.3/dist/appkit.js").then(AppKit => {
             const WagmiCore = AppKit['WagmiCore'];
             const WagmiAdapter = AppKit['WagmiAdapter'];
             const Chains = AppKit['networks'];
@@ -90,6 +91,7 @@ mergeInto(LibraryManager.library, {
                 metadata: metadata,
                 projectId,
                 features: {
+                    email: enableEmail,
                     analytics: enableAnalytics,
                     onramp: enableOnramp,
                     socials: []

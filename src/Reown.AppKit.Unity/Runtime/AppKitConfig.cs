@@ -12,8 +12,10 @@ namespace Reown.AppKit.Unity
         public ushort connectViewWalletsCountMobile = 3;
         public ushort connectViewWalletsCountDesktop = 2;
 
-        public bool enableOnramp = true; // Currently supported only in WebGL
         public bool enableAnalytics = true;
+
+        public bool enableEmail = true; // Currently supported only in WebGL
+        public bool enableOnramp = true; // Currently supported only in WebGL
         public bool enableCoinbaseWallet = true; // Currently supported only in WebGL
 
         public SiweConfig siweConfig;

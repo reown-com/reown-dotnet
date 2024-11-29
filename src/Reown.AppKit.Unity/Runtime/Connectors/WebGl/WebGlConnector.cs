@@ -39,7 +39,8 @@ namespace Reown.AppKit.Unity
                 chains = viemChainNames,
                 includeWalletIds = appKitConfig.includedWalletIds ?? Array.Empty<string>(),
                 excludeWalletIds = appKitConfig.excludedWalletIds ?? Array.Empty<string>(),
-                
+
+                enableEmail = appKitConfig.enableEmail,
                 enableOnramp = appKitConfig.enableOnramp,
                 enableAnalytics = appKitConfig.enableAnalytics,
                 enableCoinbaseWallet = appKitConfig.enableCoinbaseWallet
@@ -177,6 +178,7 @@ namespace Reown.AppKit.Unity
         public string[] includeWalletIds;
         public string[] excludeWalletIds;
 
+        public bool enableEmail;
         public bool enableOnramp;
         public bool enableAnalytics;
         public bool enableCoinbaseWallet;
