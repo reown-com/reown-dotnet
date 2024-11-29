@@ -66,6 +66,7 @@ mergeInto(LibraryManager.library, {
         const metadata = parameters.metadata;
         const chains = parameters.chains;
 
+        const enableEmail = parameters.enableEmail;
         const enableOnramp = parameters.enableOnramp;
         const enableAnalytics = parameters.enableAnalytics;
 
@@ -90,6 +91,7 @@ mergeInto(LibraryManager.library, {
                 metadata: metadata,
                 projectId,
                 features: {
+                    email: enableEmail,
                     analytics: enableAnalytics,
                     onramp: enableOnramp,
                     socials: []

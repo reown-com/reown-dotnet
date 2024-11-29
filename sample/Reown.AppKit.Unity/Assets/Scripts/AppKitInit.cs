@@ -28,7 +28,8 @@ namespace Sample
                 {
                     Domain = "example.com",
                     Uri = "https://example.com/login"
-                }
+                },
+                SignOutOnChainChange = false
             };
 
             // Subscribe to SIWE events
