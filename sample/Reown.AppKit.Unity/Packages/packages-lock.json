@@ -15,7 +15,7 @@
       "url": "https://package.openupm.com"
     },
     "com.nethereum.unity": {
-      "version": "4.19.1",
+      "version": "4.26.0",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
@@ -94,7 +94,7 @@
       "source": "local",
       "dependencies": {
         "com.reown.sign": "1.1.1",
-        "com.nethereum.unity": "4.19.1"
+        "com.nethereum.unity": "4.26.0"
       }
     },
     "com.reown.sign.nethereum.unity": {

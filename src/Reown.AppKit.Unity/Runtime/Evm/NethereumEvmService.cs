@@ -1,6 +1,10 @@
+using System;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 using System.Threading.Tasks;
+using Nethereum.ABI.FunctionEncoding;
+using Nethereum.Contracts.Standards.ERC1271.ContractDefinition;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Signer;
@@ -9,6 +13,7 @@ using Nethereum.Util;
 using Nethereum.Web3;
 using Reown.Sign.Nethereum.Unity;
 using Reown.Sign.Unity;
+using UnityEngine;
 using HexBigInteger = Nethereum.Hex.HexTypes.HexBigInteger;
 
 namespace Reown.AppKit.Unity
@@ -99,10 +104,64 @@ namespace Reown.AppKit.Unity
 
         // -- Verify Message -------------------------------------------
 
-        protected override Task<bool> VerifyMessageSignatureAsyncCore(string address, string message, string signature)
+        protected override async Task<bool> VerifyMessageSignatureAsyncCore(string address, string message, string signature)
         {
+
+            // -- ERC-6492
+            var erc6492Service = Web3.Eth.SignatureValidationPredeployContractERC6492;
+            if (erc6492Service.IsERC6492Signature(signature))
+            {
+                return await erc6492Service.IsValidSignatureMessageAsync(address, message, signature.HexToByteArray());
+            }
+
+            // -- EOA
             var recoveredAddress = _ethereumMessageSigner.EncodeUTF8AndEcRecover(message, signature);
-            return Task.FromResult(recoveredAddress.IsTheSameAddress(address));
+            if (recoveredAddress.IsTheSameAddress(address))
+            {
+                return true;
+            }
+
+            // -- ERC-1271
+            var ethGetCode = await Web3.Eth.GetCode.SendRequestAsync(address);
+            if (ethGetCode is { Length: > 2 })
+            {
+                var hashedMessage = _ethereumMessageSigner.HashPrefixedMessage(Encoding.UTF8.GetBytes(message));
+
+                var isValidSignatureFunctionMessage = new IsValidSignatureFunction()
+                {
+                    Hash = hashedMessage,
+                    Signature = signature.HexToByteArray()
+                };
+
+                var handler = Web3.Eth.GetContractQueryHandler<IsValidSignatureFunction>();
+
+                try
+                {
+                    var result = await handler.QueryAsync<byte[]>(address, isValidSignatureFunctionMessage);
+
+                    // The magic value 0x1626ba7e
+                    var magicValue = new byte[]
+                    {
+                        0x16,
+                        0x26,
+                        0xBA,
+                        0x7E
+                    };
+
+                    return result != null && result.SequenceEqual(magicValue);
+                }
+                catch (SmartContractRevertException)
+                {
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                    return false;
+                }
+            }
+
+            return false;
         }
 
 
