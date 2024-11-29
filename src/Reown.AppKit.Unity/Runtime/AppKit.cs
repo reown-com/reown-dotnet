@@ -8,7 +8,7 @@ namespace Reown.AppKit.Unity
 {
     public abstract class AppKit : MonoBehaviour
     {
-        public const string Version = "unity-appkit-v1.1.1"; // TODO: update this from CI
+        public const string Version = "unity-appkit-v1.1.2"; // TODO: update this from CI
         public static AppKit Instance { get; protected set; }
 
         public static ModalController ModalController { get; protected set; }
