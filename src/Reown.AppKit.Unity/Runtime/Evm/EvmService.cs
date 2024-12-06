@@ -33,6 +33,14 @@ namespace Reown.AppKit.Unity
             return SignMessageAsyncCore(message);
         }
 
+        public Task<string> SignMessageAsync(byte[] rawMessage)
+        {
+            if (rawMessage == null || rawMessage.Length == 0)
+                throw new ArgumentNullException(nameof(rawMessage));
+
+            return SignMessageAsyncCore(rawMessage);
+        }
+
 
         // -- Sign Typed Data ------------------------------------------
 
@@ -157,6 +165,7 @@ namespace Reown.AppKit.Unity
         protected abstract Task InitializeAsyncCore(SignClientUnity signClient);
         protected abstract Task<BigInteger> GetBalanceAsyncCore(string address);
         protected abstract Task<string> SignMessageAsyncCore(string message);
+        protected abstract Task<string> SignMessageAsyncCore(byte[] rawMessage);
         protected abstract Task<bool> VerifyMessageSignatureAsyncCore(string address, string message, string signature);
         protected abstract Task<string> SignTypedDataAsyncCore(string dataJson);
         protected abstract Task<bool> VerifyTypedDataSignatureAsyncCore(string address, string dataJson, string signature);
