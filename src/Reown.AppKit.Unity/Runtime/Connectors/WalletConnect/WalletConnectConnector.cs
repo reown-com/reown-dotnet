@@ -24,6 +24,11 @@ namespace Reown.AppKit.Unity
             Type = ConnectorType.WalletConnect;
         }
 
+        public SignClientUnity SignClient
+        {
+            get => _signClient;
+        }
+
         protected override Task InitializeAsyncCore(AppKitConfig config, SignClientUnity signClient)
         {
             _signClient = signClient;
