@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Reown.Core.Common.Utils;
 using Reown.Core.Models.Relay;
@@ -45,5 +46,11 @@ namespace Reown.Sign.Models.Engine.Methods
         /// </summary>
         [JsonProperty("relay")]
         public ProtocolOptions Relay;
+
+        /// <summary>
+        ///     Custom session properties for this session
+        /// </summary>
+        [JsonProperty("sessionProperties", NullValueHandling = NullValueHandling.Ignore)]
+        public Dictionary<string, string> SessionProperties;
     }
 }

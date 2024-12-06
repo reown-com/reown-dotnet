@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Web;
 using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Model;
 using Reown.AppKit.Unity.Utils;
@@ -41,7 +42,7 @@ namespace Reown.AppKit.Unity
                         (ConnectorType.WalletConnect, out var connector))
                 throw new Exception("No WC connector"); // TODO: use custom exception
 
-            _connectionProposal ??= (WalletConnectConnectionProposal)connector.Connect();
+            _connectionProposal = (WalletConnectConnectionProposal)connector.Connect();
 
             if (WalletUtils.TryGetLastViewedWallet(out var wallet))
             {
@@ -52,7 +53,8 @@ namespace Reown.AppKit.Unity
 
         private void OnOpenLinkClicked()
         {
-            Application.OpenURL(Path.Combine(_wallet.WebappLink, $"wc?uri={_connectionProposal.Uri}"));
+            var encodedUri = HttpUtility.UrlEncode(_connectionProposal.Uri);
+            Application.OpenURL(Path.Combine(_wallet.WebappLink, $"wc?uri={encodedUri}"));
         }
 
         private void OnCopyLinkClicked()

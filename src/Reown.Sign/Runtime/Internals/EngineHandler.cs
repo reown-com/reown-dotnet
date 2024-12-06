@@ -121,6 +121,7 @@ namespace Reown.Sign
                 var controller = @params.Controller;
                 var expiry = @params.Expiry;
                 var namespaces = @params.Namespaces;
+                var sessionProperties = @params.SessionProperties;
 
                 var session = new SessionStruct
                 {
@@ -141,6 +142,7 @@ namespace Reown.Sign
                         PublicKey = controller.PublicKey,
                         Metadata = controller.Metadata
                     },
+                    SessionProperties = sessionProperties,
 #pragma warning disable S6602
                     RequiredNamespaces = proposal.RequiredNamespaces
 #pragma warning restore S6602

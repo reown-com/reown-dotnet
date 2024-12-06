@@ -74,6 +74,12 @@ namespace Reown.Sign.Models
         public Participant Peer;
 
         /// <summary>
+        ///     Custom session properties for this session
+        /// </summary>
+        [JsonProperty("sessionProperties", NullValueHandling = NullValueHandling.Ignore)]
+        public Dictionary<string, string> SessionProperties;
+
+        /// <summary>
         ///     This is the key field, mapped to the Topic. Implemented for <see cref="IKeyHolder{TKey}" />
         ///     so this struct can be stored using <see cref="IStore{TKey,TValue}" />
         /// </summary>
