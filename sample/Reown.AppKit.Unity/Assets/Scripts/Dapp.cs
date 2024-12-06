@@ -215,6 +215,11 @@ namespace Sample
                 var account = await AppKit.GetAccountAsync();
 
                 const string message = "Hello from Unity!";
+
+                // It's also possible to sign a message as a byte array
+                // var messageBytes = System.Text.Encoding.UTF8.GetBytes(message);
+                // var signature = await AppKit.Evm.SignMessageAsync(messageBytes);
+
                 var signature = await AppKit.Evm.SignMessageAsync(message);
                 var isValid = await AppKit.Evm.VerifyMessageSignatureAsync(account.Address, message, signature);
 

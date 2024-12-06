@@ -25,6 +25,11 @@ namespace Reown.AppKit.Unity
             return WagmiInterop.SignMessageAsync(message);
         }
 
+        protected override Task<string> SignMessageAsyncCore(byte[] rawMessage)
+        {
+            return WagmiInterop.SignMessageAsync(rawMessage);
+        }
+
         protected override Task<bool> VerifyMessageSignatureAsyncCore(string address, string message, string signature)
         {
             return WagmiInterop.VerifyMessageAsync(address, message, signature);

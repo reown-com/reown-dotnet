@@ -101,6 +101,12 @@ namespace Reown.AppKit.Unity
             return await Web3.Client.SendRequestAsync<string>("personal_sign", null, encodedMessage);
         }
 
+        protected override Task<string> SignMessageAsyncCore(byte[] rawMessage)
+        {
+            var encodedMessage = rawMessage.ToHex(true);
+            return Web3.Client.SendRequestAsync<string>("personal_sign", null, encodedMessage);
+        }
+
 
         // -- Verify Message -------------------------------------------
 
