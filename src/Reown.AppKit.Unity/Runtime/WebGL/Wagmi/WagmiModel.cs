@@ -60,7 +60,7 @@ namespace Reown.AppKit.Unity.WebGl.Wagmi
     public class SwitchChainParameter
     {
         public int chainId;
-        public AddEthereumChainParameter parameter;
+        public AddEthereumChainParameter addEthereumChainParameter;
     }
 
     [Serializable]
