@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Reown.Core.Common.Logging;
 using Reown.Core.Common.Model.Errors;
 using Reown.Sign.Interfaces;
 using Reown.Sign.Nethereum.Model;
@@ -38,6 +39,8 @@ namespace Reown.Sign.Nethereum
                         var metaMaskError = JsonConvert.DeserializeObject<MetaMaskError>(e.Message);
                         if (metaMaskError is { Code: 4001 }) // If user rejected
                             throw;
+
+                        ReownLogger.LogError($"[MetaMask Error] {metaMaskError.Message}");
                     }
                     catch (Exception)
                     {
