@@ -71,6 +71,9 @@ namespace Reown.AppKit.Unity
         {
             if (e.PreviousChain?.ChainId == e.NewChain?.ChainId)
                 return;
+
+            if (e.NewChain == null)
+                return;
             
             ChainChanged?.Invoke(this, e);
         }
