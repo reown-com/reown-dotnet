@@ -79,7 +79,7 @@ namespace Reown.AppKit.Unity
             }
         }
 
-        private void SessionConnectedHandler(object sender, SessionStruct e)
+        private void SessionConnectedHandler(object sender, Session e)
         {
             IsSignarureRequested = _siweController.IsEnabled;
             IsConnected = true;

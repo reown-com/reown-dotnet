@@ -6,6 +6,7 @@ using AOT;
 using Newtonsoft.Json;
 using Reown.AppKit.Unity.WebGl.Modal;
 using Reown.AppKit.Unity.WebGl.Wagmi;
+using Reown.Sign.Models;
 using Reown.Sign.Unity;
 
 namespace Reown.AppKit.Unity

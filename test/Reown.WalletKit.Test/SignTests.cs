@@ -104,8 +104,8 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
         private SignClient _dapp;
         private WalletKitClient _wallet;
         private string uriString;
-        private Task<SessionStruct> sessionApproval;
-        private SessionStruct session;
+        private Task<Session> sessionApproval;
+        private Session session;
         
         
         public string WalletAddress

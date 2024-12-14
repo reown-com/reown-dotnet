@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Reown.Sign.Models;
 using Reown.Sign.Unity;
 using UnityEngine;
 

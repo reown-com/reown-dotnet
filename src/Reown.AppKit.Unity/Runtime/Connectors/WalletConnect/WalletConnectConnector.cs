@@ -41,10 +41,10 @@ namespace Reown.AppKit.Unity
 
             return Task.CompletedTask;
         }
-        
-        private void ActiveSessionChangedHandler(object sender, SessionStruct e)
+
+        private void ActiveSessionChangedHandler(object sender, Session session)
         {
-            if (string.IsNullOrWhiteSpace(e.Topic))
+            if (session == null)
                 return;
 
             var currentAccount = GetCurrentAccount();
@@ -219,7 +219,7 @@ namespace Reown.AppKit.Unity
 
         private Account GetCurrentAccount()
         {
-            var caipAddress = _signClient.AddressProvider.CurrentAddress();
+            var caipAddress = _signClient.AddressProvider.CurrentAccount();
             return new Account(caipAddress.Address, caipAddress.ChainId);
         }
 

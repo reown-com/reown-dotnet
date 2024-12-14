@@ -50,10 +50,10 @@ namespace Reown.Sign.Unity
 #endif
         }
 
-        public static void OpenSessionRequestDeepLink(in SessionStruct session)
+        public static void OpenSessionRequestDeepLink(Session session)
         {
-            if (string.IsNullOrWhiteSpace(session.Topic))
-                throw new Exception("[Linker] No session topic found in provided session. Cannot open deep link.");
+            if (session == null)
+                throw new ArgumentNullException(nameof(session));
 
             if (session.Peer.Metadata == null)
                 return;
@@ -111,13 +111,13 @@ namespace Reown.Sign.Unity
         public void OpenSessionRequestDeepLink(string sessionTopic)
         {
             var session = _signClient.Session.Get(sessionTopic);
-            OpenSessionRequestDeepLink(in session);
+            OpenSessionRequestDeepLink(session);
         }
 
         public virtual void OpenSessionRequestDeepLink()
         {
             var session = _signClient.AddressProvider.DefaultSession;
-            OpenSessionRequestDeepLink(in session);
+            OpenSessionRequestDeepLink(session);
         }
 
         protected virtual void OnPublisherPublishedMessage(object sender, PublishParams publishParams)

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Reown.Sign.Models;
 using Reown.Sign.Unity;
 using UnityEngine;
 using UnityEngine.Scripting;

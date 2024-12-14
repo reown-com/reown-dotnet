@@ -16,16 +16,16 @@ namespace Reown.WalletKit
         public string Name { get; }
         public string Context { get; }
 
-        public event EventHandler<SessionStruct> SessionExpired;
+        public event EventHandler<Session> SessionExpired;
         public event EventHandler<SessionProposalEvent> SessionProposed;
-        public event EventHandler<SessionStruct> SessionConnected;
+        public event EventHandler<Session> SessionConnected;
         public event EventHandler<Exception> SessionConnectionErrored;
         public event EventHandler<SessionUpdateEvent> SessionUpdated;
         public event EventHandler<SessionEvent> SessionExtended;
         public event EventHandler<SessionEvent> SessionPinged;
         public event EventHandler<SessionEvent> SessionDeleted;
 
-        public IDictionary<string, SessionStruct> ActiveSessions
+        public IDictionary<string, Session> ActiveSessions
         {
             get
             {
@@ -94,12 +94,12 @@ namespace Reown.WalletKit
             return this.Engine.Pair(uri, activatePairing);
         }
 
-        public Task<SessionStruct> ApproveSession(long id, Namespaces namespaces, string relayProtocol = null)
+        public Task<Session> ApproveSession(long id, Namespaces namespaces, string relayProtocol = null)
         {
             return this.Engine.ApproveSession(id, namespaces, relayProtocol);
         }
 
-        public Task<SessionStruct> ApproveSession(ProposalStruct proposal, params string[] approvedAddresses)
+        public Task<Session> ApproveSession(ProposalStruct proposal, params string[] approvedAddresses)
         {
             return this.Engine.ApproveSession(proposal, approvedAddresses);
         }

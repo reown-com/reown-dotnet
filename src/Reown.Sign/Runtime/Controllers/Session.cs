@@ -7,10 +7,10 @@ namespace Reown.Sign.Controllers
 {
     /// <summary>
     ///     A <see cref="Store{TKey,TValue}" /> module for storing
-    ///     <see cref="SessionStruct" /> data. This will be used
+    ///     <see cref="Models.Session" /> data. This will be used
     ///     for storing session data
     /// </summary>
-    public class Session : Store<string, SessionStruct>, ISession
+    public class Session : Store<string, Models.Session>, ISession
     {
         /// <summary>
         ///     Create a new instance of this module

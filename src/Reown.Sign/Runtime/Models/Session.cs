@@ -8,76 +8,76 @@ using Reown.Core.Models.Relay;
 namespace Reown.Sign.Models
 {
     /// <summary>
-    ///     A struct that holds session data, including the session topic, when the session expires, whether the session has
+    ///     An object that holds session data, including the session topic, when the session expires, whether the session has
     ///     been acknowledged and who the session controller is.
     /// </summary>
-    public struct SessionStruct : IKeyHolder<string>
+    public class Session : IKeyHolder<string>
     {
         /// <summary>
         ///     The topic of this session
         /// </summary>
         [JsonProperty("topic")]
-        public string Topic;
+        public string Topic { get; set; }
 
         /// <summary>
         ///     The pairing topic of this session
         /// </summary>
         [JsonProperty("pairingTopic")]
-        public string PairingTopic;
+        public string PairingTopic { get; set; }
 
         /// <summary>
         ///     The relay protocol options this session is using
         /// </summary>
         [JsonProperty("relay")]
-        public ProtocolOptions Relay;
+        public ProtocolOptions Relay { get; set; }
 
         /// <summary>
         ///     When this session expires
         /// </summary>
         [JsonProperty("expiry")]
-        public long? Expiry;
+        public long? Expiry { get; set; }
 
         /// <summary>
         ///     Whether this session has been acknowledged or not
         /// </summary>
         [JsonProperty("acknowledged")]
-        public bool? Acknowledged;
+        public bool? Acknowledged { get; set; }
 
         /// <summary>
         ///     The public key of the current controller for this session
         /// </summary>
         [JsonProperty("controller")]
-        public string Controller;
+        public string Controller { get; set; }
 
         /// <summary>
         ///     The enabled namespaces this session uses
         /// </summary>
         [JsonProperty("namespaces")]
-        public Namespaces Namespaces;
+        public Namespaces Namespaces { get; set; }
 
         /// <summary>
         ///     The required enabled namespaces this session uses
         /// </summary>
         [JsonProperty("requiredNamespaces")]
-        public RequiredNamespaces RequiredNamespaces;
+        public RequiredNamespaces RequiredNamespaces { get; set; }
 
         /// <summary>
         ///     The <see cref="Participant" /> data that represents ourselves in this session
         /// </summary>
         [JsonProperty("self")]
-        public Participant Self;
+        public Participant Self { get; set; }
 
         /// <summary>
         ///     The <see cref="Participant" /> data that represents the peer in this session
         /// </summary>
         [JsonProperty("peer")]
-        public Participant Peer;
+        public Participant Peer { get; set; }
 
         /// <summary>
         ///     Custom session properties for this session
         /// </summary>
         [JsonProperty("sessionProperties", NullValueHandling = NullValueHandling.Ignore)]
-        public Dictionary<string, string> SessionProperties;
+        public Dictionary<string, string> SessionProperties { get; set; }
 
         /// <summary>
         ///     This is the key field, mapped to the Topic. Implemented for <see cref="IKeyHolder{TKey}" />
@@ -89,58 +89,53 @@ namespace Reown.Sign.Models
             get => Topic;
         }
 
-        public Caip25Address CurrentAddress(string chainId)
+        public Account CurrentAccount(string chainId)
         {
             ValidateChainIdAndTopic(chainId);
 
             var namespaceStr = Core.Utils.ExtractChainNamespace(chainId);
 
             if (!Namespaces.TryGetValue(namespaceStr, out var defaultNamespace))
-            {
                 throw new InvalidOperationException(
-                    $"SessionStruct.CurrentAddress: Given namespace {namespaceStr} is not available in the current session");
-            }
+                    $"Session.CurrentAddress: Given namespace {namespaceStr} is not available in the current session");
 
             if (defaultNamespace.Accounts.Length == 0)
                 throw new InvalidOperationException(
-                    $"SessionStruct.CurrentAddress: Given namespace {namespaceStr} has no connected addresses");
+                    $"Session.CurrentAddress: Given namespace {namespaceStr} has no connected addresses");
 
-            var fullAddress = Array.Find(defaultNamespace.Accounts, addr => addr.StartsWith(chainId));
-            if (fullAddress == default)
-            {
-                throw new InvalidOperationException(
-                    $"SessionStruct.CurrentAddress: No address found for chain {chainId}");
-            }
+            var accountId = Array.Find(defaultNamespace.Accounts, addr => addr.StartsWith(chainId));
+            if (string.IsNullOrWhiteSpace(accountId))
+                throw new InvalidOperationException($"Session.CurrentAddress: No address found for chain {chainId}");
 
-            var address = fullAddress.Split(":")[2];
-            return new Caip25Address
-            {
-                Address = address,
-                ChainId = chainId
-            };
+            return new Account(accountId);
         }
 
-        public IEnumerable<Caip25Address> AllAddresses(string @namespace)
+        [Obsolete("Use CurrentAccount instead")]
+        public Account CurrentAddress(string chainId)
+        {
+            return CurrentAccount(chainId);
+        }
+
+        public IEnumerable<Account> AllAccounts(string @namespace)
         {
             ValidateNamespaceAndTopic(@namespace);
 
             var defaultNamespace = Namespaces[@namespace];
             return defaultNamespace.Accounts.Length == 0
-                ? new List<Caip25Address>().AsReadOnly()
-                : defaultNamespace.Accounts.Select(CreateCaip25Address);
+                ? new List<Account>().AsReadOnly()
+                : defaultNamespace.Accounts.Select(accountId => new Account(accountId));
         }
 
-        public static Caip25Address CreateCaip25Address(string fullAddress)
+        [Obsolete("Use AllAccounts instead")]
+        public IEnumerable<Account> AllAddresses(string @namespace)
         {
-            var addressParts = fullAddress.Split(":");
-            var address = addressParts[2];
-            var chainId = string.Join(':', addressParts.Take(2));
+            return AllAccounts(@namespace);
+        }
 
-            return new Caip25Address
-            {
-                Address = address,
-                ChainId = chainId
-            };
+        [Obsolete("Use `new Account(fullAddress)` instead")]
+        public static Account CreateCaip25Address(string fullAddress)
+        {
+            return new Account(fullAddress);
         }
 
         private void ValidateNamespaceAndTopic(string @namespace)

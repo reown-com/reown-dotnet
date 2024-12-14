@@ -30,7 +30,7 @@ namespace Reown.Sign.Interfaces
         ///     This event is invoked when the given session has expired
         ///     Event Side: dApp & Wallet
         /// </summary>
-        event EventHandler<SessionStruct> SessionExpired;
+        event EventHandler<Session> SessionExpired;
 
         /// <summary>
         ///     This event is invoked when the given pairing has expired
@@ -62,7 +62,7 @@ namespace Reown.Sign.Interfaces
         ///     triggered after the session has been approved by a wallet
         ///     Event Side: dApp
         /// </summary>
-        event EventHandler<SessionStruct> SessionConnected;
+        event EventHandler<Session> SessionConnected;
 
         /// <summary>
         ///     This event is invoked when a proposed session connection failed with an error
@@ -110,13 +110,13 @@ namespace Reown.Sign.Interfaces
         ///     This event is invoked whenever a session has been rejected
         ///     Event Side: Wallet
         /// </summary>
-        event EventHandler<SessionStruct> SessionRejected;
+        event EventHandler<Session> SessionRejected;
 
         /// <summary>
         ///     This event is invoked whenever a session has been approved
         ///     Event Side: Wallet
         /// </summary>
-        event EventHandler<SessionStruct> SessionApproved;
+        event EventHandler<Session> SessionApproved;
 
         /// <summary>
         ///     This event is invoked whenever a pairing is pinged
@@ -297,7 +297,7 @@ namespace Reown.Sign.Interfaces
         /// </summary>
         /// <param name="requiredNamespaces">The required namespaces the session must have to be returned</param>
         /// <returns>All sessions that have a namespace that match the given <see cref="RequiredNamespaces" /></returns>
-        SessionStruct[] Find(RequiredNamespaces requiredNamespaces);
+        Session[] Find(RequiredNamespaces requiredNamespaces);
 
         Task<DisposeHandlerToken> HandleEventMessageType<T>(Func<string, JsonRpcRequest<SessionEvent<T>>, Task> requestCallback,
             Func<string, JsonRpcResponse<bool>, Task> responseCallback);
@@ -373,7 +373,7 @@ namespace Reown.Sign.Interfaces
 
         Task RejectSessionAuthenticate(RejectParams rejectParams);
 
-        Task<SessionStruct> ApproveSessionAuthenticate(long requestId, CacaoObject[] auths);
+        Task<Session> ApproveSessionAuthenticate(long requestId, CacaoObject[] auths);
 
         IDictionary<long, AuthPendingRequest> PendingAuthRequests { get; }
 

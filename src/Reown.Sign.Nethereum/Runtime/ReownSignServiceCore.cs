@@ -22,7 +22,7 @@ namespace Reown.Sign.Nethereum
 
         public override bool IsWalletConnected
         {
-            get => !string.IsNullOrWhiteSpace(_signClient.AddressProvider.DefaultSession.Topic);
+            get => _signClient.AddressProvider.DefaultSession != null;
         }
 
         private string GetDefaultAddress()

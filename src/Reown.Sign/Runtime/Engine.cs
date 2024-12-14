@@ -100,7 +100,7 @@ namespace Reown.Sign
         ///     This event is invoked when the given session has expired
         ///     Event Side: dApp & Wallet
         /// </summary>
-        public event EventHandler<SessionStruct> SessionExpired;
+        public event EventHandler<Session> SessionExpired;
 
         /// <summary>
         ///     This event is invoked when a new session authentication request is received.
@@ -132,7 +132,7 @@ namespace Reown.Sign
         ///     triggered after the session has been approved by a wallet
         ///     Event Side: dApp
         /// </summary>
-        public event EventHandler<SessionStruct> SessionConnected;
+        public event EventHandler<Session> SessionConnected;
 
         /// <summary>
         ///     This event is invoked when a proposed session connection failed with an error
@@ -180,13 +180,13 @@ namespace Reown.Sign
         ///     This event is invoked whenever a session has been rejected
         ///     Event Side: Wallet
         /// </summary>
-        public event EventHandler<SessionStruct> SessionRejected;
+        public event EventHandler<Session> SessionRejected;
 
         /// <summary>
         ///     This event is invoked whenever a session has been approved
         ///     Event Side: Wallet
         /// </summary>
-        public event EventHandler<SessionStruct> SessionApproved;
+        public event EventHandler<Session> SessionApproved;
 
         /// <summary>
         ///     This event is invoked whenever a pairing is pinged
@@ -426,7 +426,7 @@ namespace Reown.Sign
                 SessionProperties = sessionProperties
             };
 
-            var approvalTask = new TaskCompletionSource<SessionStruct>();
+            var approvalTask = new TaskCompletionSource<Session>();
 
             SessionConnected += OnSessionConnected;
             SessionConnectionErrored += OnSessionConnectionErrored;
@@ -454,26 +454,22 @@ namespace Reown.Sign
 
             return new ConnectedData(uri, topic, approvalTask.Task);
 
-            async void OnSessionConnected(object sender, SessionStruct session)
+            async void OnSessionConnected(object sender, Session session)
             {
-                if (!string.IsNullOrWhiteSpace(session.PairingTopic) && session.PairingTopic != topic)
-                {
+                if (session == null)
                     return;
-                }
+                
+                if (!string.IsNullOrWhiteSpace(session.PairingTopic) && session.PairingTopic != topic)
+                    return;
 
                 if (approvalTask.Task.IsCompleted)
-                {
                     return;
-                }
 
                 session.Self.PublicKey = publicKey;
-
-                var @struct = session;
-                @struct.RequiredNamespaces = requiredNamespaces;
-                var completeSession = @struct;
+                session.RequiredNamespaces = requiredNamespaces;
 
                 await PrivateThis.SetExpiry(session.Topic, session.Expiry.Value);
-                await Client.Session.Set(session.Topic, completeSession);
+                await Client.Session.Set(session.Topic, session);
 
                 if (!string.IsNullOrWhiteSpace(topic))
                 {
@@ -483,7 +479,7 @@ namespace Reown.Sign
                 SessionConnected -= OnSessionConnected;
                 SessionConnectionErrored -= OnSessionConnectionErrored;
 
-                approvalTask.SetResult(completeSession);
+                approvalTask.SetResult(session);
             }
 
             void OnSessionConnectionErrored(object sender, Exception exception)
@@ -567,7 +563,7 @@ namespace Reown.Sign
             await Client.CoreClient.Relayer.Subscribe(sessionTopic);
             var requestId = await MessageHandler.SendRequest<SessionSettle, bool>(sessionTopic, sessionSettle);
 
-            var acknowledgedTask = new TaskCompletionSource<SessionStruct>();
+            var acknowledgedTask = new TaskCompletionSource<Session>();
 
             _sessionEventsHandlerMap.ListenOnce($"session_approve{requestId}", (sender, args) =>
             {
@@ -577,7 +573,7 @@ namespace Reown.Sign
                     acknowledgedTask.SetResult(Client.Session.Get(sessionTopic));
             });
 
-            var session = new SessionStruct
+            var session = new Session
             {
                 Topic = sessionTopic,
                 Acknowledged = false,
@@ -663,7 +659,7 @@ namespace Reown.Sign
                     acknowledgedTask.SetResult(args.Result);
             });
 
-            await Client.Session.Update(topic, new SessionStruct
+            await Client.Session.Update(topic, new Session
             {
                 Namespaces = namespaces
             });
@@ -880,7 +876,7 @@ namespace Reown.Sign
         /// </summary>
         /// <param name="requiredNamespaces">The required namespaces the session must have to be returned</param>
         /// <returns>All sessions that have a namespace that match the given <see cref="RequiredNamespaces" /></returns>
-        public SessionStruct[] Find(RequiredNamespaces requiredNamespaces)
+        public Session[] Find(RequiredNamespaces requiredNamespaces)
         {
             IsInitialized();
             return Client.Session.Values.Where(s => IsSessionCompatible(s, requiredNamespaces)).ToArray();
@@ -1034,8 +1030,8 @@ namespace Reown.Sign
             long authId = default;
             long fallbackId = default;
             EventHandler<SessionAuthenticatedEventArgs> sessionAuthHandler = null;
-            EventHandler<SessionStruct> sessionConnectedHandler = null;
-            var approvalTask = new TaskCompletionSource<SessionStruct>();
+            EventHandler<Session> sessionConnectedHandler = null;
+            var approvalTask = new TaskCompletionSource<Session>();
             try
             {
                 var ids = await Task.WhenAll(
@@ -1081,7 +1077,7 @@ namespace Reown.Sign
 
             return new AuthenticateData(pairingData.Uri, approvalTask.Task);
 
-            async void OnSessionConnected(object sender, SessionStruct session, long fallbackProposalId)
+            async void OnSessionConnected(object sender, Session session, long fallbackProposalId)
             {
                 if (approvalTask.Task.IsCompleted)
                 {
@@ -1147,7 +1143,7 @@ namespace Reown.Sign
             await Client.Proposal.Delete(rejectParams.Id, Error.FromErrorType(ErrorType.USER_DISCONNECTED));
         }
 
-        public async Task<SessionStruct> ApproveSessionAuthenticate(long requestId, CacaoObject[] auths)
+        public async Task<Session> ApproveSessionAuthenticate(long requestId, CacaoObject[] auths)
         {
             IsInitialized();
 
@@ -1205,10 +1201,10 @@ namespace Reown.Sign
 
             var sessionTopic = await Client.CoreClient.Crypto.GenerateSharedKey(senderPublicKey, receiverPublicKey);
 
-            SessionStruct session = default;
+            Session session = default;
             if (approvedMethods.Any())
             {
-                session = new SessionStruct
+                session = new Session
                 {
                     Topic = sessionTopic,
                     Acknowledged = true,

@@ -20,6 +20,7 @@ using Reown.Sign.Models.Cacao;
 using Reown.Sign.Models.Engine;
 using Reown.Sign.Models.Engine.Events;
 using Reown.Sign.Models.Engine.Methods;
+using Session = Reown.Sign.Models.Session;
 
 namespace Reown.Sign
 {
@@ -90,7 +91,7 @@ namespace Reown.Sign
 
             PendingRequests = new PendingRequests(CoreClient);
             PairingStore = new PairingStore(CoreClient);
-            Session = new Session(CoreClient);
+            Session = new Controllers.Session(CoreClient);
             Proposal = new Proposal(CoreClient);
             Engine = new Engine(this);
             AddressProvider = new AddressProvider(this);
@@ -172,12 +173,12 @@ namespace Reown.Sign
             get => SessionAuthenticateRequest != null;
         }
 
-        public event EventHandler<SessionStruct> SessionExpired;
+        public event EventHandler<Session> SessionExpired;
         public event EventHandler<SessionAuthenticate> SessionAuthenticateRequest;
         public event EventHandler<SessionAuthenticatedEventArgs> SessionAuthenticated;
         public event EventHandler<PairingEvent> PairingExpired;
         public event EventHandler<SessionProposalEvent> SessionProposed;
-        public event EventHandler<SessionStruct> SessionConnected;
+        public event EventHandler<Session> SessionConnected;
         public event EventHandler<Exception> SessionConnectionErrored;
         public event EventHandler<SessionUpdateEvent> SessionUpdateRequest;
         public event EventHandler<SessionEvent> SessionExtendRequest;
@@ -185,8 +186,8 @@ namespace Reown.Sign
         public event EventHandler<SessionEvent> SessionExtended;
         public event EventHandler<SessionEvent> SessionPinged;
         public event EventHandler<SessionEvent> SessionDeleted;
-        public event EventHandler<SessionStruct> SessionRejected;
-        public event EventHandler<SessionStruct> SessionApproved;
+        public event EventHandler<Session> SessionRejected;
+        public event EventHandler<Session> SessionApproved;
         public event EventHandler<PairingEvent> PairingPinged;
         public event EventHandler<PairingEvent> PairingDeleted;
 
@@ -424,7 +425,7 @@ namespace Reown.Sign
         /// </summary>
         /// <param name="requiredNamespaces">The required namespaces the session must have to be returned</param>
         /// <returns>All sessions that have a namespace that match the given <see cref="RequiredNamespaces" /></returns>
-        public SessionStruct[] Find(RequiredNamespaces requiredNamespaces)
+        public Session[] Find(RequiredNamespaces requiredNamespaces)
         {
             return Engine.Find(requiredNamespaces);
         }
@@ -480,7 +481,7 @@ namespace Reown.Sign
             return Engine.RejectSessionAuthenticate(rejectParams);
         }
 
-        public Task<SessionStruct> ApproveSessionAuthenticate(long requestId, CacaoObject[] auths)
+        public Task<Session> ApproveSessionAuthenticate(long requestId, CacaoObject[] auths)
         {
             return Engine.ApproveSessionAuthenticate(requestId, auths);
         }

@@ -1,6 +1,6 @@
-using System;
+﻿using System;
 
-namespace Reown.AppKit.Unity
+namespace Reown.Sign.Models
 {
     // https://chainagnostic.org/CAIPs/caip-10
     public readonly struct Account : IEquatable<Account>
@@ -15,6 +15,13 @@ namespace Reown.AppKit.Unity
 
         public Account(string address, string chainId)
         {
+            Address = address;
+            ChainId = chainId;
+        }
+
+        public Account(string accountId)
+        {
+            var (chainId, address) = Core.Utils.DeconstructAccountId(accountId);
             Address = address;
             ChainId = chainId;
         }
