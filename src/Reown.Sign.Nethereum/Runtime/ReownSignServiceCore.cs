@@ -29,7 +29,7 @@ namespace Reown.Sign.Nethereum
         {
             var addressProvider = _signClient.AddressProvider;
             var defaultChainId = addressProvider.DefaultChainId;
-            return addressProvider.DefaultSession.CurrentAddress(defaultChainId).Address;
+            return addressProvider.DefaultSession.CurrentAccount(defaultChainId).Address;
         }
 
         protected override bool IsMethodSupportedCore(string method)

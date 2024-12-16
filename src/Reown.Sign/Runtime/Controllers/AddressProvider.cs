@@ -124,7 +124,7 @@ namespace Reown.Sign.Controllers
             chainId ??= DefaultChainId;
             session ??= DefaultSession;
 
-            return session.CurrentAddress(chainId);
+            return session.CurrentAccount(chainId);
         }
 
         [Obsolete("Use CurrentAccount instead")]
@@ -138,7 +138,7 @@ namespace Reown.Sign.Controllers
             @namespace ??= DefaultNamespace;
             session ??= DefaultSession;
 
-            return session.AllAddresses(@namespace);
+            return session.AllAccounts(@namespace);
         }
 
         [Obsolete("Use AllAccounts instead")]

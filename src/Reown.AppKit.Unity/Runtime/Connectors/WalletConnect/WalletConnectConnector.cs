@@ -213,7 +213,7 @@ namespace Reown.AppKit.Unity
 
         protected override Task<Account[]> GetAccountsAsyncCore()
         {
-            var caipAddresses = _signClient.AddressProvider.AllAddresses();
+            var caipAddresses = _signClient.AddressProvider.AllAccounts();
             return Task.FromResult(caipAddresses.Select(caip25Address => new Account(caip25Address.Address, caip25Address.ChainId)).ToArray());
         }
 
