@@ -89,23 +89,21 @@ namespace Reown.Sign.Unity
         {
             await AddressProvider.LoadDefaultsAsync();
 
-            var sessionTopic = AddressProvider.DefaultSession.Topic;
-
-            if (string.IsNullOrWhiteSpace(sessionTopic))
+            if (AddressProvider.DefaultSession == null || string.IsNullOrWhiteSpace(AddressProvider.DefaultSession.Topic))
                 return false;
 
             try
             {
-                await Extend(sessionTopic);
+                await Extend(AddressProvider.DefaultSession.Topic);
             }
             catch (KeyNotFoundException)
             {
-                AddressProvider.DefaultSession = default;
+                AddressProvider.DefaultSession = null;
                 return false;
             }
             catch (ReownNetworkException)
             {
-                AddressProvider.DefaultSession = default;
+                AddressProvider.DefaultSession = null;
                 return false;
             }
 
