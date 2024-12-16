@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -246,8 +247,18 @@ namespace Reown.Core.Controllers
             ReownLogger.Log("[Relayer] Checking for established connection");
             await ToEstablishConnection();
 
-            ReownLogger.Log("[Relayer] Sending request through provider");
-            var result = await Provider.Request<T, TR>(request, context);
+            TR result;
+            try
+            {
+                ReownLogger.Log("[Relayer] Sending request through provider");
+                result = await Provider.Request<T, TR>(request, context);
+            }
+            catch (WebSocketException)
+            {
+                ReownLogger.Log("[Relayer] Restarting transport due to WebSocketException");
+                await ToEstablishConnection();
+                result = await Provider.Request<T, TR>(request, context);
+            }
 
             return result;
         }
@@ -544,7 +555,7 @@ namespace Reown.Core.Controllers
                 Provider.RawMessageReceived -= OnProviderRawMessageReceived;
                 Provider.ErrorReceived -= OnProviderErrorReceived;
 
-                Provider?.Dispose();
+                Provider.Dispose();
             }
 
             Disposed = true;

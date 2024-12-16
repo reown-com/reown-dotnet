@@ -128,41 +128,43 @@ namespace Reown.Core.Network.Websocket
         /// <summary>
         ///     Send a Json RPC response through this websocket connection, using the given context
         /// </summary>
-        /// <param name="requestPayload">The response payload to encode and send</param>
+        /// <param name="responsePayload">The response payload to encode and send</param>
         /// <param name="context">The context to use when sending</param>
         /// <typeparam name="T">The type of the Json RPC response result</typeparam>
-        public async Task SendResult<T>(IJsonRpcResult<T> requestPayload, object context)
+        public async Task SendResult<T>(IJsonRpcResult<T> responsePayload, object context)
         {
             if (_socket == null)
                 _socket = await Register(Url);
 
             try
             {
-                _socket.Send(JsonConvert.SerializeObject(requestPayload));
+                _socket.Send(JsonConvert.SerializeObject(responsePayload));
             }
             catch (Exception e)
             {
-                OnError<T>(requestPayload, e);
+                OnError<T>(responsePayload, e);
             }
         }
 
         /// <summary>
-        ///     Send a Json RPC error response through this websocket connection, using the given context
+        ///     Send a JSON RPC error. This function does not return or wait for response. JSON RPC errors do not receive
+        ///     any response and therefore do not trigger any events
         /// </summary>
-        /// <param name="requestPayload">The error response payload to encode and send</param>
-        /// <param name="context">The context to use when sending</param>
-        public async Task SendError(IJsonRpcError requestPayload, object context)
+        /// <param name="errorPayload">The error to send</param>
+        /// <param name="context">The current context</param>
+        /// <returns>A task that is performing the send</returns>
+        public async Task SendError(IJsonRpcError errorPayload, object context)
         {
             if (_socket == null)
                 _socket = await Register(Url);
 
             try
             {
-                _socket.Send(JsonConvert.SerializeObject(requestPayload));
+                _socket.Send(JsonConvert.SerializeObject(errorPayload));
             }
             catch (Exception e)
             {
-                OnError<object>(requestPayload, e);
+                OnError<object>(errorPayload, e);
             }
         }
 
@@ -256,7 +258,6 @@ namespace Reown.Core.Network.Websocket
             if (_socket == null)
                 return;
 
-            //_socket.Dispose();
             _socket = null;
             Connecting = false;
             Closed?.Invoke(this, EventArgs.Empty);
@@ -276,10 +277,9 @@ namespace Reown.Core.Network.Websocket
                     return;
             }
 
-            if (string.IsNullOrWhiteSpace(json)) return;
-
-            //Console.WriteLine($"[{Name}] Got payload {json}");
-
+            if (string.IsNullOrWhiteSpace(json))
+                return;
+            
             PayloadReceived?.Invoke(this, json);
         }
 
