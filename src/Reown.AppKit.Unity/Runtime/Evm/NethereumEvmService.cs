@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -27,6 +28,45 @@ namespace Reown.AppKit.Unity
 
         public IWeb3 Web3 { get; private set; }
 
+        private readonly HashSet<string> _chainsSupportedByBlockchainApi = new()
+        {
+            "eip155:1",
+            "eip155:10",
+            "eip155:56",
+            "eip155:97",
+            "eip155:100",
+            "eip155:137",
+            "eip155:300",
+            "eip155:324",
+            "eip155:1101",
+            "eip155:1301",
+            "eip155:1329",
+            "eip155:2810",
+            "eip155:2818",
+            "eip155:5000",
+            "eip155:5003",
+            "eip155:8217",
+            "eip155:8453",
+            "eip155:17000",
+            "eip155:42161",
+            "eip155:42220",
+            "eip155:43113",
+            "eip155:43114",
+            "eip155:59144",
+            "eip155:80002",
+            "eip155:80084",
+            "eip155:84532",
+            "eip155:421614",
+            "eip155:534352",
+            "eip155:534351",
+            "eip155:7777777",
+            "eip155:11155111",
+            "eip155:11155420",
+            "eip155:999999999",
+            "eip155:1313161554",
+            "eip155:1313161555"
+        };
+        
         protected override Task InitializeAsyncCore(SignClientUnity signClient)
         {
             _interceptor = new ReownSignUnityInterceptor(signClient);
@@ -78,9 +118,16 @@ namespace Reown.AppKit.Unity
             };
         }
 
-        private static string CreateRpcUrl(string chainId)
+        private string CreateRpcUrl(string chainId)
         {
-            return $"https://rpc.walletconnect.com/v1?chainId={chainId}&projectId={AppKit.Config.projectId}";
+            if (_chainsSupportedByBlockchainApi.Contains(chainId))
+                return $"https://rpc.walletconnect.com/v1?chainId={chainId}&projectId={AppKit.Config.projectId}";
+
+            var chain = AppKit.Config.supportedChains.FirstOrDefault(x => x.ChainId == chainId);
+            if (chain == null || string.IsNullOrWhiteSpace(chain.RpcUrl))
+                throw new InvalidOperationException($"Chain with id {chainId} is not supported or doesn't have an RPC URL. Make sure it's added to the supported chains in the AppKit config.");
+
+            return chain.RpcUrl;
         }
 
 
