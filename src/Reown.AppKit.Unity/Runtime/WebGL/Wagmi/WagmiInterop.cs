@@ -175,7 +175,7 @@ namespace Reown.AppKit.Unity.WebGl.Wagmi
             var switchChainParameter = new SwitchChainParameter
             {
                 chainId = chainId,
-                parameter = addEthereumChainParameter
+                addEthereumChainParameter = addEthereumChainParameter
             };
 
             return SwitchChainAsync(switchChainParameter);
