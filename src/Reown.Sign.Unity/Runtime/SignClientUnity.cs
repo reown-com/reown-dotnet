@@ -22,8 +22,8 @@ namespace Reown.Sign.Unity
         private bool _disposed;
 
         // --- Unity Events (Main Thread) ---
-        public event EventHandler<SessionStruct> SessionConnectedUnity;
-        public event EventHandler<SessionStruct> SessionUpdatedUnity;
+        public event EventHandler<Session> SessionConnectedUnity;
+        public event EventHandler<Session> SessionUpdatedUnity;
         public event EventHandler SessionDisconnectedUnity;
 
         private SignClientUnity(SignClientOptions options) : base(options)
@@ -112,7 +112,7 @@ namespace Reown.Sign.Unity
             return true;
         }
 
-        private void OnSessionConnected(object sender, SessionStruct session)
+        private void OnSessionConnected(object sender, Session session)
         {
             UnitySyncContext.Context.Post(_ => { SessionConnectedUnity?.Invoke(this, session); }, null);
         }

@@ -123,7 +123,7 @@ namespace Reown.Sign
                 var namespaces = @params.Namespaces;
                 var sessionProperties = @params.SessionProperties;
 
-                var session = new SessionStruct
+                var session = new Session
                 {
                     Topic = topic,
                     PairingTopic = pairingTopic,
@@ -171,7 +171,7 @@ namespace Reown.Sign
             }
             else
             {
-                await Client.Session.Update(topic, new SessionStruct
+                await Client.Session.Update(topic, new Session
                 {
                     Acknowledged = true
                 });
@@ -188,7 +188,7 @@ namespace Reown.Sign
             {
                 await PrivateThis.IsValidUpdate(topic, @params.Namespaces);
 
-                await Client.Session.Update(topic, new SessionStruct
+                await Client.Session.Update(topic, new Session
                 {
                     Namespaces = @params.Namespaces
                 });
@@ -407,11 +407,11 @@ namespace Reown.Sign
                 var publicKey = Client.Auth.Keys.Get(AuthConstants.AuthPublicKeyName).PublicKey;
                 var sessionTopic = await Client.CoreClient.Crypto.GenerateSharedKey(publicKey, responder.PublicKey);
 
-                SessionStruct session = default;
+                Session session = default;
 
                 if (approvedMethods.Count != 0)
                 {
-                    session = new SessionStruct
+                    session = new Session
                     {
                         Topic = sessionTopic,
                         Acknowledged = true,

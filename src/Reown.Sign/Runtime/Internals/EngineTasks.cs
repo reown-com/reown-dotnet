@@ -71,7 +71,7 @@ namespace Reown.Sign
         {
             if (Client.Session.Keys.Contains(topic))
             {
-                await Client.Session.Update(topic, new SessionStruct
+                await Client.Session.Update(topic, new Session
                 {
                     Expiry = expiry
                 });

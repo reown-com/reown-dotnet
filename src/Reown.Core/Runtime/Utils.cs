@@ -44,21 +44,27 @@ namespace Reown.Core
             return index >= 0 ? span[..index].ToString() : chainId;
         }
 
-        public static bool IsValidAccountId(string account)
+        public static (string chainId, string address) DeconstructAccountId(string accountId)
         {
-            if (string.IsNullOrWhiteSpace(account) || !account.Contains(':'))
-            {
-                return false;
-            }
+            if (string.IsNullOrWhiteSpace(accountId))
+                throw new ArgumentException("Provided account id is null or empty");
 
-            var split = account.Split(":");
-            if (split.Length != 3)
-            {
-                return false;
-            }
+            var span = accountId.AsSpan();
+            var firstColon = span.IndexOf(':');
+            var lastColon = span.LastIndexOf(':');
 
-            var chainId = split[0] + ":" + split[1];
-            return !string.IsNullOrWhiteSpace(split[2]) && IsValidChainId(chainId);
+            if (firstColon == -1 || lastColon == -1 || firstColon == lastColon)
+                throw new ArgumentException("Invalid account id");
+
+            var chainId = span[..lastColon].ToString();
+            var address = span[(lastColon + 1)..].ToString();
+            return (chainId, address);
+        }
+
+        public static bool IsValidAccountId(string accountId)
+        {
+            var (chainId, address) = DeconstructAccountId(accountId);
+            return !string.IsNullOrWhiteSpace(address) && IsValidChainId(chainId);
         }
 
         public static bool IsValidRequestExpiry(long expiry, long min, long max)

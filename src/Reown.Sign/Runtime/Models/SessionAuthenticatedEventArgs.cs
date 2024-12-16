@@ -6,6 +6,6 @@ namespace Reown.Sign.Models
     public class SessionAuthenticatedEventArgs : EventArgs
     {
         public CacaoObject[] Auths;
-        public SessionStruct Session;
+        public Session Session;
     }
 }

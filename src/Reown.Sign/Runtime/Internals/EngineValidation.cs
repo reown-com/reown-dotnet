@@ -418,7 +418,7 @@ namespace Reown.Sign
             return chains.ToArray();
         }
 
-        private bool IsSessionCompatible(SessionStruct session, RequiredNamespaces requiredNamespaces)
+        private bool IsSessionCompatible(Session session, RequiredNamespaces requiredNamespaces)
         {
             var compatible = true;
 

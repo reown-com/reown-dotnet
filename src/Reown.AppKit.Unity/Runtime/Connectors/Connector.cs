@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Reown.Core.Common.Model.Errors;
+using Reown.Sign.Models;
 using Reown.Sign.Models.Cacao;
 using Reown.Sign.Unity;
 using UnityEngine;

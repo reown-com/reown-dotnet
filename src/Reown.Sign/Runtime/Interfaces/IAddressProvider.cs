@@ -10,7 +10,7 @@ namespace Reown.Sign.Interfaces
     {
         bool HasDefaultSession { get; }
 
-        SessionStruct DefaultSession { get; set; }
+        Session DefaultSession { get; set; }
 
         string DefaultNamespace { get; }
 
@@ -23,9 +23,15 @@ namespace Reown.Sign.Interfaces
 
         Task SetDefaultChainIdAsync(string chainId);
 
-        Caip25Address CurrentAddress(string chainId = null, SessionStruct session = default);
+        public Account CurrentAccount(string chainId = null, Session session = null);
 
-        IEnumerable<Caip25Address> AllAddresses(string @namespace = null, SessionStruct session = default);
+        [Obsolete("Use CurrentAccount instead.")]
+        Account CurrentAddress(string chainId = null, Session session = null);
+
+        public IEnumerable<Account> AllAccounts(string @namespace = null, Session session = null);
+
+        [Obsolete("Use AllAccounts instead.")]
+        IEnumerable<Account> AllAddresses(string @namespace = null, Session session = null);
 
         public Task LoadDefaultsAsync();
     }

@@ -22,14 +22,14 @@ namespace Reown.Sign.Nethereum
 
         public override bool IsWalletConnected
         {
-            get => !string.IsNullOrWhiteSpace(_signClient.AddressProvider.DefaultSession.Topic);
+            get => _signClient.AddressProvider.DefaultSession != null;
         }
 
         private string GetDefaultAddress()
         {
             var addressProvider = _signClient.AddressProvider;
             var defaultChainId = addressProvider.DefaultChainId;
-            return addressProvider.DefaultSession.CurrentAddress(defaultChainId).Address;
+            return addressProvider.DefaultSession.CurrentAccount(defaultChainId).Address;
         }
 
         protected override bool IsMethodSupportedCore(string method)

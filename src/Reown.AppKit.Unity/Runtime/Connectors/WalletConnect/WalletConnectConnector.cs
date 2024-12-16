@@ -41,10 +41,10 @@ namespace Reown.AppKit.Unity
 
             return Task.CompletedTask;
         }
-        
-        private void ActiveSessionChangedHandler(object sender, SessionStruct e)
+
+        private void ActiveSessionChangedHandler(object sender, Session session)
         {
-            if (string.IsNullOrWhiteSpace(e.Topic))
+            if (session == null)
                 return;
 
             var currentAccount = GetCurrentAccount();
@@ -213,13 +213,13 @@ namespace Reown.AppKit.Unity
 
         protected override Task<Account[]> GetAccountsAsyncCore()
         {
-            var caipAddresses = _signClient.AddressProvider.AllAddresses();
+            var caipAddresses = _signClient.AddressProvider.AllAccounts();
             return Task.FromResult(caipAddresses.Select(caip25Address => new Account(caip25Address.Address, caip25Address.ChainId)).ToArray());
         }
 
         private Account GetCurrentAccount()
         {
-            var caipAddress = _signClient.AddressProvider.CurrentAddress();
+            var caipAddress = _signClient.AddressProvider.CurrentAccount();
             return new Account(caipAddress.Address, caipAddress.ChainId);
         }
 

@@ -12,7 +12,7 @@ namespace Reown.Sign.Models.Engine
         ///     A class that representing a pending session proposal. Includes a URI that can be given to a
         ///     wallet app out-of-band and an Approval Task that can be awaited.
         /// </summary>
-        public ConnectedData(string uri, string pairingTopic, Task<SessionStruct> approval)
+        public ConnectedData(string uri, string pairingTopic, Task<Session> approval)
         {
             Uri = uri;
             PairingTopic = pairingTopic;
@@ -35,6 +35,6 @@ namespace Reown.Sign.Models.Engine
         ///     A task that will resolve to an approved session. If the session proposal is rejected, then this
         ///     task will throw an exception.
         /// </summary>
-        public Task<SessionStruct> Approval { get; private set; }
+        public Task<Session> Approval { get; private set; }
     }
 }

@@ -44,10 +44,10 @@ namespace Reown.Sign.Controllers
 
         public bool HasDefaultSession
         {
-            get => !string.IsNullOrWhiteSpace(DefaultSession.Topic) && DefaultSession.Namespaces != null;
+            get => DefaultSession is { Namespaces: not null };
         }
 
-        public SessionStruct DefaultSession
+        public Models.Session DefaultSession
         {
             get => _state.Session;
             set => _state.Session = value;
@@ -119,24 +119,32 @@ namespace Reown.Sign.Controllers
             await SaveDefaults();
         }
 
-        public Caip25Address CurrentAddress(string chainId = null, SessionStruct session = default)
+        public Account CurrentAccount(string chainId = null, Models.Session session = null)
         {
             chainId ??= DefaultChainId;
-            if (string.IsNullOrWhiteSpace(session.Topic))
-            {
-                session = DefaultSession;
-            }
+            session ??= DefaultSession;
 
-            return session.CurrentAddress(chainId);
+            return session.CurrentAccount(chainId);
         }
 
-        public IEnumerable<Caip25Address> AllAddresses(string @namespace = null, SessionStruct session = default)
+        [Obsolete("Use CurrentAccount instead")]
+        public Account CurrentAddress(string chainId = null, Models.Session session = null)
+        {
+            return CurrentAccount(chainId, session);
+        }
+
+        public IEnumerable<Account> AllAccounts(string @namespace = null, Models.Session session = null)
         {
             @namespace ??= DefaultNamespace;
-            if (string.IsNullOrWhiteSpace(session.Topic)) // default
-                session = DefaultSession;
+            session ??= DefaultSession;
 
-            return session.AllAddresses(@namespace);
+            return session.AllAccounts(@namespace);
+        }
+
+        [Obsolete("Use AllAccounts instead")]
+        public IEnumerable<Account> AllAddresses(string @namespace = null, Models.Session session = null)
+        {
+            return AllAccounts(@namespace, session);
         }
 
         public void Dispose()
@@ -174,7 +182,7 @@ namespace Reown.Sign.Controllers
             await UpdateDefaultChainIdAndNamespaceAsync();
         }
 
-        private async void ClientOnSessionConnected(object sender, SessionStruct e)
+        private async void ClientOnSessionConnected(object sender, Models.Session e)
         {
             DefaultSession = e;
             await UpdateDefaultChainIdAndNamespaceAsync();
@@ -257,7 +265,7 @@ namespace Reown.Sign.Controllers
 
         public struct DefaultData
         {
-            public SessionStruct Session;
+            public Models.Session Session;
             public string Namespace;
             public string ChainId;
         }

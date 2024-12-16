@@ -16,17 +16,17 @@ namespace Reown.WalletKit.Controllers
     {
         private bool _initialized;
 
-        public event EventHandler<SessionStruct> SessionExpired;
+        public event EventHandler<Session> SessionExpired;
         public event EventHandler<SessionAuthenticate> SessionAuthenticate; 
         public event EventHandler<SessionProposalEvent> SessionProposed;
-        public event EventHandler<SessionStruct> SessionConnected;
+        public event EventHandler<Session> SessionConnected;
         public event EventHandler<Exception> SessionConnectionErrored;
         public event EventHandler<SessionUpdateEvent> SessionUpdated;
         public event EventHandler<SessionEvent> SessionExtended;
         public event EventHandler<SessionEvent> SessionPinged;
         public event EventHandler<SessionEvent> SessionDeleted;
 
-        public IDictionary<string, SessionStruct> ActiveSessions
+        public IDictionary<string, Session> ActiveSessions
         {
             get
             {
@@ -76,7 +76,7 @@ namespace Reown.WalletKit.Controllers
             await this.Client.CoreClient.Pairing.Pair(uri, activatePairing);
         }
 
-        public async Task<SessionStruct> ApproveSession(long id, Namespaces namespaces, string relayProtocol = null)
+        public async Task<Session> ApproveSession(long id, Namespaces namespaces, string relayProtocol = null)
         {
             var data = await this.SignClient.Approve(new ApproveParams()
             {
@@ -88,7 +88,7 @@ namespace Reown.WalletKit.Controllers
             return this.SignClient.Session.Get(data.Topic);
         }
 
-        public Task<SessionStruct> ApproveSession(ProposalStruct proposal, params string[] approvedAddresses)
+        public Task<Session> ApproveSession(ProposalStruct proposal, params string[] approvedAddresses)
         {
             var param = proposal.ApproveProposal(approvedAddresses);
             return ApproveSession(param.Id, param.Namespaces, param.RelayProtocol);

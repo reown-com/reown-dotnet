@@ -4,7 +4,7 @@ namespace Reown.Sign.Models.Engine
 {
     public class AuthenticateData
     {
-        public AuthenticateData(string uri, Task<SessionStruct> approval)
+        public AuthenticateData(string uri, Task<Session> approval)
         {
             Uri = uri;
             Approval = approval;
@@ -20,6 +20,6 @@ namespace Reown.Sign.Models.Engine
         ///     A task that will resolve to an approved session. If the session proposal is rejected, then this
         ///     task will throw an exception.
         /// </summary>
-        public Task<SessionStruct> Approval { get; private set; }
+        public Task<Session> Approval { get; private set; }
     }
 }

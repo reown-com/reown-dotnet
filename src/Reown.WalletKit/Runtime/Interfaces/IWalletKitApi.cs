@@ -10,11 +10,11 @@ namespace Reown.WalletKit.Interfaces
 {
     public interface IWalletKitApi
     {
-        event EventHandler<SessionStruct> SessionExpired;
+        event EventHandler<Session> SessionExpired;
         
         event EventHandler<SessionProposalEvent> SessionProposed;
-    
-        event EventHandler<SessionStruct> SessionConnected;
+
+        event EventHandler<Session> SessionConnected;
 
         event EventHandler<Exception> SessionConnectionErrored;
 
@@ -25,8 +25,8 @@ namespace Reown.WalletKit.Interfaces
         event EventHandler<SessionEvent> SessionPinged;
 
         event EventHandler<SessionEvent> SessionDeleted;
-    
-        IDictionary<string, SessionStruct> ActiveSessions { get; }
+
+        IDictionary<string, Session> ActiveSessions { get; }
 
         IDictionary<long, ProposalStruct> PendingSessionProposals { get; }
 
@@ -34,9 +34,9 @@ namespace Reown.WalletKit.Interfaces
         
         Task Pair(string uri, bool activatePairing = false);
 
-        Task<SessionStruct> ApproveSession(long id, Namespaces namespaces, string relayProtocol = null);
+        Task<Session> ApproveSession(long id, Namespaces namespaces, string relayProtocol = null);
 
-        Task<SessionStruct> ApproveSession(ProposalStruct proposal, params string[] approvedAddresses);
+        Task<Session> ApproveSession(ProposalStruct proposal, params string[] approvedAddresses);
 
         Task RejectSession(long id, Error reason);
 

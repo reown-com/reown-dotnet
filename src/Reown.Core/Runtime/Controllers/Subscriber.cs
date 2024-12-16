@@ -354,7 +354,7 @@ namespace Reown.Core.Controllers
             };
 
             var subscribe = _relayer.Request<JsonRpcSubscriberParams, string>(request);
-            await subscribe.WithTimeout(20000);
+            await subscribe.WithTimeout(20_000);
 
             return HashUtils.HashMessage(topic + _clientId);
         }
