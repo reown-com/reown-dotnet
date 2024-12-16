@@ -1,3 +1,4 @@
+using System.Net.WebSockets;
 using Reown.Core.Common.Model.Errors;
 using Reown.Core.Common.Model.Relay;
 using Reown.Core.Network.Models;
@@ -91,7 +92,7 @@ public class RelayTests
         var connection = new WebsocketConnection(BadWsUrl);
         var provider = new JsonRpcProvider(connection);
 
-        await Assert.ThrowsAsync<TimeoutException>(() => provider.Request<TopicData, string>(TestIrnRequest));
+        await Assert.ThrowsAsync<WebSocketException>(() => provider.Request<TopicData, string>(TestIrnRequest));
     }
 
     [Fact] [Trait("Category", "integration")]
