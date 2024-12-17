@@ -4,6 +4,7 @@ using System.Net.WebSockets;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Reown.Core.Common;
+using Reown.Core.Common.Logging;
 using Reown.Core.Common.Utils;
 using Reown.Core.Network.Models;
 using Websocket.Client;
@@ -113,14 +114,19 @@ namespace Reown.Core.Network.Websocket
         public async Task SendRequest<T>(IJsonRpcRequest<T> requestPayload, object context)
         {
             if (_socket == null)
+            {
+                ReownLogger.Log("[WebsocketConnection] Socket is null, registering. Is Connecting: " + Connecting);
                 _socket = await Register(Url);
+            }
 
             try
             {
+                ReownLogger.Log("[WebsocketConnection] Sending request over websocket");
                 _socket.Send(JsonConvert.SerializeObject(requestPayload));
             }
             catch (Exception e)
             {
+                ReownLogger.Log($"[WebsocketConnection] Error sending request: {e.Message}");
                 OnError<T>(requestPayload, e);
             }
         }
@@ -279,7 +285,7 @@ namespace Reown.Core.Network.Websocket
 
             if (string.IsNullOrWhiteSpace(json))
                 return;
-            
+
             PayloadReceived?.Invoke(this, json);
         }
 
