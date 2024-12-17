@@ -525,6 +525,11 @@ public class WalletKitSignTests :
         var pairingTask = new TaskCompletionSource<bool>();
         _fixture.WalletClient.SessionProposed += async (sender, @event) =>
         {
+            var proposals = _fixture.WalletClient.PendingSessionProposals;
+            Assert.NotNull(proposals);
+            Assert.Single(proposals);
+            Assert.Equal(TestRequiredNamespaces, proposals.Values.ToArray()[0].RequiredNamespaces);
+
             var id = @event.Id;
             var proposal = @event.Proposal;
 
@@ -662,28 +667,6 @@ public class WalletKitSignTests :
         Assert.NotNull(sessions);
         Assert.Single(sessions);
         Assert.Equal(session.Topic, sessions.Values.ToArray()[0].Topic);
-    }
-
-    [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
-    public async Task TestGetPendingSessionProposals()
-    {
-        await _fixture.DisposeAndReset();
-        await _fixture.WaitForClientsReady();
-
-        var task1 = new TaskCompletionSource<bool>();
-        _fixture.WalletClient.SessionProposed += (sender, @event) =>
-        {
-            var proposals = _fixture.WalletClient.PendingSessionProposals;
-            Assert.NotNull(proposals);
-            Assert.Single(proposals);
-            Assert.Equal(TestRequiredNamespaces, proposals.Values.ToArray()[0].RequiredNamespaces);
-            task1.TrySetResult(true);
-        };
-
-        await Task.WhenAll(
-            task1.Task,
-            _fixture.WalletClient.Pair(uriString)
-        );
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
