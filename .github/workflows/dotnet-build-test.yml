@@ -28,3 +28,4 @@ jobs:
         with:
           type: ${{ matrix.test-type }}
           project-id: ${{ secrets.PROJECT_ID }}
+          dotnet-version: ${{ matrix.dotnet-version }}
