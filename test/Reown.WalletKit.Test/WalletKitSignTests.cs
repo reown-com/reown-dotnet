@@ -3,15 +3,10 @@ using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Web3.Accounts;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Reown.Core;
 using Reown.Core.Common.Model.Errors;
 using Reown.Core.Common.Utils;
-using Reown.Core.Models;
 using Reown.Core.Models.Verify;
 using Reown.Core.Network.Models;
-using Reown.Core.Network.Websocket;
-using Reown.Core.Storage;
-using Reown.Sign;
 using Reown.Sign.Models;
 using Reown.Sign.Models.Engine;
 using Reown.Sign.Models.Engine.Events;
@@ -19,11 +14,13 @@ using Reown.Sign.Models.Engine.Methods;
 using Reown.TestUtils;
 using Xunit;
 using Xunit.Abstractions;
-using Metadata = Reown.Core.Metadata;
 
 namespace Reown.WalletKit.Test;
 
-public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetime
+public class WalletKitSignTests :
+    IClassFixture<WalletKitSignClientFixture>,
+    IClassFixture<CryptoWalletFixture>,
+    IAsyncLifetime
 {
     [RpcMethod("eth_signTransaction")] [RpcRequestOptions(Clock.ONE_MINUTE, 99997)] [RpcResponseOptions(Clock.ONE_MINUTE, 99996)]
     public class EthSignTransaction : List<TransactionInput>
@@ -112,15 +109,12 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
     private static readonly ConnectOptions TestConnectOptions = new ConnectOptions()
         .UseRequireNamespaces(TestRequiredNamespaces);
 
+    private readonly WalletKitSignClientFixture _fixture;
     private readonly CryptoWalletFixture _cryptoWalletFixture;
     private readonly ITestOutputHelper _testOutputHelper;
-    private CoreClient _coreClient;
-    private SignClient _dapp;
-    private WalletKitClient _wallet;
     private string uriString;
     private Task<Session> sessionApproval;
     private Session session;
-
 
     public string WalletAddress
     {
@@ -132,108 +126,101 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
         get => _cryptoWalletFixture.Iss;
     }
 
-    private static readonly string[] second = new[]
+    public WalletKitSignTests(
+        WalletKitSignClientFixture fixture,
+        CryptoWalletFixture cryptoWalletFixture,
+        ITestOutputHelper testOutputHelper)
     {
-        "chainChanged2"
-    };
-
-    public SignClientTests(CryptoWalletFixture cryptoWalletFixture, ITestOutputHelper testOutputHelper)
-    {
+        _fixture = fixture;
         _cryptoWalletFixture = cryptoWalletFixture;
         _testOutputHelper = testOutputHelper;
     }
 
     public async Task InitializeAsync()
     {
-        _coreClient = new CoreClient(new CoreOptions
-        {
-            ConnectionBuilder = new WebsocketConnectionBuilder(),
-            ProjectId = TestValues.TestProjectId,
-            RelayUrl = TestValues.TestRelayUrl,
-            Name = $"wallet-csharp-test-{Guid.NewGuid().ToString()}",
-            Storage = new InMemoryStorage()
-        });
-        _dapp = await SignClient.Init(new SignClientOptions
-        {
-            ProjectId = TestValues.TestProjectId,
-            Name = $"dapp-csharp-test-{Guid.NewGuid().ToString()}",
-            RelayUrl = TestValues.TestRelayUrl,
-            Metadata = new Metadata
-            {
-                Description = "An example dapp to showcase WalletKit",
-                Icons = ["https://walletconnect.com/meta/favicon.ico"],
-                Name = $"dapp-csharp-test-{Guid.NewGuid().ToString()}",
-                Url = "https://walletconnect.com"
-            },
-            Storage = new InMemoryStorage()
-        });
-        var connectData = await _dapp.Connect(TestConnectOptions);
+        await _fixture.DisposeAndReset();
+        await _fixture.WaitForClientsReady();
+
+        var connectData = await _fixture.DappClient.Connect(TestConnectOptions);
         uriString = connectData.Uri ?? "";
         sessionApproval = connectData.Approval;
-
-        _wallet = await WalletKitClient.Init(_coreClient, new Metadata
-            {
-                Description = "An example wallet to showcase WalletKit",
-                Icons = new[]
-                {
-                    "https://walletconnect.com/meta/favicon.ico"
-                },
-                Name = $"wallet-csharp-test-{Guid.NewGuid().ToString()}",
-                Url = "https://walletconnect.com"
-            }, $"wallet-csharp-test-{Guid.NewGuid().ToString()}");
-
-        Assert.NotNull(_wallet);
-        Assert.NotNull(_dapp);
-        Assert.NotNull(_coreClient);
-        Assert.Null(_wallet.Metadata.Redirect);
     }
 
     public async Task DisposeAsync()
     {
-        if (_coreClient.Relayer.Connected)
+        try
         {
-            await _coreClient.Relayer.TransportClose();
+            if (_fixture.WalletClient?.ActiveSessions != null)
+            {
+                foreach (var s in _fixture.WalletClient.ActiveSessions.Values)
+                {
+                    try
+                    {
+                        await _fixture.WalletClient.DisconnectSession(s.Topic, Error.FromErrorType(ErrorType.USER_DISCONNECTED));
+                    }
+                    catch (Exception)
+                    {
+                        // Ignore disconnection errors during cleanup
+                    }
+                }
+            }
+
+            await _fixture.DisposeAndReset();
+        }
+        catch (Exception ex)
+        {
+            _testOutputHelper.WriteLine($"Error during cleanup: {ex}");
         }
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestShouldApproveSessionProposal()
     {
+        await _fixture.DisposeAndReset();
+        await _fixture.WaitForClientsReady();
+
         var task1 = new TaskCompletionSource<bool>();
-        _wallet.SessionProposed += async (sender, @event) =>
+        _fixture.WalletClient.SessionProposed += async (sender, @event) =>
         {
             var id = @event.Id;
             var proposal = @event.Proposal;
             var verifyContext = @event.VerifiedContext;
 
             Assert.Equal(Validation.Unknown, verifyContext.Validation);
-            session = await _wallet.ApproveSession(id, TestNamespaces);
+            session = await _fixture.WalletClient.ApproveSession(id, TestNamespaces);
 
             Assert.Equal(proposal.RequiredNamespaces, TestRequiredNamespaces);
             task1.TrySetResult(true);
         };
 
+        var connectData = await _fixture.DappClient.Connect(TestConnectOptions);
+        uriString = connectData.Uri ?? "";
+        sessionApproval = connectData.Approval;
+
         await Task.WhenAll(
             task1.Task,
             sessionApproval,
-            _wallet.Pair(uriString)
+            _fixture.WalletClient.Pair(uriString)
         );
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestShouldRejectSessionProposal()
     {
+        await _fixture.DisposeAndReset();
+        await _fixture.WaitForClientsReady();
+
         var rejectionError = Error.FromErrorType(ErrorType.USER_DISCONNECTED);
 
         var task1 = new TaskCompletionSource<bool>();
-        _wallet.SessionProposed += async (sender, @event) =>
+        _fixture.WalletClient.SessionProposed += async (sender, @event) =>
         {
             var proposal = @event.Proposal;
 
             var id = @event.Id;
             Assert.Equal(TestRequiredNamespaces, proposal.RequiredNamespaces);
 
-            await _wallet.RejectSession(id, rejectionError);
+            await _fixture.WalletClient.RejectSession(id, rejectionError);
             task1.TrySetResult(true);
         };
 
@@ -253,9 +240,13 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
             Assert.Fail("Session approval task did not throw exception, expected rejection");
         }
 
+        var connectData = await _fixture.DappClient.Connect(TestConnectOptions);
+        uriString = connectData.Uri ?? "";
+        sessionApproval = connectData.Approval;
+
         await Task.WhenAll(
             task1.Task,
-            _wallet.Pair(uriString),
+            _fixture.WalletClient.Pair(uriString),
             CheckSessionReject()
         );
     }
@@ -263,30 +254,37 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestUpdateSession()
     {
+        await _fixture.DisposeAndReset();
+        await _fixture.WaitForClientsReady();
+
         var task1 = new TaskCompletionSource<bool>();
-        _wallet.SessionProposed += async (sender, @event) =>
+        _fixture.WalletClient.SessionProposed += async (sender, @event) =>
         {
             var id = @event.Id;
             var proposal = @event.Proposal;
             var verifyContext = @event.VerifiedContext;
 
             Assert.Equal(Validation.Unknown, verifyContext.Validation);
-            session = await _wallet.ApproveSession(id, TestNamespaces);
+            session = await _fixture.WalletClient.ApproveSession(id, TestNamespaces);
 
             Assert.Equal(proposal.RequiredNamespaces, TestRequiredNamespaces);
             task1.TrySetResult(true);
         };
 
+        var connectData = await _fixture.DappClient.Connect(TestConnectOptions);
+        uriString = connectData.Uri ?? "";
+        sessionApproval = connectData.Approval;
+
         await Task.WhenAll(
             task1.Task,
             sessionApproval,
-            _wallet.Pair(uriString)
+            _fixture.WalletClient.Pair(uriString)
         );
 
         Assert.NotEqual(TestNamespaces, TestUpdatedNamespaces);
 
         var task2 = new TaskCompletionSource<bool>();
-        _dapp.SessionUpdateRequest += (sender, @event) =>
+        _fixture.DappClient.SessionUpdateRequest += (sender, @event) =>
         {
             var param = @event.Params;
             Assert.Equal(TestUpdatedNamespaces, param.Namespaces);
@@ -295,31 +293,38 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
 
         await Task.WhenAll(
             task2.Task,
-            _wallet.UpdateSession(session.Topic, TestUpdatedNamespaces)
+            _fixture.WalletClient.UpdateSession(session.Topic, TestUpdatedNamespaces)
         );
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestExtendSession()
     {
+        await _fixture.DisposeAndReset();
+        await _fixture.WaitForClientsReady();
+
         var task1 = new TaskCompletionSource<bool>();
-        _wallet.SessionProposed += async (sender, @event) =>
+        _fixture.WalletClient.SessionProposed += async (sender, @event) =>
         {
             var id = @event.Id;
             var proposal = @event.Proposal;
             var verifyContext = @event.VerifiedContext;
 
             Assert.Equal(Validation.Unknown, verifyContext.Validation);
-            session = await _wallet.ApproveSession(id, TestNamespaces);
+            session = await _fixture.WalletClient.ApproveSession(id, TestNamespaces);
 
             Assert.Equal(proposal.RequiredNamespaces, TestRequiredNamespaces);
             task1.TrySetResult(true);
         };
 
+        var connectData = await _fixture.DappClient.Connect(TestConnectOptions);
+        uriString = connectData.Uri ?? "";
+        sessionApproval = connectData.Approval;
+
         await Task.WhenAll(
             task1.Task,
             sessionApproval,
-            _wallet.Pair(uriString)
+            _fixture.WalletClient.Pair(uriString)
         );
 
         var prevExpiry = session.Expiry;
@@ -328,9 +333,9 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
         // TODO Figure out if we need fake timers?
         await Task.Delay(5000);
 
-        await _wallet.ExtendSession(topic);
+        await _fixture.WalletClient.ExtendSession(topic);
 
-        var updatedExpiry = _wallet.Engine.SignClient.Session.Get(topic).Expiry;
+        var updatedExpiry = _fixture.WalletClient.Engine.SignClient.Session.Get(topic).Expiry;
 
         Assert.True(updatedExpiry > prevExpiry);
     }
@@ -338,14 +343,17 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestRespondToSessionRequest()
     {
+        await _fixture.DisposeAndReset();
+        await _fixture.WaitForClientsReady();
+
         var task1 = new TaskCompletionSource<bool>();
-        _wallet.SessionProposed += async (sender, @event) =>
+        _fixture.WalletClient.SessionProposed += async (sender, @event) =>
         {
             var id = @event.Id;
             var proposal = @event.Proposal;
             var verifyContext = @event.VerifiedContext;
 
-            session = await _wallet.ApproveSession(id, new Namespaces
+            session = await _fixture.WalletClient.ApproveSession(id, new Namespaces
             {
                 {
                     "eip155", new Namespace
@@ -368,14 +376,18 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
             task1.TrySetResult(true);
         };
 
+        var connectData = await _fixture.DappClient.Connect(TestConnectOptions);
+        uriString = connectData.Uri ?? "";
+        sessionApproval = connectData.Approval;
+
         await Task.WhenAll(
             task1.Task,
             sessionApproval,
-            _wallet.Pair(uriString)
+            _fixture.WalletClient.Pair(uriString)
         );
 
         var task2 = new TaskCompletionSource<bool>();
-        _wallet.Engine.SignClient.Engine.SessionRequestEvents<EthSignTransaction, string>()
+        _fixture.WalletClient.Engine.SignClient.Engine.SessionRequestEvents<EthSignTransaction, string>()
             .OnRequest += args =>
         {
             var id = args.Request.Id;
@@ -397,7 +409,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
 
         async Task SendRequest()
         {
-            var result = await _dapp.Request<EthSignTransaction, string>(session.Topic,
+            var result = await _fixture.DappClient.Request<EthSignTransaction, string>(session.Topic,
             [
                 new TransactionInput
                 {
@@ -423,14 +435,17 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestWalletDisconnectFromSession()
     {
+        await _fixture.DisposeAndReset();
+        await _fixture.WaitForClientsReady();
+
         var task1 = new TaskCompletionSource<bool>();
-        _wallet.SessionProposed += async (sender, @event) =>
+        _fixture.WalletClient.SessionProposed += async (sender, @event) =>
         {
             var id = @event.Id;
             var proposal = @event.Proposal;
             var verifyContext = @event.VerifiedContext;
 
-            session = await _wallet.ApproveSession(id, new Namespaces
+            session = await _fixture.WalletClient.ApproveSession(id, new Namespaces
             {
                 {
                     "eip155", new Namespace
@@ -453,16 +468,20 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
             task1.TrySetResult(true);
         };
 
+        var connectData = await _fixture.DappClient.Connect(TestConnectOptions);
+        uriString = connectData.Uri ?? "";
+        sessionApproval = connectData.Approval;
+
         await Task.WhenAll(
             task1.Task,
             sessionApproval,
-            _wallet.Pair(uriString)
+            _fixture.WalletClient.Pair(uriString)
         );
 
         var reason = Error.FromErrorType(ErrorType.USER_DISCONNECTED);
 
         var task2 = new TaskCompletionSource<bool>();
-        _dapp.SessionDeleted += (sender, @event) =>
+        _fixture.DappClient.SessionDeleted += (sender, @event) =>
         {
             Assert.Equal(session.Topic, @event.Topic);
             task2.TrySetResult(true);
@@ -470,21 +489,24 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
 
         await Task.WhenAll(
             task2.Task,
-            _wallet.DisconnectSession(session.Topic, reason)
+            _fixture.WalletClient.DisconnectSession(session.Topic, reason)
         );
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestDappDisconnectFromSession()
     {
+        await _fixture.DisposeAndReset();
+        await _fixture.WaitForClientsReady();
+
         var task1 = new TaskCompletionSource<bool>();
-        _wallet.SessionProposed += async (sender, @event) =>
+        _fixture.WalletClient.SessionProposed += async (sender, @event) =>
         {
             var id = @event.Id;
             var proposal = @event.Proposal;
             var verifyContext = @event.VerifiedContext;
 
-            session = await _wallet.ApproveSession(id, new Namespaces
+            session = await _fixture.WalletClient.ApproveSession(id, new Namespaces
             {
                 {
                     "eip155", new Namespace
@@ -507,16 +529,20 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
             task1.TrySetResult(true);
         };
 
+        var connectData = await _fixture.DappClient.Connect(TestConnectOptions);
+        uriString = connectData.Uri ?? "";
+        sessionApproval = connectData.Approval;
+
         await Task.WhenAll(
             task1.Task,
             sessionApproval,
-            _wallet.Pair(uriString)
+            _fixture.WalletClient.Pair(uriString)
         );
 
         var reason = Error.FromErrorType(ErrorType.USER_DISCONNECTED);
 
         var task2 = new TaskCompletionSource<bool>();
-        _wallet.SessionDeleted += (sender, @event) =>
+        _fixture.WalletClient.SessionDeleted += (sender, @event) =>
         {
             Assert.Equal(session.Topic, @event.Topic);
             task2.TrySetResult(true);
@@ -524,20 +550,23 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
 
         await Task.WhenAll(
             task2.Task,
-            _dapp.Disconnect(session.Topic, reason)
+            _fixture.DappClient.Disconnect(session.Topic, reason)
         );
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestEmitSessionEvent()
     {
+        await _fixture.DisposeAndReset();
+        await _fixture.WaitForClientsReady();
+
         var pairingTask = new TaskCompletionSource<bool>();
-        _wallet.SessionProposed += async (sender, @event) =>
+        _fixture.WalletClient.SessionProposed += async (sender, @event) =>
         {
             var id = @event.Id;
             var proposal = @event.Proposal;
 
-            session = await _wallet.ApproveSession(id, new Namespaces
+            session = await _fixture.WalletClient.ApproveSession(id, new Namespaces
             {
                 {
                     "eip155", new Namespace
@@ -554,10 +583,14 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
             pairingTask.TrySetResult(true);
         };
 
+        var connectData = await _fixture.DappClient.Connect(TestConnectOptions);
+        uriString = connectData.Uri ?? "";
+        sessionApproval = connectData.Approval;
+
         await Task.WhenAll(
             pairingTask.Task,
             sessionApproval,
-            _wallet.Pair(uriString)
+            _fixture.WalletClient.Pair(uriString)
         );
 
         var referenceHandlingTask = new TaskCompletionSource<bool>();
@@ -598,35 +631,38 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
             valueHandlingTask.TrySetResult(true);
         }
 
-        _dapp.SubscribeToSessionEvent(referenceTypeEventData.Name, ReferenceTypeEventHandler);
-        _dapp.SubscribeToSessionEvent(valueTypeEventData.Name, ValueTypeEventHandler);
+        _fixture.DappClient.SubscribeToSessionEvent(referenceTypeEventData.Name, ReferenceTypeEventHandler);
+        _fixture.DappClient.SubscribeToSessionEvent(valueTypeEventData.Name, ValueTypeEventHandler);
 
         await Task.WhenAll(
             referenceHandlingTask.Task,
             valueHandlingTask.Task,
-            _wallet.EmitSessionEvent(session.Topic, referenceTypeEventData, TestRequiredNamespaces["eip155"].Chains[0]),
-            _wallet.EmitSessionEvent(session.Topic, valueTypeEventData, TestRequiredNamespaces["eip155"].Chains[0])
+            _fixture.WalletClient.EmitSessionEvent(session.Topic, referenceTypeEventData, TestRequiredNamespaces["eip155"].Chains[0]),
+            _fixture.WalletClient.EmitSessionEvent(session.Topic, valueTypeEventData, TestRequiredNamespaces["eip155"].Chains[0])
         );
 
-        Assert.True(_dapp.TryUnsubscribeFromSessionEvent(referenceTypeEventData.Name, ReferenceTypeEventHandler));
-        Assert.True(_dapp.TryUnsubscribeFromSessionEvent(valueTypeEventData.Name, ValueTypeEventHandler));
+        Assert.True(_fixture.DappClient.TryUnsubscribeFromSessionEvent(referenceTypeEventData.Name, ReferenceTypeEventHandler));
+        Assert.True(_fixture.DappClient.TryUnsubscribeFromSessionEvent(valueTypeEventData.Name, ValueTypeEventHandler));
 
         // Test invalid chains
-        await Assert.ThrowsAsync<FormatException>(() => _wallet.EmitSessionEvent(session.Topic, valueTypeEventData, "invalid chain"));
-        await Assert.ThrowsAsync<NamespacesException>(() => _wallet.EmitSessionEvent(session.Topic, valueTypeEventData, "123:321"));
+        await Assert.ThrowsAsync<FormatException>(() => _fixture.WalletClient.EmitSessionEvent(session.Topic, valueTypeEventData, "invalid chain"));
+        await Assert.ThrowsAsync<NamespacesException>(() => _fixture.WalletClient.EmitSessionEvent(session.Topic, valueTypeEventData, "123:321"));
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestGetActiveSessions()
     {
+        await _fixture.DisposeAndReset();
+        await _fixture.WaitForClientsReady();
+
         var task1 = new TaskCompletionSource<bool>();
-        _wallet.SessionProposed += async (sender, @event) =>
+        _fixture.WalletClient.SessionProposed += async (sender, @event) =>
         {
             var id = @event.Id;
             var proposal = @event.Proposal;
             var verifyContext = @event.VerifiedContext;
 
-            session = await _wallet.ApproveSession(id,
+            session = await _fixture.WalletClient.ApproveSession(id,
                 new Namespaces
                 {
                     {
@@ -650,13 +686,17 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
             task1.TrySetResult(true);
         };
 
+        var connectData = await _fixture.DappClient.Connect(TestConnectOptions);
+        uriString = connectData.Uri ?? "";
+        sessionApproval = connectData.Approval;
+
         await Task.WhenAll(
             task1.Task,
             sessionApproval,
-            _wallet.Pair(uriString)
+            _fixture.WalletClient.Pair(uriString)
         );
 
-        var sessions = _wallet.ActiveSessions;
+        var sessions = _fixture.WalletClient.ActiveSessions;
         Assert.NotNull(sessions);
         Assert.Single(sessions);
         Assert.Equal(session.Topic, sessions.Values.ToArray()[0].Topic);
@@ -665,10 +705,13 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestGetPendingSessionProposals()
     {
+        await _fixture.DisposeAndReset();
+        await _fixture.WaitForClientsReady();
+
         var task1 = new TaskCompletionSource<bool>();
-        _wallet.SessionProposed += (sender, @event) =>
+        _fixture.WalletClient.SessionProposed += (sender, @event) =>
         {
-            var proposals = _wallet.PendingSessionProposals;
+            var proposals = _fixture.WalletClient.PendingSessionProposals;
             Assert.NotNull(proposals);
             Assert.Single(proposals);
             Assert.Equal(TestRequiredNamespaces, proposals.Values.ToArray()[0].RequiredNamespaces);
@@ -677,21 +720,24 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
 
         await Task.WhenAll(
             task1.Task,
-            _wallet.Pair(uriString)
+            _fixture.WalletClient.Pair(uriString)
         );
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestGetPendingSessionRequests()
     {
+        await _fixture.DisposeAndReset();
+        await _fixture.WaitForClientsReady();
+
         var task1 = new TaskCompletionSource<bool>();
-        _wallet.SessionProposed += async (sender, @event) =>
+        _fixture.WalletClient.SessionProposed += async (sender, @event) =>
         {
             var id = @event.Id;
             var proposal = @event.Proposal;
             var verifyContext = @event.VerifiedContext;
 
-            session = await _wallet.ApproveSession(id,
+            session = await _fixture.WalletClient.ApproveSession(id,
                 new Namespaces
                 {
                     {
@@ -715,10 +761,14 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
             task1.TrySetResult(true);
         };
 
+        var connectData = await _fixture.DappClient.Connect(TestConnectOptions);
+        uriString = connectData.Uri ?? "";
+        sessionApproval = connectData.Approval;
+
         await Task.WhenAll(
             task1.Task,
             sessionApproval,
-            _wallet.Pair(uriString)
+            _fixture.WalletClient.Pair(uriString)
         );
 
         var requestParams = new EthSignTransaction
@@ -736,11 +786,11 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
         };
 
         var task2 = new TaskCompletionSource<bool>();
-        _wallet.Engine.SignClient.Engine.SessionRequestEvents<EthSignTransaction, string>()
+        _fixture.WalletClient.Engine.SignClient.Engine.SessionRequestEvents<EthSignTransaction, string>()
             .OnRequest += args =>
         {
             // Get the pending session request, since that's what we're testing
-            var pendingRequests = _wallet.PendingSessionRequests;
+            var pendingRequests = _fixture.WalletClient.PendingSessionRequests;
             var request = pendingRequests[0];
 
             var id = request.Id;
@@ -752,7 +802,8 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
             Assert.Equal(args.Request.Id, id);
             Assert.Equal(Validation.Unknown, verifyContext.Validation);
 
-            var signature = ((AccountSignerTransactionManager)_cryptoWalletFixture.CryptoWallet.GetAccount(0).TransactionManager)
+            var signature = ((AccountSignerTransactionManager)_cryptoWalletFixture.CryptoWallet
+                    .GetAccount(0).TransactionManager)
                 .SignTransaction(signTransaction);
 
             args.Response = signature;
@@ -762,7 +813,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
 
         async Task SendRequest()
         {
-            var result = await _dapp.Request<EthSignTransaction, string>(session.Topic,
+            var result = await _fixture.DappClient.Request<EthSignTransaction, string>(session.Topic,
                 requestParams, TestEthereumChain);
 
             Assert.False(string.IsNullOrWhiteSpace(result));
