@@ -140,8 +140,10 @@ public class WalletKitSignTests :
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestShouldApproveSessionProposal()
     {
+        _testOutputHelper.WriteLine("[TestShouldApproveSessionProposal] Starting");
         await _fixture.DisposeAndReset();
         await _fixture.WaitForClientsReady();
+        _testOutputHelper.WriteLine("[TestShouldApproveSessionProposal] Clients ready");
 
         var task1 = new TaskCompletionSource<bool>();
         _fixture.WalletClient.SessionProposed += async (sender, @event) =>
@@ -152,6 +154,7 @@ public class WalletKitSignTests :
 
             Assert.Equal(Validation.Unknown, verifyContext.Validation);
             session = await _fixture.WalletClient.ApproveSession(id, TestNamespaces);
+            _testOutputHelper.WriteLine("[TestShouldApproveSessionProposal] Session approved");
 
             Assert.Equal(proposal.RequiredNamespaces, TestRequiredNamespaces);
             task1.TrySetResult(true);
@@ -160,19 +163,23 @@ public class WalletKitSignTests :
         var connectData = await _fixture.DappClient.Connect(TestConnectOptions);
         uriString = connectData.Uri ?? "";
         sessionApproval = connectData.Approval;
+        _testOutputHelper.WriteLine("[TestShouldApproveSessionProposal] DappClient connected, URI obtained");
 
         await Task.WhenAll(
             task1.Task,
             sessionApproval,
             _fixture.WalletClient.Pair(uriString)
         );
+        _testOutputHelper.WriteLine("[TestShouldApproveSessionProposal] All tasks completed successfully");
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestShouldRejectSessionProposal()
     {
+        _testOutputHelper.WriteLine("[TestShouldRejectSessionProposal] Starting");
         await _fixture.DisposeAndReset();
         await _fixture.WaitForClientsReady();
+        _testOutputHelper.WriteLine("[TestShouldRejectSessionProposal] Clients ready");
 
         var rejectionError = Error.FromErrorType(ErrorType.USER_DISCONNECTED);
 
@@ -185,6 +192,7 @@ public class WalletKitSignTests :
             Assert.Equal(TestRequiredNamespaces, proposal.RequiredNamespaces);
 
             await _fixture.WalletClient.RejectSession(id, rejectionError);
+            _testOutputHelper.WriteLine("[TestShouldRejectSessionProposal] Session rejected");
             task1.TrySetResult(true);
         };
 
@@ -207,19 +215,23 @@ public class WalletKitSignTests :
         var connectData = await _fixture.DappClient.Connect(TestConnectOptions);
         uriString = connectData.Uri ?? "";
         sessionApproval = connectData.Approval;
+        _testOutputHelper.WriteLine("[TestShouldRejectSessionProposal] DappClient connected, URI obtained");
 
         await Task.WhenAll(
             task1.Task,
             _fixture.WalletClient.Pair(uriString),
             CheckSessionReject()
         );
+        _testOutputHelper.WriteLine("[TestShouldRejectSessionProposal] All tasks completed successfully");
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestUpdateSession()
     {
+        _testOutputHelper.WriteLine("[TestUpdateSession] Starting");
         await _fixture.DisposeAndReset();
         await _fixture.WaitForClientsReady();
+        _testOutputHelper.WriteLine("[TestUpdateSession] Clients ready");
 
         var task1 = new TaskCompletionSource<bool>();
         _fixture.WalletClient.SessionProposed += async (sender, @event) =>
@@ -230,6 +242,7 @@ public class WalletKitSignTests :
 
             Assert.Equal(Validation.Unknown, verifyContext.Validation);
             session = await _fixture.WalletClient.ApproveSession(id, TestNamespaces);
+            _testOutputHelper.WriteLine("[TestUpdateSession] Session approved");
 
             Assert.Equal(proposal.RequiredNamespaces, TestRequiredNamespaces);
             task1.TrySetResult(true);
@@ -238,19 +251,23 @@ public class WalletKitSignTests :
         var connectData = await _fixture.DappClient.Connect(TestConnectOptions);
         uriString = connectData.Uri ?? "";
         sessionApproval = connectData.Approval;
+        _testOutputHelper.WriteLine("[TestUpdateSession] DappClient connected, URI obtained");
 
         await Task.WhenAll(
             task1.Task,
             sessionApproval,
             _fixture.WalletClient.Pair(uriString)
         );
+        _testOutputHelper.WriteLine("[TestUpdateSession] Initial session setup completed");
 
         Assert.NotEqual(TestNamespaces, TestUpdatedNamespaces);
+        _testOutputHelper.WriteLine("[TestUpdateSession] Namespaces validation passed");
 
         var task2 = new TaskCompletionSource<bool>();
         _fixture.DappClient.SessionUpdateRequest += (sender, @event) =>
         {
             var param = @event.Params;
+            _testOutputHelper.WriteLine("[TestUpdateSession] Received session update request");
             Assert.Equal(TestUpdatedNamespaces, param.Namespaces);
             task2.TrySetResult(true);
         };
@@ -259,13 +276,16 @@ public class WalletKitSignTests :
             task2.Task,
             _fixture.WalletClient.UpdateSession(session.Topic, TestUpdatedNamespaces)
         );
+        _testOutputHelper.WriteLine("[TestUpdateSession] Session update completed successfully");
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestExtendSession()
     {
+        _testOutputHelper.WriteLine("[TestExtendSession] Starting");
         await _fixture.DisposeAndReset();
         await _fixture.WaitForClientsReady();
+        _testOutputHelper.WriteLine("[TestExtendSession] Clients ready");
 
         var task1 = new TaskCompletionSource<bool>();
         _fixture.WalletClient.SessionProposed += async (sender, @event) =>
@@ -276,6 +296,7 @@ public class WalletKitSignTests :
 
             Assert.Equal(Validation.Unknown, verifyContext.Validation);
             session = await _fixture.WalletClient.ApproveSession(id, TestNamespaces);
+            _testOutputHelper.WriteLine("[TestExtendSession] Session approved");
 
             Assert.Equal(proposal.RequiredNamespaces, TestRequiredNamespaces);
             task1.TrySetResult(true);
@@ -284,31 +305,40 @@ public class WalletKitSignTests :
         var connectData = await _fixture.DappClient.Connect(TestConnectOptions);
         uriString = connectData.Uri ?? "";
         sessionApproval = connectData.Approval;
+        _testOutputHelper.WriteLine("[TestExtendSession] DappClient connected, URI obtained");
 
         await Task.WhenAll(
             task1.Task,
             sessionApproval,
             _fixture.WalletClient.Pair(uriString)
         );
+        _testOutputHelper.WriteLine("[TestExtendSession] Initial session setup completed");
 
         var prevExpiry = session.Expiry;
         var topic = session.Topic;
+        _testOutputHelper.WriteLine($"[TestExtendSession] Previous expiry: {prevExpiry}");
 
         // TODO Figure out if we need fake timers?
         await Task.Delay(5000);
+        _testOutputHelper.WriteLine("[TestExtendSession] Waited 5 seconds before extending session");
 
         await _fixture.WalletClient.ExtendSession(topic);
+        _testOutputHelper.WriteLine("[TestExtendSession] Session extension request sent");
 
         var updatedExpiry = _fixture.WalletClient.Engine.SignClient.Session.Get(topic).Expiry;
+        _testOutputHelper.WriteLine($"[TestExtendSession] Updated expiry: {updatedExpiry}");
 
         Assert.True(updatedExpiry > prevExpiry);
+        _testOutputHelper.WriteLine("[TestExtendSession] Expiry validation passed");
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestRespondToSessionRequest()
     {
+        _testOutputHelper.WriteLine("[TestRespondToSessionRequest] Starting");
         await _fixture.DisposeAndReset();
         await _fixture.WaitForClientsReady();
+        _testOutputHelper.WriteLine("[TestRespondToSessionRequest] Clients ready");
 
         var task1 = new TaskCompletionSource<bool>();
         _fixture.WalletClient.SessionProposed += async (sender, @event) =>
@@ -335,6 +365,7 @@ public class WalletKitSignTests :
                     }
                 }
             });
+            _testOutputHelper.WriteLine("[TestRespondToSessionRequest] Session approved");
 
             Assert.Equal(proposal.RequiredNamespaces, TestRequiredNamespaces);
             task1.TrySetResult(true);
@@ -360,6 +391,7 @@ public class WalletKitSignTests :
             var signTransaction = @params.Params[0];
 
             Assert.Equal(Validation.Unknown, verifyContext.Validation);
+            _testOutputHelper.WriteLine("[TestRespondToSessionRequest] Transaction signed");
 
             var signature = ((AccountSignerTransactionManager)_cryptoWalletFixture.CryptoWallet
                     .GetAccount(0).TransactionManager)
@@ -373,6 +405,7 @@ public class WalletKitSignTests :
 
         async Task SendRequest()
         {
+            _testOutputHelper.WriteLine("[TestRespondToSessionRequest] Sending transaction request");
             var result = await _fixture.DappClient.Request<EthSignTransaction, string>(session.Topic,
             [
                 new TransactionInput
@@ -386,8 +419,10 @@ public class WalletKitSignTests :
                     Value = new HexBigInteger("0x00")
                 }
             ], TestEthereumChain);
+            _testOutputHelper.WriteLine("[TestRespondToSessionRequest] Transaction request sent");
 
             Assert.False(string.IsNullOrWhiteSpace(result));
+            _testOutputHelper.WriteLine("[TestRespondToSessionRequest] Transaction signature validation passed");
         }
 
         await Task.WhenAll(
@@ -399,8 +434,10 @@ public class WalletKitSignTests :
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestWalletDisconnectFromSession()
     {
+        _testOutputHelper.WriteLine("[TestWalletDisconnectFromSession] Starting");
         await _fixture.DisposeAndReset();
         await _fixture.WaitForClientsReady();
+        _testOutputHelper.WriteLine("[TestWalletDisconnectFromSession] Clients ready");
 
         var task1 = new TaskCompletionSource<bool>();
         _fixture.WalletClient.SessionProposed += async (sender, @event) =>
@@ -427,6 +464,7 @@ public class WalletKitSignTests :
                     }
                 }
             });
+            _testOutputHelper.WriteLine("[TestWalletDisconnectFromSession] Session approved");
 
             Assert.Equal(proposal.RequiredNamespaces, TestRequiredNamespaces);
             task1.TrySetResult(true);
@@ -443,10 +481,12 @@ public class WalletKitSignTests :
         );
 
         var reason = Error.FromErrorType(ErrorType.USER_DISCONNECTED);
+        _testOutputHelper.WriteLine($"[TestWalletDisconnectFromSession] Disconnecting with reason: {reason.Message}");
 
         var task2 = new TaskCompletionSource<bool>();
         _fixture.DappClient.SessionDeleted += (sender, @event) =>
         {
+            _testOutputHelper.WriteLine("[TestWalletDisconnectFromSession] Session deleted event received");
             Assert.Equal(session.Topic, @event.Topic);
             task2.TrySetResult(true);
         };
@@ -455,13 +495,16 @@ public class WalletKitSignTests :
             task2.Task,
             _fixture.WalletClient.DisconnectSession(session.Topic, reason)
         );
+        _testOutputHelper.WriteLine("[TestWalletDisconnectFromSession] Session disconnected");
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestDappDisconnectFromSession()
     {
+        _testOutputHelper.WriteLine("[TestDappDisconnectFromSession] Starting");
         await _fixture.DisposeAndReset();
         await _fixture.WaitForClientsReady();
+        _testOutputHelper.WriteLine("[TestDappDisconnectFromSession] Clients ready");
 
         var task1 = new TaskCompletionSource<bool>();
         _fixture.WalletClient.SessionProposed += async (sender, @event) =>
@@ -488,6 +531,7 @@ public class WalletKitSignTests :
                     }
                 }
             });
+            _testOutputHelper.WriteLine("[TestDappDisconnectFromSession] Session approved");
 
             Assert.Equal(proposal.RequiredNamespaces, TestRequiredNamespaces);
             task1.TrySetResult(true);
@@ -504,10 +548,12 @@ public class WalletKitSignTests :
         );
 
         var reason = Error.FromErrorType(ErrorType.USER_DISCONNECTED);
+        _testOutputHelper.WriteLine($"[TestDappDisconnectFromSession] Disconnecting with reason: {reason.Message}");
 
         var task2 = new TaskCompletionSource<bool>();
         _fixture.WalletClient.SessionDeleted += (sender, @event) =>
         {
+            _testOutputHelper.WriteLine("[TestDappDisconnectFromSession] Session deleted event received");
             Assert.Equal(session.Topic, @event.Topic);
             task2.TrySetResult(true);
         };
@@ -516,13 +562,16 @@ public class WalletKitSignTests :
             task2.Task,
             _fixture.DappClient.Disconnect(session.Topic, reason)
         );
+        _testOutputHelper.WriteLine("[TestDappDisconnectFromSession] Session disconnected");
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestEmitSessionEvent()
     {
+        _testOutputHelper.WriteLine("[TestEmitSessionEvent] Starting");
         await _fixture.DisposeAndReset();
         await _fixture.WaitForClientsReady();
+        _testOutputHelper.WriteLine("[TestEmitSessionEvent] Clients ready");
 
         var pairingTask = new TaskCompletionSource<bool>();
         _fixture.WalletClient.SessionProposed += async (sender, @event) =>
@@ -547,6 +596,7 @@ public class WalletKitSignTests :
                     }
                 }
             });
+            _testOutputHelper.WriteLine("[TestEmitSessionEvent] Session approved");
 
             Assert.Equal(proposal.RequiredNamespaces, TestRequiredNamespaces);
             pairingTask.TrySetResult(true);
@@ -582,26 +632,31 @@ public class WalletKitSignTests :
 
         void ReferenceTypeEventHandler(object _, SessionEvent<JToken> data)
         {
+            _testOutputHelper.WriteLine("[TestEmitSessionEvent] Reference type event received");
             var eventData = data.Event.Data.ToObject<TestDataObject>();
 
             Assert.Equal(referenceTypeEventData.Name, data.Event.Name);
             Assert.Equal(referenceTypeEventData.Data.Hello, eventData.Hello);
+            _testOutputHelper.WriteLine("[TestEmitSessionEvent] Reference type event validation passed");
 
             referenceHandlingTask.TrySetResult(true);
         }
 
         void ValueTypeEventHandler(object _, SessionEvent<JToken> eventData)
         {
+            _testOutputHelper.WriteLine("[TestEmitSessionEvent] Value type event received");
             var data = eventData.Event.Data.Value<long>();
 
             Assert.Equal(valueTypeEventData.Name, eventData.Event.Name);
             Assert.Equal(valueTypeEventData.Data, data);
+            _testOutputHelper.WriteLine("[TestEmitSessionEvent] Value type event validation passed");
 
             valueHandlingTask.TrySetResult(true);
         }
 
         _fixture.DappClient.SubscribeToSessionEvent(referenceTypeEventData.Name, ReferenceTypeEventHandler);
         _fixture.DappClient.SubscribeToSessionEvent(valueTypeEventData.Name, ValueTypeEventHandler);
+        _testOutputHelper.WriteLine("[TestEmitSessionEvent] Event handlers subscribed");
 
         await Task.WhenAll(
             referenceHandlingTask.Task,
@@ -609,20 +664,28 @@ public class WalletKitSignTests :
             _fixture.WalletClient.EmitSessionEvent(session.Topic, referenceTypeEventData, TestRequiredNamespaces["eip155"].Chains[0]),
             _fixture.WalletClient.EmitSessionEvent(session.Topic, valueTypeEventData, TestRequiredNamespaces["eip155"].Chains[0])
         );
+        _testOutputHelper.WriteLine("[TestEmitSessionEvent] Events emitted");
 
         Assert.True(_fixture.DappClient.TryUnsubscribeFromSessionEvent(referenceTypeEventData.Name, ReferenceTypeEventHandler));
         Assert.True(_fixture.DappClient.TryUnsubscribeFromSessionEvent(valueTypeEventData.Name, ValueTypeEventHandler));
 
         // Test invalid chains
+        _testOutputHelper.WriteLine("[TestEmitSessionEvent] Testing invalid chain format");
         await Assert.ThrowsAsync<FormatException>(() => _fixture.WalletClient.EmitSessionEvent(session.Topic, valueTypeEventData, "invalid chain"));
+        _testOutputHelper.WriteLine("[TestEmitSessionEvent] Invalid chain format test passed");
+
+        _testOutputHelper.WriteLine("[TestEmitSessionEvent] Testing invalid chain namespace");
         await Assert.ThrowsAsync<NamespacesException>(() => _fixture.WalletClient.EmitSessionEvent(session.Topic, valueTypeEventData, "123:321"));
+        _testOutputHelper.WriteLine("[TestEmitSessionEvent] Invalid chain namespace test passed");
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestGetActiveSessions()
     {
+        _testOutputHelper.WriteLine("[TestGetActiveSessions] Starting");
         await _fixture.DisposeAndReset();
         await _fixture.WaitForClientsReady();
+        _testOutputHelper.WriteLine("[TestGetActiveSessions] Clients ready");
 
         var task1 = new TaskCompletionSource<bool>();
         _fixture.WalletClient.SessionProposed += async (sender, @event) =>
@@ -650,6 +713,7 @@ public class WalletKitSignTests :
                         }
                     }
                 });
+            _testOutputHelper.WriteLine("[TestGetActiveSessions] Session approved");
 
             Assert.Equal(proposal.RequiredNamespaces, TestRequiredNamespaces);
             task1.TrySetResult(true);
@@ -666,16 +730,21 @@ public class WalletKitSignTests :
         );
 
         var sessions = _fixture.WalletClient.ActiveSessions;
+        _testOutputHelper.WriteLine($"[TestGetActiveSessions] Retrieved {sessions.Count} active sessions");
         Assert.NotNull(sessions);
         Assert.Single(sessions);
+        _testOutputHelper.WriteLine($"[TestGetActiveSessions] Session topic: {sessions.Values.ToArray()[0].Topic}");
         Assert.Equal(session.Topic, sessions.Values.ToArray()[0].Topic);
+        _testOutputHelper.WriteLine("[TestGetActiveSessions] Session validation passed");
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestGetPendingSessionRequests()
     {
+        _testOutputHelper.WriteLine("[TestGetPendingSessionRequests] Starting");
         await _fixture.DisposeAndReset();
         await _fixture.WaitForClientsReady();
+        _testOutputHelper.WriteLine("[TestGetPendingSessionRequests] Clients ready");
 
         var task1 = new TaskCompletionSource<bool>();
         _fixture.WalletClient.SessionProposed += async (sender, @event) =>
@@ -703,6 +772,7 @@ public class WalletKitSignTests :
                         }
                     }
                 });
+            _testOutputHelper.WriteLine("[TestGetPendingSessionRequests] Session approved");
 
             Assert.Equal(proposal.RequiredNamespaces, TestRequiredNamespaces);
             task1.TrySetResult(true);
@@ -742,16 +812,20 @@ public class WalletKitSignTests :
 
             var id = request.Id;
             var verifyContext = args.VerifiedContext;
+            _testOutputHelper.WriteLine($"[TestGetPendingSessionRequests] Processing request ID: {id}");
 
             // Perform unsafe cast, all pending requests are stored as object type
             var signTransaction = ((EthSignTransaction)request.Parameters.Request.Params)[0];
+            _testOutputHelper.WriteLine("[TestGetPendingSessionRequests] Transaction parameters extracted");
 
             Assert.Equal(args.Request.Id, id);
             Assert.Equal(Validation.Unknown, verifyContext.Validation);
+            _testOutputHelper.WriteLine("[TestGetPendingSessionRequests] Request validation passed");
 
             var signature = ((AccountSignerTransactionManager)_cryptoWalletFixture.CryptoWallet
                     .GetAccount(0).TransactionManager)
                 .SignTransaction(signTransaction);
+            _testOutputHelper.WriteLine("[TestGetPendingSessionRequests] Transaction signed");
 
             args.Response = signature;
             task2.TrySetResult(true);
@@ -760,10 +834,13 @@ public class WalletKitSignTests :
 
         async Task SendRequest()
         {
+            _testOutputHelper.WriteLine("[TestGetPendingSessionRequests] Sending transaction request");
             var result = await _fixture.DappClient.Request<EthSignTransaction, string>(session.Topic,
                 requestParams, TestEthereumChain);
+            _testOutputHelper.WriteLine("[TestGetPendingSessionRequests] Transaction request sent");
 
             Assert.False(string.IsNullOrWhiteSpace(result));
+            _testOutputHelper.WriteLine("[TestGetPendingSessionRequests] Transaction signature validation passed");
         }
 
         await Task.WhenAll(

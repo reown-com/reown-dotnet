@@ -343,6 +343,8 @@ namespace Reown.Core.Controllers
 
         protected virtual async Task<string> RpcSubscribe(string topic, ProtocolOptions relay)
         {
+            ReownLogger.Log($"[Subscriber] Subscribing to topic: {topic}");
+
             var api = RelayProtocols.GetRelayProtocol(relay.Protocol);
             var request = new RequestArguments<JsonRpcSubscriberParams>
             {
