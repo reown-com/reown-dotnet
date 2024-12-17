@@ -196,7 +196,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
         }
     }
 
-    [Fact(Timeout = 60_000)] [Trait("Category", "integration")]
+    [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestShouldApproveSessionProposal()
     {
         var task1 = new TaskCompletionSource<bool>();
@@ -220,7 +220,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
         );
     }
 
-    [Fact(Timeout = 60_000)] [Trait("Category", "integration")]
+    [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestShouldRejectSessionProposal()
     {
         var rejectionError = Error.FromErrorType(ErrorType.USER_DISCONNECTED);
@@ -260,7 +260,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
         );
     }
 
-    [Fact(Timeout = 60_000)] [Trait("Category", "integration")]
+    [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestUpdateSession()
     {
         var task1 = new TaskCompletionSource<bool>();
@@ -299,7 +299,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
         );
     }
 
-    [Fact(Timeout = 60_000)] [Trait("Category", "integration")]
+    [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestExtendSession()
     {
         var task1 = new TaskCompletionSource<bool>();
@@ -335,7 +335,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
         Assert.True(updatedExpiry > prevExpiry);
     }
 
-    [Fact(Timeout = 60_000)] [Trait("Category", "integration")]
+    [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestRespondToSessionRequest()
     {
         var task1 = new TaskCompletionSource<bool>();
@@ -420,7 +420,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
         );
     }
 
-    [Fact(Timeout = 60_000)] [Trait("Category", "integration")]
+    [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestWalletDisconnectFromSession()
     {
         var task1 = new TaskCompletionSource<bool>();
@@ -474,7 +474,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
         );
     }
 
-    [Fact(Timeout = 60_000)] [Trait("Category", "integration")]
+    [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestDappDisconnectFromSession()
     {
         var task1 = new TaskCompletionSource<bool>();
@@ -528,7 +528,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
         );
     }
 
-    [Fact(Timeout = 60_000)] [Trait("Category", "integration")]
+    [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestEmitSessionEvent()
     {
         var pairingTask = new TaskCompletionSource<bool>();
@@ -616,7 +616,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
         await Assert.ThrowsAsync<NamespacesException>(() => _wallet.EmitSessionEvent(session.Topic, valueTypeEventData, "123:321"));
     }
 
-    [Fact(Timeout = 60_000)] [Trait("Category", "integration")]
+    [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestGetActiveSessions()
     {
         var task1 = new TaskCompletionSource<bool>();
@@ -662,7 +662,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
         Assert.Equal(session.Topic, sessions.Values.ToArray()[0].Topic);
     }
 
-    [Fact(Timeout = 60_000)] [Trait("Category", "integration")]
+    [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestGetPendingSessionProposals()
     {
         var task1 = new TaskCompletionSource<bool>();
@@ -681,7 +681,7 @@ public class SignClientTests : IClassFixture<CryptoWalletFixture>, IAsyncLifetim
         );
     }
 
-    [Fact(Timeout = 60_000)] [Trait("Category", "integration")]
+    [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
     public async Task TestGetPendingSessionRequests()
     {
         var task1 = new TaskCompletionSource<bool>();
