@@ -19,8 +19,7 @@ namespace Reown.WalletKit.Test;
 
 public class WalletKitSignTests :
     IClassFixture<WalletKitSignClientFixture>,
-    IClassFixture<CryptoWalletFixture>,
-    IAsyncLifetime
+    IClassFixture<CryptoWalletFixture>
 {
     [RpcMethod("eth_signTransaction")] [RpcRequestOptions(Clock.ONE_MINUTE, 99997)] [RpcResponseOptions(Clock.ONE_MINUTE, 99996)]
     public class EthSignTransaction : List<TransactionInput>
@@ -134,43 +133,6 @@ public class WalletKitSignTests :
         _fixture = fixture;
         _cryptoWalletFixture = cryptoWalletFixture;
         _testOutputHelper = testOutputHelper;
-    }
-
-    public async Task InitializeAsync()
-    {
-        await _fixture.DisposeAndReset();
-        await _fixture.WaitForClientsReady();
-
-        var connectData = await _fixture.DappClient.Connect(TestConnectOptions);
-        uriString = connectData.Uri ?? "";
-        sessionApproval = connectData.Approval;
-    }
-
-    public async Task DisposeAsync()
-    {
-        try
-        {
-            if (_fixture.WalletClient?.ActiveSessions != null)
-            {
-                foreach (var s in _fixture.WalletClient.ActiveSessions.Values)
-                {
-                    try
-                    {
-                        await _fixture.WalletClient.DisconnectSession(s.Topic, Error.FromErrorType(ErrorType.USER_DISCONNECTED));
-                    }
-                    catch (Exception)
-                    {
-                        // Ignore disconnection errors during cleanup
-                    }
-                }
-            }
-
-            await _fixture.DisposeAndReset();
-        }
-        catch (Exception ex)
-        {
-            _testOutputHelper.WriteLine($"Error during cleanup: {ex}");
-        }
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
