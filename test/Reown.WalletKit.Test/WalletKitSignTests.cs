@@ -3,6 +3,7 @@ using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Web3.Accounts;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Reown.Core.Common.Logging;
 using Reown.Core.Common.Model.Errors;
 using Reown.Core.Common.Utils;
 using Reown.Core.Models.Verify;
@@ -130,6 +131,7 @@ public class WalletKitSignTests :
         CryptoWalletFixture cryptoWalletFixture,
         ITestOutputHelper testOutputHelper)
     {
+        ReownLogger.Instance = new TestOutputHelperLogger(testOutputHelper);
         _fixture = fixture;
         _cryptoWalletFixture = cryptoWalletFixture;
         _testOutputHelper = testOutputHelper;

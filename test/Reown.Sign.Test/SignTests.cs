@@ -1,3 +1,4 @@
+using Reown.Core.Common.Logging;
 using Reown.Core.Common.Model.Errors;
 using Reown.Core.Common.Utils;
 using Reown.Core.Network.Models;
@@ -112,6 +113,8 @@ public class SignTests : IClassFixture<SignClientFixture>
     {
         _cryptoFixture = cryptoFixture;
         _testOutputHelper = testOutputHelper;
+        
+        ReownLogger.Instance = new TestOutputHelperLogger(testOutputHelper);
     }
 
     private static async Task TestConnectMethod(ISignClient clientA, ISignClient clientB)
