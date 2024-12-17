@@ -353,8 +353,28 @@ namespace Reown.Core.Controllers
                 }
             };
 
-            var subscribe = _relayer.Request<JsonRpcSubscriberParams, string>(request);
-            await subscribe.WithTimeout(20_000);
+            const int maxRetries = 2;
+            const int initialTimeout = 10_000;
+            var retryCount = 0;
+
+            while (retryCount < maxRetries)
+            {
+                try
+                {
+                    await _relayer.Request<JsonRpcSubscriberParams, string>(request).WithTimeout(initialTimeout * (int)Math.Pow(2, retryCount));
+                    break;
+                }
+                catch (TimeoutException ex)
+                {
+                    ReownLogger.Log($"[Subscriber] RpcSubscribe try {retryCount + 1}/{maxRetries} failed: {ex.Message}");
+                    retryCount++;
+                    if (retryCount < maxRetries)
+                        continue;
+
+                    ReownLogger.Log($"[Subscriber] Max retry attempts reached. Throwing exception.");
+                    throw;
+                }
+            }
 
             return HashUtils.HashMessage(topic + _clientId);
         }
