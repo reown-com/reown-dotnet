@@ -391,7 +391,7 @@ namespace Reown.Core.Controllers
 
         protected virtual Task<IJsonRpcConnection> BuildConnection(string url)
         {
-            return CoreClient.Options.ConnectionBuilder.CreateConnection(url);
+            return CoreClient.Options.ConnectionBuilder.CreateConnection(url, CoreClient.Context);
         }
 
         protected virtual void RegisterProviderEventListeners()
