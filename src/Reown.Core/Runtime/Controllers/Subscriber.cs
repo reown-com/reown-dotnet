@@ -370,7 +370,10 @@ namespace Reown.Core.Controllers
                     _logger.Log($"RpcSubscribe try {retryCount + 1}/{maxRetries} failed: {ex.Message}");
                     retryCount++;
                     if (retryCount < maxRetries)
+                    {
+                        await _relayer.RestartTransport();
                         continue;
+                    }
 
                     _logger.Log($"Max retry attempts reached. Throwing exception.");
                     throw;

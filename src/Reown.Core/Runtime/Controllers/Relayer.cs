@@ -257,7 +257,7 @@ namespace Reown.Core.Controllers
             catch (WebSocketException)
             {
                 _logger.Log("Restarting transport due to WebSocketException");
-                await ToEstablishConnection();
+                await RestartTransport();
                 result = await Provider.Request<T, TR>(request, context);
             }
 
@@ -346,7 +346,7 @@ namespace Reown.Core.Controllers
         {
             _logger.Log($"Restarting transport for {Name}. Explicitly closed: {TransportExplicitlyClosed}, reconnecting: {_reconnecting}");
 
-            if (TransportExplicitlyClosed || _reconnecting)
+            if (TransportExplicitlyClosed || _reconnecting || Connecting)
             {
                 return;
             }
