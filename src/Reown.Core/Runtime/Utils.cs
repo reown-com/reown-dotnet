@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Reown.Core.Common.Logging;
 
 namespace Reown.Core
 {
@@ -46,6 +47,7 @@ namespace Reown.Core
 
         public static (string chainId, string address) DeconstructAccountId(string accountId)
         {
+            ReownLogger.Log($"Deconstructing account id: {accountId}");
             if (string.IsNullOrWhiteSpace(accountId))
                 throw new ArgumentException("Provided account id is null or empty");
 
