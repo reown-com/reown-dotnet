@@ -2,6 +2,6 @@
   "$schema": "https://xunit.net/schema/current/xunit.runner.schema.json",
   "parallelizeTestCollections": false,
   "diagnosticMessages": true,
-  "showLiveOutput": true,
-  "stopOnFail": true
+  "stopOnFail": true,
+  "longRunningTestSeconds": 250
 }
