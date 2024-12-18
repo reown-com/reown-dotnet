@@ -14,8 +14,9 @@ namespace Reown.Core.Network
     /// </summary>
     public class JsonRpcProvider : IJsonRpcProvider
     {
-        private readonly Guid _context;
+        private readonly string _context;
         private readonly GenericEventHolder _jsonResponseEventHolder = new();
+        private readonly ILogger _logger;
         private TaskCompletionSource<bool> _connecting = new();
         private bool _connectingStarted;
         private bool _hasRegisteredEventListeners;
@@ -26,9 +27,11 @@ namespace Reown.Core.Network
         ///     Create a new JsonRpcProvider with the given connection
         /// </summary>
         /// <param name="connection">The IJsonRpcConnection to use</param>
-        public JsonRpcProvider(IJsonRpcConnection connection)
+        public JsonRpcProvider(IJsonRpcConnection connection, string context = null)
         {
-            _context = Guid.NewGuid();
+            _context = context ?? Guid.NewGuid().ToString();
+            _logger = ReownLogger.WithContext(Context);
+
             Connection = connection;
             if (Connection.Connected)
             {
@@ -57,9 +60,7 @@ namespace Reown.Core.Network
         /// </summary>
         public string Context
         {
-            get =>
-                //TODO Get context from logger
-                _context.ToString();
+            get => $"{_context}-{Name}";
         }
 
         /// <summary>
@@ -184,14 +185,14 @@ namespace Reown.Core.Network
         /// <returns>A Task that will resolve when a response is received</returns>
         public async Task<TR> Request<T, TR>(IRequestArguments<T> requestArgs, object context = null)
         {
-            ReownLogger.Log("[JsonRpcProvider] Checking if connected");
+            _logger.Log("Checking if connected");
             if (IsConnecting)
             {
                 await _connecting.Task;
             }
             else if (!_connectingStarted && !Connection.Connected)
             {
-                ReownLogger.Log("[JsonRpcProvider] Not connected, connecting now");
+                _logger.Log("Not connected, connecting now");
                 await Connect(Connection);
             }
 
@@ -247,8 +248,7 @@ namespace Reown.Core.Network
 
             _lastId = request.Id;
 
-            ReownLogger.Log(
-                $"[JsonRpcProvider] Sending request {request.Method} with data {JsonConvert.SerializeObject(request)}");
+            _logger.Log($"Sending request {request.Method} with data {JsonConvert.SerializeObject(request)}");
             await Connection.SendRequest(request, context);
 
             await requestTask.Task;

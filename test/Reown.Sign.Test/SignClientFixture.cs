@@ -1,10 +1,8 @@
 ﻿using Reown.Core;
-using Reown.Core.Common.Logging;
 using Reown.Core.Storage;
 using Reown.Core.Storage.Interfaces;
 using Reown.Sign.Models;
 using Reown.TestUtils;
-
 
 namespace Reown.Sign.Test;
 
@@ -37,7 +35,7 @@ public class SignClientFixture : TwoClientsFixture<SignClient>
                 {
                     "https://raw.githubusercontent.com/reown-com/reown-dotnet/main/media/reown-avatar-positive.png"
                 },
-                Name = "Dapp Test",
+                Name = "Dapp",
                 Url = "https://reown.com"
             },
             // Omit if you want persistant storage
@@ -55,7 +53,7 @@ public class SignClientFixture : TwoClientsFixture<SignClient>
                 {
                     "https://raw.githubusercontent.com/reown-com/reown-dotnet/main/media/reown-avatar-positive.png"
                 },
-                Name = "Wallet Test",
+                Name = "Wallet",
                 Url = "https://reown.com"
             },
             // Omit if you want persistant storage
@@ -73,7 +71,7 @@ public class SignClientFixture : TwoClientsFixture<SignClient>
             await WaitForNoPendingRequests(ClientA);
             await ClientA.CoreClient.Storage.Clear();
         }
-        
+
         if (ClientB?.CoreClient != null)
         {
             await WaitForNoPendingRequests(ClientB);
@@ -87,10 +85,9 @@ public class SignClientFixture : TwoClientsFixture<SignClient>
     {
         if (client?.PendingSessionRequests == null)
             return;
-        
+
         while (client.PendingSessionRequests.Length > 0)
         {
-            ReownLogger.Log($"Waiting for {client.PendingSessionRequests.Length} requests to finish sending");
             await Task.Delay(100);
         }
     }

@@ -4,6 +4,7 @@ using System.Net.WebSockets;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Reown.Core.Common;
+using Reown.Core.Common.Logging;
 using Reown.Core.Common.Utils;
 using Reown.Core.Network.Models;
 using Websocket.Client;
@@ -17,26 +18,26 @@ namespace Reown.Core.Network.Websocket
     {
         private const string AddressNotFoundError = "getaddrinfo ENOTFOUND";
         private const string ConnectionRefusedError = "connect ECONNREFUSED";
-        private readonly Guid _context;
+        private readonly string _context;
+        private readonly ILogger _logger;
         private WebsocketClient _socket;
-        protected bool Disposed;
-
-        /// <summary>
-        ///     The Open timeout
-        /// </summary>
-        public TimeSpan OpenTimeout = TimeSpan.FromSeconds(60);
+        private IDisposable _messageSubscription;
+        private IDisposable _disconnectionSubscription;
+        private bool _disposed;
 
         /// <summary>
         ///     Create a new websocket connection that will connect to the given URL
         /// </summary>
         /// <param name="url">The URL to connect to</param>
+        /// <param name="context">The context of the root module</param>
         /// <exception cref="ArgumentException">If the given URL is invalid</exception>
-        public WebsocketConnection(string url)
+        public WebsocketConnection(string url, string context = null)
         {
             if (!Validation.IsWsUrl(url))
                 throw new ArgumentException("Provided URL is not compatible with WebSocket connection: " + url);
 
-            _context = Guid.NewGuid();
+            _context = context ?? Guid.NewGuid().ToString();
+            _logger = ReownLogger.WithContext(Context);
             Url = url;
         }
 
@@ -46,6 +47,14 @@ namespace Reown.Core.Network.Websocket
         public string Url { get; private set; }
 
         public bool IsPaused { get; internal set; }
+
+        /// <summary>
+        ///     The Open timeout
+        /// </summary>
+        public TimeSpan OpenTimeout
+        {
+            get => TimeSpan.FromSeconds(60);
+        }
 
         public event EventHandler<string> PayloadReceived;
         public event EventHandler Closed;
@@ -112,15 +121,16 @@ namespace Reown.Core.Network.Websocket
         /// <typeparam name="T">The type of the Json RPC request parameter</typeparam>
         public async Task SendRequest<T>(IJsonRpcRequest<T> requestPayload, object context)
         {
-            if (_socket == null)
-                _socket = await Register(Url);
+            _socket ??= await Register(Url);
 
             try
             {
+                _logger.Log("Sending request over websocket");
                 _socket.Send(JsonConvert.SerializeObject(requestPayload));
             }
             catch (Exception e)
             {
+                _logger.Log($"Error sending request: {e.Message}");
                 OnError<T>(requestPayload, e);
             }
         }
@@ -128,41 +138,41 @@ namespace Reown.Core.Network.Websocket
         /// <summary>
         ///     Send a Json RPC response through this websocket connection, using the given context
         /// </summary>
-        /// <param name="requestPayload">The response payload to encode and send</param>
+        /// <param name="responsePayload">The response payload to encode and send</param>
         /// <param name="context">The context to use when sending</param>
         /// <typeparam name="T">The type of the Json RPC response result</typeparam>
-        public async Task SendResult<T>(IJsonRpcResult<T> requestPayload, object context)
+        public async Task SendResult<T>(IJsonRpcResult<T> responsePayload, object context)
         {
-            if (_socket == null)
-                _socket = await Register(Url);
+            _socket ??= await Register(Url);
 
             try
             {
-                _socket.Send(JsonConvert.SerializeObject(requestPayload));
+                _socket.Send(JsonConvert.SerializeObject(responsePayload));
             }
             catch (Exception e)
             {
-                OnError<T>(requestPayload, e);
+                OnError<T>(responsePayload, e);
             }
         }
 
         /// <summary>
-        ///     Send a Json RPC error response through this websocket connection, using the given context
+        ///     Send a JSON RPC error. This function does not return or wait for response. JSON RPC errors do not receive
+        ///     any response and therefore do not trigger any events
         /// </summary>
-        /// <param name="requestPayload">The error response payload to encode and send</param>
-        /// <param name="context">The context to use when sending</param>
-        public async Task SendError(IJsonRpcError requestPayload, object context)
+        /// <param name="errorPayload">The error to send</param>
+        /// <param name="context">The current context</param>
+        /// <returns>A task that is performing the send</returns>
+        public async Task SendError(IJsonRpcError errorPayload, object context)
         {
-            if (_socket == null)
-                _socket = await Register(Url);
+            _socket ??= await Register(Url);
 
             try
             {
-                _socket.Send(JsonConvert.SerializeObject(requestPayload));
+                _socket.Send(JsonConvert.SerializeObject(errorPayload));
             }
             catch (Exception e)
             {
-                OnError<object>(requestPayload, e);
+                OnError<object>(errorPayload, e);
             }
         }
 
@@ -177,7 +187,7 @@ namespace Reown.Core.Network.Websocket
         /// </summary>
         public string Name
         {
-            get => "websocket-connection";
+            get => "ws-connection";
         }
 
         /// <summary>
@@ -185,7 +195,7 @@ namespace Reown.Core.Network.Websocket
         /// </summary>
         public string Context
         {
-            get => _context.ToString();
+            get => $"{_context}-{Name}";
         }
 
         private async Task<WebsocketClient> Register(string url)
@@ -195,14 +205,14 @@ namespace Reown.Core.Network.Websocket
                 throw new ArgumentException("Provided URL is not compatible with WebSocket connection: " + url);
             }
 
+            _logger.Log($"Register new WS connection. Is already connecting: {Connecting}");
+
             if (Connecting)
             {
-                var registeringTask =
-                    new TaskCompletionSource<WebsocketClient>(TaskCreationOptions.None);
+                var registeringTask = new TaskCompletionSource<WebsocketClient>(TaskCreationOptions.None);
 
-                RegisterErrored.ListenOnce((sender, args) => { registeringTask.SetException(args); });
-
-                Opened.ListenOnce((sender, args) => { registeringTask.SetResult((WebsocketClient)args); });
+                RegisterErrored.ListenOnce((sender, args) => registeringTask.SetException(args));
+                Opened.ListenOnce((sender, args) => registeringTask.SetResult((WebsocketClient)args));
 
                 await registeringTask.Task;
 
@@ -235,8 +245,8 @@ namespace Reown.Core.Network.Websocket
             if (socket == null)
                 return;
 
-            socket.MessageReceived.Subscribe(OnPayload);
-            socket.DisconnectionHappened.Subscribe(OnDisconnect);
+            _messageSubscription = socket.MessageReceived.Subscribe(OnPayload);
+            _disconnectionSubscription = socket.DisconnectionHappened.Subscribe(OnDisconnect);
 
             _socket = socket;
             Connecting = false;
@@ -256,7 +266,8 @@ namespace Reown.Core.Network.Websocket
             if (_socket == null)
                 return;
 
-            //_socket.Dispose();
+            _logger.Log($"Connection closed. Close status: {obj.CloseStatus?.ToString() ?? "-- "}. Exception message: {obj.Exception?.Message ?? "--"}");
+
             _socket = null;
             Connecting = false;
             Closed?.Invoke(this, EventArgs.Empty);
@@ -276,24 +287,30 @@ namespace Reown.Core.Network.Websocket
                     return;
             }
 
-            if (string.IsNullOrWhiteSpace(json)) return;
-
-            //Console.WriteLine($"[{Name}] Got payload {json}");
+            if (string.IsNullOrWhiteSpace(json))
+                return;
 
             PayloadReceived?.Invoke(this, json);
         }
 
         protected virtual void Dispose(bool disposing)
         {
-            if (Disposed)
+            if (_disposed)
                 return;
 
             if (disposing)
             {
-                _socket.Dispose();
+                _messageSubscription?.Dispose();
+                _disconnectionSubscription?.Dispose();
+
+                if (_socket != null)
+                {
+                    _socket.Dispose();
+                    _socket = null;
+                }
             }
 
-            Disposed = true;
+            _disposed = true;
         }
 
         private void OnError<T>(IJsonRpcPayload ogPayload, Exception e)

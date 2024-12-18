@@ -1,4 +1,3 @@
-using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Signer;
 using Nethereum.Util;
 using Newtonsoft.Json;

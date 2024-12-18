@@ -12,6 +12,9 @@ inputs:
   project-id:
     description: 'Reown project id'
     required: true
+  dotnet-version:
+    description: 'The .NET version to use for testing'
+    required: true
 
 runs:
   using: "composite"
@@ -19,7 +22,7 @@ runs:
     - name: Run tests
       if: inputs.type == 'unit-tests'
       shell: bash
-      run: dotnet test Reown.NoUnity.slnf --verbosity minimal --filter Category=unit
+      run: dotnet test Reown.NoUnity.slnf --verbosity minimal --filter Category=unit --framework net$(echo ${{ inputs.dotnet-version }} | cut -d'.' -f1).0
 
     - name: Run integration tests
       if: inputs.type == 'integration-tests'
@@ -27,4 +30,4 @@ runs:
       env:
         RELAY_ENDPOINT: ${{ inputs.relay-endpoint }}
         PROJECT_ID: ${{ inputs.project-id }}
-      run: dotnet test Reown.NoUnity.slnf --verbosity detailed --filter Category=integration
+      run: dotnet test Reown.NoUnity.slnf --verbosity normal --filter Category=integration --framework net$(echo ${{ inputs.dotnet-version }} | cut -d'.' -f1).0

@@ -1,6 +1,10 @@
+using Reown.Core;
+using Reown.Core.Common.Logging;
 using Reown.Core.Common.Model.Errors;
 using Reown.Core.Common.Utils;
 using Reown.Core.Network.Models;
+using Reown.Core.Storage;
+using Reown.Core.Storage.Interfaces;
 using Reown.Sign.Interfaces;
 using Reown.Sign.Models;
 using Reown.Sign.Models.Engine;
@@ -10,10 +14,13 @@ using Xunit.Abstractions;
 
 namespace Reown.Sign.Test;
 
-public class SignTests : IClassFixture<SignClientFixture>
+public class SignTests : IAsyncLifetime
 {
-    private SignClientFixture _cryptoFixture;
     private readonly ITestOutputHelper _testOutputHelper;
+    private SignClient _dapp;
+    private SignClient _wallet;
+    private InMemoryStorage _dappStorage;
+    private InMemoryStorage _walletStorage;
     private const string AllowedChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     [RpcMethod("test_method")] [RpcRequestOptions(Clock.ONE_MINUTE, 99998)]
@@ -98,26 +105,95 @@ public class SignTests : IClassFixture<SignClientFixture>
         public int result;
     }
 
-    public SignClient ClientA
+    public SignTests(ITestOutputHelper testOutputHelper)
     {
-        get => _cryptoFixture.ClientA;
-    }
-
-    public SignClient ClientB
-    {
-        get => _cryptoFixture.ClientB;
-    }
-
-    public SignTests(SignClientFixture cryptoFixture, ITestOutputHelper testOutputHelper)
-    {
-        _cryptoFixture = cryptoFixture;
         _testOutputHelper = testOutputHelper;
+    }
+
+    public async Task InitializeAsync()
+    {
+        _dappStorage = new InMemoryStorage();
+        _walletStorage = new InMemoryStorage();
+
+        await InitializeDappClient(_dappStorage);
+        await InitializeWallet(_walletStorage);
+        
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
+    }
+    
+    private async Task InitializeDappClient(IKeyValueStorage storage)
+    {
+        _dapp = await SignClient.Init(new SignClientOptions
+        {
+            ProjectId = TestValues.TestProjectId,
+            RelayUrl = TestValues.TestRelayUrl,
+            Metadata = new Metadata
+            {
+                Description = "Dapp Test",
+                Icons =
+                [
+                    "https://raw.githubusercontent.com/reown-com/reown-dotnet/main/media/reown-avatar-positive.png"
+                ],
+                Name = "Dapp",
+                Url = "https://reown.com"
+            },
+            Storage = storage
+        });
+    }
+
+    private async Task InitializeWallet(IKeyValueStorage storage)
+    {
+        _wallet = await SignClient.Init(new SignClientOptions()
+        {
+            ProjectId = TestValues.TestProjectId,
+            RelayUrl = TestValues.TestRelayUrl,
+            Metadata = new Metadata
+            {
+                Description = "Wallet Test",
+                Icons =
+                [
+                    "https://raw.githubusercontent.com/reown-com/reown-dotnet/main/media/reown-avatar-positive.png"
+                ],
+                Name = "Wallet",
+                Url = "https://reown.com"
+            },
+            Storage = storage
+        });
+    }
+
+    public async Task DisposeAsync()
+    {
+        ReownLogger.Instance = null;
+        
+        if (_dapp?.CoreClient != null)
+        {
+            await WaitForNoPendingRequests(_dapp);
+            await _dapp.CoreClient.Storage.Clear();
+            _dapp.Dispose();
+        }
+
+        if (_wallet?.CoreClient != null)
+        {
+            await WaitForNoPendingRequests(_wallet);
+            await _wallet.CoreClient.Storage.Clear();
+            _wallet.Dispose();
+        }
+    }
+
+    public async Task WaitForNoPendingRequests(SignClient client)
+    {
+        if (client?.PendingSessionRequests == null)
+            return;
+
+        while (client.PendingSessionRequests.Length > 0)
+        {
+            ReownLogger.Log($"Waiting for {client.PendingSessionRequests.Length} requests to finish sending");
+            await Task.Delay(100);
+        }
     }
 
     private static async Task TestConnectMethod(ISignClient clientA, ISignClient clientB)
     {
-        var start = Clock.NowMilliseconds();
-    
         var testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
         var dappConnectOptions = new ConnectOptions()
         {
@@ -197,18 +273,12 @@ public class SignTests : IClassFixture<SignClientFixture>
     [Fact] [Trait("Category", "integration")]
     public async Task TestApproveSession()
     {
-        await _cryptoFixture.DisposeAndReset();
-        await _cryptoFixture.WaitForClientsReady();
-    
-        await TestConnectMethod(ClientA, ClientB);
+        await TestConnectMethod(_dapp, _wallet);
     }
     
     [Fact] [Trait("Category", "integration")]
     public async Task TestRejectSession()
     {
-        await _cryptoFixture.DisposeAndReset();
-        await _cryptoFixture.WaitForClientsReady();
-    
         var testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
         var dappConnectOptions = new ConnectOptions()
         {
@@ -239,12 +309,10 @@ public class SignTests : IClassFixture<SignClientFixture>
                 }
             }
         };
-    
-        var dappClient = ClientA;
-        var connectData = await dappClient.Connect(dappConnectOptions);
-    
-        var walletClient = ClientB;
-        walletClient.SessionProposed += async (sender, @event) =>
+
+        var connectData = await _dapp.Connect(dappConnectOptions);
+
+        _wallet.SessionProposed += async (sender, @event) =>
         {
             var id = @event.Id;
             
@@ -253,13 +321,7 @@ public class SignTests : IClassFixture<SignClientFixture>
                 .WithAccount($"eip155:1:{testAddress}")
                 .WithAccount($"eip155:10:{testAddress}");
 
-            var approveParams = new ApproveParams
-            {
-                Id = id,
-                Namespaces = approvedNamespaces
-            };
-
-            await walletClient.Reject(new RejectParams
+            await _wallet.Reject(new RejectParams
             {
                 Id = id,
                 Reason = Error.FromErrorType(ErrorType.GENERIC)
@@ -268,19 +330,14 @@ public class SignTests : IClassFixture<SignClientFixture>
             await Task.Delay(500);
         };
         
-        _ = await walletClient.Pair(connectData.Uri);
+        _ = await _wallet.Pair(connectData.Uri);
     
         await Assert.ThrowsAsync<ReownNetworkException>(() => connectData.Approval);
-
-        await _cryptoFixture.DisposeAndReset();
     }
     
     [Fact] [Trait("Category", "integration")]
     public async Task TestSessionRequestResponse()
     {
-        await _cryptoFixture.DisposeAndReset();
-        await _cryptoFixture.WaitForClientsReady();
-    
         var testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
         var testMethod = "test_method";
     
@@ -310,10 +367,9 @@ public class SignTests : IClassFixture<SignClientFixture>
             }
         };
     
-        var dappClient = ClientA;
-        var connectData = await dappClient.Connect(dappConnectOptions);
+        var connectData = await _dapp.Connect(dappConnectOptions);
     
-        var walletClient = ClientB;
+        var walletClient = _wallet;
         walletClient.SessionProposed += async (sender, @event) =>
         {
             var id = @event.Id;
@@ -333,7 +389,7 @@ public class SignTests : IClassFixture<SignClientFixture>
             await approveData.Acknowledged();
         };
 
-        _ = await walletClient.Pair(connectData.Uri);
+        _ = await _wallet.Pair(connectData.Uri);
         var sessionData = await connectData.Approval;
     
         var rnd = new Random();
@@ -351,7 +407,7 @@ public class SignTests : IClassFixture<SignClientFixture>
         // Step 1. Setup event listener for request
     
         // The wallet client will listen for the request with the "test_method" rpc method
-        walletClient.Engine.SessionRequestEvents<TestRequest, TestResponse>()
+        _wallet.Engine.SessionRequestEvents<TestRequest, TestResponse>()
             .OnRequest += (requestData) =>
         {
             var request = requestData.Request;
@@ -369,7 +425,7 @@ public class SignTests : IClassFixture<SignClientFixture>
         // Normally, we wouldn't do this and just rely on the return value
         // from the dappClient.Engine.Request function call (the response Result or throws an Exception)
         // We do it here for the sake of testing
-        dappClient.Engine.SessionRequestEvents<TestRequest, TestResponse>()
+        _dapp.Engine.SessionRequestEvents<TestRequest, TestResponse>()
             .FilterResponses((r) => r.Topic == sessionData.Topic)
             .OnResponse += (responseData) =>
         {
@@ -383,7 +439,7 @@ public class SignTests : IClassFixture<SignClientFixture>
         };
     
         // 2. Send the request from the dapp client
-        var responseReturned = await dappClient.Engine.Request<TestRequest, TestResponse>(sessionData.Topic, testData);
+        var responseReturned = await _dapp.Engine.Request<TestRequest, TestResponse>(sessionData.Topic, testData);
     
         // 3. Wait for the response from the event listener
         var eventResult = await pending.Task.WithTimeout(TimeSpan.FromSeconds(5));
@@ -396,9 +452,6 @@ public class SignTests : IClassFixture<SignClientFixture>
     [Fact] [Trait("Category", "integration")]
     public async Task TestSessionRequestInvalidMethod()
     {
-        await _cryptoFixture.DisposeAndReset();
-        await _cryptoFixture.WaitForClientsReady();
-    
         var validMethod = "test_method";
     
         var dappConnectOptions = new ConnectOptions()
@@ -427,10 +480,9 @@ public class SignTests : IClassFixture<SignClientFixture>
             }
         };
     
-        var dappClient = ClientA;
-        var connectData = await dappClient.Connect(dappConnectOptions);
+        var connectData = await _dapp.Connect(dappConnectOptions);
     
-        var walletClient = ClientB;
+        var walletClient = _wallet;
         walletClient.SessionProposed += async (sender, @event) =>
         {
             var id = @event.Id;
@@ -449,7 +501,7 @@ public class SignTests : IClassFixture<SignClientFixture>
             var approveData = await walletClient.Approve(approveParams);
             await approveData.Acknowledged();
         };
-        _ = await walletClient.Pair(connectData.Uri);
+        _ = await _wallet.Pair(connectData.Uri);
     
         // var approveData = await walletClient.Approve(proposal, "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045");
     
@@ -463,32 +515,25 @@ public class SignTests : IClassFixture<SignClientFixture>
         };
     
         // Use TestRequest2 which isn't included in the required namespaces
-        await Assert.ThrowsAsync<NamespacesException>(() => dappClient.Engine.Request<TestRequest2, TestResponse>(sessionData.Topic, testData));
+        await Assert.ThrowsAsync<NamespacesException>(() => _dapp.Engine.Request<TestRequest2, TestResponse>(sessionData.Topic, testData));
     }
 
     [Fact] [Trait("Category", "integration")]
     public async Task TestInvalidConnect()
     {
-        await _cryptoFixture.DisposeAndReset();
-        await _cryptoFixture.WaitForClientsReady();
-        var dappClient = ClientA;
-
-        await Assert.ThrowsAsync<ArgumentNullException>(() => dappClient.Connect(null));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _dapp.Connect(null));
 
         var connectOptions = new ConnectOptions
         {
             PairingTopic = "123"
         };
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => dappClient.Connect(connectOptions));
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => _dapp.Connect(connectOptions));
     }
 
     [Fact] [Trait("Category", "integration")]
     public async Task TestTwoUniqueSessionRequestResponse()
     {
-        await _cryptoFixture.DisposeAndReset();
-        await _cryptoFixture.WaitForClientsReady();
-    
         var testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
         var testMethod = "test_method";
         var testMethod2 = "test_method_2";
@@ -520,10 +565,9 @@ public class SignTests : IClassFixture<SignClientFixture>
             }
         };
     
-        var dappClient = ClientA;
-        var connectData = await dappClient.Connect(dappConnectOptions);
+        var connectData = await _dapp.Connect(dappConnectOptions);
     
-        var walletClient = ClientB;
+        var walletClient = _wallet;
         walletClient.SessionProposed += async (sender, @event) =>
         {
             var id = @event.Id;
@@ -543,7 +587,7 @@ public class SignTests : IClassFixture<SignClientFixture>
             await approveData.Acknowledged();
         };
         
-        _ = await walletClient.Pair(connectData.Uri);
+        _ = await _wallet.Pair(connectData.Uri);
         
         var sessionData = await connectData.Approval;
     
@@ -570,7 +614,7 @@ public class SignTests : IClassFixture<SignClientFixture>
         // Step 1. Setup event listener for request
     
         // The wallet client will listen for the request with the "test_method" rpc method
-        walletClient.Engine.SessionRequestEvents<TestRequest, TestResponse>()
+        _wallet.Engine.SessionRequestEvents<TestRequest, TestResponse>()
             .OnRequest += (requestData) =>
         {
             var request = requestData.Request;
@@ -585,7 +629,7 @@ public class SignTests : IClassFixture<SignClientFixture>
         };
     
         // The wallet client will listen for the request with the "test_method" rpc method
-        walletClient.Engine.SessionRequestEvents<TestRequest2, bool>()
+        _wallet.Engine.SessionRequestEvents<TestRequest2, bool>()
             .OnRequest += (requestData) =>
         {
             var request = requestData.Request;
@@ -600,7 +644,7 @@ public class SignTests : IClassFixture<SignClientFixture>
         // Normally, we wouldn't do this and just rely on the return value
         // from the dappClient.Engine.Request function call (the response Result or throws an Exception)
         // We do it here for the sake of testing
-        dappClient.Engine.SessionRequestEvents<TestRequest, TestResponse>()
+        _dapp.Engine.SessionRequestEvents<TestRequest, TestResponse>()
             .FilterResponses((r) => r.Topic == sessionData.Topic)
             .OnResponse += (responseData) =>
         {
@@ -614,8 +658,8 @@ public class SignTests : IClassFixture<SignClientFixture>
         };
     
         // 2. Send the request from the dapp client
-        var responseReturned = await dappClient.Engine.Request<TestRequest, TestResponse>(sessionData.Topic, testData);
-        var responseReturned2 = await dappClient.Engine.Request<TestRequest2, bool>(sessionData.Topic, testData2);
+        var responseReturned = await _dapp.Engine.Request<TestRequest, TestResponse>(sessionData.Topic, testData);
+        var responseReturned2 = await _dapp.Engine.Request<TestRequest2, bool>(sessionData.Topic, testData2);
     
         // 3. Wait for the response from the event listener
         var eventResult = await pending.Task.WithTimeout(TimeSpan.FromSeconds(5));
@@ -630,9 +674,6 @@ public class SignTests : IClassFixture<SignClientFixture>
     [Fact] [Trait("Category", "integration")]
     public async Task TestTwoUniqueComplexSessionRequestResponse()
     {
-        await _cryptoFixture.DisposeAndReset();
-        await _cryptoFixture.WaitForClientsReady();
-    
         var testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
         var testMethod = "complex_test_method";
         var testMethod2 = "complex_test_method_2";
@@ -664,10 +705,9 @@ public class SignTests : IClassFixture<SignClientFixture>
             }
         };
     
-        var dappClient = ClientA;
-        var connectData = await dappClient.Connect(dappConnectOptions);
+        var connectData = await _dapp.Connect(dappConnectOptions);
     
-        var walletClient = ClientB;
+        var walletClient = _wallet;
         walletClient.SessionProposed += async (sender, @event) =>
         {
             var id = @event.Id;
@@ -686,7 +726,7 @@ public class SignTests : IClassFixture<SignClientFixture>
             var approveData = await walletClient.Approve(approveParams);
             await approveData.Acknowledged();
         };
-        _ = await walletClient.Pair(connectData.Uri);
+        _ = await _wallet.Pair(connectData.Uri);
         
         var sessionData = await connectData.Approval;
         
@@ -708,7 +748,7 @@ public class SignTests : IClassFixture<SignClientFixture>
         // Step 1. Setup event listener for request
     
         // The wallet client will listen for the request with the "test_method" rpc method
-        walletClient.Engine.SessionRequestEvents<ComplexTestRequest, TestResponse>()
+        _wallet.Engine.SessionRequestEvents<ComplexTestRequest, TestResponse>()
             .OnRequest += (requestData) =>
         {
             var request = requestData.Request;
@@ -723,7 +763,7 @@ public class SignTests : IClassFixture<SignClientFixture>
         };
     
         // The wallet client will listen for the request with the "test_method" rpc method
-        walletClient.Engine.SessionRequestEvents<ComplexTestRequest2, bool>()
+        _wallet.Engine.SessionRequestEvents<ComplexTestRequest2, bool>()
             .OnRequest += (requestData) =>
         {
             var request = requestData.Request;
@@ -738,7 +778,7 @@ public class SignTests : IClassFixture<SignClientFixture>
         // Normally, we wouldn't do this and just rely on the return value
         // from the dappClient.Engine.Request function call (the response Result or throws an Exception)
         // We do it here for the sake of testing
-        dappClient.Engine.SessionRequestEvents<ComplexTestRequest, TestResponse>()
+        _dapp.Engine.SessionRequestEvents<ComplexTestRequest, TestResponse>()
             .FilterResponses((r) => r.Topic == sessionData.Topic)
             .OnResponse += (responseData) =>
         {
@@ -752,8 +792,8 @@ public class SignTests : IClassFixture<SignClientFixture>
         };
     
         // 2. Send the request from the dapp client
-        var responseReturned = await dappClient.Engine.Request<ComplexTestRequest, TestResponse>(sessionData.Topic, testData);
-        var responseReturned2 = await dappClient.Engine.Request<ComplexTestRequest2, bool>(sessionData.Topic, testData2);
+        var responseReturned = await _dapp.Engine.Request<ComplexTestRequest, TestResponse>(sessionData.Topic, testData);
+        var responseReturned2 = await _dapp.Engine.Request<ComplexTestRequest2, bool>(sessionData.Topic, testData2);
     
         // 3. Wait for the response from the event listener
         var eventResult = await pending.Task.WithTimeout(TimeSpan.FromSeconds(5));
@@ -768,23 +808,15 @@ public class SignTests : IClassFixture<SignClientFixture>
     [Fact] [Trait("Category", "integration")]
     public async Task TestTwoUniqueSessionRequestUsingAddressProviderDefaults()
     {
-        await _cryptoFixture.WaitForClientsReady();
-        await _cryptoFixture.DisposeAndReset();
-        
         await TwoUniqueSessionRequestUsingAddressProviderDefaults();
     }
     
     private async Task TwoUniqueSessionRequestUsingAddressProviderDefaults()
     {
-        await _cryptoFixture.WaitForClientsReady();
-        
-        var dappClient = ClientA;
-        var walletClient = ClientB;
+        await _wallet.AddressProvider.LoadDefaultsAsync();
+        await _dapp.AddressProvider.LoadDefaultsAsync();
     
-        await dappClient.AddressProvider.LoadDefaultsAsync();
-        await walletClient.AddressProvider.LoadDefaultsAsync();
-    
-        if (!dappClient.AddressProvider.HasDefaultSession && !walletClient.AddressProvider.HasDefaultSession)
+        if (!_dapp.AddressProvider.HasDefaultSession && !_wallet.AddressProvider.HasDefaultSession)
         {
             var testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
             var testMethod = "test_method";
@@ -817,7 +849,7 @@ public class SignTests : IClassFixture<SignClientFixture>
             };
             
             var tcs = new TaskCompletionSource();
-            walletClient.SessionProposed += async (sender, @event) =>
+            _wallet.SessionProposed += async (sender, @event) =>
             {
                 var id = @event.Id;
                 
@@ -830,15 +862,15 @@ public class SignTests : IClassFixture<SignClientFixture>
                     Namespaces = approvedNamespaces
                 };
     
-                var approveData = await walletClient.Approve(approveParams);
+                var approveData = await _wallet.Approve(approveParams);
                 await approveData.Acknowledged();
                 
                 tcs.SetResult();
             };
     
-            var connectData = await dappClient.Connect(dappConnectOptions);
+            var connectData = await _dapp.Connect(dappConnectOptions);
     
-            _ = await walletClient.Pair(connectData.Uri);
+            _ = await _wallet.Pair(connectData.Uri);
             
             await tcs.Task;
             
@@ -846,11 +878,11 @@ public class SignTests : IClassFixture<SignClientFixture>
         }
         else
         {
-            Assert.True(dappClient.AddressProvider.HasDefaultSession);
-            Assert.True(walletClient.AddressProvider.HasDefaultSession);
+            Assert.True(_dapp.AddressProvider.HasDefaultSession);
+            Assert.True(_wallet.AddressProvider.HasDefaultSession);
         }
 
-        var defaultSessionTopic = dappClient.AddressProvider.DefaultSession.Topic;
+        var defaultSessionTopic = _dapp.AddressProvider.DefaultSession.Topic;
         var rnd = new Random();
         var a = rnd.Next(100);
         var b = rnd.Next(100);
@@ -874,7 +906,7 @@ public class SignTests : IClassFixture<SignClientFixture>
         // Step 1. Setup event listener for request
     
         // The wallet client will listen for the request with the "test_method" rpc method
-        walletClient.Engine.SessionRequestEvents<TestRequest, TestResponse>()
+        _wallet.Engine.SessionRequestEvents<TestRequest, TestResponse>()
             .OnRequest += (requestData) =>
         {
             var request = requestData.Request;
@@ -889,7 +921,7 @@ public class SignTests : IClassFixture<SignClientFixture>
         };
     
         // The wallet client will listen for the request with the "test_method" rpc method
-        walletClient.Engine.SessionRequestEvents<TestRequest2, bool>()
+        _wallet.Engine.SessionRequestEvents<TestRequest2, bool>()
             .OnRequest += (requestData) =>
         {
             var request = requestData.Request;
@@ -904,7 +936,7 @@ public class SignTests : IClassFixture<SignClientFixture>
         // Normally, we wouldn't do this and just rely on the return value
         // from the dappClient.Engine.Request function call (the response Result or throws an Exception)
         // We do it here for the sake of testing
-        dappClient.Engine.SessionRequestEvents<TestRequest, TestResponse>()
+        _dapp.Engine.SessionRequestEvents<TestRequest, TestResponse>()
             .FilterResponses((r) => r.Topic == defaultSessionTopic)
             .OnResponse += (responseData) =>
         {
@@ -920,8 +952,8 @@ public class SignTests : IClassFixture<SignClientFixture>
         };
         
         // 2. Send the request from the dapp client
-        var responseReturned = await dappClient.Engine.Request<TestRequest, TestResponse>(testData);
-        var responseReturned2 = await dappClient.Engine.Request<TestRequest2, bool>(testData2);
+        var responseReturned = await _dapp.Engine.Request<TestRequest, TestResponse>(testData);
+        var responseReturned2 = await _dapp.Engine.Request<TestRequest2, bool>(testData2);
     
         // 3. Wait for the response from the event listener
         var eventResult = await pending.Task.WithTimeout(TimeSpan.FromSeconds(5));
@@ -936,9 +968,6 @@ public class SignTests : IClassFixture<SignClientFixture>
     [Fact] [Trait("Category", "integration")]
     public async Task TestAddressProviderDefaults()
     {
-        await _cryptoFixture.DisposeAndReset();
-        await _cryptoFixture.WaitForClientsReady();
-    
         var testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
         var testMethod = "test_method";
         var testMethod2 = "test_method_2";
@@ -969,12 +998,10 @@ public class SignTests : IClassFixture<SignClientFixture>
             }
         };
     
-        var dappClient = ClientA;
-        var connectData = await dappClient.Connect(dappConnectOptions);
+        var connectData = await _dapp.Connect(dappConnectOptions);
     
-        var walletClient = ClientB;
         var tcs = new TaskCompletionSource();
-        walletClient.SessionProposed += async (sender, @event) =>
+        _wallet.SessionProposed += async (sender, @event) =>
         {
             var id = @event.Id;
             
@@ -987,31 +1014,31 @@ public class SignTests : IClassFixture<SignClientFixture>
                 Namespaces = approvedNamespaces
             };
     
-            var approveData = await walletClient.Approve(approveParams);
+            var approveData = await _wallet.Approve(approveParams);
             await approveData.Acknowledged();
             
             tcs.SetResult();
         };
         
-        _ = await walletClient.Pair(connectData.Uri);
+        _ = await _wallet.Pair(connectData.Uri);
 
         await tcs.Task;
         
         _ = await connectData.Approval;
         
-        var address = dappClient.AddressProvider.CurrentAddress();
+        var address = _dapp.AddressProvider.CurrentAccount();
         Assert.Equal(testAddress, address.Address);
         Assert.Equal("eip155:1", address.ChainId);
-        Assert.Equal("eip155:1", dappClient.AddressProvider.DefaultChainId);
-        Assert.Equal("eip155", dappClient.AddressProvider.DefaultNamespace);
+        Assert.Equal("eip155:1", _dapp.AddressProvider.DefaultChainId);
+        Assert.Equal("eip155", _dapp.AddressProvider.DefaultNamespace);
     
-        address = walletClient.AddressProvider.CurrentAddress();
+        address = _wallet.AddressProvider.CurrentAccount();
         Assert.Equal(testAddress, address.Address);
         Assert.Equal("eip155:1", address.ChainId);
-        Assert.Equal("eip155:1", dappClient.AddressProvider.DefaultChainId);
-        Assert.Equal("eip155", dappClient.AddressProvider.DefaultNamespace);
+        Assert.Equal("eip155:1", _dapp.AddressProvider.DefaultChainId);
+        Assert.Equal("eip155", _dapp.AddressProvider.DefaultNamespace);
     
-        var allAddresses = dappClient.AddressProvider.AllAddresses("eip155").ToArray();
+        var allAddresses = _dapp.AddressProvider.AllAccounts("eip155").ToArray();
         Assert.Single(allAddresses);
         Assert.Equal(testAddress, allAddresses[0].Address);
         Assert.Equal("eip155:1", allAddresses[0].ChainId);
@@ -1020,27 +1047,25 @@ public class SignTests : IClassFixture<SignClientFixture>
     [Fact] [Trait("Category", "integration")]
     public async Task TestAddressProviderDefaultsSaving()
     {
-        await _cryptoFixture.WaitForClientsReady();
-    
         await TwoUniqueSessionRequestUsingAddressProviderDefaults();
     
-        var defaultSessionTopic = _cryptoFixture.ClientA.AddressProvider.DefaultSession.Topic;
+        var defaultSessionTopic = _dapp.AddressProvider.DefaultSession.Topic;
     
         Assert.NotNull(defaultSessionTopic);
-    
-        _cryptoFixture.StorageOverrideA = _cryptoFixture.ClientA.CoreClient.Storage;
-        _cryptoFixture.StorageOverrideB = _cryptoFixture.ClientB.CoreClient.Storage;
-    
         await Task.Delay(500);
     
-        _cryptoFixture.ClientA.Dispose();
-        _cryptoFixture.ClientB.Dispose();
-        await _cryptoFixture.Init();
-    
+        _dapp.Dispose();
+        _wallet.Dispose();
+
+        await Task.Delay(500);
+        
+        await InitializeDappClient(_dappStorage);
+        await InitializeWallet(_walletStorage);
+
         await Task.Delay(500);
     
-        await _cryptoFixture.ClientA.AddressProvider.LoadDefaultsAsync();
-        var reloadedDefaultSessionTopic = _cryptoFixture.ClientA.AddressProvider.DefaultSession.Topic;
+        await _dapp.AddressProvider.LoadDefaultsAsync();
+        var reloadedDefaultSessionTopic = _dapp.AddressProvider.DefaultSession.Topic;
     
         Assert.Equal(defaultSessionTopic, reloadedDefaultSessionTopic);
     
@@ -1050,32 +1075,26 @@ public class SignTests : IClassFixture<SignClientFixture>
     [Fact] [Trait("Category", "integration")]
     public async Task TestAddressProviderChainIdChange()
     {
-        await _cryptoFixture.WaitForClientsReady();
-        await _cryptoFixture.DisposeAndReset();
-    
-        await TestConnectMethod(ClientA, ClientB);
+        await TestConnectMethod(_dapp, _wallet);
         
         const string badChainId = "badChainId";
-        await Assert.ThrowsAsync<ArgumentException>(() => ClientA.AddressProvider.SetDefaultChainIdAsync(badChainId));
+        await Assert.ThrowsAsync<ArgumentException>(() => _dapp.AddressProvider.SetDefaultChainIdAsync(badChainId));
     
         // Change the default chain id
         const string newChainId = "eip155:10";
-        await ClientA.AddressProvider.SetDefaultChainIdAsync(newChainId);
-        Assert.Equal(newChainId, ClientA.AddressProvider.DefaultChainId);
+        await _dapp.AddressProvider.SetDefaultChainIdAsync(newChainId);
+        Assert.Equal(newChainId, _dapp.AddressProvider.DefaultChainId);
     }
     
     [Fact] [Trait("Category", "integration")]
     public async Task TestAddressProviderDisconnect()
     {
-        await _cryptoFixture.WaitForClientsReady();
-        await _cryptoFixture.DisposeAndReset();
-    
-        await TestConnectMethod(ClientA, ClientB);
+        await TestConnectMethod(_dapp, _wallet);
         
-        Assert.True(ClientA.AddressProvider.HasDefaultSession);
+        Assert.True(_dapp.AddressProvider.HasDefaultSession);
     
-        await ClientA.Disconnect();
+        await _dapp.Disconnect();
     
-        Assert.False(ClientA.AddressProvider.HasDefaultSession);
+        Assert.False(_dapp.AddressProvider.HasDefaultSession);
     }
 }

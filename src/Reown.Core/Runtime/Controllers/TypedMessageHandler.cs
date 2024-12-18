@@ -422,7 +422,7 @@ namespace Reown.Core.Controllers
         {
             var topic = e.Topic;
             var message = e.Message;
-            
+
             var options = DecodeOptionForTopic(topic);
 
             var payload = await CoreClient.Crypto.Decode<JsonRpcPayload>(topic, message, options);
@@ -462,11 +462,11 @@ namespace Reown.Core.Controllers
                         continue;
                     }
 
-                    foreach (var callback in callbacks)
+                    for (var i = callbacks.Count - 1; i >= 0; i--)
                     {
                         try
                         {
-                            await callback(messageEvent);
+                            await callbacks[i](messageEvent);
                         }
                         catch (Exception e)
                         {
