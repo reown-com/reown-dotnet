@@ -26,6 +26,7 @@ namespace Reown.Core.Controllers
         public const string DefaultRelayUrl = "wss://relay.walletconnect.org";
 
         private readonly string _projectId;
+        private readonly ILogger _logger;
         private bool _initialized;
         private bool _reconnecting;
         private string _relayUrl;
@@ -52,6 +53,7 @@ namespace Reown.Core.Controllers
             }
 
             _projectId = opts.ProjectId;
+            _logger = ReownLogger.WithContext(Context);
 
             ConnectionTimeout = opts.ConnectionTimeout;
             RelayUrlBuilder = opts.RelayUrlBuilder;
@@ -154,18 +156,18 @@ namespace Reown.Core.Controllers
         /// </summary>
         public async Task Init()
         {
-            ReownLogger.Log("[Relayer] Creating provider");
+            _logger.Log("Creating provider");
             await CreateProvider();
 
-            ReownLogger.Log("[Relayer] Opening transport");
+            _logger.Log("Opening transport");
             await TransportOpen();
 
-            ReownLogger.Log("[Relayer] Init MessageHandler and Subscriber");
+            _logger.Log("Init MessageHandler and Subscriber");
             await Task.WhenAll(
                 Messages.Init(), Subscriber.Init()
             );
 
-            ReownLogger.Log("[Relayer] Registering event listeners");
+            _logger.Log("Registering event listeners");
             RegisterEventListeners();
 
             _initialized = true;
@@ -244,18 +246,17 @@ namespace Reown.Core.Controllers
         /// <returns>The decoded response for the request</returns>
         public async Task<TR> Request<T, TR>(IRequestArguments<T> request, object context = null)
         {
-            ReownLogger.Log("[Relayer] Checking for established connection");
             await ToEstablishConnection();
 
             TR result;
             try
             {
-                ReownLogger.Log("[Relayer] Sending request through provider");
+                _logger.Log("Sending request through provider");
                 result = await Provider.Request<T, TR>(request, context);
             }
             catch (WebSocketException)
             {
-                ReownLogger.Log("[Relayer] Restarting transport due to WebSocketException");
+                _logger.Log("Restarting transport due to WebSocketException");
                 await ToEstablishConnection();
                 result = await Provider.Request<T, TR>(request, context);
             }
@@ -265,11 +266,13 @@ namespace Reown.Core.Controllers
 
         public async Task TransportClose()
         {
-            TransportExplicitlyClosed = true;
+            _logger.Log($"Close transport. Connected: {Connected}");
             if (Connected)
             {
+                TransportExplicitlyClosed = true;
                 await Provider.Disconnect();
                 OnTransportClosed?.Invoke(this, EventArgs.Empty);
+                _logger.Log("Transport closed");
             }
         }
 
@@ -323,6 +326,7 @@ namespace Reown.Core.Controllers
                 Task2();
 
                 await Task.WhenAll(task1.Task, task2.Task);
+                _logger.Log("Transport opened");
             }
             catch (Exception e)
             {
@@ -340,7 +344,7 @@ namespace Reown.Core.Controllers
 
         public async Task RestartTransport(string relayUrl = null, CancellationToken cancellationToken = default)
         {
-            ReownLogger.Log($"[Relayer] Restarting transport for {Name}. Explicitly closed: {TransportExplicitlyClosed}, reconnecting: {_reconnecting}");
+            _logger.Log($"Restarting transport for {Name}. Explicitly closed: {TransportExplicitlyClosed}, reconnecting: {_reconnecting}");
 
             if (TransportExplicitlyClosed || _reconnecting)
             {
@@ -350,6 +354,7 @@ namespace Reown.Core.Controllers
             _relayUrl = relayUrl ?? _relayUrl;
             if (Connected)
             {
+                _logger.Log("Already connected. Closing transport");
                 var task1 = new TaskCompletionSource<bool>();
 
                 EventUtils.ListenOnce((_, _) => task1.TrySetResult(true),
@@ -381,7 +386,7 @@ namespace Reown.Core.Controllers
                     auth)
             );
 
-            return new JsonRpcProvider(connection);
+            return new JsonRpcProvider(connection, CoreClient.Context);
         }
 
         protected virtual Task<IJsonRpcConnection> BuildConnection(string url)
@@ -507,11 +512,13 @@ namespace Reown.Core.Controllers
 
         private async Task ToEstablishConnection(CancellationToken cancellationToken = default)
         {
+            _logger.Log($"Checking for established connection. Connected: {Connected}, Connecting: {Connecting}");
+
             if (Connected)
             {
                 while (Provider.Connection.IsPaused && !Disposed)
                 {
-                    ReownLogger.Log("[Relayer] Waiting for connection to unpause");
+                    _logger.Log("Waiting for connection to unpause");
                     await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
                 }
 
@@ -523,7 +530,7 @@ namespace Reown.Core.Controllers
                 // Check for connection
                 while (Connecting && !Disposed)
                 {
-                    ReownLogger.Log("[Relayer] Waiting for connection to open");
+                    _logger.Log("Waiting for connection to open");
                     await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
                 }
 

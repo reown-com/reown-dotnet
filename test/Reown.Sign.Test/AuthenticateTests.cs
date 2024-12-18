@@ -1,8 +1,6 @@
-using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Signer;
 using Nethereum.Util;
 using Newtonsoft.Json;
-using Reown.Core.Common.Logging;
 using Reown.Core.Common.Utils;
 using Reown.Core.Network.Models;
 using Reown.Sign.Models;
@@ -40,8 +38,6 @@ public class AuthenticateTests : IClassFixture<SignClientFixture>, IClassFixture
         _signClientFixture = signClientFixture;
         _cryptoWalletFixture = cryptoWalletFixture;
         _testOutputHelper = testOutputHelper;
-        
-        ReownLogger.Instance = new TestOutputHelperLogger(testOutputHelper);
     }
 
     private static AuthParams GetTestAuthParams(string[]? chains = null, string[]? methods = null)

@@ -18,26 +18,26 @@ namespace Reown.Core.Network.Websocket
     {
         private const string AddressNotFoundError = "getaddrinfo ENOTFOUND";
         private const string ConnectionRefusedError = "connect ECONNREFUSED";
-        private readonly Guid _context;
+        private readonly string _context;
+        private readonly ILogger _logger;
         private WebsocketClient _socket;
-        protected bool Disposed;
-
-        /// <summary>
-        ///     The Open timeout
-        /// </summary>
-        public TimeSpan OpenTimeout = TimeSpan.FromSeconds(60);
+        private IDisposable _messageSubscription;
+        private IDisposable _disconnectionSubscription;
+        private bool _disposed;
 
         /// <summary>
         ///     Create a new websocket connection that will connect to the given URL
         /// </summary>
         /// <param name="url">The URL to connect to</param>
+        /// <param name="context">The context of the root module</param>
         /// <exception cref="ArgumentException">If the given URL is invalid</exception>
-        public WebsocketConnection(string url)
+        public WebsocketConnection(string url, string context = null)
         {
             if (!Validation.IsWsUrl(url))
                 throw new ArgumentException("Provided URL is not compatible with WebSocket connection: " + url);
 
-            _context = Guid.NewGuid();
+            _context = context ?? Guid.NewGuid().ToString();
+            _logger = ReownLogger.WithContext(Context);
             Url = url;
         }
 
@@ -47,6 +47,14 @@ namespace Reown.Core.Network.Websocket
         public string Url { get; private set; }
 
         public bool IsPaused { get; internal set; }
+
+        /// <summary>
+        ///     The Open timeout
+        /// </summary>
+        public TimeSpan OpenTimeout
+        {
+            get => TimeSpan.FromSeconds(60);
+        }
 
         public event EventHandler<string> PayloadReceived;
         public event EventHandler Closed;
@@ -113,20 +121,16 @@ namespace Reown.Core.Network.Websocket
         /// <typeparam name="T">The type of the Json RPC request parameter</typeparam>
         public async Task SendRequest<T>(IJsonRpcRequest<T> requestPayload, object context)
         {
-            if (_socket == null)
-            {
-                ReownLogger.Log("[WebsocketConnection] Socket is null, registering. Is Connecting: " + Connecting);
-                _socket = await Register(Url);
-            }
+            _socket ??= await Register(Url);
 
             try
             {
-                ReownLogger.Log("[WebsocketConnection] Sending request over websocket");
+                _logger.Log("Sending request over websocket");
                 _socket.Send(JsonConvert.SerializeObject(requestPayload));
             }
             catch (Exception e)
             {
-                ReownLogger.Log($"[WebsocketConnection] Error sending request: {e.Message}");
+                _logger.Log($"Error sending request: {e.Message}");
                 OnError<T>(requestPayload, e);
             }
         }
@@ -139,8 +143,7 @@ namespace Reown.Core.Network.Websocket
         /// <typeparam name="T">The type of the Json RPC response result</typeparam>
         public async Task SendResult<T>(IJsonRpcResult<T> responsePayload, object context)
         {
-            if (_socket == null)
-                _socket = await Register(Url);
+            _socket ??= await Register(Url);
 
             try
             {
@@ -161,8 +164,7 @@ namespace Reown.Core.Network.Websocket
         /// <returns>A task that is performing the send</returns>
         public async Task SendError(IJsonRpcError errorPayload, object context)
         {
-            if (_socket == null)
-                _socket = await Register(Url);
+            _socket ??= await Register(Url);
 
             try
             {
@@ -185,7 +187,7 @@ namespace Reown.Core.Network.Websocket
         /// </summary>
         public string Name
         {
-            get => "websocket-connection";
+            get => "ws-connection";
         }
 
         /// <summary>
@@ -193,7 +195,7 @@ namespace Reown.Core.Network.Websocket
         /// </summary>
         public string Context
         {
-            get => _context.ToString();
+            get => $"{_context}-{Name}";
         }
 
         private async Task<WebsocketClient> Register(string url)
@@ -203,14 +205,14 @@ namespace Reown.Core.Network.Websocket
                 throw new ArgumentException("Provided URL is not compatible with WebSocket connection: " + url);
             }
 
+            _logger.Log($"Register new WS connection. Is already connecting: {Connecting}");
+
             if (Connecting)
             {
-                var registeringTask =
-                    new TaskCompletionSource<WebsocketClient>(TaskCreationOptions.None);
+                var registeringTask = new TaskCompletionSource<WebsocketClient>(TaskCreationOptions.None);
 
-                RegisterErrored.ListenOnce((sender, args) => { registeringTask.SetException(args); });
-
-                Opened.ListenOnce((sender, args) => { registeringTask.SetResult((WebsocketClient)args); });
+                RegisterErrored.ListenOnce((sender, args) => registeringTask.SetException(args));
+                Opened.ListenOnce((sender, args) => registeringTask.SetResult((WebsocketClient)args));
 
                 await registeringTask.Task;
 
@@ -243,8 +245,8 @@ namespace Reown.Core.Network.Websocket
             if (socket == null)
                 return;
 
-            socket.MessageReceived.Subscribe(OnPayload);
-            socket.DisconnectionHappened.Subscribe(OnDisconnect);
+            _messageSubscription = socket.MessageReceived.Subscribe(OnPayload);
+            _disconnectionSubscription = socket.DisconnectionHappened.Subscribe(OnDisconnect);
 
             _socket = socket;
             Connecting = false;
@@ -263,6 +265,8 @@ namespace Reown.Core.Network.Websocket
         {
             if (_socket == null)
                 return;
+
+            _logger.Log($"Connection closed. Close status: {obj.CloseStatus?.ToString() ?? "-- "}. Exception message: {obj.Exception?.Message ?? "--"}");
 
             _socket = null;
             Connecting = false;
@@ -291,15 +295,22 @@ namespace Reown.Core.Network.Websocket
 
         protected virtual void Dispose(bool disposing)
         {
-            if (Disposed)
+            if (_disposed)
                 return;
 
             if (disposing)
             {
-                _socket.Dispose();
+                _messageSubscription?.Dispose();
+                _disconnectionSubscription?.Dispose();
+
+                if (_socket != null)
+                {
+                    _socket.Dispose();
+                    _socket = null;
+                }
             }
 
-            Disposed = true;
+            _disposed = true;
         }
 
         private void OnError<T>(IJsonRpcPayload ogPayload, Exception e)

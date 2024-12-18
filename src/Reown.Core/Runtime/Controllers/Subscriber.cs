@@ -38,7 +38,6 @@ namespace Reown.Core.Controllers
         public Subscriber(IRelayer relayer)
         {
             _relayer = relayer;
-
             _logger = ReownLogger.WithContext(Context);
         }
 
@@ -343,7 +342,7 @@ namespace Reown.Core.Controllers
 
         protected virtual async Task<string> RpcSubscribe(string topic, ProtocolOptions relay)
         {
-            ReownLogger.Log($"[Subscriber] Subscribing to topic: {topic}");
+            _logger.Log($"Subscribing to topic: {topic}");
 
             var api = RelayProtocols.GetRelayProtocol(relay.Protocol);
             var request = new RequestArguments<JsonRpcSubscriberParams>
@@ -368,12 +367,12 @@ namespace Reown.Core.Controllers
                 }
                 catch (TimeoutException ex)
                 {
-                    ReownLogger.Log($"[Subscriber] RpcSubscribe try {retryCount + 1}/{maxRetries} failed: {ex.Message}");
+                    _logger.Log($"RpcSubscribe try {retryCount + 1}/{maxRetries} failed: {ex.Message}");
                     retryCount++;
                     if (retryCount < maxRetries)
                         continue;
 
-                    ReownLogger.Log($"[Subscriber] Max retry attempts reached. Throwing exception.");
+                    _logger.Log($"Max retry attempts reached. Throwing exception.");
                     throw;
                 }
             }

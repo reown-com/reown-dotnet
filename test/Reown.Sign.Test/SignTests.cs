@@ -113,8 +113,6 @@ public class SignTests : IClassFixture<SignClientFixture>
     {
         _cryptoFixture = cryptoFixture;
         _testOutputHelper = testOutputHelper;
-        
-        ReownLogger.Instance = new TestOutputHelperLogger(testOutputHelper);
     }
 
     private static async Task TestConnectMethod(ISignClient clientA, ISignClient clientB)
@@ -202,13 +200,17 @@ public class SignTests : IClassFixture<SignClientFixture>
     {
         await _cryptoFixture.DisposeAndReset();
         await _cryptoFixture.WaitForClientsReady();
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
     
         await TestConnectMethod(ClientA, ClientB);
+        ReownLogger.Instance = null;
     }
     
     [Fact] [Trait("Category", "integration")]
     public async Task TestRejectSession()
     {
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
+
         await _cryptoFixture.DisposeAndReset();
         await _cryptoFixture.WaitForClientsReady();
     
@@ -276,6 +278,8 @@ public class SignTests : IClassFixture<SignClientFixture>
         await Assert.ThrowsAsync<ReownNetworkException>(() => connectData.Approval);
 
         await _cryptoFixture.DisposeAndReset();
+        ReownLogger.Instance = null;
+
     }
     
     [Fact] [Trait("Category", "integration")]
@@ -283,6 +287,7 @@ public class SignTests : IClassFixture<SignClientFixture>
     {
         await _cryptoFixture.DisposeAndReset();
         await _cryptoFixture.WaitForClientsReady();
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
     
         var testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
         var testMethod = "test_method";
@@ -394,6 +399,8 @@ public class SignTests : IClassFixture<SignClientFixture>
         Assert.Equal(eventResult, a * b);
         Assert.Equal(eventResult, testData.a * testData.b);
         Assert.Equal(eventResult, responseReturned.result);
+
+        ReownLogger.Instance = null;
     }
     
     [Fact] [Trait("Category", "integration")]
@@ -401,6 +408,7 @@ public class SignTests : IClassFixture<SignClientFixture>
     {
         await _cryptoFixture.DisposeAndReset();
         await _cryptoFixture.WaitForClientsReady();
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
     
         var validMethod = "test_method";
     
@@ -467,6 +475,7 @@ public class SignTests : IClassFixture<SignClientFixture>
     
         // Use TestRequest2 which isn't included in the required namespaces
         await Assert.ThrowsAsync<NamespacesException>(() => dappClient.Engine.Request<TestRequest2, TestResponse>(sessionData.Topic, testData));
+        ReownLogger.Instance = null;
     }
 
     [Fact] [Trait("Category", "integration")]
@@ -474,6 +483,8 @@ public class SignTests : IClassFixture<SignClientFixture>
     {
         await _cryptoFixture.DisposeAndReset();
         await _cryptoFixture.WaitForClientsReady();
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
+
         var dappClient = ClientA;
 
         await Assert.ThrowsAsync<ArgumentNullException>(() => dappClient.Connect(null));
@@ -484,6 +495,7 @@ public class SignTests : IClassFixture<SignClientFixture>
         };
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() => dappClient.Connect(connectOptions));
+        ReownLogger.Instance = null;
     }
 
     [Fact] [Trait("Category", "integration")]
@@ -491,6 +503,7 @@ public class SignTests : IClassFixture<SignClientFixture>
     {
         await _cryptoFixture.DisposeAndReset();
         await _cryptoFixture.WaitForClientsReady();
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
     
         var testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
         var testMethod = "test_method";
@@ -628,6 +641,7 @@ public class SignTests : IClassFixture<SignClientFixture>
         Assert.Equal(eventResult, responseReturned.result);
     
         Assert.True(responseReturned2);
+        ReownLogger.Instance = null;
     }
     
     [Fact] [Trait("Category", "integration")]
@@ -635,6 +649,7 @@ public class SignTests : IClassFixture<SignClientFixture>
     {
         await _cryptoFixture.DisposeAndReset();
         await _cryptoFixture.WaitForClientsReady();
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
     
         var testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
         var testMethod = "complex_test_method";
@@ -766,6 +781,7 @@ public class SignTests : IClassFixture<SignClientFixture>
         Assert.Equal(eventResult, responseReturned.result);
     
         Assert.True(responseReturned2);
+        ReownLogger.Instance = null;
     }
     
     [Fact] [Trait("Category", "integration")]
@@ -780,6 +796,7 @@ public class SignTests : IClassFixture<SignClientFixture>
     private async Task TwoUniqueSessionRequestUsingAddressProviderDefaults()
     {
         await _cryptoFixture.WaitForClientsReady();
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
         
         var dappClient = ClientA;
         var walletClient = ClientB;
@@ -934,6 +951,7 @@ public class SignTests : IClassFixture<SignClientFixture>
         Assert.Equal(eventResult, responseReturned.result);
     
         Assert.True(responseReturned2);
+        ReownLogger.Instance = null;
     }
     
     [Fact] [Trait("Category", "integration")]
@@ -941,6 +959,7 @@ public class SignTests : IClassFixture<SignClientFixture>
     {
         await _cryptoFixture.DisposeAndReset();
         await _cryptoFixture.WaitForClientsReady();
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
     
         var testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
         var testMethod = "test_method";
@@ -1018,12 +1037,14 @@ public class SignTests : IClassFixture<SignClientFixture>
         Assert.Single(allAddresses);
         Assert.Equal(testAddress, allAddresses[0].Address);
         Assert.Equal("eip155:1", allAddresses[0].ChainId);
+        ReownLogger.Instance = null;
     }
     
     [Fact] [Trait("Category", "integration")]
     public async Task TestAddressProviderDefaultsSaving()
     {
         await _cryptoFixture.WaitForClientsReady();
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
     
         await TwoUniqueSessionRequestUsingAddressProviderDefaults();
     
@@ -1048,6 +1069,7 @@ public class SignTests : IClassFixture<SignClientFixture>
         Assert.Equal(defaultSessionTopic, reloadedDefaultSessionTopic);
     
         await TwoUniqueSessionRequestUsingAddressProviderDefaults();
+        ReownLogger.Instance = null;
     }
     
     [Fact] [Trait("Category", "integration")]
@@ -1055,6 +1077,7 @@ public class SignTests : IClassFixture<SignClientFixture>
     {
         await _cryptoFixture.WaitForClientsReady();
         await _cryptoFixture.DisposeAndReset();
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
     
         await TestConnectMethod(ClientA, ClientB);
         
@@ -1065,6 +1088,7 @@ public class SignTests : IClassFixture<SignClientFixture>
         const string newChainId = "eip155:10";
         await ClientA.AddressProvider.SetDefaultChainIdAsync(newChainId);
         Assert.Equal(newChainId, ClientA.AddressProvider.DefaultChainId);
+        ReownLogger.Instance = null;
     }
     
     [Fact] [Trait("Category", "integration")]
@@ -1072,6 +1096,7 @@ public class SignTests : IClassFixture<SignClientFixture>
     {
         await _cryptoFixture.WaitForClientsReady();
         await _cryptoFixture.DisposeAndReset();
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
     
         await TestConnectMethod(ClientA, ClientB);
         
@@ -1080,5 +1105,6 @@ public class SignTests : IClassFixture<SignClientFixture>
         await ClientA.Disconnect();
     
         Assert.False(ClientA.AddressProvider.HasDefaultSession);
+        ReownLogger.Instance = null;
     }
 }

@@ -131,7 +131,6 @@ public class WalletKitSignTests :
         CryptoWalletFixture cryptoWalletFixture,
         ITestOutputHelper testOutputHelper)
     {
-        ReownLogger.Instance = new TestOutputHelperLogger(testOutputHelper);
         _fixture = fixture;
         _cryptoWalletFixture = cryptoWalletFixture;
         _testOutputHelper = testOutputHelper;
@@ -144,6 +143,8 @@ public class WalletKitSignTests :
         await _fixture.DisposeAndReset();
         await _fixture.WaitForClientsReady();
         _testOutputHelper.WriteLine("[TestShouldApproveSessionProposal] Clients ready");
+
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
 
         var task1 = new TaskCompletionSource<bool>();
         _fixture.WalletClient.SessionProposed += async (sender, @event) =>
@@ -171,6 +172,7 @@ public class WalletKitSignTests :
             _fixture.WalletClient.Pair(uriString)
         );
         _testOutputHelper.WriteLine("[TestShouldApproveSessionProposal] All tasks completed successfully");
+        ReownLogger.Instance = null;
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
@@ -180,6 +182,8 @@ public class WalletKitSignTests :
         await _fixture.DisposeAndReset();
         await _fixture.WaitForClientsReady();
         _testOutputHelper.WriteLine("[TestShouldRejectSessionProposal] Clients ready");
+
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
 
         var rejectionError = Error.FromErrorType(ErrorType.USER_DISCONNECTED);
 
@@ -223,6 +227,7 @@ public class WalletKitSignTests :
             CheckSessionReject()
         );
         _testOutputHelper.WriteLine("[TestShouldRejectSessionProposal] All tasks completed successfully");
+        ReownLogger.Instance = null;
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
@@ -232,6 +237,8 @@ public class WalletKitSignTests :
         await _fixture.DisposeAndReset();
         await _fixture.WaitForClientsReady();
         _testOutputHelper.WriteLine("[TestUpdateSession] Clients ready");
+
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
 
         var task1 = new TaskCompletionSource<bool>();
         _fixture.WalletClient.SessionProposed += async (sender, @event) =>
@@ -277,6 +284,7 @@ public class WalletKitSignTests :
             _fixture.WalletClient.UpdateSession(session.Topic, TestUpdatedNamespaces)
         );
         _testOutputHelper.WriteLine("[TestUpdateSession] Session update completed successfully");
+        ReownLogger.Instance = null;
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
@@ -286,6 +294,8 @@ public class WalletKitSignTests :
         await _fixture.DisposeAndReset();
         await _fixture.WaitForClientsReady();
         _testOutputHelper.WriteLine("[TestExtendSession] Clients ready");
+
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
 
         var task1 = new TaskCompletionSource<bool>();
         _fixture.WalletClient.SessionProposed += async (sender, @event) =>
@@ -330,6 +340,7 @@ public class WalletKitSignTests :
 
         Assert.True(updatedExpiry > prevExpiry);
         _testOutputHelper.WriteLine("[TestExtendSession] Expiry validation passed");
+        ReownLogger.Instance = null;
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
@@ -339,6 +350,8 @@ public class WalletKitSignTests :
         await _fixture.DisposeAndReset();
         await _fixture.WaitForClientsReady();
         _testOutputHelper.WriteLine("[TestRespondToSessionRequest] Clients ready");
+
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
 
         var task1 = new TaskCompletionSource<bool>();
         _fixture.WalletClient.SessionProposed += async (sender, @event) =>
@@ -429,6 +442,10 @@ public class WalletKitSignTests :
             task2.Task,
             SendRequest()
         );
+
+        _testOutputHelper.WriteLine("[TestRespondToSessionRequest] All tasks completed successfully");
+
+        ReownLogger.Instance = null;
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
@@ -438,6 +455,8 @@ public class WalletKitSignTests :
         await _fixture.DisposeAndReset();
         await _fixture.WaitForClientsReady();
         _testOutputHelper.WriteLine("[TestWalletDisconnectFromSession] Clients ready");
+
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
 
         var task1 = new TaskCompletionSource<bool>();
         _fixture.WalletClient.SessionProposed += async (sender, @event) =>
@@ -496,6 +515,7 @@ public class WalletKitSignTests :
             _fixture.WalletClient.DisconnectSession(session.Topic, reason)
         );
         _testOutputHelper.WriteLine("[TestWalletDisconnectFromSession] Session disconnected");
+        ReownLogger.Instance = null;
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
@@ -505,6 +525,8 @@ public class WalletKitSignTests :
         await _fixture.DisposeAndReset();
         await _fixture.WaitForClientsReady();
         _testOutputHelper.WriteLine("[TestDappDisconnectFromSession] Clients ready");
+
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
 
         var task1 = new TaskCompletionSource<bool>();
         _fixture.WalletClient.SessionProposed += async (sender, @event) =>
@@ -563,6 +585,7 @@ public class WalletKitSignTests :
             _fixture.DappClient.Disconnect(session.Topic, reason)
         );
         _testOutputHelper.WriteLine("[TestDappDisconnectFromSession] Session disconnected");
+        ReownLogger.Instance = null;
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
@@ -572,6 +595,8 @@ public class WalletKitSignTests :
         await _fixture.DisposeAndReset();
         await _fixture.WaitForClientsReady();
         _testOutputHelper.WriteLine("[TestEmitSessionEvent] Clients ready");
+
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
 
         var pairingTask = new TaskCompletionSource<bool>();
         _fixture.WalletClient.SessionProposed += async (sender, @event) =>
@@ -677,6 +702,8 @@ public class WalletKitSignTests :
         _testOutputHelper.WriteLine("[TestEmitSessionEvent] Testing invalid chain namespace");
         await Assert.ThrowsAsync<NamespacesException>(() => _fixture.WalletClient.EmitSessionEvent(session.Topic, valueTypeEventData, "123:321"));
         _testOutputHelper.WriteLine("[TestEmitSessionEvent] Invalid chain namespace test passed");
+
+        ReownLogger.Instance = null;
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
@@ -686,6 +713,8 @@ public class WalletKitSignTests :
         await _fixture.DisposeAndReset();
         await _fixture.WaitForClientsReady();
         _testOutputHelper.WriteLine("[TestGetActiveSessions] Clients ready");
+
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
 
         var task1 = new TaskCompletionSource<bool>();
         _fixture.WalletClient.SessionProposed += async (sender, @event) =>
@@ -736,6 +765,7 @@ public class WalletKitSignTests :
         _testOutputHelper.WriteLine($"[TestGetActiveSessions] Session topic: {sessions.Values.ToArray()[0].Topic}");
         Assert.Equal(session.Topic, sessions.Values.ToArray()[0].Topic);
         _testOutputHelper.WriteLine("[TestGetActiveSessions] Session validation passed");
+        ReownLogger.Instance = null;
     }
 
     [Fact(Timeout = 300_000)] [Trait("Category", "integration")]
@@ -745,6 +775,8 @@ public class WalletKitSignTests :
         await _fixture.DisposeAndReset();
         await _fixture.WaitForClientsReady();
         _testOutputHelper.WriteLine("[TestGetPendingSessionRequests] Clients ready");
+
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
 
         var task1 = new TaskCompletionSource<bool>();
         _fixture.WalletClient.SessionProposed += async (sender, @event) =>
@@ -847,5 +879,8 @@ public class WalletKitSignTests :
             task2.Task,
             SendRequest()
         );
+
+        _testOutputHelper.WriteLine("[TestGetPendingSessionRequests] All tasks completed successfully");
+        ReownLogger.Instance = null;
     }
 }
