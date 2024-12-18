@@ -112,13 +112,13 @@ public class SignTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
-        
         _dappStorage = new InMemoryStorage();
         _walletStorage = new InMemoryStorage();
 
         await InitializeDappClient(_dappStorage);
         await InitializeWallet(_walletStorage);
+        
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
     }
     
     private async Task InitializeDappClient(IKeyValueStorage storage)
@@ -163,6 +163,8 @@ public class SignTests : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
+        ReownLogger.Instance = null;
+        
         if (_dapp?.CoreClient != null)
         {
             await WaitForNoPendingRequests(_dapp);
@@ -176,8 +178,6 @@ public class SignTests : IAsyncLifetime
             await _wallet.CoreClient.Storage.Clear();
             _wallet.Dispose();
         }
-
-        ReownLogger.Instance = null;
     }
 
     public async Task WaitForNoPendingRequests(SignClient client)

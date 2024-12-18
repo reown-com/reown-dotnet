@@ -132,8 +132,6 @@ public class WalletKitSignTests : IClassFixture<CryptoWalletFixture>, IAsyncLife
     {
         _cryptoWalletFixture = cryptoWalletFixture;
         _testOutputHelper = testOutputHelper;
-        
-        ReownLogger.Instance = new TestOutputHelperLogger(testOutputHelper);
     }
 
     public async Task InitializeAsync()
@@ -179,20 +177,21 @@ public class WalletKitSignTests : IClassFixture<CryptoWalletFixture>, IAsyncLife
         Assert.NotNull(_dapp);
         Assert.NotNull(_coreClient);
         Assert.Null(_wallet.Metadata.Redirect);
+        
+        ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
     }
 
     public async Task DisposeAsync()
     {
+        ReownLogger.Instance = null;
+        
         if (_coreClient.Relayer.Connected)
         {
             await _coreClient.Relayer.TransportClose();
         }
         
-        ReownLogger.Instance = null;
-        
         _wallet.Dispose();
         _dapp.Dispose();
-        
     }
 
     [Fact] [Trait("Category", "integration")]

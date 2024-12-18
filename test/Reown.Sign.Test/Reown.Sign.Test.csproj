@@ -19,6 +19,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\..\src\Reown.Sign\Reown.Sign.csproj"/>
         <ProjectReference Include="..\Rown.TestUtils\Rown.TestUtils.csproj"/>
     </ItemGroup>

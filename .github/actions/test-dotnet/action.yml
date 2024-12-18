@@ -30,4 +30,4 @@ runs:
       env:
         RELAY_ENDPOINT: ${{ inputs.relay-endpoint }}
         PROJECT_ID: ${{ inputs.project-id }}
-      run: dotnet test -m:1 Reown.NoUnity.slnf --verbosity normal --filter Category=integration --framework net$(echo ${{ inputs.dotnet-version }} | cut -d'.' -f1).0
+      run: dotnet test Reown.NoUnity.slnf --verbosity normal --filter Category=integration --framework net$(echo ${{ inputs.dotnet-version }} | cut -d'.' -f1).0
