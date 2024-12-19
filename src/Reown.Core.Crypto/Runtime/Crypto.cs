@@ -4,7 +4,6 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Agreement;
@@ -549,12 +548,12 @@ namespace Reown.Core.Crypto
 
         private string EncodeSig(byte[] signature)
         {
-            return Base64UrlEncoder.Encode(signature);
+            return Base64.EncodeToBase64UrlString(signature);
         }
 
         private string EncodeJson<T>(T data)
         {
-            return Base64UrlEncoder.Encode(
+            return Base64.EncodeToBase64UrlString(
                 JsonEncoding.GetBytes(
                     JsonConvert.SerializeObject(data)
                 )
