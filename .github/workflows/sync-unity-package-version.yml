@@ -1,0 +1,29 @@
+name: Sync Unity Package Version
+
+on:
+  pull_request:
+    paths:
+      - 'src/Directory.Build.props'
+  workflow_dispatch:
+
+jobs:
+  sync-unity-version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            8.0.x
+
+      - name: Install dotnet-script
+        run: |
+          dotnet tool install -g dotnet-script
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      - name: Sync Unity Package Version
+        run: dotnet-script ./.github/scripts/sync-unity-version.csx

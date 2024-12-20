@@ -1,6 +1,14 @@
 #!/usr/bin/env dotnet-script
 
+// This scripts is used to sync the version of Unity packages and sample apps with the version of NuGet packages.
+// It gets the version from the Directory.Build.props file and updates
+//  - the version in C# where the version field is marked with [VersionMarker] attribute
+//  - the version in ProjectSettings.asset of the Unity sample app
+//  - the version and dependency versions in package.json of all Unity packages
+//  - the version in packages-lock.json of all Unity packages in the sample app
+
 #load "get-version.csx"
+#load "logging.csx"
 
 #r "nuget: Microsoft.CodeAnalysis.CSharp, 4.12.0"
 #r "nuget: Newtonsoft.Json, 13.0.0"
@@ -15,25 +23,43 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 var srcPath = Path.GetFullPath("src");
-Console.WriteLine($"Looking for files in: {srcPath}");
+Log.Header("Starting Unity Version Sync");
+Log.Info($"Source path: {srcPath}");
 
 var newVersion = GetVersion();
-Console.WriteLine($"Current version: {newVersion}");
+Log.Info($"Target version: {newVersion}");
 
 // Update version fields in the code
+Log.SubHeader("Updating Version Fields in Code");
 var versionFields = await FindVersionFieldsAsync(srcPath);
+if (!versionFields.Any())
+{
+    Log.Warning("No version fields found");
+}
 foreach (var field in versionFields)
 {
-    Console.WriteLine($"Found version field: {field.fieldName} = {field.version} in {field.filePath}");
+    Log.Info($"Found: {field.fieldName} = {field.version} in {Path.GetRelativePath(".", field.filePath)}");
     await UpdateVersionAsync(field.filePath, field.fieldName, newVersion);
+    Log.Success($"Updated {field.fieldName} to {newVersion}");
 }
 
 // Update Unity sample app version
+Log.SubHeader("Updating Unity Sample App Version");
 var projectSettingsPath = Path.GetFullPath("sample/Reown.AppKit.Unity/ProjectSettings/ProjectSettings.asset");
-await UpdateProjectSettingsVersionAsync(projectSettingsPath, newVersion);
+if (File.Exists(projectSettingsPath))
+{
+    await UpdateProjectSettingsVersionAsync(projectSettingsPath, newVersion);
+    Log.Success($"Updated ProjectSettings.asset to {newVersion}");
+}
+else
+{
+    Log.Warning($"ProjectSettings.asset not found at {projectSettingsPath}");
+}
 
 // Update Unity packages
+Log.SubHeader("Updating Package Versions");
 await UpdatePackageVersionsAsync(srcPath, newVersion);
+await UpdatePackagesLockVersionsAsync(Path.GetFullPath("sample"), newVersion);
 
 private static async Task<IEnumerable<(string filePath, string fieldName, string version)>> FindVersionFieldsAsync(string path)
 {
@@ -142,7 +168,7 @@ async Task UpdateProjectSettingsVersionAsync(string filePath, string newVersion)
 {
     if (!File.Exists(filePath))
     {
-        Console.WriteLine($"Warning: ProjectSettings.asset not found at {filePath}");
+        Log.Warning($"ProjectSettings.asset not found at {filePath}");
         return;
     }
 
@@ -154,13 +180,21 @@ async Task UpdateProjectSettingsVersionAsync(string filePath, string newVersion)
     var updatedContent = Regex.Replace(content, pattern, replacement);
 
     await File.WriteAllTextAsync(filePath, updatedContent);
-    Console.WriteLine($"Updated bundleVersion in ProjectSettings.asset to {newVersion}");
+    Log.Success($"Updated bundleVersion in ProjectSettings.asset to {newVersion}");
 }
 
 async Task UpdatePackageVersionsAsync(string srcPath, string newVersion)
 {
-    foreach (var file in Directory.EnumerateFiles(srcPath, "package.json", SearchOption.AllDirectories))
+    var files = Directory.EnumerateFiles(srcPath, "package.json", SearchOption.AllDirectories).ToList();
+    if (!files.Any())
     {
+        Log.Warning($"No package.json files found in {Path.GetRelativePath(".", srcPath)}");
+        return;
+    }
+
+    foreach (var file in files)
+    {
+        Log.Info($"Processing: {Path.GetRelativePath(".", file)}");
         var content = await File.ReadAllTextAsync(file);
         var packageJson = JObject.Parse(content);
         var updated = false;
@@ -200,7 +234,80 @@ async Task UpdatePackageVersionsAsync(string srcPath, string newVersion)
         if (updated)
         {
             await File.WriteAllTextAsync(file, jsonWriter.ToString());
-            Console.WriteLine($"Updated versions in {file}");
+            Log.Success($"Updated versions in {file}");
+        }
+    }
+}
+
+async Task UpdatePackagesLockVersionsAsync(string basePath, string newVersion)
+{
+    var files = Directory.EnumerateFiles(basePath, "packages-lock.json", SearchOption.AllDirectories).ToList();
+    if (!files.Any())
+    {
+        Log.Warning($"No packages-lock.json files found in {Path.GetRelativePath(".", basePath)}");
+        return;
+    }
+
+    foreach (var file in files)
+    {
+        Log.Info($"Processing: {Path.GetRelativePath(".", file)}");
+        var content = await File.ReadAllTextAsync(file);
+        var packageJson = JObject.Parse(content);
+        var updated = false;
+        var updatedPackages = new List<(string package, string from, string to)>();
+
+        // Update versions in dependencies
+        if (packageJson.TryGetValue("dependencies", out var dependencies) && dependencies is JObject depsObj)
+        {
+            foreach (var dep in depsObj.Properties())
+            {
+                if (dep.Name.StartsWith("com.reown."))
+                {
+                    var depObj = dep.Value as JObject;
+                    if (depObj != null)
+                    {
+                        // Update dependencies of the package
+                        if (depObj.TryGetValue("dependencies", out var nestedDeps) && nestedDeps is JObject nestedDepsObj)
+                        {
+                            foreach (var nestedDep in nestedDepsObj.Properties())
+                            {
+                                if (nestedDep.Name.StartsWith("com.reown."))
+                                {
+                                    var oldVersion = nestedDepsObj[nestedDep.Name].ToString();
+                                    if (oldVersion != newVersion)
+                                    {
+                                        nestedDepsObj[nestedDep.Name] = newVersion;
+                                        updated = true;
+                                        updatedPackages.Add((nestedDep.Name, oldVersion, newVersion));
+                                    }
+                                }
+                            }
+                        }
+
+                        // Update the package version itself if it's not a file reference
+                        if (depObj.TryGetValue("version", out var versionToken))
+                        {
+                            var currentVersion = versionToken.ToString();
+                            if (!currentVersion.StartsWith("file:") && currentVersion != newVersion)
+                            {
+                                depObj["version"] = newVersion;
+                                updated = true;
+                                updatedPackages.Add((dep.Name, currentVersion, newVersion));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (updated)
+        {
+            await File.WriteAllTextAsync(file, packageJson.ToString(Formatting.Indented));
+            Log.Success($"Updated {updatedPackages.Count} package versions:");
+            foreach (var (package, from, to) in updatedPackages)
+            {
+                Log.Info($"  {package}: {from} → {to}");
+            }
         }
     }
 }
