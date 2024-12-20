@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Reown.Core.Common.Utils;
 using Reown.Sign.Models;
 using Reown.Sign.Unity;
 using UnityEngine;
@@ -9,7 +10,9 @@ namespace Reown.AppKit.Unity
 {
     public abstract class AppKit : MonoBehaviour
     {
-        public const string Version = "unity-appkit-v1.1.2"; // TODO: update this from CI
+        [VersionMarker]
+        public const string Version = "unity-appkit-v1.1.2";
+        
         public static AppKit Instance { get; protected set; }
 
         public static ModalController ModalController { get; protected set; }
