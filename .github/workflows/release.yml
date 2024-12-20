@@ -1,13 +1,48 @@
 name: Release
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - '.editorconfig'
   workflow_dispatch:
-  pull_request:
+
+concurrency: 
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Run unit tests
+        uses: ./.github/actions/test-dotnet
+        with:
+          type: unit-tests
+          project-id: ${{ secrets.PROJECT_ID }}
+          dotnet-version: '8.0'
+
+      - name: Run integration tests
+        uses: ./.github/actions/test-dotnet
+        with:
+          type: integration-tests
+          project-id: ${{ secrets.PROJECT_ID }}
+          dotnet-version: '8.0'
+
   nuget:
+    needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -20,17 +55,19 @@ jobs:
           dotnet-version: |
             8.0.x
 
+      - name: Install dotnet-script
+        run: |
+          dotnet tool install -g dotnet-script
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
       - name: Build Release
         run: dotnet build Reown.NoUnity.slnf -c Release --restore
 
       - name: Pack nugets
         run: dotnet pack Reown.NoUnity.slnf -c Release --no-build --output .
-        
-      - name: List files
-        run: tree -L 3
 
-#      - name: Push to NuGet
-#        run: dotnet nuget push "*.nupkg" --api-key ${{secrets.nuget_api_key}} --source https://api.nuget.org/v3/index.json
+      - name: Push to NuGet
+        run: dotnet nuget push "*.nupkg" --api-key ${{secrets.nuget_api_key}} --source https://api.nuget.org/v3/index.json
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
@@ -38,4 +75,50 @@ jobs:
           name: build-artifacts
           path: |
             **/bin/**/*.dll
-            !**/Tests/**/bin/**/*.dll
+            !**/test/**/bin/**/*.dll
+
+  unity:
+    needs: test 
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            8.0.x
+
+      - name: Install dotnet-script
+        run: |
+          dotnet tool install -g dotnet-script
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      - name: Configure Git
+        run: |
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
+      - name: Create git tags
+        run: |
+          set -e
+          VERSION=$(dotnet-script ./.github/scripts/get-version.csx)
+          if [ -z "$VERSION" ]; then
+            echo "Error: Version script returned empty value"
+            exit 1
+          fi
+          echo "Creating tags for version $VERSION"
+          
+          dotnet-script ./.github/scripts/get-unity-package-names.csx | while read -r package; do
+            TAG="$package/$VERSION"
+            echo "Creating tag $TAG"
+            git tag -a "$TAG" -m "Release $package version $VERSION"
+          done
+
+      - name: Push tags
+        run: git push origin --tags
