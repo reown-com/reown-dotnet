@@ -116,31 +116,28 @@ async Task UpdateVersionAsync(string filePath, string fieldName, string newVersi
         var currentValue = literal.Token.ValueText;
         var newValue = UpdateVersionString(currentValue, newVersion);
 
-        // Create new string literal
+        // Create new string literal while preserving trivia
         var newLiteral = SyntaxFactory.LiteralExpression(
             SyntaxKind.StringLiteralExpression,
-            SyntaxFactory.Literal(newValue)
-        );
+            SyntaxFactory.Literal(literal.Token.LeadingTrivia, $"\"{newValue}\"", newValue, literal.Token.TrailingTrivia)
+        ).WithTriviaFrom(literal);
 
-        // Create new variable with updated initializer
-        var newVariable = variable.WithInitializer(
-            SyntaxFactory.EqualsValueClause(newLiteral)
-        );
+        // Create new variable with updated initializer, preserving trivia
+        var newVariable = variable
+            .WithInitializer(variable.Initializer.WithValue(newLiteral))
+            .WithTriviaFrom(variable);
 
-        // Create new field declaration
-        var newField = fieldToUpdate.WithDeclaration(
-            fieldToUpdate.Declaration.WithVariables(
-                SyntaxFactory.SingletonSeparatedList(newVariable)
-            )
-        );
+        // Create new field declaration preserving trivia
+        var newField = fieldToUpdate
+            .WithDeclaration(fieldToUpdate.Declaration.WithVariables(
+                SyntaxFactory.SingletonSeparatedList(newVariable)))
+            .WithTriviaFrom(fieldToUpdate);
 
         // Replace the old field with the new one
         var newRoot = root.ReplaceNode(fieldToUpdate, newField);
 
-        // Preserve original formatting
-        var formattedRoot = newRoot.NormalizeWhitespace();
-
-        await File.WriteAllTextAsync(filePath, formattedRoot.ToFullString());
+        // Write back preserving original encoding and line endings
+        await File.WriteAllTextAsync(filePath, newRoot.ToFullString());
     }
 }
 
