@@ -10,10 +10,8 @@ namespace Reown.AppKit.Unity
     public abstract class AppKit : MonoBehaviour
     {
         [VersionMarker]
-        public const string Version = "unity-appkit-v1.1.2";
-        
+        public const string Version = "unity-appkit-v1.1.3";
         public static AppKit Instance { get; protected set; }
-
         public static ModalController ModalController { get; protected set; }
         public static AccountController AccountController { get; protected set; }
         public static ConnectorController ConnectorController { get; protected set; }
@@ -23,50 +21,21 @@ namespace Reown.AppKit.Unity
         public static NetworkController NetworkController { get; protected set; }
         public static EventsController EventsController { get; protected set; }
         public static SiweController SiweController { get; protected set; }
-
         public static EvmService Evm { get; protected set; }
-
         public static AppKitConfig Config { get; private set; }
-        
         public SignClientUnity SignClient { get; protected set; }
-        
         public static bool IsInitialized { get; private set; }
-
-        public static bool IsAccountConnected
-        {
-            get => ConnectorController.IsAccountConnected;
-        }
-
-        public static bool IsModalOpen
-        {
-            get => ModalController.IsOpen;
-        }
+        public static bool IsAccountConnected { get => ConnectorController.IsAccountConnected; }
+        public static bool IsModalOpen { get => ModalController.IsOpen; }
 
         public static event EventHandler<InitializeEventArgs> Initialized;
+        public static event EventHandler<Connector.AccountConnectedEventArgs> AccountConnected { add => ConnectorController.AccountConnected += value; remove => ConnectorController.AccountConnected -= value; }
 
-        public static event EventHandler<Connector.AccountConnectedEventArgs> AccountConnected
-        {
-            add => ConnectorController.AccountConnected += value;
-            remove => ConnectorController.AccountConnected -= value;
-        }
+        public static event EventHandler<Connector.AccountDisconnectedEventArgs> AccountDisconnected { add => ConnectorController.AccountDisconnected += value; remove => ConnectorController.AccountDisconnected -= value; }
 
-        public static event EventHandler<Connector.AccountDisconnectedEventArgs> AccountDisconnected
-        {
-            add => ConnectorController.AccountDisconnected += value;
-            remove => ConnectorController.AccountDisconnected -= value;
-        }
+        public static event EventHandler<Connector.AccountChangedEventArgs> AccountChanged { add => ConnectorController.AccountChanged += value; remove => ConnectorController.AccountChanged -= value; }
 
-        public static event EventHandler<Connector.AccountChangedEventArgs> AccountChanged
-        {
-            add => ConnectorController.AccountChanged += value;
-            remove => ConnectorController.AccountChanged -= value;
-        }
-
-        public static event EventHandler<NetworkController.ChainChangedEventArgs> ChainChanged
-        {
-            add => NetworkController.ChainChanged += value;
-            remove => NetworkController.ChainChanged -= value;
-        }
+        public static event EventHandler<NetworkController.ChainChangedEventArgs> ChainChanged { add => NetworkController.ChainChanged += value; remove => NetworkController.ChainChanged -= value; }
 
         public static async Task InitializeAsync(AppKitConfig config)
         {
@@ -74,11 +43,8 @@ namespace Reown.AppKit.Unity
                 throw new Exception("Instance not set");
             if (IsInitialized)
                 throw new Exception("Already initialized"); // TODO: use custom ex type
-
             Config = config ?? throw new ArgumentNullException(nameof(config));
-
             await Instance.InitializeAsyncCore();
-
             IsInitialized = true;
             Initialized?.Invoke(null, new InitializeEventArgs());
         }
@@ -87,7 +53,6 @@ namespace Reown.AppKit.Unity
         {
             if (!IsInitialized)
                 throw new Exception("AppKit not initialized"); // TODO: use custom ex type
-
             Instance.OpenModalCore(viewType);
         }
 
@@ -95,7 +60,6 @@ namespace Reown.AppKit.Unity
         {
             if (!IsModalOpen)
                 return;
-
             Instance.CloseModalCore();
         }
 
@@ -108,21 +72,15 @@ namespace Reown.AppKit.Unity
         {
             if (!IsInitialized)
                 throw new Exception("AppKit not initialized"); // TODO: use custom ex type
-
             if (!IsAccountConnected)
                 throw new Exception("No account connected"); // TODO: use custom ex type
-
             return Instance.DisconnectAsyncCore();
         }
 
         protected abstract Task InitializeAsyncCore();
-
         protected abstract void OpenModalCore(ViewType viewType = ViewType.None);
-
         protected abstract void CloseModalCore();
-
         protected abstract Task DisconnectAsyncCore();
-
         public class InitializeEventArgs : EventArgs
         {
             [Preserve]
