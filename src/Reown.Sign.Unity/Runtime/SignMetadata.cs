@@ -1,7 +1,10 @@
+using Reown.Core.Common.Utils;
+
 namespace Reown.Sign.Unity
 {
     public class SignMetadata
     {
-        public static string Version = "v1.1.2";
+        [VersionMarker]
+        public const string Version = "v1.1.4";
     }
 }

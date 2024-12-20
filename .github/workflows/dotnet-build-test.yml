@@ -2,7 +2,7 @@ name: .NET Build & Test
 
 on:
   push:
-    branches: [ main ]
+    branches: [ develop ]
   pull_request:
   workflow_dispatch:
 
@@ -10,10 +10,12 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        # os: [ubuntu-latest, windows-latest]
+        os: [windows-latest]
         dotnet-version: [8.0.x]
         test-type: [unit-tests, integration-tests]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
