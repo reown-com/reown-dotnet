@@ -85,7 +85,7 @@ namespace Reown.AppKit.Unity
         public async ValueTask<SiweSession> GetSessionAsync(GetSiweSessionArgs args)
         {
             Assert.IsTrue(Array.TrueForAll(args.ChainIds, chainId => !Core.Utils.IsValidChainId(chainId)), "Chain IDs must be Ethereum chain IDs.");
-            Assert.IsFalse(Core.Utils.IsValidAccountId(args.Address), "Address must be an Ethereum address.");
+            Assert.IsFalse(!args.Address.StartsWith("0x"), "Address must be an Ethereum address.");
 
             SiweSession session = null;
             if (Config.GetSession != null)

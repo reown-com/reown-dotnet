@@ -1,6 +1,6 @@
 {
   "name": "com.reown.core",
-  "version": "1.1.4",
+  "version": "1.2.0",
   "displayName": "Reown.Core",
   "unity": "2022.3",
   "author": "Reown",
@@ -8,10 +8,10 @@
     "reown"
   ],
   "dependencies": {
-    "com.reown.core.common": "1.1.4",
-    "com.reown.core.network": "1.1.4",
-    "com.reown.core.storage": "1.1.4",
-    "com.reown.core.crypto": "1.1.4",
-    "com.reown.unity.dependencies": "1.1.4"
+    "com.reown.core.common": "1.2.0",
+    "com.reown.core.network": "1.2.0",
+    "com.reown.core.storage": "1.2.0",
+    "com.reown.core.crypto": "1.2.0",
+    "com.reown.unity.dependencies": "1.2.0"
   }
 }

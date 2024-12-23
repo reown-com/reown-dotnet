@@ -1,7 +1,8 @@
 name: Sync Unity Package Version
-
 on:
-  pull_request:
+  push:
+    branches:
+      - develop
     paths:
       - 'src/Directory.Build.props'
   workflow_dispatch:

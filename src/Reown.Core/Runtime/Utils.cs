@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Reown.Core.Common.Logging;
 
 namespace Reown.Core
 {
