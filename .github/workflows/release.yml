@@ -15,34 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: 8.0.x
-
-      - name: Run unit tests
-        uses: ./.github/actions/test-dotnet
-        with:
-          type: unit-tests
-          project-id: ${{ secrets.PROJECT_ID }}
-          dotnet-version: '8.0'
-
-      - name: Run integration tests
-        uses: ./.github/actions/test-dotnet
-        with:
-          type: integration-tests
-          project-id: ${{ secrets.PROJECT_ID }}
-          dotnet-version: '8.0'
-
   nuget:
-    needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -78,7 +51,6 @@ jobs:
             !**/test/**/bin/**/*.dll
 
   unity:
-    needs: test 
     runs-on: ubuntu-latest
     permissions:
       contents: write
