@@ -64,30 +64,30 @@ mergeInto(LibraryManager.library, {
 
         const projectId = parameters.projectId;
         const metadata = parameters.metadata;
-        const chains = parameters.chains;
-
+        const chains = parameters.supportedChains;
+        
         const enableEmail = parameters.enableEmail;
         const enableOnramp = parameters.enableOnramp;
         const enableAnalytics = parameters.enableAnalytics;
 
         // Load the scripts and initialize the configuration
-        import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.6.0/dist/appkit.js").then(AppKit => {
+        import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.6.4/dist/appkit.js").then(AppKit => {
             const WagmiCore = AppKit['WagmiCore'];
             const WagmiAdapter = AppKit['WagmiAdapter'];
             const Chains = AppKit['networks'];
             const reconnect = WagmiCore['reconnect'];
             const createAppKit = AppKit['createAppKit'];
 
-            const chainsArr = chains.map(chainName => Chains[chainName]);
-
+            const networks = chains.map(c => Chains.defineChain(c));
+            
             const wagmiAdapter = new WagmiAdapter({
-                networks: chainsArr,
+                networks: networks,
                 projectId
             })
 
             const modal = createAppKit({
                 adapters: [wagmiAdapter],
-                networks: chainsArr,
+                networks: networks,
                 metadata: metadata,
                 projectId,
                 features: {
