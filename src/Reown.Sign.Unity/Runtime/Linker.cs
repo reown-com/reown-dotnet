@@ -69,7 +69,7 @@ namespace Reown.Sign.Unity
                     $"[Linker] No redirect found for {session.Peer.Metadata.Name}. Using deep link from the Recent Wallet."
                 );
 
-                if (!deeplink.EndsWith("://"))
+                if (!deeplink.Contains("://"))
                     deeplink = $"{deeplink}://";
 
                 Application.OpenURL(deeplink);
@@ -78,7 +78,7 @@ namespace Reown.Sign.Unity
             {
                 ReownLogger.Log($"[Linker] Open native deep link: {redirectNative}");
 
-                if (!redirectNative.EndsWith("://"))
+                if (!redirectNative.Contains("://"))
                     redirectNative = $"{redirectNative}://";
 
                 Application.OpenURL(redirectNative);

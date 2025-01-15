@@ -96,6 +96,7 @@ namespace Reown.AppKit.Unity
             RegisterModalView(ViewType.Account, new AccountPresenter(this, RootVisualElement));
             RegisterModalView(ViewType.NetworkSearch, new NetworkSearchPresenter(this, RootVisualElement));
             RegisterModalView(ViewType.NetworkLoading, new NetworkLoadingPresenter(this, RootVisualElement));
+            RegisterModalView(ViewType.WebWallet, new WebWalletPresenter(this, RootVisualElement));
 
             if (AppKit.SiweController.IsEnabled)
                 RegisterModalView(ViewType.Siwe, new SiwePresenter(this, RootVisualElement));

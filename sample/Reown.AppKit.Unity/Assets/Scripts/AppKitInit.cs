@@ -56,7 +56,7 @@ namespace Sample
                 // On mobile show 5 wallets on the Connect view (the first AppKit modal screen)
                 connectViewWalletsCountMobile = 5,
                 // Assign the SIWE configuration created above. Can be null if SIWE is not used.
-                siweConfig = siweConfig
+                // siweConfig = siweConfig
             };
 
             Debug.Log("[AppKit Init] Initializing AppKit...");

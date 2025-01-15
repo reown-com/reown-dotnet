@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Model;
 using Reown.AppKit.Unity.Utils;
+using Reown.AppKit.Unity.Views.WebWalletView;
 using UnityEngine;
 using UnityEngine.UIElements;
 using DeviceType = Reown.AppKit.Unity.Utils.DeviceType;
@@ -58,6 +59,11 @@ namespace Reown.AppKit.Unity
 
         protected virtual async Task BuildAsync()
         {
+            // todo:
+            var listItem = new ListItem("Web wallet", () => Router.OpenView(ViewType.WebWallet));
+            listItem.RightSlot.Add(new Tag("ALPHA", Tag.TagType.Accent));
+            View.Add(listItem);
+            
             CreateWalletConnectButton();
 
             var recentWalletExists = WalletUtils.TryGetRecentWallet(out var recentWallet);
