@@ -50,16 +50,18 @@ namespace Reown.Sign.Nethereum
 
                 if (request.Method == ApiMethods.personal_sign.ToString())
                 {
-                    return await _reownSignService.PersonalSignAsync((string)request.RawParameters[0]);
+                    if (request.RawParameters.Length == 1)
+                        return await _reownSignService.PersonalSignAsync((string)request.RawParameters[0]);
+
+                    return await _reownSignService.PersonalSignAsync((string)request.RawParameters[0], (string)request.RawParameters[1]);
                 }
 
                 if (request.Method == ApiMethods.eth_signTypedData_v4.ToString())
                 {
-                    // If parameter has only one element, it's a json data.
-                    // Otherwise, expect the data to be at index 1
-                    var dataIndex = request.RawParameters.Length > 1 ? 1 : 0;
-                    
-                    return await _reownSignService.EthSignTypedDataV4Async((string)request.RawParameters[dataIndex]);
+                    if (request.RawParameters.Length == 1)
+                        return await _reownSignService.EthSignTypedDataV4Async((string)request.RawParameters[0]);
+
+                    return await _reownSignService.EthSignTypedDataV4Async((string)request.RawParameters[1], (string)request.RawParameters[0]);
                 }
 
                 if (request.Method == ApiMethods.wallet_switchEthereumChain.ToString())
@@ -105,12 +107,18 @@ namespace Reown.Sign.Nethereum
 
                 if (method == ApiMethods.personal_sign.ToString())
                 {
-                    return await _reownSignService.PersonalSignAsync((string)paramList[0]);
+                    if (paramList.Length == 1)
+                        return await _reownSignService.PersonalSignAsync((string)paramList[0]);
+
+                    return await _reownSignService.PersonalSignAsync((string)paramList[0], (string)paramList[1]);
                 }
 
                 if (method == ApiMethods.eth_signTypedData_v4.ToString())
                 {
-                    return await _reownSignService.EthSignTypedDataV4Async((string)paramList[0]);
+                    if (paramList.Length == 1)
+                        return await _reownSignService.EthSignTypedDataV4Async((string)paramList[0]);
+
+                    return await _reownSignService.EthSignTypedDataV4Async((string)paramList[1], (string)paramList[0]);
                 }
 
                 if (method == ApiMethods.wallet_switchEthereumChain.ToString())

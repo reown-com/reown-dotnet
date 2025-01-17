@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Reown.AppKit.Unity.Components;
+using Reown.AppKit.Unity.Profile;
 using Reown.AppKit.Unity.Utils;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -24,13 +25,13 @@ namespace Reown.AppKit.Unity
         private RemoteSprite<Image> _networkIcon;
         private RemoteSprite<Image> _avatar;
 
+        private ProfileConnector _profileConnector;
+
         public AccountPresenter(RouterController router, VisualElement parent) : base(router, parent)
         {
             View.ExplorerButton.Clicked += OnBlockExplorerButtonClick;
             View.CopyLink.Clicked += OnCopyAddressButtonClick;
-
-            InitializeButtons(View.Buttons);
-
+            
             AppKit.AccountController.PropertyChanged += AccountPropertyChangedHandler;
             AppKit.NetworkController.ChainChanged += ChainChangedHandler;
         }
@@ -69,7 +70,21 @@ namespace Reown.AppKit.Unity
         protected virtual void CreateButtons(VisualElement buttonsListView)
         {
             CreateNetworkButton(buttonsListView);
+            CreateSmartAccountToggleButton(buttonsListView);
             CreateDisconnectButton(buttonsListView);
+        }
+
+        protected virtual void CreateSmartAccountToggleButton(VisualElement buttonsListView)
+        {
+            if (AppKit.ConnectorController.ActiveConnector is not ProfileConnector)
+                return;
+
+            _profileConnector = (ProfileConnector)AppKit.ConnectorController.ActiveConnector;
+
+            var icon = Resources.Load<VectorImage>("Reown/AppKit/Icons/icon_bold_swaphorizontal");
+            var smartAccountButton = new ListItem("Smart Account", OnSmartAccountButtonClick, icon, ListItem.IconType.Circle);
+            Buttons.Add(smartAccountButton);
+            buttonsListView.Add(smartAccountButton);
         }
 
         protected virtual void CreateNetworkButton(VisualElement buttonsListView)
@@ -124,6 +139,9 @@ namespace Reown.AppKit.Unity
         protected override void OnVisibleCore()
         {
             base.OnVisibleCore();
+            Debug.Log("AccountPresenter.OnVisibleCore");
+            View.Buttons.Clear();
+            InitializeButtons(View.Buttons);
             UpdateNetworkButton(AppKit.NetworkController.ActiveChain);
         }
 
@@ -165,6 +183,16 @@ namespace Reown.AppKit.Unity
             {
                 ButtonsSetEnabled(true);
             }
+        }
+
+        private void OnSmartAccountButtonClick()
+        {
+            var currentAccountType = _profileConnector.PreferredAccountType;
+            var newAccountType = currentAccountType == AccountType.SmartAccount
+                ? AccountType.Eoa
+                : AccountType.SmartAccount;
+
+            _profileConnector.SetPreferredAccount(newAccountType);
         }
 
         protected virtual void OnNetworkButtonClick()

@@ -20,14 +20,14 @@ namespace Reown.AppKit.Unity
              return BigInteger.Parse(result.value);
         }
 
-        protected override Task<string> SignMessageAsyncCore(string message)
+        protected override Task<string> SignMessageAsyncCore(string message, string address)
         {
-            return WagmiInterop.SignMessageAsync(message);
+            return WagmiInterop.SignMessageAsync(message, address);
         }
 
-        protected override Task<string> SignMessageAsyncCore(byte[] rawMessage)
+        protected override Task<string> SignMessageAsyncCore(byte[] rawMessage, string address)
         {
-            return WagmiInterop.SignMessageAsync(rawMessage);
+            return WagmiInterop.SignMessageAsync(rawMessage, address);
         }
 
         protected override Task<bool> VerifyMessageSignatureAsyncCore(string address, string message, string signature)

@@ -1,4 +1,5 @@
 using System;
+using Reown.AppKit.Unity.Profile;
 using Reown.AppKit.Unity.Views.WebWalletView;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -20,9 +21,9 @@ namespace Reown.AppKit.Unity
             base.OnVisibleCore();
 
             if (!AppKit.ConnectorController
-                    .TryGetConnector<WalletConnectConnector>
-                        (ConnectorType.WalletConnect, out var connector))
-                throw new Exception("No WC connector"); // TODO: use custom exception
+                    .TryGetConnector<ProfileConnector>
+                        (ConnectorType.Profile, out var connector))
+                throw new Exception("No profiles connector"); // TODO: use custom exception
 
             _connectionProposal = (WalletConnectConnectionProposal)connector.Connect();
 
