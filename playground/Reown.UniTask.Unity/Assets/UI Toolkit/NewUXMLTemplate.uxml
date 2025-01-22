@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement picking-mode="Ignore" style="flex-grow: 1;">
+        <ui:Label tabindex="-1" text="Hello 123" parse-escape-sequences="true" display-tooltip-when-elided="true" style="-unity-font-definition: resource(&apos;Fonts &amp; Materials/Inter/Inter-SemiBold SDF&apos;);" />
+        <ui:Label tabindex="-1" text="Inter 321t3tt" parse-escape-sequences="true" display-tooltip-when-elided="true" style="white-space: normal; -unity-font-definition: resource(&apos;Fonts &amp; Materials/Inter/Inter-Regular SDF&apos;); -unity-text-align: upper-left; -unity-font: resource(&apos;Fonts &amp; Materials/Inter/Inter-Regular&apos;);" />
+    </ui:VisualElement>
+</ui:UXML>
