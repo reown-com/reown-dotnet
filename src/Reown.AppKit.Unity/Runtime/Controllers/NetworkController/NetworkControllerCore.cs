@@ -10,9 +10,10 @@ namespace Reown.AppKit.Unity
     {
         protected override Task InitializeAsyncCore(IEnumerable<Chain> supportedChains)
         {
-            Chains = new ReadOnlyDictionary<string, Chain>(supportedChains.ToDictionary(c => c.ChainId, c => c));
+            var supportedChainsArray = supportedChains.ToArray();
+            Chains = new ReadOnlyDictionary<string, Chain>(supportedChainsArray.ToDictionary(c => c.ChainId, c => c));
 
-            ActiveChain = null;
+            ActiveChain = supportedChainsArray[0];
 
             return Task.CompletedTask;
         }

@@ -79,10 +79,14 @@ namespace Reown.AppKit.Unity
             }
         }
 
-        private void SessionConnectedHandler(object sender, Session e)
+        private async void SessionConnectedHandler(object sender, Session e)
         {
             IsSignarureRequested = _siweController.IsEnabled;
             IsConnected = true;
+
+            var activeChain = AppKit.NetworkController.ActiveChain;
+            if (activeChain != null)
+                await _client.AddressProvider.SetDefaultChainIdAsync(activeChain.ChainId);
             connected?.Invoke(this);
         }
 
