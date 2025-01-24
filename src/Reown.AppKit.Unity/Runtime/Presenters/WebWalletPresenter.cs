@@ -13,7 +13,9 @@ namespace Reown.AppKit.Unity
         public WebWalletPresenter(RouterController router, VisualElement parent, bool hideView = true) : base(router, parent, hideView)
         {
             View.GoogleLocalClicked += OnGoogleLocalClicked;
+            View.XLocalClicked += OnXLocalClicked;
             View.GoogleDeployClicked += OnGoogleDeployClicked;
+            View.XDeployClicked += OnXDeployClicked;
         }
 
         protected override void OnVisibleCore()
@@ -38,7 +40,15 @@ namespace Reown.AppKit.Unity
         private void OnGoogleLocalClicked()
         {
             var encodedWcUrl = Uri.EscapeDataString(_connectionProposal.Uri);
-            var url = $"http://localhost:5173/wc?uri={encodedWcUrl}";
+            var url = $"http://localhost:5173/wc?uri={encodedWcUrl}&provider=google";
+            Debug.Log($"Opening URL: {url}");
+            Application.OpenURL(url);
+        }
+
+        private void OnXLocalClicked()
+        {
+            var encodedWcUrl = Uri.EscapeDataString(_connectionProposal.Uri);
+            var url = $"http://localhost:5173/wc?uri={encodedWcUrl}&provider=x";
             Debug.Log($"Opening URL: {url}");
             Application.OpenURL(url);
         }
@@ -46,7 +56,15 @@ namespace Reown.AppKit.Unity
         private void OnGoogleDeployClicked()
         {
             var encodedWcUrl = Uri.EscapeDataString(_connectionProposal.Uri);
-            var url = $"https://reown.com/wc?uri={encodedWcUrl}"; // TODO: set vercel url
+            var url = $"https://web-wallet-app-omega.vercel.app/wc?uri={encodedWcUrl}&provider=google";
+            Debug.Log($"Opening URL: {url}");
+            Application.OpenURL(url);
+        }
+
+        private void OnXDeployClicked()
+        {
+            var encodedWcUrl = Uri.EscapeDataString(_connectionProposal.Uri);
+            var url = $"https://web-wallet-app-omega.vercel.app/wc?uri={encodedWcUrl}&provider=x";
             Debug.Log($"Opening URL: {url}");
             Application.OpenURL(url);
         }

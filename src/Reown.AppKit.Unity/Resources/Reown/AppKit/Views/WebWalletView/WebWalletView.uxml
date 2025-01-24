@@ -8,8 +8,20 @@
                                             variant="Gray"
                                             icon="Reown/AppKit/Icons/icon_bold_externallink"
         />
+        <Reown.AppKit.Unity.Components.Link name="web-wallet-view__x-local"
+                                            text="X via Localhost"
+                                            size="Small"
+                                            variant="Gray"
+                                            icon="Reown/AppKit/Icons/icon_bold_externallink"
+        />
         <Reown.AppKit.Unity.Components.Link name="web-wallet-view__google-deployment"
                                             text="Google via Deployment"
+                                            size="Small"
+                                            variant="Gray"
+                                            icon="Reown/AppKit/Icons/icon_bold_externallink"
+        />
+        <Reown.AppKit.Unity.Components.Link name="web-wallet-view__x-deployment"
+                                            text="X via Deployment"
                                             size="Small"
                                             variant="Gray"
                                             icon="Reown/AppKit/Icons/icon_bold_externallink"

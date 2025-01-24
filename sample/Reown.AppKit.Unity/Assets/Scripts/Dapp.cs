@@ -5,6 +5,7 @@ using Nethereum.ABI.EIP712;
 using Nethereum.JsonRpc.Client;
 using Nethereum.Web3;
 using Reown.AppKit.Unity;
+using Reown.AppKit.Unity.Profile;
 using Reown.Core;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -55,12 +56,12 @@ namespace Sample
                     OnClick = OnPersonalSignButton,
                     AccountRequired = true
                 },
-                new ButtonStruct
-                {
-                    Text = "Sign Typed Data",
-                    OnClick = OnSignTypedDataV4Button,
-                    AccountRequired = true
-                },
+                // new ButtonStruct
+                // {
+                //     Text = "Sign Typed Data",
+                //     OnClick = OnSignTypedDataV4Button,
+                //     AccountRequired = true
+                // },
                 new ButtonStruct
                 {
                     Text = "Send Transaction",
@@ -77,7 +78,7 @@ namespace Sample
                 {
                     Text = "Read Contract",
                     OnClick = OnReadContractClicked,
-                    AccountRequired = true,
+                    // AccountRequired = true,
                     ChainIds = new HashSet<string>
                     {
                         "eip155:1"
@@ -335,13 +336,13 @@ namespace Sample
 
         public async void OnReadContractClicked()
         {
-            if (AppKit.NetworkController.ActiveChain.ChainId != "eip155:1")
-            {
-                Notification.ShowMessage("Please switch to Ethereum mainnet.");
-                return;
-            }
+            // if (AppKit.NetworkController.ActiveChain.ChainId != "eip155:1")
+            // {
+            //     Notification.ShowMessage("Please switch to Ethereum mainnet.");
+            //     return;
+            // }
 
-            const string contractAddress = "0xb47e3cd837ddf8e4c57f05d70ab865de6e193bbb"; // on Ethereum mainnet
+            const string contractAddress = "0x64b88c73A5DfA78D1713fE1b4c69a22d7E0faAa7";
             const string yugaLabsAddress = "0xA858DDc0445d8131daC4d1DE01f834ffcbA52Ef1";
             const string abi = CryptoPunksAbi;
 
@@ -356,7 +357,7 @@ namespace Sample
                 {
                     yugaLabsAddress
                 });
-                var result = $"Yuga Labs owns: {balance} {tokenName} tokens active chain.";
+                var result = $"Yuga Labs owns: {balance} {tokenName} tokens at active chain.";
 
                 Notification.ShowMessage(result);
             }

@@ -21,20 +21,20 @@ namespace Sample
             // Set up Reown logger to collect logs from AppKit
             ReownLogger.Instance = new UnityLogger();
 
-            // The very basic configuration of SIWE
-            var siweConfig = new SiweConfig
-            {
-                GetMessageParams = () => new SiweMessageParams
-                {
-                    Domain = "example.com",
-                    Uri = "https://example.com/login"
-                },
-                SignOutOnChainChange = false
-            };
-
-            // Subscribe to SIWE events
-            siweConfig.SignInSuccess += _ => Debug.Log("[Dapp] SIWE Sign In Success!");
-            siweConfig.SignOutSuccess += () => Debug.Log("[Dapp] SIWE Sign Out Success!");
+            // // The very basic configuration of SIWE
+            // var siweConfig = new SiweConfig
+            // {
+            //     GetMessageParams = () => new SiweMessageParams
+            //     {
+            //         Domain = "example.com",
+            //         Uri = "https://example.com/login"
+            //     },
+            //     SignOutOnChainChange = false
+            // };
+            //
+            // // Subscribe to SIWE events
+            // siweConfig.SignInSuccess += _ => Debug.Log("[Dapp] SIWE Sign In Success!");
+            // siweConfig.SignOutSuccess += () => Debug.Log("[Dapp] SIWE Sign Out Success!");
 
             // AppKit configuration
             var appKitConfig = new AppKitConfig
@@ -52,9 +52,16 @@ namespace Sample
                         Native = "appkit-sample-unity://"
                     }
                 ),
-                customWallets = GetCustomWallets(),
+                // customWallets = GetCustomWallets(),
                 // On mobile show 5 wallets on the Connect view (the first AppKit modal screen)
-                connectViewWalletsCountMobile = 5,
+                // connectViewWalletsCountMobile = 5,
+                supportedChains = new[]
+                {
+                    ChainConstants.Chains.Optimism,
+                    ChainConstants.Chains.Ethereum,
+                    ChainConstants.Chains.Arbitrum,
+                    ChainConstants.Chains.Base
+                }
                 // Assign the SIWE configuration created above. Can be null if SIWE is not used.
                 // siweConfig = siweConfig
             };

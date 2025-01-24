@@ -13,7 +13,9 @@ namespace Reown.AppKit.Unity.Views.WebWalletView
         private readonly Label _loadingLabel;
         private readonly VisualElement _buttons;
         private readonly Link _googleLocal;
+        private readonly Link _xLocal;
         private readonly Link _googleDeploy;
+        private readonly Link _xDeploy;
 
         public event Action GoogleLocalClicked
         {
@@ -21,10 +23,22 @@ namespace Reown.AppKit.Unity.Views.WebWalletView
             remove => _googleLocal.Clicked -= value;
         }
 
+        public event Action XLocalClicked
+        {
+            add => _xLocal.Clicked += value;
+            remove => _xLocal.Clicked -= value;
+        }
+
         public event Action GoogleDeployClicked
         {
             add => _googleDeploy.Clicked += value;
             remove => _googleDeploy.Clicked -= value;
+        }
+
+        public event Action XDeployClicked
+        {
+            add => _xDeploy.Clicked += value;
+            remove => _xDeploy.Clicked -= value;
         }
 
         public new class UxmlFactory : UxmlFactory<WebWalletView>
@@ -46,7 +60,9 @@ namespace Reown.AppKit.Unity.Views.WebWalletView
             _loadingLabel = this.Q<Label>("web-wallet-view__loading-label");
             _buttons = this.Q<VisualElement>("web-wallet-view__buttons");
             _googleLocal = this.Q<Link>("web-wallet-view__google-local");
+            _xLocal = this.Q<Link>("web-wallet-view__x-local");
             _googleDeploy = this.Q<Link>("web-wallet-view__google-deployment");
+            _xDeploy = this.Q<Link>("web-wallet-view__x-deployment");
 
             Debug.Log("Is local google button null? " + (_googleLocal == null));
 

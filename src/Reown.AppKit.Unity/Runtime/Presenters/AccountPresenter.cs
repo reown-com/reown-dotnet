@@ -139,7 +139,6 @@ namespace Reown.AppKit.Unity
         protected override void OnVisibleCore()
         {
             base.OnVisibleCore();
-            Debug.Log("AccountPresenter.OnVisibleCore");
             View.Buttons.Clear();
             InitializeButtons(View.Buttons);
             UpdateNetworkButton(AppKit.NetworkController.ActiveChain);
