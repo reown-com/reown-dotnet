@@ -55,7 +55,6 @@ namespace Reown.AppKit.Unity
         {
             try
             {
-                Debug.Log($"Send Event {@event.name}. State: {_state.ToString()}");
                 if (_state == AnalyticsState.Disabled)
                     return;
 

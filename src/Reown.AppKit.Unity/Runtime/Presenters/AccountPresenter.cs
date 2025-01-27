@@ -22,6 +22,7 @@ namespace Reown.AppKit.Unity
 
         private bool _disposed;
         private ListItem _networkButton;
+        private ListItem _smartAccountButton;
         private RemoteSprite<Image> _networkIcon;
         private RemoteSprite<Image> _avatar;
 
@@ -81,10 +82,14 @@ namespace Reown.AppKit.Unity
 
             _profileConnector = (ProfileConnector)AppKit.ConnectorController.ActiveConnector;
 
+            var anotherAccountType = _profileConnector.PreferredAccountType == AccountType.SmartAccount
+                ? AccountType.Eoa.ToFriendlyString()
+                : AccountType.SmartAccount.ToFriendlyString();
+
             var icon = Resources.Load<VectorImage>("Reown/AppKit/Icons/icon_bold_swaphorizontal");
-            var smartAccountButton = new ListItem("Smart Account", OnSmartAccountButtonClick, icon, ListItem.IconType.Circle);
-            Buttons.Add(smartAccountButton);
-            buttonsListView.Add(smartAccountButton);
+            _smartAccountButton = new ListItem($"Switch to your {anotherAccountType}", OnSmartAccountButtonClick, icon, ListItem.IconType.Circle, ListItem.IconStyle.Default);
+            Buttons.Add(_smartAccountButton);
+            buttonsListView.Add(_smartAccountButton);
         }
 
         protected virtual void CreateNetworkButton(VisualElement buttonsListView)
@@ -103,7 +108,7 @@ namespace Reown.AppKit.Unity
         protected virtual void CreateDisconnectButton(VisualElement buttonsListView)
         {
             var disconnectIcon = Resources.Load<VectorImage>("Reown/AppKit/Icons/icon_medium_disconnect");
-            var disconnectButton = new ListItem("Disconnect", OnDisconnectButtonClick, disconnectIcon, ListItem.IconType.Circle, ListItem.IconStyle.Accent);
+            var disconnectButton = new ListItem("Disconnect", OnDisconnectButtonClick, disconnectIcon, ListItem.IconType.Circle, ListItem.IconStyle.Default);
             Buttons.Add(disconnectButton);
             buttonsListView.Add(disconnectButton);
         }
@@ -146,6 +151,9 @@ namespace Reown.AppKit.Unity
 
         private void UpdateNetworkButton(Chain chain)
         {
+            if (_networkButton == null)
+                return;
+            
             if (chain == null)
             {
                 _networkButton.Label = "Network";
@@ -164,7 +172,7 @@ namespace Reown.AppKit.Unity
             _networkIcon.SubscribeImage(_networkButton.IconImageElement);
             _networkButton.IconImageElement.style.display = DisplayStyle.Flex;
             _networkButton.IconFallbackElement.style.display = DisplayStyle.None;
-            _networkButton.ApplyIconStyle(ListItem.IconStyle.Default);
+            _networkButton.ApplyIconStyle(ListItem.IconStyle.None);
         }
 
         protected virtual async void OnDisconnectButtonClick()
@@ -192,6 +200,20 @@ namespace Reown.AppKit.Unity
                 : AccountType.SmartAccount;
 
             _profileConnector.SetPreferredAccount(newAccountType);
+
+            _smartAccountButton.Label = $"Switch to your {currentAccountType.ToFriendlyString()}";
+
+            AppKit.NotificationController.Notify(NotificationType.Success, $"Switched to {newAccountType.ToFriendlyString()}");
+
+            AppKit.EventsController.SendEvent(new Event
+            {
+                name = "SET_PREFERRED_ACCOUNT_TYPE",
+                properties = new Dictionary<string, object>
+                {
+                    { "network", AppKit.NetworkController.ActiveChain.Name.ToLowerInvariant() },
+                    { "accountType", newAccountType.ToShortString() }
+                }
+            });
         }
 
         protected virtual void OnNetworkButtonClick()

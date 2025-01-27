@@ -19,6 +19,7 @@ namespace Reown.AppKit.Unity.Components
         public static readonly string ClassIconVariantCircle = $"{Name}--icon-variant-circle";
         public static readonly string ClassIconStyleAccent = $"{Name}--icon-style-accent";
         public static readonly string ClassIconStyleError = $"{Name}--icon-style-error";
+        public static readonly string ClassIconStyleDefault = $"{Name}--icon-style-default";
 
         public new class UxmlFactory : UxmlFactory<ListItem>
         {
@@ -80,7 +81,7 @@ namespace Reown.AppKit.Unity.Components
             Action clickEvent,
             VectorImage fallbackIcon = null,
             IconType iconType = IconType.Square,
-            IconStyle iconStyle = IconStyle.Default,
+            IconStyle iconStyle = IconStyle.None,
             StatusIconType statusIconType = StatusIconType.None)
         {
             Build(label, clickEvent, fallbackIcon, iconType, iconStyle, statusIconType);
@@ -97,7 +98,7 @@ namespace Reown.AppKit.Unity.Components
             Action clickEvent,
             VectorImage fallbackIcon = null,
             IconType iconType = IconType.Square,
-            IconStyle iconStyle = IconStyle.Default,
+            IconStyle iconStyle = IconStyle.None,
             StatusIconType statusIconType = StatusIconType.None)
         {
             Build(label, clickEvent, fallbackIcon, iconType, iconStyle, statusIconType);
@@ -110,7 +111,7 @@ namespace Reown.AppKit.Unity.Components
             Action clickEvent,
             VectorImage fallbackIcon = null,
             IconType iconType = IconType.Square,
-            IconStyle iconStyle = IconStyle.Default,
+            IconStyle iconStyle = IconStyle.None,
             StatusIconType statusIconType = StatusIconType.None)
         {
             Build(label, clickEvent, fallbackIcon, iconType, iconStyle, statusIconType);
@@ -132,7 +133,7 @@ namespace Reown.AppKit.Unity.Components
             Action clickEvent,
             VectorImage fallbackIcon = null,
             IconType iconType = IconType.Square,
-            IconStyle iconStyle = IconStyle.Default,
+            IconStyle iconStyle = IconStyle.None,
             StatusIconType statusIconType = StatusIconType.None)
         {
             var asset = Resources.Load<VisualTreeAsset>("Reown/AppKit/Components/ListItem/ListItem");
@@ -185,7 +186,10 @@ namespace Reown.AppKit.Unity.Components
 
             switch (iconStyle)
             {
+                case IconStyle.None:
+                    break;
                 case IconStyle.Default:
+                    _iconStyleClass = ClassIconStyleDefault;
                     break;
                 case IconStyle.Accent:
                     _iconStyleClass = ClassIconStyleAccent;
@@ -224,6 +228,7 @@ namespace Reown.AppKit.Unity.Components
 
         public enum IconStyle
         {
+            None,
             Default,
             Accent,
             Error

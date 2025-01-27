@@ -104,4 +104,27 @@ namespace Reown.AppKit.Unity.Profile
         SmartAccount,
         Eoa
     }
+
+    public static class AccountTypeExtensions
+    {
+        public static string ToFriendlyString(this AccountType accountType)
+        {
+            return accountType switch
+            {
+                AccountType.SmartAccount => "Smart Account",
+                AccountType.Eoa => "EOA",
+                _ => "Unknown"
+            };
+        }
+
+        public static string ToShortString(this AccountType accountType)
+        {
+            return accountType switch
+            {
+                AccountType.SmartAccount => "SA",
+                AccountType.Eoa => "EOA",
+                _ => "Unknown"
+            };
+        }
+    }
 }

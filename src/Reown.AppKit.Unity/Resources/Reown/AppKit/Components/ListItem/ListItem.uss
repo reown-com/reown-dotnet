@@ -67,12 +67,20 @@
     background-color: var(--ro-accent-glass-020);
 }
 
+.list-item--icon-style-default #list-item__icon-container {
+    background-color: var(--ro-gray-glass-010);
+}
+
 #list-item__icon-container > Image {
     --unity-image-tint-color: white;
 }
 
 .list-item--icon-style-accent #list-item__icon-container > Image {
     --unity-image-tint-color: var(--ro-color-accent-100);
+}
+
+.list-item--icon-style-default #list-item__icon-container > Image {
+    --unity-image-tint-color: var(--ro-color-fg-200);
 }
 
 .list-item--icon-style-error #list-item__icon-container {
