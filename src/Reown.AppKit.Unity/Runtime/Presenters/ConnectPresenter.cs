@@ -60,7 +60,7 @@ namespace Reown.AppKit.Unity
         protected virtual async Task BuildAsync()
         {
             // todo:
-            var listItem = new ListItem("Web wallet", () => Router.OpenView(ViewType.WebWallet));
+            var listItem = new ListItem("Social Login", () => Router.OpenView(ViewType.WebWallet));
             listItem.RightSlot.Add(new Tag("ALPHA", Tag.TagType.Accent));
             View.Add(listItem);
             
