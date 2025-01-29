@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity
 {
-    public class AccountPresenter : Presenter<AccountView>
+    public class AccountSettingsPresenter : Presenter<AccountSettingsView>
     {
         public override bool HeaderBorder
         {
@@ -28,7 +28,7 @@ namespace Reown.AppKit.Unity
 
         private ProfileConnector _profileConnector;
 
-        public AccountPresenter(RouterController router, VisualElement parent) : base(router, parent)
+        public AccountSettingsPresenter(RouterController router, VisualElement parent) : base(router, parent)
         {
             View.ExplorerButton.Clicked += OnBlockExplorerButtonClick;
             View.CopyLink.Clicked += OnCopyAddressButtonClick;

@@ -70,6 +70,8 @@ namespace Reown.AppKit.Unity
         NetworkSearch,
         NetworkLoading,
         Siwe,
-        WebWallet
+        WebWallet,
+        AccountSettings,
+        AccountPortfolio
     }
 }

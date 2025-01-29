@@ -170,7 +170,7 @@ namespace Reown.AppKit.Unity
             public static readonly Chain Optimism = new(
                 Namespaces.Evm,
                 References.Optimism,
-                "Optimism",
+                "OP Mainnet",
                 new Currency("Ether", "ETH", 18),
                 new BlockExplorer("Optimistic Etherscan", "https://optimistic.etherscan.io"),
                 "https://mainnet.optimism.io",

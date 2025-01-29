@@ -1,5 +1,7 @@
 using System;
 using System.Threading.Tasks;
+using Reown.AppKit.Unity.Components;
+using Reown.AppKit.Unity.Profile;
 using Reown.AppKit.Unity.Utils;
 using Reown.Sign.Models;
 using Reown.Sign.Unity;
@@ -67,9 +69,16 @@ namespace Reown.AppKit.Unity
 
         protected override void OpenModalCore(ViewType viewType = ViewType.None)
         {
-            if (viewType == ViewType.None)
+            if (viewType is ViewType.None or ViewType.Account)
             {
-                ModalController.Open(IsAccountConnected ? ViewType.Account : ViewType.Connect);
+                if (!IsAccountConnected)
+                {
+                    ModalController.Open(ViewType.Connect);
+                    return;
+                }
+
+                var isConnectedToReownWallet = ConnectorController.ActiveConnector is ProfileConnector;
+                ModalController.Open(isConnectedToReownWallet ? ViewType.AccountPortfolio : ViewType.AccountSettings);
             }
             else
             {

@@ -80,5 +80,24 @@ namespace Sample
             });
             Debug.Log(json);
         }
+
+        [ConsoleMethod("session", "Prints active session")]
+        public static void Session()
+        {
+            var walletConnect = AppKit.ConnectorController.ActiveConnector as WalletConnectConnector;
+            var session = walletConnect.SignClient.AddressProvider.DefaultSession;
+
+            if (session == null)
+            {
+                Debug.Log("No active session found");
+                return;
+            }
+
+            var json = JsonConvert.SerializeObject(session, new JsonSerializerSettings
+            {
+                Formatting = Formatting.Indented
+            });
+            Debug.Log(json);
+        }
     }
 }

@@ -93,7 +93,7 @@ namespace Reown.AppKit.Unity
             RegisterModalView(ViewType.QrCode, new QrCodePresenter(this, RootVisualElement));
             RegisterModalView(ViewType.Wallet, new WalletPresenter(this, RootVisualElement));
             RegisterModalView(ViewType.WalletSearch, new WalletSearchPresenter(this, RootVisualElement));
-            RegisterModalView(ViewType.Account, new AccountPresenter(this, RootVisualElement));
+            RegisterModalView(ViewType.AccountSettings, new AccountSettingsPresenter(this, RootVisualElement));
             RegisterModalView(ViewType.NetworkSearch, new NetworkSearchPresenter(this, RootVisualElement));
             RegisterModalView(ViewType.NetworkLoading, new NetworkLoadingPresenter(this, RootVisualElement));
             RegisterModalView(ViewType.WebWallet, new WebWalletPresenter(this, RootVisualElement));
