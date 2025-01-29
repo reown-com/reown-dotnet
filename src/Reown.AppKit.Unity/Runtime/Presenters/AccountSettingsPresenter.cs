@@ -53,11 +53,11 @@ namespace Reown.AppKit.Unity
                 case nameof(AccountController.ProfileAvatar):
                     UpdateProfileAvatar();
                     break;
-                case nameof(AccountController.Balance):
-                    View.SetBalance(TrimToThreeDecimalPlaces(AppKit.AccountController.Balance));
+                case nameof(AccountController.NativeTokenBalance):
+                    View.SetBalance(TrimToThreeDecimalPlaces(AppKit.AccountController.NativeTokenBalance));
                     break;
-                case nameof(AccountController.BalanceSymbol):
-                    View.SetBalanceSymbol(AppKit.AccountController.BalanceSymbol);
+                case nameof(AccountController.NativeTokenSymbol):
+                    View.SetBalanceSymbol(AppKit.AccountController.NativeTokenSymbol);
                     break;
             }
         }
@@ -247,15 +247,9 @@ namespace Reown.AppKit.Unity
                 button.SetEnabled(value);
         }
 
-        public static string TrimToThreeDecimalPlaces(string input)
+        public static string TrimToThreeDecimalPlaces(float input)
         {
-            if (string.IsNullOrWhiteSpace(input))
-                return input;
-
-            var dotIndex = input.IndexOf('.');
-            if (dotIndex == -1 || input.Length <= dotIndex + 4)
-                return input;
-            return input[..(dotIndex + 4)];
+            return input.ToString("F3");
         }
 
         protected override void Dispose(bool disposing)
