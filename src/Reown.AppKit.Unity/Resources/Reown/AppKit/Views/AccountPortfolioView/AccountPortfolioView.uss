@@ -1,0 +1,4 @@
+#account-portfolio-view__balance-container {
+    align-items: center;
+    padding: 3 0 3 0;
+}
