@@ -78,7 +78,8 @@ namespace Reown.AppKit.Unity
                 }
 
                 var isConnectedToReownWallet = ConnectorController.ActiveConnector is ProfileConnector;
-                ModalController.Open(isConnectedToReownWallet ? ViewType.AccountPortfolio : ViewType.AccountSettings);
+                // ModalController.Open(isConnectedToReownWallet ? ViewType.AccountPortfolio : ViewType.AccountSettings);
+                ModalController.Open(ViewType.AccountSettings);
             }
             else
             {

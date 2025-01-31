@@ -14,7 +14,7 @@
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="account-settings-view__profile-balance-container">
-            <ui:Label name="account-settings-view__profile-balance-value"/>
+            <ui:Label name="account-settings-view__profile-balance-value" text="0.000"/>
             <ui:Label name="account-settings-view__profile-balance-symbol"/>
         </ui:VisualElement>
         <ui:VisualElement name="account-explorer-button-container">
