@@ -1,3 +1,5 @@
+using System;
+using Reown.AppKit.Unity.Utils;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -7,8 +9,46 @@ namespace Reown.AppKit.Unity.Components
     {
         public const string Name = "account-portfolio-view";
         public static readonly string NameBalanceUsd = $"{Name}__balance";
-
+        public static readonly string NameAccountChipContainer = $"{Name}__account-chip-container";
+        public static readonly string NameAccountChip = $"{Name}__account-chip";
+        public static readonly string NameAccountChipAvatarImage = $"{Name}__account-chip-avatar-image";
+        public static readonly string NameAccountChipContentName = $"{Name}__account-chip-content-name";
+        
         public Balance Balance { get; }
+
+        public Image AvatarImage { get; }
+
+        public Label AccountName { get; }
+
+        public event Action AccountClicked
+        {
+            add
+            {
+                if (AccountChipClickable == null)
+                    AccountChipClickable = new Clickable(value);
+                else
+                    AccountChipClickable.clicked += value;
+            }
+            remove
+            {
+                if (AccountChipClickable == null)
+                    return;
+                AccountChipClickable.clicked -= value;
+            }
+        }
+
+        public Clickable AccountChipClickable
+        {
+            get => _accountChipClickable;
+            set
+            {
+                _accountChipClickable = value;
+                this.AddManipulator(value);
+            }
+        }
+
+        private Clickable _accountChipClickable;
+        
 
         public new class UxmlFactory : UxmlFactory<AccountPortfolioView>
         {
@@ -26,6 +66,13 @@ namespace Reown.AppKit.Unity.Components
             name = Name;
 
             Balance = this.Q<Balance>(NameBalanceUsd);
+            AvatarImage = this.Q<Image>(NameAccountChipAvatarImage);
+            AccountName = this.Q<Label>(NameAccountChipContentName);
+        }
+
+        public void SetProfileName(string value)
+        {
+            AccountName.text = value.FontWeight500();
         }
     }
 }

@@ -19,6 +19,7 @@ namespace Reown.AppKit.Unity
         public ModalHeaderPresenter(RouterController routerController, Modal parent) : base(routerController, parent)
         {
             View.style.display = DisplayStyle.Flex;
+            View.pickingMode = PickingMode.Ignore;
 
             Router.ViewChanged += ViewChangedHandler;
             AppKit.NotificationController.Notification += NotificationHandler;
