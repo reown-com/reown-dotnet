@@ -12,8 +12,6 @@ namespace Reown.AppKit.Unity.Components
         public static readonly string NameRightSlot = $"{Name}__right-slot";
 
         public static readonly string NameSnackbar = $"{Name}__snackbar";
-        public static readonly string NameSnackbarContainerHorizontal = $"{Name}__snackbar-container-horizontal";
-        public static readonly string NameSnackbarContainerVertical = $"{Name}__snackbar-container-vertical";
 
         public readonly VisualElement container;
         public readonly VisualElement body;

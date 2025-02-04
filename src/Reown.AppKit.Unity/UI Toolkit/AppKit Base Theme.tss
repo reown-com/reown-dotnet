@@ -104,7 +104,7 @@ CardSelect {
 
 QrCode {
     --ro-qrcode-bg-color: white;
-    --ro-qrcode-fg-color: black;
+    --ro-qrcode-fg-color: var(--ro-color-bg-100);
 }
 
 .text-micro {

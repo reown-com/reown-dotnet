@@ -96,24 +96,26 @@ namespace Reown.AppKit.Unity.WebGl.Wagmi
         
 
         // -- Sign Message ---------------------------------------------
-        public static Task<string> SignMessageAsync(string message)
+        public static Task<string> SignMessageAsync(string message, string address)
         {
             var parameter = new SignMessageParameter
             {
-                message = message
+                message = message,
+                account = address
             };
 
             return SignMessageAsync(parameter);
         }
 
-        public static Task<string> SignMessageAsync(byte[] rawMessage)
+        public static Task<string> SignMessageAsync(byte[] rawMessage, string address)
         {
             var parameter = new SignRawMessageParameter
             {
                 message = new
                 {
                     raw = rawMessage
-                }
+                },
+                account = address
             };
 
             return InteropCallAsync<SignRawMessageParameter, string>(WagmiMethods.SignMessage, parameter);

@@ -1,0 +1,17 @@
+:root {
+    flex-direction: row;
+    color: var(--ro-color-fg-100)
+}
+
+Label {
+    padding: 0;
+    margin: 0;
+}
+
+#balance__symbol {
+    padding-right: 2px;
+}
+
+#balance__decimal {
+    color: var(--ro-color-fg-200)
+}

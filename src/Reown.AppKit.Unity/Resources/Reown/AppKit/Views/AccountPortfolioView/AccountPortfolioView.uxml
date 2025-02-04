@@ -1,0 +1,18 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="AccountPortfolioView.uss"/>
+    <ui:VisualElement name="account-portfolio-view__account-chip-container">
+        <ui:VisualElement name="account-portfolio-view__account-chip">
+            <ui:VisualElement name="account-portfolio-view__account-chip-avatar">
+                <ui:Image name="account-portfolio-view__account-chip-avatar-image"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="account-portfolio-view__account-chip-content">
+                <ui:Label name="account-portfolio-view__account-chip-content-name"/>
+                <ui:Image name="account-portfolio-view__account-chip-content-icon"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="account-portfolio-view__balance-container">
+        <Reown.AppKit.Unity.Components.Balance name="account-portfolio-view__balance" class="text-2xl"/>
+    </ui:VisualElement>
+    <ui:VisualElement name="account-portfolio-view__buttons"/>
+</ui:UXML>

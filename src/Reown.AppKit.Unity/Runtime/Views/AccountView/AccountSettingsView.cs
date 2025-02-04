@@ -4,9 +4,9 @@ using Reown.AppKit.Unity.Utils;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class AccountView : VisualElement
+    public class AccountSettingsView : VisualElement
     {
-        public const string Name = "account-view";
+        public const string Name = "account-settings-view";
         public static readonly string NameProfile = $"{Name}__profile";
         public static readonly string NameProfileAddress = $"{Name}__profile-address";
         public static readonly string NameProfileAvatarImage = $"{Name}__profile-avatar-image";
@@ -26,17 +26,17 @@ namespace Reown.AppKit.Unity.Components
         public VisualElement Buttons { get; }
 
 
-        public new class UxmlFactory : UxmlFactory<AccountView>
+        public new class UxmlFactory : UxmlFactory<AccountSettingsView>
         {
         }
 
-        public AccountView() : this(null)
+        public AccountSettingsView() : this(null)
         {
         }
 
-        public AccountView(string visualTreePath)
+        public AccountSettingsView(string visualTreePath)
         {
-            var asset = Resources.Load<VisualTreeAsset>(visualTreePath ?? "Reown/AppKit/Views/AccountView/AccountView");
+            var asset = Resources.Load<VisualTreeAsset>(visualTreePath ?? "Reown/AppKit/Views/AccountSettingsView/AccountSettingsView");
             asset.CloneTree(this);
 
             name = Name;

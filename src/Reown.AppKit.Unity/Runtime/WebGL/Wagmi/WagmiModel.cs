@@ -19,12 +19,14 @@ namespace Reown.AppKit.Unity.WebGl.Wagmi
     public class SignMessageParameter
     {
         public string message;
+        public string account;
     }
 
     [Serializable]
     public class SignRawMessageParameter
     {
         public object message;
+        public string account;
     }
 
     [Serializable]

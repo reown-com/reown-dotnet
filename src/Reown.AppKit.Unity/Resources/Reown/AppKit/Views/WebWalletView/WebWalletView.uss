@@ -1,0 +1,14 @@
+#web-wallet-view__loading-label {
+    margin-top: 10;
+    margin-bottom: 10;
+    -unity-text-align: middle-center;
+    color: var(--ro-color-fg-100);
+}
+
+#web-wallet-view__buttons {
+    margin-top: 10;
+}
+
+#web-wallet-view__buttons > Link {
+    margin-bottom: 20;
+}

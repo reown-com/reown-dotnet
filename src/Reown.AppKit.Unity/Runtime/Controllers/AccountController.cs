@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -48,17 +49,23 @@ namespace Reown.AppKit.Unity
             get => _profileAvatar;
             set => SetField(ref _profileAvatar, value);
         }
-        
-        public string Balance
+
+        public float NativeTokenBalance
         {
-            get => _balance;
-            set => SetField(ref _balance, value);
+            get => _nativeTokenBalance;
+            set => SetField(ref _nativeTokenBalance, value);
         }
-        
-        public string BalanceSymbol
+
+        public string NativeTokenSymbol
         {
-            get => _balanceSymbol;
-            set => SetField(ref _balanceSymbol, value);
+            get => _nativeTokenSymbol;
+            set => SetField(ref _nativeTokenSymbol, value);
+        }
+
+        public float TotalBalanceUsd
+        {
+            get => _totalBalanceUsd;
+            set => SetField(ref _totalBalanceUsd, value);
         }
 
         private ConnectorController _connectorController;
@@ -76,6 +83,10 @@ namespace Reown.AppKit.Unity
         
         private string _balance;
         private string _balanceSymbol;
+
+        private float _nativeTokenBalance;
+        private string _nativeTokenSymbol;
+        private float _totalBalanceUsd;
         
         public event PropertyChangedEventHandler PropertyChanged;
         
@@ -96,7 +107,7 @@ namespace Reown.AppKit.Unity
 
         private async void ConnectorAccountConnectedHandler(object sender, Connector.AccountConnectedEventArgs e)
         {
-            var account = await e.GetAccount();
+            var account = await e.GetAccountAsync();
             if (account.AccountId == AccountId)
                 return;
             
@@ -160,26 +171,46 @@ namespace Reown.AppKit.Unity
                 return;
             
             var response = await _blockchainApiController.GetBalanceAsync(Address);
-            
+
+            // -- Native token balance
+            var nativeTokenSymbol = _networkController.ActiveChain.NativeCurrency.symbol;
             if (response.Balances.Length == 0)
             {
-                Balance = "0.000";
-                BalanceSymbol = _networkController.ActiveChain.NativeCurrency.symbol;
+                NativeTokenBalance = 0;
+                NativeTokenSymbol = nativeTokenSymbol;
                 return;
             }
-            
-            var balance = Array.Find(response.Balances,x => x.chainId == ChainId && string.IsNullOrWhiteSpace(x.address));
+
+            var balance = Array.Find(response.Balances, x =>
+                x.chainId == ChainId
+                // && string.IsNullOrWhiteSpace(x.address)
+                && x.symbol == nativeTokenSymbol
+            );
 
             if (string.IsNullOrWhiteSpace(balance.quantity.numeric))
             {
-                Balance = "0.000";
-                BalanceSymbol = _networkController.ActiveChain.NativeCurrency.symbol;
+                NativeTokenBalance = 0;
+                NativeTokenSymbol = nativeTokenSymbol;
             }
             else
             {
-                Balance = balance.quantity.numeric;
-                BalanceSymbol = balance.symbol;
+                if (float.TryParse(balance.quantity.numeric, out var parsedBalance))
+                    NativeTokenBalance = parsedBalance;
+                else
+                    NativeTokenBalance = 0;
+
+                NativeTokenSymbol = balance.symbol;
             }
+
+            // -- Total balance in USD
+            var totalBalanceUsd = 0f;
+            foreach (var b in response.Balances)
+            {
+                if (float.TryParse(b.value, out var result))
+                    totalBalanceUsd += result;
+            }
+
+            TotalBalanceUsd = totalBalanceUsd;
         }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)

@@ -3,6 +3,7 @@
 namespace Reown.Sign.Models
 {
     // https://chainagnostic.org/CAIPs/caip-10
+    [Serializable]
     public readonly struct Account : IEquatable<Account>
     {
         public string Address { get; }
@@ -43,16 +44,12 @@ namespace Reown.Sign.Models
 
         public override int GetHashCode()
         {
-            unchecked
-            {
-                return (Address != null ? Address.GetHashCode() : 0) * 397 ^
-                       (ChainId != null ? ChainId.GetHashCode() : 0);
-            }
+            return AccountId.GetHashCode();
         }
 
         public static bool operator ==(Account left, Account right)
         {
-            return left.Equals(right);
+            return string.Equals(left.AccountId, right.AccountId, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public static bool operator !=(Account left, Account right)

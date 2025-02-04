@@ -142,16 +142,16 @@ namespace Reown.AppKit.Unity
 
         // -- Sign Message ---------------------------------------------
 
-        protected override async Task<string> SignMessageAsyncCore(string message)
+        protected override async Task<string> SignMessageAsyncCore(string message, string address)
         {
             var encodedMessage = message.ToHexUTF8();
-            return await Web3.Client.SendRequestAsync<string>("personal_sign", null, encodedMessage);
+            return await Web3.Client.SendRequestAsync<string>("personal_sign", null, encodedMessage, address);
         }
 
-        protected override Task<string> SignMessageAsyncCore(byte[] rawMessage)
+        protected override Task<string> SignMessageAsyncCore(byte[] rawMessage, string address)
         {
             var encodedMessage = rawMessage.ToHex(true);
-            return Web3.Client.SendRequestAsync<string>("personal_sign", null, encodedMessage);
+            return Web3.Client.SendRequestAsync<string>("personal_sign", null, encodedMessage, address);
         }
 
 

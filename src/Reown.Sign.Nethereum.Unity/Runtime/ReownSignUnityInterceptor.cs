@@ -30,7 +30,7 @@ namespace Reown.Sign.Nethereum.Unity
         {
             var result = ReownInterceptor.InterceptSendRequestAsync(interceptedSendRequestAsync, request, route);
 
-#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
+// #if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
             try
             {
                 if (ReownInterceptor.SignMethods.Contains(request.Method))
@@ -43,7 +43,7 @@ namespace Reown.Sign.Nethereum.Unity
             {
                 ReownLogger.LogError(e);
             }
-#endif
+// #endif
 
             return result;
         }
@@ -56,7 +56,7 @@ namespace Reown.Sign.Nethereum.Unity
         {
             var result = ReownInterceptor.InterceptSendRequestAsync(interceptedSendRequestAsync, method, route, paramList);
 
-#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
+// #if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
             try
             {
                 if (ReownInterceptor.SignMethods.Contains(method))
@@ -69,7 +69,7 @@ namespace Reown.Sign.Nethereum.Unity
             {
                 ReownLogger.LogError(e);
             }
-#endif
+// #endif
 
             return result;
         }

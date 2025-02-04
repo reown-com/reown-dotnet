@@ -227,13 +227,26 @@ namespace Reown.AppKit.Unity
 
         public class AccountConnectedEventArgs : EventArgs
         {
-            public Func<Task<Account>> GetAccount { get; }
-            public Func<Task<Account[]>> GetAccounts { get; }
+            [Obsolete("Use GetAccountAsync instead")]
+            public Func<Task<Account>> GetAccount
+            {
+                get => GetAccountAsync;
+            }
+
+            [Obsolete("Use GetAccountsAsync instead")]
+            public Func<Task<Account[]>> GetAccounts
+            {
+                get => GetAccountsAsync;
+            }
+
+            public Func<Task<Account>> GetAccountAsync { get; }
+
+            public Func<Task<Account[]>> GetAccountsAsync { get; }
 
             public AccountConnectedEventArgs(Func<Task<Account>> getAccount, Func<Task<Account[]>> getAccounts)
             {
-                GetAccount = getAccount;
-                GetAccounts = getAccounts;
+                GetAccountAsync = getAccount;
+                GetAccountsAsync = getAccounts;
             }
         }
 
@@ -267,6 +280,7 @@ namespace Reown.AppKit.Unity
     {
         None,
         WalletConnect,
-        WebGl
+        WebGl,
+        Profile
     }
 }
