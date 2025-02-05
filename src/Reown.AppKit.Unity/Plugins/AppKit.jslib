@@ -71,7 +71,7 @@ mergeInto(LibraryManager.library, {
         const enableAnalytics = parameters.enableAnalytics;
 
         // Load the scripts and initialize the configuration
-        import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.6.4/dist/appkit.js").then(AppKit => {
+        import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.6.5/dist/appkit.js").then(AppKit => {
             const WagmiCore = AppKit['WagmiCore'];
             const WagmiAdapter = AppKit['WagmiAdapter'];
             const Chains = AppKit['networks'];
