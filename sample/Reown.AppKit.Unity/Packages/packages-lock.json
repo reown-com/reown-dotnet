@@ -26,10 +26,10 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.reown.sign.nethereum.unity": "1.2.0",
-        "com.reown.sign.unity": "1.2.0",
-        "com.reown.core": "1.2.0",
-        "com.reown.unity.dependencies": "1.2.0",
+        "com.reown.sign.nethereum.unity": "1.2.1",
+        "com.reown.sign.unity": "1.2.1",
+        "com.reown.core": "1.2.1",
+        "com.reown.unity.dependencies": "1.2.1",
         "com.unity.vectorgraphics": "2.0.0-preview.24"
       }
     },
@@ -38,11 +38,11 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.reown.core.common": "1.2.0",
-        "com.reown.core.network": "1.2.0",
-        "com.reown.core.storage": "1.2.0",
-        "com.reown.core.crypto": "1.2.0",
-        "com.reown.unity.dependencies": "1.2.0"
+        "com.reown.core.common": "1.2.1",
+        "com.reown.core.network": "1.2.1",
+        "com.reown.core.storage": "1.2.1",
+        "com.reown.core.crypto": "1.2.1",
+        "com.reown.unity.dependencies": "1.2.1"
       }
     },
     "com.reown.core.common": {
@@ -58,10 +58,10 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.reown.core.common": "1.2.0",
-        "com.reown.core.network": "1.2.0",
-        "com.reown.core.storage": "1.2.0",
-        "com.reown.unity.dependencies": "1.2.0"
+        "com.reown.core.common": "1.2.1",
+        "com.reown.core.network": "1.2.1",
+        "com.reown.core.storage": "1.2.1",
+        "com.reown.unity.dependencies": "1.2.1"
       }
     },
     "com.reown.core.network": {
@@ -69,7 +69,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.reown.core.common": "1.2.0"
+        "com.reown.core.common": "1.2.1"
       }
     },
     "com.reown.core.storage": {
@@ -77,7 +77,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.reown.core.common": "1.2.0"
+        "com.reown.core.common": "1.2.1"
       }
     },
     "com.reown.sign": {
@@ -85,7 +85,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.reown.core": "1.2.0"
+        "com.reown.core": "1.2.1"
       }
     },
     "com.reown.sign.nethereum": {
@@ -93,7 +93,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.reown.sign": "1.2.0",
+        "com.reown.sign": "1.2.1",
         "com.nethereum.unity": "4.26.0"
       }
     },
@@ -102,8 +102,8 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.reown.sign.nethereum": "1.2.0",
-        "com.reown.sign.unity": "1.2.0"
+        "com.reown.sign.nethereum": "1.2.1",
+        "com.reown.sign.unity": "1.2.1"
       }
     },
     "com.reown.sign.unity": {
@@ -111,7 +111,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.reown.sign": "1.2.0"
+        "com.reown.sign": "1.2.1"
       }
     },
     "com.reown.unity.dependencies": {
