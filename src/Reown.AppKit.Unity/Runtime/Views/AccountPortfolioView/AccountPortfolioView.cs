@@ -20,6 +20,8 @@ namespace Reown.AppKit.Unity.Components
 
         public Label AccountName { get; }
 
+        public VisualElement AccountChipContainer { get; }
+
         public event Action AccountClicked
         {
             add
@@ -43,7 +45,7 @@ namespace Reown.AppKit.Unity.Components
             set
             {
                 _accountChipClickable = value;
-                this.AddManipulator(value);
+                AccountChipContainer.AddManipulator(value);
             }
         }
 
@@ -66,6 +68,7 @@ namespace Reown.AppKit.Unity.Components
             name = Name;
 
             Balance = this.Q<Balance>(NameBalanceUsd);
+            AccountChipContainer = this.Q<VisualElement>(NameAccountChipContainer);
             AvatarImage = this.Q<Image>(NameAccountChipAvatarImage);
             AccountName = this.Q<Label>(NameAccountChipContentName);
         }

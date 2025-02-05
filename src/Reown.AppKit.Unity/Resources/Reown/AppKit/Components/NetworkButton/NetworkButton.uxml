@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="NetworkButton.uss"/>
+    <ui:Image name="network-button__icon"/>
+    <ui:Label name="network-button__name"/>
+    <ui:Image name="network-button__chevron"/>
+</ui:UXML> 

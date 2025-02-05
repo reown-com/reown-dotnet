@@ -16,6 +16,11 @@ namespace Reown.AppKit.Unity
             get => _modalViews[_history.Peek()];
         }
 
+        public int HistoryCount
+        {
+            get => _history.Count;
+        }
+
         public VisualElement RootVisualElement { get; }
 
         public RouterController(VisualElement parent)

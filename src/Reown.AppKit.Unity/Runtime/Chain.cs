@@ -47,6 +47,11 @@ namespace Reown.AppKit.Unity
             ImageUrl = imageUrl;
             ViemName = viemName;
         }
+
+        public override string ToString()
+        {
+            return $"{Name} ({ChainId})";
+        }
     }
 
     [Serializable]

@@ -6,7 +6,7 @@
 #account-portfolio-view__account-chip-container {
     flex-direction: row;
     justify-content: center;
-    margin: -35 10 10 10;
+    margin: -25 10 10 10;
 }
 
 #account-portfolio-view__account-chip {
