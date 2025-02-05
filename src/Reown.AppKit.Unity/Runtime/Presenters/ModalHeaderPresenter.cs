@@ -145,7 +145,7 @@ namespace Reown.AppKit.Unity
             }
             else
             {
-                View.leftSlot.style.display = DisplayStyle.None;
+                View.leftSlot.style.visibility = Visibility.Hidden;
             }
 
             // Header border
