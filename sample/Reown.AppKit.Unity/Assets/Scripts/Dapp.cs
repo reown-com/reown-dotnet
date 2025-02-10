@@ -16,6 +16,7 @@ namespace Sample
     public class Dapp : MonoBehaviour
     {
         [SerializeField] private UIDocument _uiDocument;
+        private int _messageCounter = 0;
 
         private ButtonStruct[] _buttons;
         private VisualElement _buttonsContainer;
@@ -215,7 +216,10 @@ namespace Sample
             {
                 var account = await AppKit.GetAccountAsync();
 
-                const string message = "Hello from Unity!";
+                _messageCounter++;
+                var message = $"Hello from Unity! (Request #{_messageCounter})";
+
+                Notification.ShowMessage($"Signing message: {message}");
 
                 // It's also possible to sign a message as a byte array
                 // var messageBytes = System.Text.Encoding.UTF8.GetBytes(message);
@@ -224,7 +228,7 @@ namespace Sample
                 var signature = await AppKit.Evm.SignMessageAsync(message);
                 var isValid = await AppKit.Evm.VerifyMessageSignatureAsync(account.Address, message, signature);
 
-                Notification.ShowMessage($"Signature valid: {isValid}");
+                Notification.ShowMessage($"Signature valid: {isValid} (Request #{_messageCounter})");
             }
             catch (RpcResponseException e)
             {

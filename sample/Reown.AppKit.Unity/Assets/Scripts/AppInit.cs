@@ -26,6 +26,7 @@ namespace Sample
         private void InitDebugConsole()
         {
 #if UNITY_STANDALONE || UNITY_ANDROID || UNITY_IOS
+            Debug.developerConsoleVisible = false; // disable Unity console
             DontDestroyOnLoad(gameObject);
             _debugConsole.SetActive(true);
 #endif
