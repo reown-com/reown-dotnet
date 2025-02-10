@@ -159,19 +159,18 @@ namespace Reown.AppKit.Unity
 
         protected override async Task<bool> VerifyMessageSignatureAsyncCore(string address, string message, string signature)
         {
+            // -- EIP-191
+            var recoveredAddress = _ethereumMessageSigner.EncodeUTF8AndEcRecover(message, signature);
+            if (recoveredAddress.IsTheSameAddress(address))
+            {
+                return true;
+            }
 
             // -- ERC-6492
             var erc6492Service = Web3.Eth.SignatureValidationPredeployContractERC6492;
             if (erc6492Service.IsERC6492Signature(signature))
             {
                 return await erc6492Service.IsValidSignatureMessageAsync(address, message, signature.HexToByteArray());
-            }
-
-            // -- EOA
-            var recoveredAddress = _ethereumMessageSigner.EncodeUTF8AndEcRecover(message, signature);
-            if (recoveredAddress.IsTheSameAddress(address))
-            {
-                return true;
             }
 
             // -- ERC-1271
