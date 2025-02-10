@@ -7,6 +7,7 @@ using Nethereum.Web3;
 using Reown.AppKit.Unity;
 using Reown.AppKit.Unity.Profile;
 using Reown.Core;
+using Reown.Core.Common.Model.Errors;
 using UnityEngine;
 using UnityEngine.UIElements;
 using ButtonUtk = UnityEngine.UIElements.Button;
@@ -219,18 +220,21 @@ namespace Sample
                 _messageCounter++;
                 var message = $"Hello from Unity! (Request #{_messageCounter})";
 
-                Notification.ShowMessage($"Signing message: {message}");
+                Notification.ShowMessage($"Signing message:\n\n{message}");
+
+                await System.Threading.Tasks.Task.Delay(1_000);
 
                 // It's also possible to sign a message as a byte array
                 // var messageBytes = System.Text.Encoding.UTF8.GetBytes(message);
                 // var signature = await AppKit.Evm.SignMessageAsync(messageBytes);
 
                 var signature = await AppKit.Evm.SignMessageAsync(message);
+                Debug.Log($"Recieved signature: {signature}");
                 var isValid = await AppKit.Evm.VerifyMessageSignatureAsync(account.Address, message, signature);
 
                 Notification.ShowMessage($"Signature valid: {isValid} (Request #{_messageCounter})");
             }
-            catch (RpcResponseException e)
+            catch (ReownNetworkException e)
             {
                 Notification.ShowMessage($"{nameof(RpcResponseException)}:\n{e.Message}");
                 Debug.LogException(e, this);

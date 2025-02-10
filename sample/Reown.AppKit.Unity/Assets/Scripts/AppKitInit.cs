@@ -8,6 +8,7 @@ using UnityLogger = Reown.Sign.Unity.UnityLogger;
 
 #if !UNITY_WEBGL
 using mixpanel;
+using Sentry;
 #endif
 
 namespace Sample
@@ -73,9 +74,17 @@ namespace Sample
             );
             
 #if !UNITY_WEBGL
-            // The Mixpanel is used by the sample project to collect telemetry
+            // The Mixpanel are Sentry are used by the sample project to collect telemetry
             var clientId = await AppKit.Instance.SignClient.CoreClient.Crypto.GetClientId();
             Mixpanel.Identify(clientId);
+
+            SentrySdk.ConfigureScope(scope =>
+            {
+                scope.User = new SentryUser
+                {
+                    Id = clientId
+                };
+            });
 #endif
 
             Debug.Log($"[AppKit Init] AppKit initialized. Loading menu scene...");

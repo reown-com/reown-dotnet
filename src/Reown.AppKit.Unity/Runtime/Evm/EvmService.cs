@@ -32,9 +32,7 @@ namespace Reown.AppKit.Unity
                 throw new ArgumentNullException(nameof(message));
 
             address ??= (await AppKit.GetAccountAsync()).Address;
-
-            Debug.Log($"SignMessageAsync: {message}, {address}");
-
+            
             return await SignMessageAsyncCore(message, address);
         }
 
