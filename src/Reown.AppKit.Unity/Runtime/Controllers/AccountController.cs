@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using UnityEngine;
 using Reown.AppKit.Unity.Http;
 using Reown.AppKit.Unity.Utils;
@@ -80,16 +81,16 @@ namespace Reown.AppKit.Unity
         
         private string _profileName;
         private AccountAvatar _profileAvatar;
-        
-        private string _balance;
-        private string _balanceSymbol;
 
         private float _nativeTokenBalance;
         private string _nativeTokenSymbol;
         private float _totalBalanceUsd;
         
         public event PropertyChangedEventHandler PropertyChanged;
-        
+
+        private readonly object _updateLock = new();
+        private Task _currentUpdateTask;
+
         public async Task InitializeAsync(ConnectorController connectorController, NetworkController networkController, BlockchainApiController blockchainApiController)
         {
             if (IsInitialized)
@@ -110,29 +111,57 @@ namespace Reown.AppKit.Unity
             var account = await e.GetAccountAsync();
             if (account.AccountId == AccountId)
                 return;
-            
-            Address = account.Address;
-            AccountId = account.AccountId;
-            ChainId = account.ChainId;
-            
-            await Task.WhenAll(
-                UpdateBalance(),
-                UpdateProfile()
-            );
+
+            lock (_updateLock)
+            {
+                Address = account.Address;
+                AccountId = account.AccountId;
+                ChainId = account.ChainId;
+
+                _currentUpdateTask = Task.WhenAll(
+                    UpdateBalance(),
+                    UpdateProfile()
+                );
+            }
+
+            await _currentUpdateTask;
         }
 
         private async void ConnectorAccountChangedHandler(object sender, Connector.AccountChangedEventArgs e)
         {
             var oldAddress = Address;
+            Task previousTask;
 
-            Address = e.Account.Address;
-            AccountId = e.Account.AccountId;
-            ChainId = e.Account.ChainId;
+            lock (_updateLock)
+            {
+                previousTask = _currentUpdateTask;
+                Address = e.Account.Address;
+                AccountId = e.Account.AccountId;
+                ChainId = e.Account.ChainId;
+            }
 
-            await Task.WhenAll(
-                UpdateBalance(),
-                e.Account.Address != oldAddress ? UpdateProfile() : Task.CompletedTask
-            );
+            // Wait for any existing update to complete before starting new ones
+            if (previousTask != null)
+            {
+                try
+                {
+                    await previousTask;
+                }
+                catch (Exception)
+                {
+                    // Ignore any errors from previous task
+                }
+            }
+
+            lock (_updateLock)
+            {
+                _currentUpdateTask = Task.WhenAll(
+                    UpdateBalance(),
+                    e.Account.Address != oldAddress ? UpdateProfile() : Task.CompletedTask
+                );
+            }
+
+            await _currentUpdateTask;
         }
 
         public async Task UpdateProfile()
@@ -171,13 +200,14 @@ namespace Reown.AppKit.Unity
                 return;
             
             var response = await _blockchainApiController.GetBalanceAsync(Address);
-
+            
             // -- Native token balance
             var nativeTokenSymbol = _networkController.ActiveChain.NativeCurrency.symbol;
             if (response.Balances.Length == 0)
             {
                 NativeTokenBalance = 0;
                 NativeTokenSymbol = nativeTokenSymbol;
+                TotalBalanceUsd = 0;
                 return;
             }
 
@@ -207,7 +237,9 @@ namespace Reown.AppKit.Unity
             foreach (var b in response.Balances)
             {
                 if (float.TryParse(b.value, out var result))
+                {
                     totalBalanceUsd += result;
+                }
             }
 
             TotalBalanceUsd = totalBalanceUsd;
