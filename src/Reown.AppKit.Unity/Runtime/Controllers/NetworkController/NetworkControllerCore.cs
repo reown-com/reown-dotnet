@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Reown.AppKit.Unity
 {
@@ -19,20 +20,13 @@ namespace Reown.AppKit.Unity
 
         protected override async Task ChangeActiveChainAsyncCore(Chain chain)
         {
-            if (AppKit.ConnectorController.IsAccountConnected)
-            {
-                // Request connector to change active chain.
-                // If connector approves the change, it will trigger the ChainChanged event.
-                await AppKit.ConnectorController.ChangeActiveChainAsync(chain);
+            // Request connector to change active chain.
+            // If connector approves the change, it will trigger the ChainChanged event.
+            await AppKit.ConnectorController.ChangeActiveChainAsync(chain);
 
-                var previousChain = ActiveChain;
-                ActiveChain = chain;
-                OnChainChanged(new ChainChangedEventArgs(previousChain, chain));
-            }
-            else
-            {
-                ActiveChain = chain;
-            }
+            var previousChain = ActiveChain;
+            ActiveChain = chain;
+            OnChainChanged(new ChainChangedEventArgs(previousChain, chain));
 
             AppKit.EventsController.SendEvent(new Event
             {

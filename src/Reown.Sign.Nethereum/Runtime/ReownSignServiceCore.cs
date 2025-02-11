@@ -75,11 +75,9 @@ namespace Reown.Sign.Nethereum
             return await _signClient.Request<WalletSwitchEthereumChain, string>(switchChainRequest);
         }
 
-        protected override async Task<object> WalletAddEthereumChainAsyncCore(AddEthereumChainParameter chain)
+        protected override async Task<object> WalletAddEthereumChainAsyncCore(EthereumChain chain)
         {
-            var nativeCurrency = new Currency(chain.NativeCurrency.Name, chain.NativeCurrency.Symbol, (int)chain.NativeCurrency.Decimals);
-            var ethereumChain = new EthereumChain(chain.ChainId.HexValue, chain.ChainName, nativeCurrency, chain.RpcUrls.ToArray(), chain.BlockExplorerUrls.ToArray());
-            var addEthereumChainRequest = new WalletAddEthereumChain(ethereumChain);
+            var addEthereumChainRequest = new WalletAddEthereumChain(chain);
             return await _signClient.Request<WalletAddEthereumChain, string>(addEthereumChainRequest);
         }
     }

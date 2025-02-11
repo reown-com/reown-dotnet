@@ -3,10 +3,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Reown.Core.Common.Logging;
+using Reown.Core.Common.Model.Errors;
 using Reown.Sign.Models;
 using Reown.Sign.Models.Engine;
 using Reown.Sign.Models.Engine.Methods;
-using Reown.Sign.Nethereum;
 using Reown.Sign.Nethereum.Model;
 using Reown.Sign.Unity;
 using UnityEngine;
@@ -176,9 +177,25 @@ namespace Reown.AppKit.Unity
             }
         }
 
+        private async Task WaitForSessionUpdateAsync(TimeSpan timeout)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+            var sessionUpdateHandler = new EventHandler<Session>((s, session) => { tcs.TrySetResult(true); });
+
+            _signClient.SessionUpdatedUnity += sessionUpdateHandler;
+            try
+            {
+                await Task.WhenAny(tcs.Task, Task.Delay(timeout));
+            }
+            finally
+            {
+                _signClient.SessionUpdatedUnity -= sessionUpdateHandler;
+            }
+        }
+
         protected override async Task ChangeActiveChainAsyncCore(Chain chain)
         {
-            if (ActiveSessionSupportsMethod("wallet_switchEthereumChain") && !ActiveSessionIncludesChain(chain.ChainId))
+            if (ActiveSessionSupportsMethod("wallet_addEthereumChain") && !ActiveSessionIncludesChain(chain.ChainId))
             {
                 var ethereumChain = new EthereumChain(
                     chain.ChainReference,
@@ -193,7 +210,41 @@ namespace Reown.AppKit.Unity
                         chain.BlockExplorer.url
                     }
                 );
-                await _signClient.SwitchEthereumChainAsync(ethereumChain);
+
+                var caip2ChainId = $"eip155:{ethereumChain.chainIdDecimal}";
+                if (!_signClient.AddressProvider.DefaultSession.Namespaces.TryGetValue("eip155", out var @namespace)
+                    || !@namespace.Chains.Contains(caip2ChainId))
+                {
+                    try
+                    {
+                        await AppKit.Evm.RpcRequestAsync<string>("wallet_addEthereumChain", ethereumChain);
+
+                        await _signClient.AddressProvider.SetDefaultChainIdAsync(chain.ChainId);
+
+                        await WaitForSessionUpdateAsync(TimeSpan.FromSeconds(5));
+
+                        OnChainChanged(new ChainChangedEventArgs(chain.ChainId));
+                        OnAccountChanged(new AccountChangedEventArgs(GetCurrentAccount()));
+                    }
+                    catch (ReownNetworkException e)
+                    {
+                        try
+                        {
+                            var metaMaskError = JsonConvert.DeserializeObject<MetaMaskError>(e.Message);
+                            ReownLogger.LogError($"[MetaMask Error] {metaMaskError.Message}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.LogException(ex);
+                        }
+
+                        throw;
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                    }
+                }
             }
             else
             {

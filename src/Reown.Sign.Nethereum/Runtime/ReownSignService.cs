@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Nethereum.RPC.Eth.DTOs;
 using Nethereum.RPC.HostWallet;
+using Reown.Sign.Nethereum.Model;
 
 namespace Reown.Sign.Nethereum
 {
@@ -42,9 +43,16 @@ namespace Reown.Sign.Nethereum
             return WalletSwitchEthereumChainAsyncCore(chainId);
         }
 
-        public Task<object> WalletAddEthereumChainAsync(AddEthereumChainParameter chain)
+        public Task<object> WalletAddEthereumChainAsync(EthereumChain chain)
         {
             return WalletAddEthereumChainAsyncCore(chain);
+        }
+
+        public Task<object> WalletAddEthereumChainAsync(AddEthereumChainParameter chain)
+        {
+            var nativeCurrency = new Currency(chain.NativeCurrency.Name, chain.NativeCurrency.Symbol, (int)chain.NativeCurrency.Decimals);
+            var ethereumChain = new EthereumChain(chain.ChainId.HexValue, chain.ChainName, nativeCurrency, chain.RpcUrls.ToArray(), chain.BlockExplorerUrls.ToArray());
+            return WalletAddEthereumChainAsyncCore(ethereumChain);
         }
 
         protected abstract bool IsMethodSupportedCore(string method);
@@ -52,6 +60,6 @@ namespace Reown.Sign.Nethereum
         protected abstract Task<object> PersonalSignAsyncCore(string message);
         protected abstract Task<object> EthSignTypedDataV4AsyncCore(string data);
         protected abstract Task<object> WalletSwitchEthereumChainAsyncCore(SwitchEthereumChainParameter chainId);
-        protected abstract Task<object> WalletAddEthereumChainAsyncCore(AddEthereumChainParameter chain);
+        protected abstract Task<object> WalletAddEthereumChainAsyncCore(EthereumChain chain);
     }
 }

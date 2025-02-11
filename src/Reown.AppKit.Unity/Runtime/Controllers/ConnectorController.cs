@@ -104,7 +104,13 @@ namespace Reown.AppKit.Unity
 
         protected override Task ChangeActiveChainAsyncCore(Chain chain)
         {
-            return ActiveConnector.ChangeActiveChainAsync(chain);
+            // On WebGL ActiveConnector is always set to WebGlConnector.
+            // On Native platforms ActiveConnector is set to the last used connector after session resumption
+            //  or to the connector that was used to connect the account. So, on Native ActiveConnector is null when
+            //  no account is connected. In this case, we don't change the chain in the connector.
+            return ActiveConnector == null
+                ? Task.CompletedTask
+                : ActiveConnector.ChangeActiveChainAsync(chain);
         }
 
         protected override Task<Account> GetAccountAsyncCore()
