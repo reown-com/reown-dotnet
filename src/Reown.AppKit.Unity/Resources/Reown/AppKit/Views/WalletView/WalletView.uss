@@ -41,7 +41,7 @@
 }
 
 .modal--landscape #wallet-view__get-wallet-container {
-    margin-top: 16;
+    margin-top: 16px;
 }
 
 #wallet-view__get-wallet-container {
@@ -58,7 +58,7 @@
 }
 
 #wallet-view__landscape-continue-in-label {
-    margin-bottom: 8;
+    margin-bottom: 8px;
     -unity-text-align: middle-center;
     color: var(--ro-color-fg-100);
 }
@@ -66,5 +66,9 @@
 #wallet-view__landscape-message {
     -unity-text-align: middle-center;
     color: var(--ro-color-fg-200);
+}
+
+#wallet-view__landscape-try-again-link-container {
+    margin-top: 8px;
 }
 

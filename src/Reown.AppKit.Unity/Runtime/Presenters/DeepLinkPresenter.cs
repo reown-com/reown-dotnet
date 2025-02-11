@@ -78,7 +78,7 @@ namespace Reown.AppKit.Unity
                 OpenDeepLink();
         }
 
-        private void OpenDeepLink()
+        public void OpenDeepLink()
         {
             var redirect = Application.isMobilePlatform ? _wallet.MobileLink : _wallet.DesktopLink;
             Linker.OpenSessionProposalDeepLink(_connectionProposal.Uri, redirect);

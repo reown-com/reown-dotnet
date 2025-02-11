@@ -11,6 +11,7 @@ namespace Reown.AppKit.Unity.Components
         public static readonly string NameGetWalletLabel = $"{Name}__get-wallet-label";
         public static readonly string NameGetWalletButton = $"{Name}__get-wallet-button";
         public static readonly string NameLandscapeContinueInLabel = $"{Name}__landscape-continue-in-label";
+        public static readonly string NameLandscapeTryAgainLink = $"{Name}__landscape-try-again-link";
 
         public event Action GetWalletClicked
         {
@@ -18,11 +19,18 @@ namespace Reown.AppKit.Unity.Components
             remove => GetWalletButton.Clicked -= value;
         }
 
+        public event Action TryAgainLinkClicked
+        {
+            add => LandscapeTryAgainLink.Clicked += value;
+            remove => LandscapeTryAgainLink.Clicked -= value;
+        }
+
         public Tabbed Tabbed { get; }
         public VisualElement GetWalletContainer { get; }
         public Label GetWalletLabel { get; }
         public Button GetWalletButton { get; }
         public Label LandscapeContinueInLabel { get; }
+        public Link LandscapeTryAgainLink { get; }
 
         public new class UxmlFactory : UxmlFactory<WalletView>
         {
@@ -44,6 +52,7 @@ namespace Reown.AppKit.Unity.Components
             GetWalletLabel = this.Q<Label>(NameGetWalletLabel);
             GetWalletButton = this.Q<Button>(NameGetWalletButton);
             LandscapeContinueInLabel = this.Q<Label>(NameLandscapeContinueInLabel);
+            LandscapeTryAgainLink = this.Q<Link>(NameLandscapeTryAgainLink);
         }
     }
 }
