@@ -56,6 +56,7 @@ namespace Reown.AppKit.Unity
             _tabbed.ContentShown += element => _tabContentToViewController[element].OnVisible();
             _tabbed.ContentHidden += element => _tabContentToViewController[element].OnDisable();
             View.GetWalletClicked += OnGetWalletClicked;
+            View.TryAgainLinkClicked += OnTryAgainLinkClicked;
 
             // --- Additional Setup
             HideAllTabs();
@@ -136,6 +137,11 @@ namespace Reown.AppKit.Unity
             // TODO: on desktop and webgl show the list of all available options
             Application.OpenURL(_wallet.Homepage);
 #endif
+        }
+
+        private void OnTryAgainLinkClicked()
+        {
+            _deepLinkPresenter.OpenDeepLink();
         }
 
         protected override void OnHideCore()
