@@ -81,6 +81,8 @@ namespace Reown.AppKit.Unity
             _wallet = wallet;
             Title = wallet.Name;
 
+            View.LandscapeContinueInLabel.text = $"Continue in {wallet.Name}".FontWeight500();
+
             ConfigureTabs(wallet);
             ConfigureGetWalletContainer(wallet);
 
@@ -117,7 +119,6 @@ namespace Reown.AppKit.Unity
                 return;
 
             View.GetWalletLabel.text = $"Don't have {wallet.Name}?".FontWeight500();
-            View.LandscapeContinueInLabel.text = $"Continue in {wallet.Name}".FontWeight500();
         }
 
         protected void OnGetWalletClicked()
