@@ -17,6 +17,7 @@ namespace Reown.Sign.Nethereum
         /// <param name="signClient">Reown Sign client</param>
         /// <param name="ethereumChain">Ethereum chain to switch to</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="ethereumChain"/> is null</exception>
+        [Obsolete("This extension will be removed in the future versions. Reown AppKit will handle chain switching in MetaMask internally.")]
         public static async Task SwitchEthereumChainAsync(this ISignClient signClient, EthereumChain ethereumChain)
         {
             if (ethereumChain == null)

@@ -160,6 +160,17 @@ namespace Reown.AppKit.Unity
         {
             return GetGasPriceAsyncCore();
         }
+
+
+        // -- RPC Request ----------------------------------------------
+
+        public Task<T> RpcRequestAsync<T>(string method, params object[] parameters)
+        {
+            if (string.IsNullOrWhiteSpace(method))
+                throw new ArgumentNullException(nameof(method));
+
+            return RpcRequestAsyncCore<T>(method, parameters);
+        }
         
 
         protected abstract Task InitializeAsyncCore(SignClientUnity signClient);
@@ -176,5 +187,6 @@ namespace Reown.AppKit.Unity
         protected abstract Task<BigInteger> EstimateGasAsyncCore(string addressTo, BigInteger value, string data = null);
         protected abstract Task<BigInteger> EstimateGasAsyncCore(string contractAddress, string contractAbi, string methodName, BigInteger value = default, params object[] arguments);
         protected abstract Task<BigInteger> GetGasPriceAsyncCore();
+        protected abstract Task<T> RpcRequestAsyncCore<T>(string method, params object[] parameters);
     }
 }
