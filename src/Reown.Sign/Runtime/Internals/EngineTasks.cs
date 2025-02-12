@@ -112,9 +112,7 @@ namespace Reown.Sign
 
             if (sessionTopics.Count == 0 && proposalIds.Count == 0)
                 return Task.CompletedTask;
-
-            ReownLogger.Log($"Clearing {sessionTopics.Count} expired sessions and {proposalIds.Count} expired proposals");
-
+            
             return Task.WhenAll(
                 sessionTopics.Select(t => PrivateThis.DeleteSession(t)).Concat(
                     proposalIds.Select(id => PrivateThis.DeleteProposal(id))

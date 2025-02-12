@@ -56,6 +56,7 @@ namespace Reown.AppKit.Unity
             _tabbed.ContentShown += element => _tabContentToViewController[element].OnVisible();
             _tabbed.ContentHidden += element => _tabContentToViewController[element].OnDisable();
             View.GetWalletClicked += OnGetWalletClicked;
+            View.TryAgainLinkClicked += OnTryAgainLinkClicked;
 
             // --- Additional Setup
             HideAllTabs();
@@ -80,6 +81,8 @@ namespace Reown.AppKit.Unity
 
             _wallet = wallet;
             Title = wallet.Name;
+
+            View.LandscapeContinueInLabel.text = $"Continue in {wallet.Name}".FontWeight500();
 
             ConfigureTabs(wallet);
             ConfigureGetWalletContainer(wallet);
@@ -117,7 +120,6 @@ namespace Reown.AppKit.Unity
                 return;
 
             View.GetWalletLabel.text = $"Don't have {wallet.Name}?".FontWeight500();
-            View.LandscapeContinueInLabel.text = $"Continue in {wallet.Name}".FontWeight500();
         }
 
         protected void OnGetWalletClicked()
@@ -135,6 +137,11 @@ namespace Reown.AppKit.Unity
             // TODO: on desktop and webgl show the list of all available options
             Application.OpenURL(_wallet.Homepage);
 #endif
+        }
+
+        private void OnTryAgainLinkClicked()
+        {
+            _deepLinkPresenter.OpenDeepLink();
         }
 
         protected override void OnHideCore()

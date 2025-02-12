@@ -304,5 +304,13 @@ namespace Reown.AppKit.Unity
             var hexBigInt = await Web3.Eth.GasPrice.SendRequestAsync();
             return hexBigInt.Value;
         }
+
+
+        // -- RPC Request ----------------------------------------------
+
+        protected override Task<T> RpcRequestAsyncCore<T>(string method, params object[] parameters)
+        {
+            return Web3.Client.SendRequestAsync<T>(method, null, parameters);
+        }
     }
 }
