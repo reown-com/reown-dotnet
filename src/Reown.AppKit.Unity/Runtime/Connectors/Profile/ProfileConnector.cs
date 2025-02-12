@@ -15,7 +15,7 @@ namespace Reown.AppKit.Unity.Profile
 
         public Account[] EoaAccounts { get; private set; }
 
-        public AccountType PreferredAccountType { get; private set; }
+        public AccountType PreferredAccountType { get; private set; } = AccountType.None;
 
         public Account PreferredAccount { get; private set; }
 
@@ -38,16 +38,24 @@ namespace Reown.AppKit.Unity.Profile
                     .Select(x => new Account(x))
                     .ToArray();
 
+                Debug.Log($"[ProfileConnector] Smart accounts: [{string.Join(", ", SmartAccounts.Select(x => x.AccountId))}]");
+
                 var allAccounts = await GetAccountsAsyncCore();
                 EoaAccounts = allAccounts
                     .Except(SmartAccounts)
                     .ToArray();
+
+                Debug.Log($"[ProfileConnector] EOA accounts: [{string.Join(", ", EoaAccounts.Select(x => x.AccountId))}]");
+
 
                 Email = sessionProperties["email"];
 
                 base.OnAccountConnected(e);
 
                 var preferredAccountTypeStr = PlayerPrefs.GetString(PreferredAccountTypeKey);
+
+                Debug.Log($"[ProfileConnector] Preferred account type: [{preferredAccountTypeStr}]");
+                
                 var preferredAccountType = Enum.TryParse<AccountType>(preferredAccountTypeStr, out var accountType)
                     ? accountType
                     : AccountType.SmartAccount;
@@ -61,7 +69,7 @@ namespace Reown.AppKit.Unity.Profile
 
         public void SetPreferredAccount(AccountType accountType)
         {
-            Debug.Log($"SetPreferredAccount: {accountType}. Current: {PreferredAccountType}");
+            Debug.Log($"[ProfileConnector]SetPreferredAccount: {accountType}. Current: {PreferredAccountType}");
             if (PreferredAccountType == accountType)
                 return;
 
@@ -72,7 +80,10 @@ namespace Reown.AppKit.Unity.Profile
         private void SetPreferredAccountCore(AccountType accountType)
         {
             if (PreferredAccountType == accountType)
+            {
+                Debug.Log($"[ProfileConnector] The PreferredAccountType is already set to {accountType}. Skipping.");
                 return;
+            }
 
             if (AppKit.NetworkController.ActiveChain == null)
                 return;
@@ -83,6 +94,8 @@ namespace Reown.AppKit.Unity.Profile
             PreferredAccount = accountType == AccountType.SmartAccount
                 ? SmartAccounts.First(a => a.ChainId == chainId)
                 : EoaAccounts.First(a => a.ChainId == chainId);
+
+            Debug.Log($"[ProfileConnector] New preferred account id: {PreferredAccount.AccountId}.");
 
             PreferredAccountType = accountType;
 
