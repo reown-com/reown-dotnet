@@ -4,6 +4,7 @@ using Reown.Core.Common.Logging;
 using Reown.Core.Models.Publisher;
 using Reown.Sign.Interfaces;
 using Reown.Sign.Models;
+using Reown.Sign.Models.Engine.Events;
 using Reown.Sign.Unity.Utils;
 using UnityEngine;
 
@@ -11,12 +12,11 @@ namespace Reown.Sign.Unity
 {
     public class Linker : IDisposable
     {
-        private readonly ISignClient _signClient;
-        private readonly Dictionary<string, uint> _sessionMessagesCounter = new();
+        private readonly SignClientUnity _signClient;
 
         protected bool disposed;
 
-        public Linker(ISignClient signClient)
+        public Linker(SignClientUnity signClient)
         {
             _signClient = signClient;
 
@@ -25,7 +25,7 @@ namespace Reown.Sign.Unity
 
         private void RegisterEventListeners()
         {
-            _signClient.CoreClient.Relayer.Publisher.OnPublishedMessage += OnPublisherPublishedMessage;
+            _signClient.SessionRequestSentUnity += SessionRequestSentHandler;
         }
 
         public static void OpenSessionProposalDeepLink(string uri, string nativeRedirect)
@@ -50,7 +50,13 @@ namespace Reown.Sign.Unity
 #endif
         }
 
-        public static void OpenSessionRequestDeepLink(Session session)
+        private void SessionRequestSentHandler(object _, SessionRequestEvent e)
+        {
+            var session = _signClient.Session.Get(e.Topic);
+            OpenSessionRequestDeepLink(session, e.Id);
+        }
+
+        public static void OpenSessionRequestDeepLink(Session session, long requestId)
         {
             if (session == null)
                 throw new ArgumentNullException(nameof(session));
@@ -59,30 +65,39 @@ namespace Reown.Sign.Unity
                 return;
 
             var redirectNative = session.Peer.Metadata.Redirect?.Native;
+            string deeplink;
 
             if (string.IsNullOrWhiteSpace(redirectNative))
             {
-                if (!TryGetRecentWalletDeepLink(out var deeplink))
+                if (!TryGetRecentWalletDeepLink(out deeplink))
                     return;
 
                 Debug.LogWarning(
                     $"[Linker] No redirect found for {session.Peer.Metadata.Name}. Using deep link from the Recent Wallet."
                 );
-
-                if (!deeplink.Contains("://"))
-                    deeplink = $"{deeplink}://";
-
-                Application.OpenURL(deeplink);
             }
             else
             {
-                ReownLogger.Log($"[Linker] Open native deep link: {redirectNative}");
-
-                if (!redirectNative.Contains("://"))
-                    redirectNative = $"{redirectNative}://";
-
-                Application.OpenURL(redirectNative);
+                deeplink = redirectNative;
+                ReownLogger.Log($"[Linker] Open native deep link: {deeplink}");
             }
+
+            if (!deeplink.Contains("://"))
+            {
+                deeplink = deeplink.Replace("/", "").Replace(":", "");
+                deeplink = $"{deeplink}://";
+            }
+
+            if (!deeplink.EndsWith('/'))
+                deeplink = $"{deeplink}/";
+
+            if (!deeplink.EndsWith("wc/"))
+                deeplink = $"{deeplink}wc/";
+
+            deeplink = $"{deeplink}?requestId={requestId}&sessionTopic={session.Topic}";
+
+            Debug.Log($"[Linker] Opening URL {deeplink}");
+            Application.OpenURL(deeplink);
         }
 
         public static string BuildConnectionDeepLink(string appLink, string wcUri)
@@ -106,46 +121,6 @@ namespace Reown.Sign.Unity
             var encodedWcUrl = Uri.EscapeDataString(wcUri);
 
             return $"{safeAppUrl}wc?uri={encodedWcUrl}";
-        }
-
-        public void OpenSessionRequestDeepLink(string sessionTopic)
-        {
-            var session = _signClient.Session.Get(sessionTopic);
-            OpenSessionRequestDeepLink(session);
-        }
-
-        public virtual void OpenSessionRequestDeepLink()
-        {
-            var session = _signClient.AddressProvider.DefaultSession;
-            OpenSessionRequestDeepLink(session);
-        }
-
-        protected virtual void OnPublisherPublishedMessage(object sender, PublishParams publishParams)
-        {
-            UnitySyncContext.Context.Post(_ =>
-            {
-                if (string.IsNullOrWhiteSpace(publishParams.Topic))
-                    return;
-
-                if (_sessionMessagesCounter.TryGetValue(publishParams.Topic, out var messageCount))
-                {
-                    ReownLogger.Log($"[Linker] OnPublisherPublishedMessage. Message count: {messageCount}");
-                    if (messageCount != 0)
-                    {
-                        _sessionMessagesCounter[publishParams.Topic] = messageCount - 1;
-                        OpenSessionRequestDeepLink(publishParams.Topic);
-                    }
-                }
-            }, null);
-        }
-
-        public void OpenSessionRequestDeepLinkAfterMessageFromSession(string sessionTopic)
-        {
-            ReownLogger.Log($"[Linker] OpenSessionRequestDeepLinkAfterMessageFromSession. Topic: {sessionTopic}");
-            if (_sessionMessagesCounter.TryGetValue(sessionTopic, out var messageCount))
-                _sessionMessagesCounter[sessionTopic] = messageCount + 1;
-            else
-                _sessionMessagesCounter.Add(sessionTopic, 1);
         }
 
         public static bool CanOpenURL(string url)
@@ -201,7 +176,7 @@ namespace Reown.Sign.Unity
             if (disposed) return;
 
             if (disposing)
-                _signClient.CoreClient.Relayer.Publisher.OnPublishedMessage -= OnPublisherPublishedMessage;
+                _signClient.SessionRequestSent -= SessionRequestSentHandler;
 
             disposed = true;
         }

@@ -213,12 +213,12 @@ namespace Sample
         {
             Debug.Log("[AppKit Sample] OnPersonalSignButton");
 
+            var messageCounter = ++_messageCounter;
             try
             {
                 var account = await AppKit.GetAccountAsync();
 
-                _messageCounter++;
-                var message = $"Hello from Unity! (Request #{_messageCounter})";
+                var message = $"Hello from Unity! (Request #{messageCounter})";
 
                 Notification.ShowMessage($"Signing message:\n\n{message}");
 
@@ -232,11 +232,11 @@ namespace Sample
                 Debug.Log($"Recieved signature: {signature}");
                 var isValid = await AppKit.Evm.VerifyMessageSignatureAsync(account.Address, message, signature);
 
-                Notification.ShowMessage($"Signature valid: {isValid} (Request #{_messageCounter})");
+                Notification.ShowMessage($"Signature valid: {isValid} (Request #{messageCounter})");
             }
             catch (ReownNetworkException e)
             {
-                Notification.ShowMessage($"{nameof(RpcResponseException)}:\n{e.Message}");
+                Notification.ShowMessage($"Error processing personal_sign request #{messageCounter}\n\n{nameof(RpcResponseException)}:\n{e.Message}");
                 Debug.LogException(e, this);
             }
         }
