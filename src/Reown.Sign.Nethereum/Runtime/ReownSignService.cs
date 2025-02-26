@@ -38,9 +38,14 @@ namespace Reown.Sign.Nethereum
             return EthSignTypedDataV4AsyncCore(data);
         }
 
-        public Task<object> WalletSwitchEthereumChainAsync(SwitchEthereumChainParameter chainId)
+        public Task<object> WalletSwitchEthereumChainAsync(SwitchEthereumChain arg)
         {
-            return WalletSwitchEthereumChainAsyncCore(chainId);
+            return WalletSwitchEthereumChainAsyncCore(arg);
+        }
+
+        public Task<object> WalletSwitchEthereumChainAsync(SwitchEthereumChainParameter arg)
+        {
+            return WalletSwitchEthereumChainAsyncCore(new SwitchEthereumChain(arg.ChainId.Value.ToString()));
         }
 
         public Task<object> WalletAddEthereumChainAsync(EthereumChain chain)
@@ -59,7 +64,7 @@ namespace Reown.Sign.Nethereum
         protected abstract Task<object> SendTransactionAsyncCore(TransactionInput transaction);
         protected abstract Task<object> PersonalSignAsyncCore(string message);
         protected abstract Task<object> EthSignTypedDataV4AsyncCore(string data);
-        protected abstract Task<object> WalletSwitchEthereumChainAsyncCore(SwitchEthereumChainParameter chainId);
+        protected abstract Task<object> WalletSwitchEthereumChainAsyncCore(SwitchEthereumChain arg);
         protected abstract Task<object> WalletAddEthereumChainAsyncCore(EthereumChain chain);
     }
 }
