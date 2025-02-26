@@ -1,8 +1,6 @@
-using System;
 using System.ComponentModel;
 using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Utils;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity
@@ -28,18 +26,18 @@ namespace Reown.AppKit.Unity
             Router.OpenView(ViewType.AccountSettings);
         }
 
-        protected override async void OnVisibleCore()
-        {
-            try
-            {
-                base.OnVisibleCore();
-                await AppKit.AccountController.UpdateBalance();
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
-        }
+        // protected override async void OnVisibleCore()
+        // {
+        //     try
+        //     {
+        //         base.OnVisibleCore();
+        //         await AppKit.AccountController.UpdateBalance();
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         Debug.LogException(e);
+        //     }
+        // }
 
         private void AccountPropertyChangedHandler(object sender, PropertyChangedEventArgs e)
         {

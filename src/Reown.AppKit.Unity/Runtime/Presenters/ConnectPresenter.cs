@@ -59,11 +59,7 @@ namespace Reown.AppKit.Unity
 
         protected virtual async Task BuildAsync()
         {
-            // todo:
-            var listItem = new ListItem("Social Login", () => Router.OpenView(ViewType.WebWallet));
-            listItem.RightSlot.Add(new Tag("ALPHA", Tag.TagType.Accent));
-            View.Add(listItem);
-            
+            CreateProfileLoginButtons();
             CreateWalletConnectButton();
 
             var recentWalletExists = WalletUtils.TryGetRecentWallet(out var recentWallet);
@@ -106,6 +102,49 @@ namespace Reown.AppKit.Unity
 
             var responseCount = response.Count;
             CreateAllWalletsListItem(responseCount);
+        }
+
+        private void CreateProfileLoginButtons()
+        {
+            var google = new ListItem("Google", () =>
+            {
+                PlayerPrefs.SetString("RE_SOCIAL_PROVIDER_NAME", "google");
+                Router.OpenView(ViewType.WebWallet);
+            });
+            google.RightSlot.Add(new Tag("ALPHA", Tag.TagType.Accent));
+            View.Add(google);
+
+            var x = new ListItem("X", () =>
+            {
+                PlayerPrefs.SetString("RE_SOCIAL_PROVIDER_NAME", "x");
+                Router.OpenView(ViewType.WebWallet);
+            });
+            x.RightSlot.Add(new Tag("ALPHA", Tag.TagType.Accent));
+            View.Add(x);
+
+            var apple = new ListItem("Apple", () =>
+            {
+                PlayerPrefs.SetString("RE_SOCIAL_PROVIDER_NAME", "apple");
+                Router.OpenView(ViewType.WebWallet);
+            });
+            apple.RightSlot.Add(new Tag("ALPHA", Tag.TagType.Accent));
+            View.Add(apple);
+
+            var discord = new ListItem("Discord", () =>
+            {
+                PlayerPrefs.SetString("RE_SOCIAL_PROVIDER_NAME", "discord");
+                Router.OpenView(ViewType.WebWallet);
+            });
+            discord.RightSlot.Add(new Tag("ALPHA", Tag.TagType.Accent));
+            View.Add(discord);
+
+            var farcaster = new ListItem("Farcaster", () =>
+            {
+                PlayerPrefs.SetString("RE_SOCIAL_PROVIDER_NAME", "farcaster");
+                Router.OpenView(ViewType.WebWallet);
+            });
+            farcaster.RightSlot.Add(new Tag("ALPHA", Tag.TagType.Accent));
+            View.Add(farcaster);
         }
 
         protected virtual void CreateWalletConnectButton()

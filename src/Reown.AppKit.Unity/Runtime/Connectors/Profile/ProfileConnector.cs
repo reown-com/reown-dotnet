@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Reown.Sign.Models;
 using UnityEngine;
@@ -69,22 +68,12 @@ namespace Reown.AppKit.Unity.Profile
 
         public void SetPreferredAccount(AccountType accountType)
         {
-            Debug.Log($"[ProfileConnector]SetPreferredAccount: {accountType}. Current: {PreferredAccountType}");
-            if (PreferredAccountType == accountType)
-                return;
-
             SetPreferredAccountCore(accountType);
             OnAccountChanged(new AccountChangedEventArgs(GetCurrentAccount()));
         }
 
         private void SetPreferredAccountCore(AccountType accountType)
         {
-            if (PreferredAccountType == accountType)
-            {
-                Debug.Log($"[ProfileConnector] The PreferredAccountType is already set to {accountType}. Skipping.");
-                return;
-            }
-
             if (AppKit.NetworkController.ActiveChain == null)
                 return;
 

@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using UnityEngine;
 using Reown.AppKit.Unity.Http;
 using Reown.AppKit.Unity.Utils;
 

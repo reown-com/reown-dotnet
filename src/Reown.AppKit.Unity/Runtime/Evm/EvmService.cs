@@ -2,7 +2,6 @@ using System;
 using System.Numerics;
 using System.Threading.Tasks;
 using Reown.Sign.Unity;
-using UnityEngine;
 
 namespace Reown.AppKit.Unity
 {

@@ -100,5 +100,21 @@ namespace Sample
             });
             Debug.Log(json);
         }
+
+        [ConsoleMethod("webwallet", "Set Web Wallet URL", "Web Wallet URL")]
+        public static void SetWebWalletUrl(string url)
+        {
+            if (url is "null" or null)
+            {
+                PlayerPrefs.DeleteKey("RE_WEB_WALLET_URL");
+                PlayerPrefs.Save();
+                Debug.Log("Web Wallet URL removed");
+                return;
+            }
+
+            PlayerPrefs.SetString("RE_WEB_WALLET_URL", url);
+            PlayerPrefs.Save();
+            Debug.Log($"Web Wallet URL set to {url}");
+        }
     }
 }

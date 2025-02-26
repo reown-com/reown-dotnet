@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Reown.Core.Common.Logging;
 using Reown.Core.Models.Publisher;
 using Reown.Sign.Interfaces;
@@ -88,11 +89,8 @@ namespace Reown.Sign.Unity
                 deeplink = $"{deeplink}://";
             }
 
-            if (!deeplink.EndsWith('/'))
-                deeplink = $"{deeplink}/";
-
-            if (!deeplink.EndsWith("wc/"))
-                deeplink = $"{deeplink}wc/";
+            if (!deeplink.EndsWith("wc"))
+                deeplink = Path.Combine(deeplink, "wc");
 
             deeplink = $"{deeplink}?requestId={requestId}&sessionTopic={session.Topic}";
 

@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Reown.AppKit.Unity.Http;
 using Reown.AppKit.Unity.Model.BlockchainApi;
 using Reown.Sign.Interfaces;
-using UnityEngine;
 
 namespace Reown.AppKit.Unity
 {
@@ -61,7 +60,8 @@ namespace Reown.AppKit.Unity
             var projectId = AppKit.Config.projectId;
             var chainId = AppKit.NetworkController.ActiveChain.ChainId;
             var path = $"account/{address}/balance?projectId={projectId}&currency=usd&chainId={chainId}";
-            return await _httpClient.GetAsync<GetBalanceResponse>(path, headers: _getBalanceHeaders);
+            var result = await _httpClient.GetAsync<GetBalanceResponse>(path, headers: _getBalanceHeaders);
+            return result;
         }
     }
 }
