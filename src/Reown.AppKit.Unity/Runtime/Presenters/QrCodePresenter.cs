@@ -65,7 +65,10 @@ namespace Reown.AppKit.Unity
 
         private void ConnectionProposalUpdatedHandler(ConnectionProposal connectionProposal)
         {
-            View.qrCode.Data = _connectionProposal.Uri;
+            if (connectionProposal is not WalletConnectConnectionProposal wcProposal)
+                return;
+
+            View.qrCode.Data = wcProposal.Uri;
         }
 
         private void AccountConnectedHandler(object sender, Connector.AccountConnectedEventArgs e)

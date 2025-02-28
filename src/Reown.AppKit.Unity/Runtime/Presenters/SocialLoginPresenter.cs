@@ -26,9 +26,13 @@ namespace Reown.AppKit.Unity
         protected override void OnVisibleCore()
         {
             base.OnVisibleCore();
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             _webWalletUrl = PlayerPrefs.GetString("RE_WEB_WALLET_URL", DefaultWebWalletUrl);
-
-
+#else
+            _webWalletUrl = DefaultWebWalletUrl;
+#endif
+            
             _providerName = PlayerPrefs.GetString("RE_SOCIAL_PROVIDER_NAME", "unknown");
             View.MainLabel.text = $"Log in with {_providerName}";
             View.MessageLabel.text = "Preparing to connect...";
@@ -66,9 +70,9 @@ namespace Reown.AppKit.Unity
             Application.OpenURL(deepLink);
         }
 
-        protected override void OnHideCore()
+        protected override void OnDisableCore()
         {
-            base.OnHideCore();
+            base.OnDisableCore();
             _connectionProposal.Dispose();
         }
     }

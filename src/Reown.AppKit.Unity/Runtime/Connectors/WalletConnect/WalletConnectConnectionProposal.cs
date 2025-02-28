@@ -19,7 +19,7 @@ namespace Reown.AppKit.Unity
         private readonly ISignClient _client;
         private readonly ConnectOptions _connectOptions;
         private readonly SiweController _siweController;
-        private readonly WaitForSecondsRealtime _refreshInterval = new(240); // 4 minutes
+        private readonly WaitForSecondsRealtime _refreshInterval = new(180); // 3 minutes
 
         private bool _disposed;
 

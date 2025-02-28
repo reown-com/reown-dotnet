@@ -53,8 +53,7 @@ namespace Reown.AppKit.Unity
                         (ConnectorType.WalletConnect, out var connector))
                 throw new Exception("No WC connector"); // TODO: use custom exception
 
-            if (_connectionProposal == null || _connectionProposal.IsConnected)
-                _connectionProposal = (WalletConnectConnectionProposal)connector.Connect();
+            _connectionProposal = (WalletConnectConnectionProposal)connector.Connect();
 
             if (WalletUtils.TryGetLastViewedWallet(out var wallet))
             {
