@@ -20,6 +20,7 @@ namespace Reown.AppKit.Unity.Components
         public static readonly string ClassIconStyleAccent = $"{Name}--icon-style-accent";
         public static readonly string ClassIconStyleError = $"{Name}--icon-style-error";
         public static readonly string ClassIconStyleDefault = $"{Name}--icon-style-default";
+        public static readonly string ClassCenteredIcon = $"{Name}--centered-icon";
 
         public new class UxmlFactory : UxmlFactory<ListItem>
         {
@@ -128,6 +129,51 @@ namespace Reown.AppKit.Unity.Components
             }
         }
 
+        public ListItem(
+            string label,
+            VectorImage icon,
+            Action clickEvent,
+            VectorImage fallbackIcon = null,
+            IconType iconType = IconType.Square,
+            IconStyle iconStyle = IconStyle.None,
+            StatusIconType statusIconType = StatusIconType.None)
+        {
+            Build(label, clickEvent, null, iconType, iconStyle, statusIconType);
+
+            if (icon != null)
+            {
+                IconImageElement.vectorImage = icon;
+                IconFallbackElement.style.display = DisplayStyle.None;
+            }
+        }
+
+        public ListItem(
+            VectorImage icon,
+            Action clickEvent = null,
+            IconType iconType = IconType.Square,
+            IconStyle iconStyle = IconStyle.None,
+            StatusIconType statusIconType = StatusIconType.None)
+        {
+            Build(null, clickEvent, null, iconType, iconStyle, statusIconType);
+            if (icon != null)
+            {
+                IconImageElement.vectorImage = icon;
+                IconFallbackElement.style.display = DisplayStyle.None;
+            }
+
+            CenterIcon();
+        }
+
+        private void CenterIcon()
+        {
+            if (LabelElement != null)
+            {
+                LabelElement.style.display = DisplayStyle.None;
+            }
+
+            AddToClassList(ClassCenteredIcon);
+        }
+
         private void Build(
             string label,
             Action clickEvent,
@@ -149,7 +195,11 @@ namespace Reown.AppKit.Unity.Components
 
             Clickable = new Clickable(clickEvent);
             focusable = true;
-            Label = label;
+
+            if (!string.IsNullOrEmpty(label))
+            {
+                Label = label;
+            }
 
             if (fallbackIcon != null)
                 IconFallbackElement.vectorImage = fallbackIcon;

@@ -1,6 +1,6 @@
 :root {
     margin-top: 8px;
-    padding: 8px 16px 8px 8px;
+    padding: 8px 8px 8px 8px;
     width: 100%;
     height: 56px;
     border-radius: var(--ro-border-radius-xs);
@@ -36,7 +36,7 @@
 }
 
 .list-item--icon-variant-square #list-item__icon-block {
-    background-color: var(--ro-gray-glass-010);
+    /*background-color: var(--ro-gray-glass-010);*/
     border-radius: var(--ro-border-radius-3xs);
 }
 
@@ -112,6 +112,7 @@
     height: 16;
     --unity-image: resource('Reown/AppKit/Icons/icon_regular_wallet_2');
     --unity-image-tint-color: var(--ro-gray-glass-060);
+    background-color: var(--ro-gray-glass-010);
 }
 
 #list-item__icon-image {
@@ -146,4 +147,14 @@
     align-items: center;
     align-self: center;
     right: 0;
+    padding-right: 8px;
+}
+
+.list-item--centered-icon {
+    justify-content: center;
+}
+
+.list-item--centered-icon #list-item__icon-block {
+    margin-left: 0;
+    margin-right: 0;
 }

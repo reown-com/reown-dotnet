@@ -19,7 +19,7 @@ namespace Reown.AppKit.Unity
         }
 
         /// <summary>
-        ///    Opens the social login provider in AppKit modal..
+        ///    Opens the social login provider in AppKit modal.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when the AppKit is not initialized</exception>
         public void Open()
