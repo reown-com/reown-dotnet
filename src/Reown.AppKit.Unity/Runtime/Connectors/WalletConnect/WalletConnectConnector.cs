@@ -1,10 +1,12 @@
 using System;
 using System.Linq;
+using System.Numerics;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Reown.Core.Common.Logging;
 using Reown.Core.Common.Model.Errors;
+using Reown.Core.Common.Utils;
 using Reown.Sign.Models;
 using Reown.Sign.Models.Engine;
 using Reown.Sign.Models.Engine.Methods;
@@ -177,74 +179,15 @@ namespace Reown.AppKit.Unity
             }
         }
 
-        private async Task WaitForSessionUpdateAsync(TimeSpan timeout)
-        {
-            var tcs = new TaskCompletionSource<bool>();
-            var sessionUpdateHandler = new EventHandler<Session>((s, session) => { tcs.TrySetResult(true); });
-
-            _signClient.SessionUpdatedUnity += sessionUpdateHandler;
-            try
-            {
-                await Task.WhenAny(tcs.Task, Task.Delay(timeout));
-            }
-            finally
-            {
-                _signClient.SessionUpdatedUnity -= sessionUpdateHandler;
-            }
-        }
-
         protected override async Task ChangeActiveChainAsyncCore(Chain chain)
         {
-            if (ActiveSessionSupportsMethod("wallet_addEthereumChain") && !ActiveSessionIncludesChain(chain.ChainId))
+            if (!ActiveSessionIncludesChain(chain.ChainId) &&
+                ActiveSessionSupportsMethod("wallet_addEthereumChain") &&
+                ActiveSessionSupportsMethod("wallet_switchEthereumChain"))
             {
-                var ethereumChain = new EthereumChain(
-                    chain.ChainReference,
-                    chain.Name,
-                    chain.NativeCurrency,
-                    new[]
-                    {
-                        chain.RpcUrl
-                    },
-                    new[]
-                    {
-                        chain.BlockExplorer.url
-                    }
-                );
-
-                var caip2ChainId = $"eip155:{ethereumChain.chainIdDecimal}";
-                if (!_signClient.AddressProvider.DefaultSession.Namespaces.TryGetValue("eip155", out var @namespace)
-                    || !@namespace.Chains.Contains(caip2ChainId))
-                {
-                    try
-                    {
-                        await AppKit.Evm.RpcRequestAsync<string>("wallet_addEthereumChain", ethereumChain);
-
-                        await _signClient.AddressProvider.SetDefaultChainIdAsync(chain.ChainId);
-
-                        await WaitForSessionUpdateAsync(TimeSpan.FromSeconds(5));
-
-                        OnChainChanged(new ChainChangedEventArgs(chain.ChainId));
-                        OnAccountChanged(new AccountChangedEventArgs(GetCurrentAccount()));
-                    }
-                    catch (ReownNetworkException e)
-                    {
-                        try
-                        {
-                            var metaMaskError = JsonConvert.DeserializeObject<MetaMaskError>(e.Message);
-                            ReownLogger.LogError($"[MetaMask Error] {metaMaskError.Message}");
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.LogException(ex);
-                        }
-
-                        throw;
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogException(e);
-                    }
-                }
+                // If the active session supports wallet_addEthereumChain and wallet_switchEthereumChain methods,
+                // we assume it's a MetaMask session and try to make it work.
+                await ChangeActiveMetaMaskChainAsync(chain);
             }
             else
             {
@@ -254,6 +197,81 @@ namespace Reown.AppKit.Unity
                 await _signClient.AddressProvider.SetDefaultChainIdAsync(chain.ChainId);
                 OnChainChanged(new ChainChangedEventArgs(chain.ChainId));
                 OnAccountChanged(new AccountChangedEventArgs(GetCurrentAccount()));
+            }
+        }
+
+        private async Task ChangeActiveMetaMaskChainAsync(Chain chain)
+        {
+            try
+            {
+                // We use wallet_addEthereumChain for all chains except for Ethereum and Linea because
+                // MetaMask ships with these chains by default and wallet_addEthereumChain is not supported for them.
+                // For other chains using wallet_addEthereumChain will add the chain to MetaMask or switch to it if it's already added.
+
+                if (chain.ChainReference is "1" or "59144")
+                {
+                    await AppKit.Evm.RpcRequestAsync<string>("wallet_switchEthereumChain", new SwitchEthereumChain(chain.ChainReference));
+                }
+                else
+                {
+                    var ethereumChain = new EthereumChain(
+                        chain.ChainReference,
+                        chain.Name,
+                        chain.NativeCurrency,
+                        new[]
+                        {
+                            chain.RpcUrl
+                        },
+                        new[]
+                        {
+                            chain.BlockExplorer.url
+                        }
+                    );
+
+                    await AppKit.Evm.RpcRequestAsync<string>("wallet_addEthereumChain", ethereumChain);
+                }
+
+
+                await _signClient.AddressProvider.SetDefaultChainIdAsync(chain.ChainId);
+
+                await WaitForSessionUpdateAsync(TimeSpan.FromSeconds(5));
+
+                OnChainChanged(new ChainChangedEventArgs(chain.ChainId));
+                OnAccountChanged(new AccountChangedEventArgs(GetCurrentAccount()));
+            }
+            catch (ReownNetworkException e)
+            {
+                try
+                {
+                    var metaMaskError = JsonConvert.DeserializeObject<MetaMaskError>(e.Message);
+                    ReownLogger.LogError($"[MetaMask Error] {metaMaskError.Message}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                }
+
+                throw;
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+        }
+
+        private async Task WaitForSessionUpdateAsync(TimeSpan timeout)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+            var sessionUpdateHandler = new EventHandler<Session>((_, _) => tcs.TrySetResult(true));
+
+            _signClient.SessionUpdatedUnity += sessionUpdateHandler;
+            try
+            {
+                await Task.WhenAny(tcs.Task, Task.Delay(timeout));
+            }
+            finally
+            {
+                _signClient.SessionUpdatedUnity -= sessionUpdateHandler;
             }
         }
 

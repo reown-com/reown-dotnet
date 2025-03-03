@@ -69,9 +69,9 @@ namespace Reown.Sign.Nethereum
             return await _signClient.Request<EthSignTypedDataV4, string>(signDataRequest);
         }
 
-        protected override async Task<object> WalletSwitchEthereumChainAsyncCore(SwitchEthereumChainParameter chainId)
+        protected override async Task<object> WalletSwitchEthereumChainAsyncCore(SwitchEthereumChain arg)
         {
-            var switchChainRequest = new WalletSwitchEthereumChain(chainId.ChainId.HexValue);
+            var switchChainRequest = new WalletSwitchEthereumChain(arg.chainId);
             return await _signClient.Request<WalletSwitchEthereumChain, string>(switchChainRequest);
         }
 

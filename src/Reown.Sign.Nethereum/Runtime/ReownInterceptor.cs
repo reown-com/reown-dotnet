@@ -119,7 +119,14 @@ namespace Reown.Sign.Nethereum
 
             if (method == ApiMethods.wallet_switchEthereumChain.ToString())
             {
-                return await _reownSignService.WalletSwitchEthereumChainAsync((SwitchEthereumChainParameter)paramList[0]);
+                try
+                {
+                    return await _reownSignService.WalletSwitchEthereumChainAsync((SwitchEthereumChain)paramList[0]);
+                }
+                catch (InvalidCastException)
+                {
+                    return await _reownSignService.WalletSwitchEthereumChainAsync((SwitchEthereumChainParameter)paramList[0]);
+                }
             }
 
             if (method == ApiMethods.wallet_addEthereumChain.ToString())
