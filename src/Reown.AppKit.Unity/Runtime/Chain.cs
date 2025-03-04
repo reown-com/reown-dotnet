@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Reown.AppKit.Unity
 {
@@ -9,6 +10,7 @@ namespace Reown.AppKit.Unity
         public virtual string Name { get; }
 
         // https://github.com/wevm/viem/blob/main/src/chains/index.ts
+        [Obsolete("The ViemName property will be removed")]
         public virtual string ViemName { get; }
         public virtual Currency NativeCurrency { get; }
         public virtual BlockExplorer BlockExplorer { get; }
@@ -46,6 +48,11 @@ namespace Reown.AppKit.Unity
             IsTestnet = isTestnet;
             ImageUrl = imageUrl;
             ViemName = viemName;
+
+            if (!string.IsNullOrWhiteSpace(viemName))
+            {
+                Debug.LogWarning($"The ViemName property is deprecated and will be removed in the future. You don't need to set <i>{viemName}</i> for the chain <b>{name}</b> in the `Chain` constructor.");
+            }
         }
 
         public override string ToString()
@@ -110,7 +117,6 @@ namespace Reown.AppKit.Unity
             public const string Arbitrum = "42161";
             public const string Celo = "42220";
             public const string CeloAlfajores = "44787";
-            public const string Solana = "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp";
             public const string Polygon = "137";
             public const string Avalanche = "43114";
         }
@@ -142,8 +148,6 @@ namespace Reown.AppKit.Unity
             { References.Polygon, "41d04d42-da3b-4453-8506-668cc0727900" },
             // Avalanche
             { References.Avalanche, "30c46e53-e989-45fb-4549-be3bd4eb3b00" },
-            // Solana
-            { References.Solana, "a1b58899-f671-4276-6a5e-56ca5bd59700" }
         };
 
         public static class Chains
@@ -292,18 +296,6 @@ namespace Reown.AppKit.Unity
                 "avalanche"
             );
 
-            public static readonly Chain Solana = new(
-                Namespaces.Solana,
-                References.Solana,
-                "Solana",
-                new Currency("Sol", "SOL", 9),
-                new BlockExplorer("Solana Explorer", "https://explorer.solana.com"),
-                "https://api.mainnet-beta.solana.com",
-                false,
-                $"{ChainImageUrl}/{ImageIds[References.Solana]}",
-                "solana"
-            );
-
             public static readonly IReadOnlyCollection<Chain> All = new HashSet<Chain>
             {
                 Ethereum,
@@ -317,8 +309,7 @@ namespace Reown.AppKit.Unity
                 Base,
                 BaseGoerli,
                 Polygon,
-                Avalanche,
-                Solana
+                Avalanche
             };
         }
     }

@@ -31,5 +31,13 @@
     <ui:VisualElement class="landscape-visible cell">
         <ui:Label name="wallet-view__landscape-continue-in-label" text="Continue in --wallet name--" class="text-paragraph"/>
         <ui:Label name="wallet-view__landscape-message" text="Accept connection request in your wallet app" class="text-small"/>
+        <ui:VisualElement name="wallet-view__landscape-try-again-link-container">
+            <Reown.AppKit.Unity.Components.Link name="wallet-view__landscape-try-again-link"
+                                                text="&lt;font-weight=600&gt;Try again&lt;/font-weight&gt;"
+                                                size="Small"
+                                                variant="Main"
+                                                icon="Reown/AppKit/Icons/icon_bold_reload"
+            />
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

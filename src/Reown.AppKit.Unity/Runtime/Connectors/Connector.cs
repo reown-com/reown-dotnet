@@ -82,9 +82,6 @@ namespace Reown.AppKit.Unity
 
         public async Task ChangeActiveChainAsync(Chain chain)
         {
-            if (!IsAccountConnected)
-                throw new Exception("No account connected"); // TODO: use custom ex type
-
             await ChangeActiveChainAsyncCore(chain);
         }
 

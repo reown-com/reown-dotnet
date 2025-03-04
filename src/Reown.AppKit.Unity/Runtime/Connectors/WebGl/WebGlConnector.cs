@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using AOT;
@@ -7,6 +8,7 @@ using Newtonsoft.Json;
 using Reown.AppKit.Unity.WebGl.Modal;
 using Reown.AppKit.Unity.WebGl.Wagmi;
 using Reown.Sign.Models;
+using Reown.Sign.Nethereum.Model;
 using Reown.Sign.Unity;
 
 namespace Reown.AppKit.Unity
@@ -28,18 +30,18 @@ namespace Reown.AppKit.Unity
 
         protected override async Task InitializeAsyncCore(AppKitConfig appKitConfig, SignClientUnity _)
         {
-            var viemChainNames = appKitConfig.supportedChains
-                .Where(c => !string.IsNullOrWhiteSpace(c.ViemName))
-                .Select(c => c.ViemName)
+            var supportedChains = appKitConfig.supportedChains
+                .Select(c => new WebGlChain(c))
                 .ToArray();
 
             var parameters = new WebGlInitializeParameters
             {
                 projectId = appKitConfig.projectId,
                 metadata = appKitConfig.metadata,
-                chains = viemChainNames,
+                supportedChains = supportedChains,
                 includeWalletIds = appKitConfig.includedWalletIds ?? Array.Empty<string>(),
                 excludeWalletIds = appKitConfig.excludedWalletIds ?? Array.Empty<string>(),
+
 
                 enableEmail = appKitConfig.enableEmail,
                 enableOnramp = appKitConfig.enableOnramp,
@@ -168,21 +170,6 @@ namespace Reown.AppKit.Unity
         {
             _initializationTaskCompletionSource.SetResult(true);
         }
-    }
-
-    [Serializable]
-    internal class WebGlInitializeParameters
-    {
-        public string projectId;
-        public Core.Metadata metadata;
-        public string[] chains;
-        public string[] includeWalletIds;
-        public string[] excludeWalletIds;
-
-        public bool enableEmail;
-        public bool enableOnramp;
-        public bool enableAnalytics;
-        public bool enableCoinbaseWallet;
     }
 #endif
 }

@@ -87,6 +87,11 @@ namespace Reown.AppKit.Unity
             var result = await WagmiInterop.GetGasPriceAsync();
             return BigInteger.Parse(result);
         }
+
+        protected override Task<T> RpcRequestAsyncCore<T>(string method, params object[] parameters)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 #endif
 }

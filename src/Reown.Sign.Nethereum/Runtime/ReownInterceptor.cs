@@ -5,6 +5,7 @@ using Nethereum.JsonRpc.Client;
 using Nethereum.RPC;
 using Nethereum.RPC.Eth.DTOs;
 using Nethereum.RPC.HostWallet;
+using Reown.Sign.Nethereum.Model;
 
 namespace Reown.Sign.Nethereum
 {
@@ -123,13 +124,28 @@ namespace Reown.Sign.Nethereum
 
                 if (method == ApiMethods.wallet_switchEthereumChain.ToString())
                 {
-                    return await _reownSignService.WalletSwitchEthereumChainAsync((SwitchEthereumChainParameter)paramList[0]);
+                    try
+                    {
+                        return await _reownSignService.WalletSwitchEthereumChainAsync((SwitchEthereumChain)paramList[0]);
+                    }
+                    catch (InvalidCastException)
+                    {
+                        return await _reownSignService.WalletSwitchEthereumChainAsync((SwitchEthereumChainParameter)paramList[0]);
+                    }
                 }
 
                 if (method == ApiMethods.wallet_addEthereumChain.ToString())
                 {
-                    return await _reownSignService.WalletAddEthereumChainAsync((AddEthereumChainParameter)paramList[0]);
+                    try
+                    {
+                        return await _reownSignService.WalletAddEthereumChainAsync((EthereumChain)paramList[0]);
+                    }
+                    catch (InvalidCastException)
+                    {
+                        return await _reownSignService.WalletAddEthereumChainAsync((AddEthereumChainParameter)paramList[0]);
+                    }
                 }
+
 
                 throw new NotImplementedException();
             }

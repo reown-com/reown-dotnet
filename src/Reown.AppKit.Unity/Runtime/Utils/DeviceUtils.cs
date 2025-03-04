@@ -24,9 +24,13 @@ namespace Reown.AppKit.Unity.Utils
                 var configuration = resources.Call<AndroidJavaObject>("getConfiguration");
 
                 var screenWidthDp = configuration.Get<int>("screenWidthDp");
+                var screenHeightDp = configuration.Get<int>("screenHeightDp");
 
-                // Tablets typically have a screen width of 600dp or higher
-                return screenWidthDp >= 600 ? DeviceType.Tablet : DeviceType.Phone;
+                // Use the smaller dimension to determine if it's a tablet
+                var smallestDp = Mathf.Min(screenWidthDp, screenHeightDp);
+                
+                // Tablets typically have a smallest dimension of 600dp or higher
+                return smallestDp >= 600 ? DeviceType.Tablet : DeviceType.Phone;
             }
             catch (Exception e)
             {
