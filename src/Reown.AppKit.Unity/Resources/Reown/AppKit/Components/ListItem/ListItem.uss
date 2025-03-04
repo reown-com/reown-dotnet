@@ -36,7 +36,7 @@
 }
 
 .list-item--icon-variant-square #list-item__icon-block {
-    /*background-color: var(--ro-gray-glass-010);*/
+    background-color: var(--ro-gray-glass-010);
     border-radius: var(--ro-border-radius-3xs);
 }
 
@@ -112,7 +112,6 @@
     height: 16;
     --unity-image: resource('Reown/AppKit/Icons/icon_regular_wallet_2');
     --unity-image-tint-color: var(--ro-gray-glass-060);
-    background-color: var(--ro-gray-glass-010);
 }
 
 #list-item__icon-image {

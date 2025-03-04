@@ -53,9 +53,9 @@ namespace Sample
                         Native = "appkit-sample-unity://"
                     }
                 ),
-                // customWallets = GetCustomWallets(),
+                customWallets = GetCustomWallets(),
                 // On mobile show 5 wallets on the Connect view (the first AppKit modal screen)
-                connectViewWalletsCountMobile = 1,
+                connectViewWalletsCountMobile = 5,
                 supportedChains = new[]
                 {
                     ChainConstants.Chains.Optimism,

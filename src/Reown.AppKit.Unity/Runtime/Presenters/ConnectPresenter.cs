@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Model;
 using Reown.AppKit.Unity.Utils;
+using Reown.AppKit.Unity.Views.ConnectView;
 using Reown.AppKit.Unity.Views.WebWalletView;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -11,7 +12,7 @@ using DeviceType = Reown.AppKit.Unity.Utils.DeviceType;
 
 namespace Reown.AppKit.Unity
 {
-    public class ConnectPresenter : Presenter<VisualElement>
+    public class ConnectPresenter : Presenter<ConnectView>
     {
         private bool _disposed;
 
@@ -24,10 +25,10 @@ namespace Reown.AppKit.Unity
         {
             Build();
 
-            AppKit.Initialized += Web3ModalInitializedHandler;
+            AppKit.Initialized += InitializedHandler;
         }
 
-        private void Web3ModalInitializedHandler(object sender, EventArgs e)
+        private void InitializedHandler(object sender, EventArgs e)
         {
             AppKit.AccountDisconnected += AccountDisconnectedHandler;
         }
@@ -48,6 +49,21 @@ namespace Reown.AppKit.Unity
                 Debug.LogException(e);
             }
         }
+
+        // protected override VisualElement CreateViewInstance()
+        // {
+        //     var ve = new ScrollView
+        //     {
+        //         name = "ConnectView",
+        //         style =
+        //         {
+        //             maxHeight = 600
+        //         },
+        //         verticalScrollerVisibility = ScrollerVisibility.Hidden
+        //     };
+        //
+        //     return ve;
+        // }
 
         protected virtual async Task RebuildAsync()
         {
@@ -189,7 +205,7 @@ namespace Reown.AppKit.Unity
 
             if (disposing)
             {
-                AppKit.Initialized -= Web3ModalInitializedHandler;
+                AppKit.Initialized -= InitializedHandler;
                 AppKit.AccountDisconnected -= AccountDisconnectedHandler;
             }
 
