@@ -37,7 +37,7 @@ namespace Reown.AppKit.Unity
             View.MainLabel.text = $"Log in with {_providerName}";
             View.MessageLabel.text = "Preparing to connect...";
 
-            View.ProviderIcon.vectorImage = Resources.Load<VectorImage>($"Reown/AppKit/Images/{_providerName}");
+            View.ProviderIcon.vectorImage = Resources.Load<VectorImage>($"Reown/AppKit/Images/Social/{_providerName}");
             
             if (!AppKit.ConnectorController
                     .TryGetConnector<ProfileConnector>
