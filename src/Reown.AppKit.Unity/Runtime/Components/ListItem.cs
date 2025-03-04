@@ -167,9 +167,10 @@ namespace Reown.AppKit.Unity.Components
         private void CenterIcon()
         {
             if (LabelElement != null)
-            {
                 LabelElement.style.display = DisplayStyle.None;
-            }
+
+            if (RightSlot != null)
+                RightSlot.style.display = DisplayStyle.None;
 
             AddToClassList(ClassCenteredIcon);
         }
