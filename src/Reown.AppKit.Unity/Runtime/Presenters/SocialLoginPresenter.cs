@@ -13,7 +13,7 @@ namespace Reown.AppKit.Unity
         private WalletConnectConnectionProposal _connectionProposal;
         private readonly WaitForSecondsRealtime _waitForSeconds05;
 
-        private const string DefaultWebWalletUrl = "https://chore-web-wallet-imp.appkit-web-wallet.pages.dev";
+        private const string DefaultWebWalletUrl = "https://web-wallet.walletconnect.org/";
 
         private string _webWalletUrl;
         private string _providerName;
