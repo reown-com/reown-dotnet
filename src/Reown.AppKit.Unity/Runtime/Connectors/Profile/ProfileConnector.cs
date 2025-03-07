@@ -36,24 +36,17 @@ namespace Reown.AppKit.Unity.Profile
                     .DeserializeObject<string[]>(sessionProperties["smartAccounts"])
                     .Select(x => new Account(x))
                     .ToArray();
-
-                Debug.Log($"[ProfileConnector] Smart accounts: [{string.Join(", ", SmartAccounts.Select(x => x.AccountId))}]");
-
+                
                 var allAccounts = await GetAccountsAsyncCore();
                 EoaAccounts = allAccounts
                     .Except(SmartAccounts)
                     .ToArray();
-
-                Debug.Log($"[ProfileConnector] EOA accounts: [{string.Join(", ", EoaAccounts.Select(x => x.AccountId))}]");
-
 
                 Email = sessionProperties["email"];
 
                 base.OnAccountConnected(e);
 
                 var preferredAccountTypeStr = PlayerPrefs.GetString(PreferredAccountTypeKey);
-
-                Debug.Log($"[ProfileConnector] Preferred account type: [{preferredAccountTypeStr}]");
                 
                 var preferredAccountType = Enum.TryParse<AccountType>(preferredAccountTypeStr, out var accountType)
                     ? accountType
@@ -83,9 +76,7 @@ namespace Reown.AppKit.Unity.Profile
             PreferredAccount = accountType == AccountType.SmartAccount
                 ? SmartAccounts.First(a => a.ChainId == chainId)
                 : EoaAccounts.First(a => a.ChainId == chainId);
-
-            Debug.Log($"[ProfileConnector] New preferred account id: {PreferredAccount.AccountId}.");
-
+            
             PreferredAccountType = accountType;
 
             // The preferred account type is saved so it can be recovered after the session is resumed

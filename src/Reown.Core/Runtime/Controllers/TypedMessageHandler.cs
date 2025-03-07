@@ -365,9 +365,7 @@ namespace Reown.Core.Controllers
             var messageId = RpcPayloadId.GenerateFromDataHash(parameters);
 
             var payload = new JsonRpcRequest<T>(method, parameters, messageId);
-
-            ReownLogger.Log($"Send Request\nTopic: {topic}\n\n{JsonConvert.SerializeObject(payload, Formatting.Indented)}");
-
+            
             var message = await CoreClient.Crypto.Encode(topic, payload, options);
 
             var opts = RpcRequestOptionsFromType<T, TR>();

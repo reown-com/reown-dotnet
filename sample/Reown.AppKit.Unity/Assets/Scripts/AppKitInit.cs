@@ -22,7 +22,9 @@ namespace Sample
             // Set up Reown logger to collect logs from AppKit
             ReownLogger.Instance = new UnityLogger();
 
-            // // The very basic configuration of SIWE
+            // The very basic configuration of SIWE
+            // Uncomment it and pass into AppKitConfig below to enable 1-Click Auth and SIWE
+            
             // var siweConfig = new SiweConfig
             // {
             //     GetMessageParams = () => new SiweMessageParams
@@ -37,6 +39,7 @@ namespace Sample
             // siweConfig.SignInSuccess += _ => Debug.Log("[Dapp] SIWE Sign In Success!");
             // siweConfig.SignOutSuccess += () => Debug.Log("[Dapp] SIWE Sign Out Success!");
 
+            
             // AppKit configuration
             var appKitConfig = new AppKitConfig
             {
@@ -74,8 +77,6 @@ namespace Sample
                     SocialLogin.Apple,
                     SocialLogin.GitHub
                 }
-                // Assign the SIWE configuration created above. Can be null if SIWE is not used.
-                // siweConfig = siweConfig
             };
 
             Debug.Log("[AppKit Init] Initializing AppKit...");

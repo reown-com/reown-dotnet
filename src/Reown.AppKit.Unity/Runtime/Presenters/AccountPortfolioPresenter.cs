@@ -26,19 +26,6 @@ namespace Reown.AppKit.Unity
             Router.OpenView(ViewType.AccountSettings);
         }
 
-        // protected override async void OnVisibleCore()
-        // {
-        //     try
-        //     {
-        //         base.OnVisibleCore();
-        //         await AppKit.AccountController.UpdateBalance();
-        //     }
-        //     catch (Exception e)
-        //     {
-        //         Debug.LogException(e);
-        //     }
-        // }
-
         private void AccountPropertyChangedHandler(object sender, PropertyChangedEventArgs e)
         {
             switch (e.PropertyName)
