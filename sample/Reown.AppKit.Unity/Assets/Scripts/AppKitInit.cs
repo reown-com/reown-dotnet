@@ -109,7 +109,7 @@ namespace Sample
         /// </summary>
         private Wallet[] GetCustomWallets()
         {
-// #if UNITY_IOS && !
+#if UNITY_IOS && !UNITY_EDITOR
             return new[]
             {
                 new Wallet
@@ -131,7 +131,7 @@ namespace Sample
                     MobileLink = "wcflutterwallet://"
                 }
             };
-// #endif
+#endif
 
 #if UNITY_ANDROID && !UNITY_EDITOR
             return new[]
