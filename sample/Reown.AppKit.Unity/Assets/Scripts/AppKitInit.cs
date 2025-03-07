@@ -58,10 +58,21 @@ namespace Sample
                 connectViewWalletsCountMobile = 5,
                 supportedChains = new[]
                 {
-                    ChainConstants.Chains.Optimism,
                     ChainConstants.Chains.Ethereum,
+                    ChainConstants.Chains.Optimism,
                     ChainConstants.Chains.Arbitrum,
-                    ChainConstants.Chains.Base
+                    ChainConstants.Chains.Ronin,
+                    ChainConstants.Chains.Avalanche,
+                    ChainConstants.Chains.Base,
+                    ChainConstants.Chains.Polygon
+                },
+                socials = new[]
+                {
+                    SocialLogin.Google,
+                    SocialLogin.X,
+                    SocialLogin.Discord,
+                    SocialLogin.Apple,
+                    SocialLogin.GitHub
                 }
                 // Assign the SIWE configuration created above. Can be null if SIWE is not used.
                 // siweConfig = siweConfig
@@ -98,29 +109,29 @@ namespace Sample
         /// </summary>
         private Wallet[] GetCustomWallets()
         {
-#if UNITY_IOS && !UNITY_EDITOR
+// #if UNITY_IOS && !
             return new[]
             {
                 new Wallet
                 {
                     Name = "Swift Wallet",
-                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/main/media/walletkit-icon.png",
+                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-swift.png?raw=true",
                     MobileLink = "walletapp://"
                 },
                 new Wallet
                 {
                     Name = "React Native Wallet",
-                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/main/media/walletkit-icon.png",
+                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-rn.png?raw=true",
                     MobileLink = "rn-web3wallet://"
                 },
                 new Wallet
                 {
                     Name = "Flutter Wallet Prod",
-                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/main/media/walletkit-icon.png",
+                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-flutter.png?raw=true",
                     MobileLink = "wcflutterwallet://"
                 }
             };
-#endif
+// #endif
 
 #if UNITY_ANDROID && !UNITY_EDITOR
             return new[]
@@ -128,19 +139,19 @@ namespace Sample
                 new Wallet
                 {
                     Name = "Kotlin Wallet",
-                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/main/media/walletkit-icon.png",
+                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-kotlin.png?raw=true",
                     MobileLink = "kotlin-web3wallet://"
                 },
                 new Wallet
                 {
                     Name = "React Native Wallet",
-                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/main/media/walletkit-icon.png",
+                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-rn.png?raw=true",
                     MobileLink = "rn-web3wallet://"
                 },
                 new Wallet
                 {
                     Name = "Flutter Wallet Prod",
-                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/main/media/walletkit-icon.png",
+                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-flutter.png?raw=true",
                     MobileLink = "wcflutterwallet://"
                 }
             };
