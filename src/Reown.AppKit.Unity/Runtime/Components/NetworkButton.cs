@@ -118,7 +118,12 @@ namespace Reown.AppKit.Unity.Components
 
             // Update network data when button becomes visible
             // ReSharper disable once HeapView.CanAvoidClosure
+#if UNITY_6000_0_OR_NEWER
             RegisterCallbackOnce<GeometryChangedEvent>(_ => UpdateNetworkButton(AppKit.NetworkController.ActiveChain));
+#else
+            RegisterCallback<GeometryChangedEvent>(_ => UpdateNetworkButton(AppKit.NetworkController.ActiveChain));
+#endif
+            
 
             Clickable = new Clickable(() => AppKit.OpenModal(ViewType.NetworkSearch));
         }
