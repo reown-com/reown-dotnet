@@ -121,7 +121,7 @@ namespace Reown.AppKit.Unity
         private string CreateRpcUrl(string chainId)
         {
             if (_chainsSupportedByBlockchainApi.Contains(chainId))
-                return $"https://rpc.walletconnect.com/v1?chainId={chainId}&projectId={AppKit.Config.projectId}";
+                return $"https://rpc.walletconnect.org/v1?chainId={chainId}&projectId={AppKit.Config.projectId}";
 
             var chain = AppKit.Config.supportedChains.FirstOrDefault(x => x.ChainId == chainId);
             if (chain == null || string.IsNullOrWhiteSpace(chain.RpcUrl))
@@ -283,7 +283,11 @@ namespace Reown.AppKit.Unity
         
         protected override async Task<BigInteger> EstimateGasAsyncCore(string addressTo, BigInteger value, string data = null)
         {
-            var transactionInput = new TransactionInput(data, addressTo, new HexBigInteger(value));
+            var account = await AppKit.GetAccountAsync();
+            var transactionInput = new TransactionInput(data, addressTo, new HexBigInteger(value))
+            {
+                From = account.Address
+            };
             return await Web3.Eth.Transactions.EstimateGas.SendRequestAsync(transactionInput);
         }
 
@@ -291,9 +295,16 @@ namespace Reown.AppKit.Unity
         {
             var contract = Web3.Eth.GetContract(contractAbi, contractAddress);
             var function = contract.GetFunction(methodName);
-            
-            var transactionInput = new TransactionInput(function.GetData(arguments), contractAddress, new HexBigInteger(value));
-            return await Web3.Eth.Transactions.EstimateGas.SendRequestAsync(transactionInput);
+
+            var account = await AppKit.GetAccountAsync();
+
+            var transactionInput = new TransactionInput(function.GetData(arguments), contractAddress, new HexBigInteger(value))
+            {
+                From = account.Address
+            };
+
+            var result = await Web3.Eth.Transactions.EstimateGas.SendRequestAsync(transactionInput);
+            return result.Value;
         }
         
         
