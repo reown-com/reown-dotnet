@@ -54,6 +54,11 @@ namespace Reown.AppKit.Unity
                 Debug.LogWarning($"The ViemName property is deprecated and will be removed in the future. You don't need to set <i>{viemName}</i> for the chain <b>{name}</b> in the `Chain` constructor.");
             }
         }
+
+        public override string ToString()
+        {
+            return $"{Name} ({ChainId})";
+        }
     }
 
     [Serializable]
@@ -174,7 +179,7 @@ namespace Reown.AppKit.Unity
             public static readonly Chain Optimism = new(
                 Namespaces.Evm,
                 References.Optimism,
-                "Optimism",
+                "OP Mainnet",
                 new Currency("Ether", "ETH", 18),
                 new BlockExplorer("Optimistic Etherscan", "https://optimistic.etherscan.io"),
                 "https://mainnet.optimism.io",

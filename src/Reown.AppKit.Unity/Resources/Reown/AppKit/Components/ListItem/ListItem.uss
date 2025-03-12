@@ -1,6 +1,6 @@
 :root {
     margin-top: 8px;
-    padding: 8px 16px 8px 8px;
+    padding: 8px 8px 8px 8px;
     width: 100%;
     height: 56px;
     border-radius: var(--ro-border-radius-xs);
@@ -67,12 +67,20 @@
     background-color: var(--ro-accent-glass-020);
 }
 
+.list-item--icon-style-default #list-item__icon-container {
+    background-color: var(--ro-gray-glass-010);
+}
+
 #list-item__icon-container > Image {
     --unity-image-tint-color: white;
 }
 
 .list-item--icon-style-accent #list-item__icon-container > Image {
     --unity-image-tint-color: var(--ro-color-accent-100);
+}
+
+.list-item--icon-style-default #list-item__icon-container > Image {
+    --unity-image-tint-color: var(--ro-color-fg-200);
 }
 
 .list-item--icon-style-error #list-item__icon-container {
@@ -138,4 +146,14 @@
     align-items: center;
     align-self: center;
     right: 0;
+    padding-right: 8px;
+}
+
+.list-item--centered-icon {
+    justify-content: center;
+}
+
+.list-item--centered-icon #list-item__icon-block {
+    margin-left: 0;
+    margin-right: 0;
 }

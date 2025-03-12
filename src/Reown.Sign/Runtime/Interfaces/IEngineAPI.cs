@@ -131,6 +131,12 @@ namespace Reown.Sign.Interfaces
         event EventHandler<PairingEvent> PairingDeleted;
 
         /// <summary>
+        ///     This event is invoked after session request has been sent
+        ///     Event Side: dApp
+        /// </summary>
+        event EventHandler<SessionRequestEvent> SessionRequestSent;
+
+        /// <summary>
         ///     Subscribes to a specific session event (wc_sessionEvent). The event is identified by its name and handled by the provided event handler.
         /// </summary>
         /// <param name="eventName">The name of the session event to subscribe to.</param>

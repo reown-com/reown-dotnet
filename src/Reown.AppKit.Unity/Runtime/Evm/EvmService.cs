@@ -25,20 +25,24 @@ namespace Reown.AppKit.Unity
 
         // -- Sign Message ---------------------------------------------
 
-        public Task<string> SignMessageAsync(string message)
+        public async Task<string> SignMessageAsync(string message, string address = null)
         {
             if (string.IsNullOrWhiteSpace(message))
                 throw new ArgumentNullException(nameof(message));
 
-            return SignMessageAsyncCore(message);
+            address ??= (await AppKit.GetAccountAsync()).Address;
+            
+            return await SignMessageAsyncCore(message, address);
         }
 
-        public Task<string> SignMessageAsync(byte[] rawMessage)
+        public async Task<string> SignMessageAsync(byte[] rawMessage, string address = null)
         {
             if (rawMessage == null || rawMessage.Length == 0)
                 throw new ArgumentNullException(nameof(rawMessage));
 
-            return SignMessageAsyncCore(rawMessage);
+            address ??= (await AppKit.GetAccountAsync()).Address;
+
+            return await SignMessageAsyncCore(rawMessage, address);
         }
 
 
@@ -231,8 +235,8 @@ namespace Reown.AppKit.Unity
 
         protected abstract Task InitializeAsyncCore(SignClientUnity signClient);
         protected abstract Task<BigInteger> GetBalanceAsyncCore(string address);
-        protected abstract Task<string> SignMessageAsyncCore(string message);
-        protected abstract Task<string> SignMessageAsyncCore(byte[] rawMessage);
+        protected abstract Task<string> SignMessageAsyncCore(string message, string address);
+        protected abstract Task<string> SignMessageAsyncCore(byte[] rawMessage, string address);
         protected abstract Task<bool> VerifyMessageSignatureAsyncCore(string address, string message, string signature);
         protected abstract Task<string> SignTypedDataAsyncCore(string dataJson);
         protected abstract Task<bool> VerifyTypedDataSignatureAsyncCore(string address, string dataJson, string signature);

@@ -15,10 +15,12 @@ namespace Reown.AppKit.Unity
 
         private Coroutine _snackbarCoroutine;
         private bool _disposed;
+        private IconLink _goBackIconLink;
 
         public ModalHeaderPresenter(RouterController routerController, Modal parent) : base(routerController, parent)
         {
             View.style.display = DisplayStyle.Flex;
+            View.pickingMode = PickingMode.Ignore;
 
             Router.ViewChanged += ViewChangedHandler;
             AppKit.NotificationController.Notification += NotificationHandler;
@@ -30,7 +32,7 @@ namespace Reown.AppKit.Unity
             View.body.Add(_title);
 
             // Create Back button and add it to the left slot
-            var goBackIconLink = new IconLink(
+            _goBackIconLink = new IconLink(
                 Resources.Load<VectorImage>("Reown/AppKit/Icons/icon_medium_chevronleft"),
                 routerController.GoBack)
             {
@@ -39,14 +41,23 @@ namespace Reown.AppKit.Unity
                     display = DisplayStyle.None
                 }
             };
-            View.leftSlot.Add(goBackIconLink);
+            View.leftSlot.Add(_goBackIconLink);
+
+            // Create network button and add it to the left slot
+            var networkButton = new NetworkButton
+            {
+                ShowName = false,
+                ShowChevron = true,
+                ShowBorder = false,
+                style =
+                {
+                    display = DisplayStyle.None
+                }
+            };
+            View.leftSlot.Add(networkButton);
 
             // Assign buttons to the corresponding view types
-            _leftSlotItems.Add(ViewType.QrCode, goBackIconLink);
-            _leftSlotItems.Add(ViewType.Wallet, goBackIconLink);
-            _leftSlotItems.Add(ViewType.WalletSearch, goBackIconLink);
-            _leftSlotItems.Add(ViewType.NetworkSearch, goBackIconLink);
-            _leftSlotItems.Add(ViewType.NetworkLoading, goBackIconLink);
+            _leftSlotItems.Add(ViewType.AccountPortfolio, networkButton);
 
             // Close button
             View.rightSlot.Add(new IconLink(
@@ -121,8 +132,14 @@ namespace Reown.AppKit.Unity
                 : Visibility.Visible;
 
             // Left slot
-            if (_leftSlotItems.TryGetValue(args.newViewType, out var newItem))
+            if (Router.HistoryCount > 1)
             {
+                _goBackIconLink.style.display = DisplayStyle.Flex;
+                View.leftSlot.style.visibility = Visibility.Visible;
+            }
+            else if (_leftSlotItems.TryGetValue(args.newViewType, out var newItem))
+            {
+                _goBackIconLink.style.display = DisplayStyle.None;
                 newItem.style.display = DisplayStyle.Flex;
                 View.leftSlot.style.visibility = Visibility.Visible;
             }

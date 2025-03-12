@@ -201,6 +201,12 @@ namespace Reown.Sign
         public event EventHandler<PairingEvent> PairingDeleted;
 
         /// <summary>
+        ///     This event is invoked after session request has been sent
+        ///     Event Side: dApp
+        /// </summary>
+        public event EventHandler<SessionRequestEvent> SessionRequestSent;
+
+        /// <summary>
         ///     Initialize the Engine. This loads any persistant state and connects to the WalletConnect
         ///     relay server
         /// </summary>
@@ -714,30 +720,35 @@ namespace Reown.Sign
 
             var method = RpcMethodAttribute.MethodForType<T>();
 
-            string defaultChainId;
+            string requestChainId;
             if (string.IsNullOrWhiteSpace(chainId))
             {
                 var sessionData = Client.Session.Get(topic);
                 var defaultNamespace = Client.AddressProvider.DefaultNamespace ??
                                        sessionData.Namespaces.Keys.FirstOrDefault();
-                defaultChainId = Client.AddressProvider.DefaultChainId ??
+                requestChainId = Client.AddressProvider.DefaultChainId ??
                                  sessionData.Namespaces[defaultNamespace].Chains[0];
             }
             else
             {
-                defaultChainId = chainId;
+                requestChainId = chainId;
             }
 
             var request = new JsonRpcRequest<T>(method, data);
 
             IsInitialized();
-            await PrivateThis.IsValidRequest(topic, request, defaultChainId);
-            var id = new long[1];
-
+            await PrivateThis.IsValidRequest(topic, request, requestChainId);
             var taskSource = new TaskCompletionSource<TR>();
 
+            var id = await MessageHandler.SendRequest<SessionRequest<T>, TR>(topic,
+                new SessionRequest<T>
+                {
+                    ChainId = requestChainId,
+                    Request = request
+                });
+
             SessionRequestEvents<T, TR>()
-                .FilterResponses(e => e.Topic == topic && e.Response.Id == id[0])
+                .FilterResponses(e => e.Topic == topic && e.Response.Id == id)
                 .OnResponse += args =>
             {
                 if (args.Response.IsError)
@@ -748,13 +759,12 @@ namespace Reown.Sign
                 return Task.CompletedTask;
             };
 
-            id[0] = await MessageHandler.SendRequest<SessionRequest<T>, TR>(topic,
-                new SessionRequest<T>
-                {
-                    ChainId = defaultChainId,
-                    Request = request
-                });
-
+            SessionRequestSent?.Invoke(this, new SessionRequestEvent
+            {
+                Topic = topic,
+                Id = id,
+                ChainId = requestChainId
+            });
 
             return await taskSource.Task;
         }

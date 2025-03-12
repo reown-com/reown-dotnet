@@ -1,0 +1,12 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="SocialLoginView.uss"/>
+    <ui:VisualElement name="social-login-view__provider-icon-container">
+        <ui:Image name="social-login-view__spinner-container">
+            <ui:Image name="social-login-view__provider-icon">
+                <!-- <ui:VisualElement name="social-login-view__provider-icon-border"/> -->
+            </ui:Image>
+        </ui:Image>
+    </ui:VisualElement>
+    <ui:Label name="social-login-view__main-label"/>
+    <ui:Label name="social-login-view__message" text="Connecting to the provider..."/>
+</ui:UXML>

@@ -28,24 +28,7 @@ namespace Reown.Sign.Nethereum.Unity
             RpcRequest request,
             string route = null)
         {
-            var result = ReownInterceptor.InterceptSendRequestAsync(interceptedSendRequestAsync, request, route);
-
-#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
-            try
-            {
-                if (ReownInterceptor.SignMethods.Contains(request.Method))
-                {
-                    var activeSessionTopic = SignClient.AddressProvider.DefaultSession.Topic;
-                    SignClient.Linker.OpenSessionRequestDeepLinkAfterMessageFromSession(activeSessionTopic);
-                }
-            }
-            catch (Exception e)
-            {
-                ReownLogger.LogError(e);
-            }
-#endif
-
-            return result;
+            return ReownInterceptor.InterceptSendRequestAsync(interceptedSendRequestAsync, request, route);
         }
 
         public override Task<object> InterceptSendRequestAsync<T>(
@@ -54,24 +37,7 @@ namespace Reown.Sign.Nethereum.Unity
             string route = null,
             params object[] paramList)
         {
-            var result = ReownInterceptor.InterceptSendRequestAsync(interceptedSendRequestAsync, method, route, paramList);
-
-#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
-            try
-            {
-                if (ReownInterceptor.SignMethods.Contains(method))
-                {
-                    var activeSessionTopic = SignClient.AddressProvider.DefaultSession.Topic;
-                    SignClient.Linker.OpenSessionRequestDeepLinkAfterMessageFromSession(activeSessionTopic);
-                }
-            }
-            catch (Exception e)
-            {
-                ReownLogger.LogError(e);
-            }
-#endif
-
-            return result;
+            return ReownInterceptor.InterceptSendRequestAsync(interceptedSendRequestAsync, method, route, paramList);
         }
     }
 }

@@ -1,4 +1,4 @@
-#account-view__profile {
+#account-settings-view__profile {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -7,7 +7,7 @@
     margin-top: -12px;
 }
 
-#account-view__profile-avatar {
+#account-settings-view__profile-avatar {
     width: 75px;
     height: 75px;
     border-radius: 100%;
@@ -17,12 +17,12 @@
     align-items: center;
 }
 
-#account-view__profile-avatar-image {
+#account-settings-view__profile-avatar-image {
     width: 110%;
     height: 110%;
 }
 
-#account-view__profile-address {
+#account-settings-view__profile-address {
     margin-top: 10px;
     margin-left: 22px;
     padding: 0;
@@ -31,11 +31,11 @@
     font-size: var(--ro-font-size-medium-title);
 }
 
-#account-view__profile-balance-container {
+#account-settings-view__profile-balance-container {
     flex-direction: row;
 }
 
-#account-view__profile-balance-container > Label {
+#account-settings-view__profile-balance-container > Label {
     margin-top: 2px;
     padding: 0;
     -unity-text-align: middle-center;
@@ -47,27 +47,27 @@
     margin-top: 12px;
 }
 
-#account-view__profile-address-container {
+#account-settings-view__profile-address-container {
     display: flex;
     flex-direction: row;
 }
 
-#account-view__explorer-button-text {
+#account-settings-view__explorer-button-text {
     margin: 0 6 0 6px;
     padding: 0;
     -unity-text-align: middle-center;
 }
 
-#account-view__explorer-button-icon-left {
+#account-settings-view__explorer-button-icon-left {
     --unity-image: resource('Reown/AppKit/Icons/icon_medium_compass');
 }
 
-#account-view__explorer-button-icon-right {
+#account-settings-view__explorer-button-icon-right {
     width: 8px;
     height: 8px;
     --unity-image: resource('Reown/AppKit/Icons/icon_bold_externallink');
 }
 
-#account-view__profile-address-copy-link-container {
+#account-settings-view__profile-address-copy-link-container {
     justify-content: flex-end;
 }

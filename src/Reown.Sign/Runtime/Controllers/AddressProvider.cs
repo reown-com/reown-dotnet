@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Reown.Core;
 using Reown.Core.Common.Utils;
 using Reown.Sign.Interfaces;
 using Reown.Sign.Models;

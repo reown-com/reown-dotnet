@@ -19,7 +19,7 @@ namespace Reown.AppKit.Unity
         private readonly ISignClient _client;
         private readonly ConnectOptions _connectOptions;
         private readonly SiweController _siweController;
-        private readonly WaitForSecondsRealtime _refreshInterval = new(240); // 4 minutes
+        private readonly WaitForSecondsRealtime _refreshInterval = new(180); // 3 minutes
 
         private bool _disposed;
 
@@ -72,17 +72,24 @@ namespace Reown.AppKit.Unity
                 IsConnected = true;
                 connected?.Invoke(this);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 await _client.Disconnect();
-                throw;
+                Debug.LogException(ex);
             }
         }
 
-        private void SessionConnectedHandler(object sender, Session e)
+        private async void SessionConnectedHandler(object sender, Session e)
         {
             IsSignarureRequested = _siweController.IsEnabled;
             IsConnected = true;
+
+            var activeChain = AppKit.NetworkController.ActiveChain;
+            if (activeChain != null)
+                await _client.AddressProvider.SetDefaultChainIdAsync(activeChain.ChainId);
+
+            await System.Threading.Tasks.Task.Delay(500);
+            
             connected?.Invoke(this);
         }
 
@@ -176,7 +183,11 @@ namespace Reown.AppKit.Unity
             if (!_disposed)
             {
                 if (disposing)
+                {
+                    _client.SessionAuthenticated -= SessionAuthenticatedHandler;
+                    _client.SessionConnected -= SessionConnectedHandler;
                     _client.SessionConnectionErrored -= SessionConnectionErroredHandler;
+                }
 
                 _disposed = true;
                 base.Dispose(disposing);

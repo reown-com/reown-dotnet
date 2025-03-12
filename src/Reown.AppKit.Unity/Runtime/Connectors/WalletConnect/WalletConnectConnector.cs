@@ -21,6 +21,36 @@ namespace Reown.AppKit.Unity
         private ConnectionProposal _connectionProposal;
         private SignClientUnity _signClient;
 
+        private static readonly string[] _supportedMethods = new[]
+        {
+            "eth_accounts",
+            "eth_requestAccounts",
+            "eth_sendRawTransaction",
+            "eth_sign",
+            "eth_signTransaction",
+            "eth_signTypedData",
+            "eth_signTypedData_v3",
+            "eth_signTypedData_v4",
+            "eth_sendTransaction",
+            "personal_sign",
+            "wallet_switchEthereumChain",
+            "wallet_addEthereumChain",
+            "wallet_getPermissions",
+            "wallet_requestPermissions",
+            "wallet_registerOnboarding",
+            "wallet_watchAsset",
+            "wallet_scanQRCode"
+        };
+
+        private static readonly string[] _supportedEvents = new[]
+        {
+            "chainChanged",
+            "accountsChanged",
+            "message",
+            "disconnect",
+            "connect"
+        };
+
         public WalletConnectConnector()
         {
             ImageId = "ef1a1fcf-7fe8-4d69-bd6d-fda1345b4400";
@@ -47,7 +77,7 @@ namespace Reown.AppKit.Unity
 
         private void ActiveSessionChangedHandler(object sender, Session session)
         {
-            if (session == null)
+            if (session == null || IsAccountConnected)
                 return;
 
             var currentAccount = GetCurrentAccount();
@@ -56,6 +86,9 @@ namespace Reown.AppKit.Unity
 
         private async void ActiveChainIdChangedHandler(object sender, SessionEvent<JToken> sessionEvent)
         {
+            if (!IsAccountConnected)
+                return;
+            
             if (sessionEvent.ChainId == "eip155:0")
                 return;
 
@@ -114,11 +147,11 @@ namespace Reown.AppKit.Unity
 
         protected override ConnectionProposal ConnectCore()
         {
-            if (_connectionProposal is { IsConnected: false })
-                return _connectionProposal;
-
             var activeChain = AppKit.NetworkController.ActiveChain;
-            var sortedChains = activeChain != null ? DappSupportedChains.OrderByDescending(chainEntry => chainEntry.ChainId == activeChain.ChainId) : DappSupportedChains;
+            var sortedChains = activeChain != null
+                ? DappSupportedChains.OrderByDescending(chainEntry => chainEntry.ChainId == activeChain.ChainId)
+                : DappSupportedChains;
+            
             var connectOptions = new ConnectOptions
             {
                 OptionalNamespaces = sortedChains
@@ -127,38 +160,13 @@ namespace Reown.AppKit.Unity
                         group => group.Key,
                         group => new ProposedNamespace
                         {
-                            Methods = new[]
-                            {
-                                "eth_accounts",
-                                "eth_requestAccounts",
-                                "eth_sendRawTransaction",
-                                "eth_sign",
-                                "eth_signTransaction",
-                                "eth_signTypedData",
-                                "eth_signTypedData_v3",
-                                "eth_signTypedData_v4",
-                                "eth_sendTransaction",
-                                "personal_sign",
-                                "wallet_switchEthereumChain",
-                                "wallet_addEthereumChain",
-                                "wallet_getPermissions",
-                                "wallet_requestPermissions",
-                                "wallet_registerOnboarding",
-                                "wallet_watchAsset",
-                                "wallet_scanQRCode"
-                            },
+                            Methods = _supportedMethods,
                             Chains = group.Select(chainEntry => chainEntry.ChainId).ToArray(),
-                            Events = new[]
-                            {
-                                "chainChanged",
-                                "accountsChanged",
-                                "message",
-                                "disconnect",
-                                "connect"
-                            }
+                            Events = _supportedEvents
                         }
                     )
             };
+            
             _connectionProposal = new WalletConnectConnectionProposal(this, _signClient, connectOptions, AppKit.SiweController);
             return _connectionProposal;
         }
@@ -282,14 +290,13 @@ namespace Reown.AppKit.Unity
 
         protected override Task<Account[]> GetAccountsAsyncCore()
         {
-            var caipAddresses = _signClient.AddressProvider.AllAccounts();
-            return Task.FromResult(caipAddresses.Select(caip25Address => new Account(caip25Address.Address, caip25Address.ChainId)).ToArray());
+            var accounts = _signClient.AddressProvider.AllAccounts();
+            return Task.FromResult(accounts.ToArray());
         }
 
-        private Account GetCurrentAccount()
+        protected virtual Account GetCurrentAccount()
         {
-            var caipAddress = _signClient.AddressProvider.CurrentAccount();
-            return new Account(caipAddress.Address, caipAddress.ChainId);
+            return _signClient.AddressProvider.CurrentAccount();
         }
 
         private bool ActiveSessionSupportsMethod(string method)

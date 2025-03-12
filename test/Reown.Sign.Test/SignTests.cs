@@ -437,6 +437,8 @@ public class SignTests : IAsyncLifetime
     
             return Task.CompletedTask;
         };
+
+        _dapp.Engine.SessionRequestSent += (sender, @event) => Assert.Equal(@event.Topic, sessionData.Topic);
     
         // 2. Send the request from the dapp client
         var responseReturned = await _dapp.Engine.Request<TestRequest, TestResponse>(sessionData.Topic, testData);
@@ -1096,5 +1098,103 @@ public class SignTests : IAsyncLifetime
         await _dapp.Disconnect();
     
         Assert.False(_dapp.AddressProvider.HasDefaultSession);
+    }
+
+    [Fact]
+    [Trait("Category", "integration")]
+    public async Task TestSessionRequestError()
+    {
+        const string testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
+        const string testMethod = "test_method";
+
+        var dappConnectOptions = new ConnectOptions()
+        {
+            RequiredNamespaces = new RequiredNamespaces()
+            {
+                {
+                    "eip155", new ProposedNamespace()
+                    {
+                        Methods = new[]
+                        {
+                            testMethod
+                        },
+                        Chains = new[]
+                        {
+                            "eip155:1",
+                            "eip155:10"
+                        },
+                        Events = new[]
+                        {
+                            "chainChanged",
+                            "accountsChanged"
+                        }
+                    }
+                }
+            }
+        };
+
+        var connectData = await _dapp.Connect(dappConnectOptions);
+
+        var tcs = new TaskCompletionSource();
+        _wallet.SessionProposed += async (sender, @event) =>
+        {
+            var id = @event.Id;
+
+            var approvedNamespaces = new Namespaces(@event.Proposal.RequiredNamespaces);
+            approvedNamespaces["eip155"]
+                .WithAccount($"eip155:1:{testAddress}")
+                .WithAccount($"eip155:10:{testAddress}");
+
+            var approveParams = new ApproveParams
+            {
+                Id = id,
+                Namespaces = approvedNamespaces
+            };
+
+            var approveData = await _wallet.Approve(approveParams);
+            await approveData.Acknowledged();
+
+            tcs.SetResult();
+        };
+
+        _ = await _wallet.Pair(connectData.Uri);
+
+        await tcs.Task;
+
+        var sessionData = await connectData.Approval;
+
+        var testData = new TestRequest()
+        {
+            a = -1, // Invalid input that should trigger an error
+            b = -1
+        };
+
+        // The wallet client will respond with an error for invalid input
+        _wallet.Engine.SessionRequestEvents<TestRequest, TestResponse>()
+            .OnRequest += (requestData) =>
+        {
+            var request = requestData.Request;
+            var data = request.Params;
+
+            if (data.a < 0 || data.b < 0)
+            {
+                requestData.Error = Error.FromErrorType(ErrorType.GENERIC, "Negative numbers are not allowed");
+                return Task.CompletedTask;
+            }
+
+            requestData.Response = new TestResponse()
+            {
+                result = data.a * data.b
+            };
+
+            return Task.CompletedTask;
+        };
+
+        // Verify that the request throws an exception with the expected error
+        var exception = await Assert.ThrowsAsync<ReownNetworkException>(
+            () => _dapp.Engine.Request<TestRequest, TestResponse>(sessionData.Topic, testData)
+        );
+
+        Assert.Equal(ErrorType.GENERIC, exception.CodeType);
     }
 }

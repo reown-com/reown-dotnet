@@ -55,7 +55,6 @@ namespace Reown.AppKit.Unity
         {
             try
             {
-                Debug.Log($"Send Event {@event.name}. State: {_state.ToString()}");
                 if (_state == AnalyticsState.Disabled)
                     return;
 
@@ -70,9 +69,7 @@ namespace Reown.AppKit.Unity
                 };
 
                 var requestJson = JsonConvert.SerializeObject(request);
-
-                ReownLogger.Log($"[EventsController] Sending event: {@event.name}.\n\nRequest payload:\n {requestJson}");
-
+                
                 await _httpClient.PostAsync("e", requestJson);
             }
             catch (Exception e)

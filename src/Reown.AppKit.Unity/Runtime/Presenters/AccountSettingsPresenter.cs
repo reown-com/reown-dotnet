@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Reown.AppKit.Unity.Components;
+using Reown.AppKit.Unity.Profile;
 using Reown.AppKit.Unity.Utils;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity
 {
-    public class AccountPresenter : Presenter<AccountView>
+    public class AccountSettingsPresenter : Presenter<AccountSettingsView>
     {
         public override bool HeaderBorder
         {
@@ -21,16 +22,17 @@ namespace Reown.AppKit.Unity
 
         private bool _disposed;
         private ListItem _networkButton;
+        private ListItem _smartAccountButton;
         private RemoteSprite<Image> _networkIcon;
         private RemoteSprite<Image> _avatar;
 
-        public AccountPresenter(RouterController router, VisualElement parent) : base(router, parent)
+        private ProfileConnector _profileConnector;
+
+        public AccountSettingsPresenter(RouterController router, VisualElement parent) : base(router, parent)
         {
             View.ExplorerButton.Clicked += OnBlockExplorerButtonClick;
             View.CopyLink.Clicked += OnCopyAddressButtonClick;
-
-            InitializeButtons(View.Buttons);
-
+            
             AppKit.AccountController.PropertyChanged += AccountPropertyChangedHandler;
             AppKit.NetworkController.ChainChanged += ChainChangedHandler;
         }
@@ -51,11 +53,11 @@ namespace Reown.AppKit.Unity
                 case nameof(AccountController.ProfileAvatar):
                     UpdateProfileAvatar();
                     break;
-                case nameof(AccountController.Balance):
-                    View.SetBalance(TrimToThreeDecimalPlaces(AppKit.AccountController.Balance));
+                case nameof(AccountController.NativeTokenBalance):
+                    View.SetBalance(TrimToThreeDecimalPlaces(AppKit.AccountController.NativeTokenBalance));
                     break;
-                case nameof(AccountController.BalanceSymbol):
-                    View.SetBalanceSymbol(AppKit.AccountController.BalanceSymbol);
+                case nameof(AccountController.NativeTokenSymbol):
+                    View.SetBalanceSymbol(AppKit.AccountController.NativeTokenSymbol);
                     break;
             }
         }
@@ -69,7 +71,25 @@ namespace Reown.AppKit.Unity
         protected virtual void CreateButtons(VisualElement buttonsListView)
         {
             CreateNetworkButton(buttonsListView);
+            CreateSmartAccountToggleButton(buttonsListView);
             CreateDisconnectButton(buttonsListView);
+        }
+
+        protected virtual void CreateSmartAccountToggleButton(VisualElement buttonsListView)
+        {
+            if (AppKit.ConnectorController.ActiveConnector is not ProfileConnector)
+                return;
+
+            _profileConnector = (ProfileConnector)AppKit.ConnectorController.ActiveConnector;
+
+            var anotherAccountType = _profileConnector.PreferredAccountType == AccountType.SmartAccount
+                ? AccountType.Eoa.ToFriendlyString()
+                : AccountType.SmartAccount.ToFriendlyString();
+
+            var icon = Resources.Load<VectorImage>("Reown/AppKit/Icons/icon_bold_swaphorizontal");
+            _smartAccountButton = new ListItem($"Switch to your {anotherAccountType}", OnSmartAccountButtonClick, icon, ListItem.IconType.Circle, ListItem.IconStyle.Default);
+            Buttons.Add(_smartAccountButton);
+            buttonsListView.Add(_smartAccountButton);
         }
 
         protected virtual void CreateNetworkButton(VisualElement buttonsListView)
@@ -88,7 +108,7 @@ namespace Reown.AppKit.Unity
         protected virtual void CreateDisconnectButton(VisualElement buttonsListView)
         {
             var disconnectIcon = Resources.Load<VectorImage>("Reown/AppKit/Icons/icon_medium_disconnect");
-            var disconnectButton = new ListItem("Disconnect", OnDisconnectButtonClick, disconnectIcon, ListItem.IconType.Circle, ListItem.IconStyle.Accent);
+            var disconnectButton = new ListItem("Disconnect", OnDisconnectButtonClick, disconnectIcon, ListItem.IconType.Circle, ListItem.IconStyle.Default);
             Buttons.Add(disconnectButton);
             buttonsListView.Add(disconnectButton);
         }
@@ -124,11 +144,16 @@ namespace Reown.AppKit.Unity
         protected override void OnVisibleCore()
         {
             base.OnVisibleCore();
+            View.Buttons.Clear();
+            InitializeButtons(View.Buttons);
             UpdateNetworkButton(AppKit.NetworkController.ActiveChain);
         }
 
         private void UpdateNetworkButton(Chain chain)
         {
+            if (_networkButton == null)
+                return;
+            
             if (chain == null)
             {
                 _networkButton.Label = "Network";
@@ -147,7 +172,7 @@ namespace Reown.AppKit.Unity
             _networkIcon.SubscribeImage(_networkButton.IconImageElement);
             _networkButton.IconImageElement.style.display = DisplayStyle.Flex;
             _networkButton.IconFallbackElement.style.display = DisplayStyle.None;
-            _networkButton.ApplyIconStyle(ListItem.IconStyle.Default);
+            _networkButton.ApplyIconStyle(ListItem.IconStyle.None);
         }
 
         protected virtual async void OnDisconnectButtonClick()
@@ -165,6 +190,30 @@ namespace Reown.AppKit.Unity
             {
                 ButtonsSetEnabled(true);
             }
+        }
+
+        private void OnSmartAccountButtonClick()
+        {
+            var currentAccountType = _profileConnector.PreferredAccountType;
+            var newAccountType = currentAccountType == AccountType.SmartAccount
+                ? AccountType.Eoa
+                : AccountType.SmartAccount;
+
+            _profileConnector.SetPreferredAccount(newAccountType);
+
+            _smartAccountButton.Label = $"Switch to your {currentAccountType.ToFriendlyString()}";
+
+            AppKit.NotificationController.Notify(NotificationType.Success, $"Switched to {newAccountType.ToFriendlyString()}");
+
+            AppKit.EventsController.SendEvent(new Event
+            {
+                name = "SET_PREFERRED_ACCOUNT_TYPE",
+                properties = new Dictionary<string, object>
+                {
+                    { "network", AppKit.NetworkController.ActiveChain.Name.ToLowerInvariant() },
+                    { "accountType", newAccountType.ToShortString() }
+                }
+            });
         }
 
         protected virtual void OnNetworkButtonClick()
@@ -198,15 +247,9 @@ namespace Reown.AppKit.Unity
                 button.SetEnabled(value);
         }
 
-        public static string TrimToThreeDecimalPlaces(string input)
+        public static string TrimToThreeDecimalPlaces(float input)
         {
-            if (string.IsNullOrWhiteSpace(input))
-                return input;
-
-            var dotIndex = input.IndexOf('.');
-            if (dotIndex == -1 || input.Length <= dotIndex + 4)
-                return input;
-            return input[..(dotIndex + 4)];
+            return input.ToString("F3");
         }
 
         protected override void Dispose(bool disposing)

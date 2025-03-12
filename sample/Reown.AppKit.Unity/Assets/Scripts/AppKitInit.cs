@@ -8,6 +8,7 @@ using UnityLogger = Reown.Sign.Unity.UnityLogger;
 
 #if !UNITY_WEBGL
 using mixpanel;
+using Sentry;
 #endif
 
 namespace Sample
@@ -22,20 +23,23 @@ namespace Sample
             ReownLogger.Instance = new UnityLogger();
 
             // The very basic configuration of SIWE
-            var siweConfig = new SiweConfig
-            {
-                GetMessageParams = () => new SiweMessageParams
-                {
-                    Domain = "example.com",
-                    Uri = "https://example.com/login"
-                },
-                SignOutOnChainChange = false
-            };
+            // Uncomment it and pass into AppKitConfig below to enable 1-Click Auth and SIWE
+            
+            // var siweConfig = new SiweConfig
+            // {
+            //     GetMessageParams = () => new SiweMessageParams
+            //     {
+            //         Domain = "example.com",
+            //         Uri = "https://example.com/login"
+            //     },
+            //     SignOutOnChainChange = false
+            // };
+            //
+            // // Subscribe to SIWE events
+            // siweConfig.SignInSuccess += _ => Debug.Log("[Dapp] SIWE Sign In Success!");
+            // siweConfig.SignOutSuccess += () => Debug.Log("[Dapp] SIWE Sign Out Success!");
 
-            // Subscribe to SIWE events
-            siweConfig.SignInSuccess += _ => Debug.Log("[Dapp] SIWE Sign In Success!");
-            siweConfig.SignOutSuccess += () => Debug.Log("[Dapp] SIWE Sign Out Success!");
-
+            
             // AppKit configuration
             var appKitConfig = new AppKitConfig
             {
@@ -55,8 +59,24 @@ namespace Sample
                 customWallets = GetCustomWallets(),
                 // On mobile show 5 wallets on the Connect view (the first AppKit modal screen)
                 connectViewWalletsCountMobile = 5,
-                // Assign the SIWE configuration created above. Can be null if SIWE is not used.
-                siweConfig = siweConfig
+                supportedChains = new[]
+                {
+                    ChainConstants.Chains.Ethereum,
+                    ChainConstants.Chains.Optimism,
+                    ChainConstants.Chains.Arbitrum,
+                    ChainConstants.Chains.Ronin,
+                    ChainConstants.Chains.Avalanche,
+                    ChainConstants.Chains.Base,
+                    ChainConstants.Chains.Polygon
+                },
+                socials = new[]
+                {
+                    SocialLogin.Google,
+                    SocialLogin.X,
+                    SocialLogin.Discord,
+                    SocialLogin.Apple,
+                    SocialLogin.GitHub
+                }
             };
 
             Debug.Log("[AppKit Init] Initializing AppKit...");
@@ -66,9 +86,17 @@ namespace Sample
             );
             
 #if !UNITY_WEBGL
-            // The Mixpanel is used by the sample project to collect telemetry
+            // The Mixpanel are Sentry are used by the sample project to collect telemetry
             var clientId = await AppKit.Instance.SignClient.CoreClient.Crypto.GetClientId();
             Mixpanel.Identify(clientId);
+
+            SentrySdk.ConfigureScope(scope =>
+            {
+                scope.User = new SentryUser
+                {
+                    Id = clientId
+                };
+            });
 #endif
 
             Debug.Log($"[AppKit Init] AppKit initialized. Loading menu scene...");
@@ -88,19 +116,19 @@ namespace Sample
                 new Wallet
                 {
                     Name = "Swift Wallet",
-                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/main/media/walletkit-icon.png",
+                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-swift.png?raw=true",
                     MobileLink = "walletapp://"
                 },
                 new Wallet
                 {
                     Name = "React Native Wallet",
-                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/main/media/walletkit-icon.png",
+                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-rn.png?raw=true",
                     MobileLink = "rn-web3wallet://"
                 },
                 new Wallet
                 {
                     Name = "Flutter Wallet Prod",
-                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/main/media/walletkit-icon.png",
+                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-flutter.png?raw=true",
                     MobileLink = "wcflutterwallet://"
                 }
             };
@@ -112,19 +140,19 @@ namespace Sample
                 new Wallet
                 {
                     Name = "Kotlin Wallet",
-                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/main/media/walletkit-icon.png",
+                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-kotlin.png?raw=true",
                     MobileLink = "kotlin-web3wallet://"
                 },
                 new Wallet
                 {
                     Name = "React Native Wallet",
-                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/main/media/walletkit-icon.png",
+                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-rn.png?raw=true",
                     MobileLink = "rn-web3wallet://"
                 },
                 new Wallet
                 {
                     Name = "Flutter Wallet Prod",
-                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/main/media/walletkit-icon.png",
+                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-flutter.png?raw=true",
                     MobileLink = "wcflutterwallet://"
                 }
             };

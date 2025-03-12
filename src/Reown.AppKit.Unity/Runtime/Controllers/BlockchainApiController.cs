@@ -40,13 +40,10 @@ namespace Reown.AppKit.Unity
 
             var path = $"identity/{address}?projectId={projectId}";
 
-            if (string.IsNullOrWhiteSpace(_clientIdQueryParam))
+            if (string.IsNullOrWhiteSpace(_clientIdQueryParam) && _signClient != null)
             {
-                if (_signClient != null)
-                {
-                    var rawClientId = await _signClient.CoreClient.Crypto.GetClientId();
-                    _clientIdQueryParam = $"&clientId={Uri.EscapeDataString(rawClientId)}";
-                }
+                var rawClientId = await _signClient.CoreClient.Crypto.GetClientId();
+                _clientIdQueryParam = $"&clientId={Uri.EscapeDataString(rawClientId)}";
             }
 
             if (!string.IsNullOrWhiteSpace(_clientIdQueryParam))
@@ -61,7 +58,10 @@ namespace Reown.AppKit.Unity
                 throw new ArgumentNullException(nameof(address));
 
             var projectId = AppKit.Config.projectId;
-            return await _httpClient.GetAsync<GetBalanceResponse>($"account/{address}/balance?projectId={projectId}&currency=usd", headers: _getBalanceHeaders);
+            var chainId = AppKit.NetworkController.ActiveChain.ChainId;
+            var path = $"account/{address}/balance?projectId={projectId}&currency=usd&chainId={chainId}";
+            var result = await _httpClient.GetAsync<GetBalanceResponse>(path, headers: _getBalanceHeaders);
+            return result;
         }
     }
 }

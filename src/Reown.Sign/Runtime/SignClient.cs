@@ -190,6 +190,7 @@ namespace Reown.Sign
         public event EventHandler<Session> SessionApproved;
         public event EventHandler<PairingEvent> PairingPinged;
         public event EventHandler<PairingEvent> PairingDeleted;
+        public event EventHandler<SessionRequestEvent> SessionRequestSent; 
 
         /// <summary>
         ///     Create a new <see cref="SignClient" /> instance with the given <see cref="SignClientOptions" />
@@ -527,6 +528,7 @@ namespace Reown.Sign
             Engine.SessionUpdated += (sender, @event) => SessionUpdated?.Invoke(sender, @event);
             Engine.PairingDeleted += (sender, @event) => PairingDeleted?.Invoke(sender, @event);
             Engine.PairingPinged += (sender, @event) => PairingPinged?.Invoke(sender, @event);
+            Engine.SessionRequestSent += (sender, @event) => SessionRequestSent?.Invoke(sender, @event);
         }
 
         protected async Task Initialize()

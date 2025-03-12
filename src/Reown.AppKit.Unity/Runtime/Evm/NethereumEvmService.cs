@@ -142,16 +142,16 @@ namespace Reown.AppKit.Unity
 
         // -- Sign Message ---------------------------------------------
 
-        protected override async Task<string> SignMessageAsyncCore(string message)
+        protected override async Task<string> SignMessageAsyncCore(string message, string address)
         {
             var encodedMessage = message.ToHexUTF8();
-            return await Web3.Client.SendRequestAsync<string>("personal_sign", null, encodedMessage);
+            return await Web3.Client.SendRequestAsync<string>("personal_sign", null, encodedMessage, address);
         }
 
-        protected override Task<string> SignMessageAsyncCore(byte[] rawMessage)
+        protected override Task<string> SignMessageAsyncCore(byte[] rawMessage, string address)
         {
             var encodedMessage = rawMessage.ToHex(true);
-            return Web3.Client.SendRequestAsync<string>("personal_sign", null, encodedMessage);
+            return Web3.Client.SendRequestAsync<string>("personal_sign", null, encodedMessage, address);
         }
 
 
@@ -159,22 +159,30 @@ namespace Reown.AppKit.Unity
 
         protected override async Task<bool> VerifyMessageSignatureAsyncCore(string address, string message, string signature)
         {
-
-            // -- ERC-6492
-            var erc6492Service = Web3.Eth.SignatureValidationPredeployContractERC6492;
-            if (erc6492Service.IsERC6492Signature(signature))
-            {
-                return await erc6492Service.IsValidSignatureMessageAsync(address, message, signature.HexToByteArray());
-            }
-
-            // -- EOA
+            Debug.Log($"[EVM] Verifying signature with EIP-191");
+            // -- EIP-191
             var recoveredAddress = _ethereumMessageSigner.EncodeUTF8AndEcRecover(message, signature);
+            Debug.Log($"[EVM] EIP-191 signature valid: {recoveredAddress.IsTheSameAddress(address)}\nRecovered address: {recoveredAddress}\nCurrent address:{address}");
             if (recoveredAddress.IsTheSameAddress(address))
             {
                 return true;
             }
 
+            // -- ERC-6492
+            Debug.Log($"[EVM] Verifying signature with ERC-6492");
+            var erc6492Service = Web3.Eth.SignatureValidationPredeployContractERC6492;
+            if (erc6492Service.IsERC6492Signature(signature))
+            {
+                Debug.Log($"[EVM] Preparing ERC-6492 request....");
+                return await erc6492Service.IsValidSignatureMessageAsync(address, message, signature.HexToByteArray());
+            }
+            else
+            {
+                Debug.Log($"[EVM] The signature is NOT ERC-6492");
+            }
+
             // -- ERC-1271
+            Debug.Log($"[EVM] Verifying signature with ERC-1271");
             var ethGetCode = await Web3.Eth.GetCode.SendRequestAsync(address);
             if (ethGetCode is { Length: > 2 })
             {
@@ -190,6 +198,7 @@ namespace Reown.AppKit.Unity
 
                 try
                 {
+                    Debug.Log($"[EVM] Preparing ERC-1271 request....");
                     var result = await handler.QueryAsync<byte[]>(address, isValidSignatureFunctionMessage);
 
                     // The magic value 0x1626ba7e
@@ -212,6 +221,10 @@ namespace Reown.AppKit.Unity
                     Debug.LogException(ex);
                     return false;
                 }
+            }
+            else
+            {
+                Debug.Log($"[EVM] ERC-1271 verification failed because smart contract hasn't been found at {address}");
             }
 
             return false;
