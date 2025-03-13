@@ -74,6 +74,7 @@ mergeInto(LibraryManager.library, {
         import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.6.8/dist/appkit.js").then(AppKit => {
             const WagmiCore = AppKit['WagmiCore'];
             const WagmiAdapter = AppKit['WagmiAdapter'];
+            const Viem = AppKit['Viem'];
             const Chains = AppKit['networks'];
             const reconnect = WagmiCore['reconnect'];
             const createAppKit = AppKit['createAppKit'];
@@ -104,7 +105,8 @@ mergeInto(LibraryManager.library, {
             _appKitConfig = {
                 config: wagmiAdapter.wagmiConfig,
                 modal: modal,
-                wagmiCore: WagmiCore
+                wagmiCore: WagmiCore,
+                viem: Viem,
             };
 
             // Insert the container into the DOM at the canvas's original position
@@ -174,6 +176,14 @@ mergeInto(LibraryManager.library, {
     WagmiCall: async function (id, methodNameStrPtr, parameterStrPtr, callbackPtr) {
         const callFn = async (appKitConfig, methodName, parameterObj) => {
             return await appKitConfig.wagmiCore[methodName](appKitConfig.config, parameterObj);
+        };
+        await ExecuteCall(callFn, id, methodNameStrPtr, parameterStrPtr, callbackPtr);
+    },
+    
+    ViemCall__deps: ['$ExecuteCall'],
+    ViemCall: async function (id, methodNameStrPtr, parameterStrPtr, callbackPtr) {
+        const callFn = async (appKitConfig, methodName, parameterObj) => {
+            return await appKitConfig.viem[methodName](parameterObj);
         };
         await ExecuteCall(callFn, id, methodNameStrPtr, parameterStrPtr, callbackPtr);
     },

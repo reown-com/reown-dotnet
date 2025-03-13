@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AOT;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Reown.AppKit.Unity.WebGl.Viem;
 using UnityEngine;
 
 namespace Reown.AppKit.Unity.WebGl.Wagmi
@@ -57,6 +58,27 @@ namespace Reown.AppKit.Unity.WebGl.Wagmi
         public static void WatchChainIdCallback(int chainId)
         {
             WatchChainIdTriggered?.Invoke(chainId);
+        }
+
+        private static async ValueTask<AbiItem[]> ParseAbiAsync(string abiStr)
+        {
+            AbiItem[] abi;
+
+            try
+            {
+                abi = JsonConvert.DeserializeObject<AbiItem[]>(abiStr);
+            }
+            catch (JsonReaderException e)
+            {
+                // If the ABI is not valid JSON, assume it's a human-readable ABI and try to parse it
+                var abiJson = await ViemInterop.ParseAbiAsync(abiStr);
+                if (abiJson == null)
+                    throw new InvalidOperationException($"Failed to parse ABI: {e.Message}");
+
+                abi = JsonConvert.DeserializeObject<AbiItem[]>(abiJson);
+            }
+
+            return abi;
         }
 
         
@@ -191,17 +213,19 @@ namespace Reown.AppKit.Unity.WebGl.Wagmi
         
         // -- Read Contract -------------------------------------------
 
-        public static Task<TReturn> ReadContractAsync<TReturn>(string contractAddress, string contractAbi, string method, object[] arguments = null)
+        public static async Task<TReturn> ReadContractAsync<TReturn>(string contractAddress, string contractAbi, string method, object[] arguments = null)
         {
+            var abi = await ParseAbiAsync(contractAbi);
+            
             var parameter = new ReadContractParameter
             {
                 address = contractAddress,
-                abi = JsonConvert.DeserializeObject<AbiItem[]>(contractAbi),
+                abi = abi,
                 functionName = method,
                 args = arguments
             };
 
-            return ReadContractAsync<TReturn>(parameter);
+            return await ReadContractAsync<TReturn>(parameter);
         }
 
         public static Task<TReturn> ReadContractAsync<TReturn>(ReadContractParameter parameter)
@@ -211,20 +235,22 @@ namespace Reown.AppKit.Unity.WebGl.Wagmi
         
         
         // -- Write Contract ------------------------------------------
-        
-        public static Task<string> WriteContractAsync(string contractAddress, string contractAbi, string method, string value = null, string gas = null, params object[] arguments)
+
+        public static async Task<string> WriteContractAsync(string contractAddress, string contractAbi, string method, string value = null, string gas = null, params object[] arguments)
         {
+            var abi = await ParseAbiAsync(contractAbi);
+            
             var parameter = new WriteContractParameter
             {
                 address = contractAddress,
-                abi = JsonConvert.DeserializeObject<AbiItem[]>(contractAbi),
+                abi = abi,
                 functionName = method,
                 args = arguments,
                 value = value,
                 gas = gas
             };
 
-            return WriteContractAsync(parameter);
+            return await WriteContractAsync(parameter);
         }
         
         public static Task<string> WriteContractAsync(WriteContractParameter parameter)
