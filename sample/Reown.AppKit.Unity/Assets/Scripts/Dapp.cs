@@ -6,7 +6,6 @@ using Nethereum.JsonRpc.Client;
 using Nethereum.Web3;
 using Reown.AppKit.Unity;
 using Reown.AppKit.Unity.Profile;
-using Reown.AppKit.Unity.WebGl.Viem;
 using Reown.Core;
 using Reown.Core.Common.Model.Errors;
 using UnityEngine;
