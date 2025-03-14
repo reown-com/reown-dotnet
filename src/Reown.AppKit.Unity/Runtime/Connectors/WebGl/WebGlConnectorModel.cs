@@ -17,6 +17,7 @@ namespace Reown.AppKit.Unity
         public bool enableOnramp;
         public bool enableAnalytics;
         public bool enableCoinbaseWallet;
+        public string[] socials;
     }
 
     [Serializable]

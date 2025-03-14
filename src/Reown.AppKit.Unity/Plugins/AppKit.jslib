@@ -69,9 +69,10 @@ mergeInto(LibraryManager.library, {
         const enableEmail = parameters.enableEmail;
         const enableOnramp = parameters.enableOnramp;
         const enableAnalytics = parameters.enableAnalytics;
+        const socials = parameters.socials;
 
         // Load the scripts and initialize the configuration
-        import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.6.8/dist/appkit.js").then(AppKit => {
+        import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.7.0/dist/appkit.js").then(async (AppKit) => {
             const WagmiCore = AppKit['WagmiCore'];
             const WagmiAdapter = AppKit['WagmiAdapter'];
             const Viem = AppKit['Viem'];
@@ -91,15 +92,16 @@ mergeInto(LibraryManager.library, {
                 networks: networks,
                 metadata: metadata,
                 projectId,
+                isUnity: true,
                 features: {
                     email: enableEmail,
                     analytics: enableAnalytics,
                     onramp: enableOnramp,
-                    socials: []
+                    socials: socials
                 }
             })
 
-            reconnect(wagmiAdapter.wagmiConfig);
+            await reconnect(wagmiAdapter.wagmiConfig);
 
             // Store the configuration and modal globally
             _appKitConfig = {
