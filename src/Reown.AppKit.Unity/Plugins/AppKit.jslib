@@ -69,11 +69,13 @@ mergeInto(LibraryManager.library, {
         const enableEmail = parameters.enableEmail;
         const enableOnramp = parameters.enableOnramp;
         const enableAnalytics = parameters.enableAnalytics;
+        const socials = parameters.socials;
 
         // Load the scripts and initialize the configuration
-        import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.6.8/dist/appkit.js").then(AppKit => {
+        import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.7.0/dist/appkit.js").then(async (AppKit) => {
             const WagmiCore = AppKit['WagmiCore'];
             const WagmiAdapter = AppKit['WagmiAdapter'];
+            const Viem = AppKit['Viem'];
             const Chains = AppKit['networks'];
             const reconnect = WagmiCore['reconnect'];
             const createAppKit = AppKit['createAppKit'];
@@ -90,21 +92,23 @@ mergeInto(LibraryManager.library, {
                 networks: networks,
                 metadata: metadata,
                 projectId,
+                isUnity: true,
                 features: {
                     email: enableEmail,
                     analytics: enableAnalytics,
                     onramp: enableOnramp,
-                    socials: []
+                    socials: socials
                 }
             })
 
-            reconnect(wagmiAdapter.wagmiConfig);
+            await reconnect(wagmiAdapter.wagmiConfig);
 
             // Store the configuration and modal globally
             _appKitConfig = {
                 config: wagmiAdapter.wagmiConfig,
                 modal: modal,
-                wagmiCore: WagmiCore
+                wagmiCore: WagmiCore,
+                viem: Viem,
             };
 
             // Insert the container into the DOM at the canvas's original position
@@ -174,6 +178,14 @@ mergeInto(LibraryManager.library, {
     WagmiCall: async function (id, methodNameStrPtr, parameterStrPtr, callbackPtr) {
         const callFn = async (appKitConfig, methodName, parameterObj) => {
             return await appKitConfig.wagmiCore[methodName](appKitConfig.config, parameterObj);
+        };
+        await ExecuteCall(callFn, id, methodNameStrPtr, parameterStrPtr, callbackPtr);
+    },
+    
+    ViemCall__deps: ['$ExecuteCall'],
+    ViemCall: async function (id, methodNameStrPtr, parameterStrPtr, callbackPtr) {
+        const callFn = async (appKitConfig, methodName, parameterObj) => {
+            return await appKitConfig.viem[methodName](parameterObj);
         };
         await ExecuteCall(callFn, id, methodNameStrPtr, parameterStrPtr, callbackPtr);
     },

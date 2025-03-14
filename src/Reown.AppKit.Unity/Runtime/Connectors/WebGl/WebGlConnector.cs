@@ -42,11 +42,11 @@ namespace Reown.AppKit.Unity
                 includeWalletIds = appKitConfig.includedWalletIds ?? Array.Empty<string>(),
                 excludeWalletIds = appKitConfig.excludedWalletIds ?? Array.Empty<string>(),
 
-
                 enableEmail = appKitConfig.enableEmail,
                 enableOnramp = appKitConfig.enableOnramp,
                 enableAnalytics = appKitConfig.enableAnalytics,
-                enableCoinbaseWallet = appKitConfig.enableCoinbaseWallet
+                enableCoinbaseWallet = appKitConfig.enableCoinbaseWallet,
+                socials = appKitConfig.socials?.Any() == true ? appKitConfig.socials.Select(x => x.Slug).ToArray() : null
             };
 
             var parametersJson = JsonConvert.SerializeObject(parameters);
@@ -158,7 +158,7 @@ namespace Reown.AppKit.Unity
 
         private void WatchChainIdTriggeredHandler(int ethChainId)
         {
-            if (ethChainId == default)
+            if (ethChainId == 0)
                 return;
 
             var chainId = $"eip155:{ethChainId}";

@@ -83,7 +83,7 @@ namespace Sample
                     // AccountRequired = true,
                     ChainIds = new HashSet<string>
                     {
-                        "eip155:1"
+                        "eip155:10"
                     }
                 },
                 new ButtonStruct
@@ -156,11 +156,13 @@ namespace Sample
                     }
                 };
 
-                AppKit.AccountConnected += async (_, e) => RefreshButtons();
+                AppKit.AccountConnected += (_, e) => RefreshButtons();
 
                 AppKit.AccountDisconnected += (_, _) => RefreshButtons();
 
                 AppKit.AccountChanged += (_, e) => RefreshButtons();
+
+                AppKit.NetworkController.ChainChanged += (_, e) => RefreshButtons();
 
                 // After the scene and UI are loaded, try to resume the session from the storage
                 var sessionResumed = await AppKit.ConnectorController.TryResumeSessionAsync();
@@ -222,7 +224,9 @@ namespace Sample
 
                 Notification.ShowMessage($"Signing message:\n\n{message}");
 
-                await System.Threading.Tasks.Task.Delay(1_000);
+#if !UNITY_WEBGL || !UNITY_EDITOR
+                // await System.Threading.Tasks.Task.Delay(1_000);
+#endif
 
                 // It's also possible to sign a message as a byte array
                 // var messageBytes = System.Text.Encoding.UTF8.GetBytes(message);
@@ -344,28 +348,22 @@ namespace Sample
 
         public async void OnReadContractClicked()
         {
-            // if (AppKit.NetworkController.ActiveChain.ChainId != "eip155:1")
-            // {
-            //     Notification.ShowMessage("Please switch to Ethereum mainnet.");
-            //     return;
-            // }
+            // An example of reading a smart contract state.
+            // This example uses the WCT staking contract on the Optimism Mainnet
 
-            const string contractAddress = "0x64b88c73A5DfA78D1713fE1b4c69a22d7E0faAa7";
-            const string yugaLabsAddress = "0xA858DDc0445d8131daC4d1DE01f834ffcbA52Ef1";
-            const string abi = CryptoPunksAbi;
+            const string contractAddress = "0x521B4C065Bbdbe3E20B3727340730936912DfA46";
+
+            // Can be JSON or human-readable ABI that includes only the function you want to call.
+            // It's recommended to use JSON ABI for better performance.
+            const string abi = "function supply() view returns (uint256)";
 
             Notification.ShowMessage("Reading smart contract state...");
 
             try
             {
-                var tokenName = await AppKit.Evm.ReadContractAsync<string>(contractAddress, abi, "name");
-                Debug.Log($"Token name: {tokenName}");
-
-                var balance = await AppKit.Evm.ReadContractAsync<BigInteger>(contractAddress, abi, "balanceOf", new object[]
-                {
-                    yugaLabsAddress
-                });
-                var result = $"Yuga Labs owns: {balance} {tokenName} tokens at active chain.";
+                var staked = await AppKit.Evm.ReadContractAsync<BigInteger>(contractAddress, abi, "supply");
+                var stakedFormated = Web3.Convert.FromWei(staked); // WCT token has 18 decimals
+                var result = $"Total Tokens Staked:\n{stakedFormated:N0} WCT";
 
                 Notification.ShowMessage(result);
             }
