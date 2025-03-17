@@ -4,29 +4,30 @@ using System.Threading.Tasks;
 using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Model;
 using Reown.AppKit.Unity.Utils;
+using Reown.AppKit.Unity.Views.ConnectView;
 using UnityEngine;
 using UnityEngine.UIElements;
 using DeviceType = Reown.AppKit.Unity.Utils.DeviceType;
 
 namespace Reown.AppKit.Unity
 {
-    public class ConnectPresenter : Presenter<VisualElement>
+    public class ConnectPresenter : Presenter<ConnectView>
     {
         private bool _disposed;
 
         public override string Title
         {
-            get => "Connect wallet";
+            get => "Connect";
         }
 
         public ConnectPresenter(RouterController router, VisualElement parent) : base(router, parent)
         {
             Build();
 
-            AppKit.Initialized += Web3ModalInitializedHandler;
+            AppKit.Initialized += InitializedHandler;
         }
 
-        private void Web3ModalInitializedHandler(object sender, EventArgs e)
+        private void InitializedHandler(object sender, EventArgs e)
         {
             AppKit.AccountDisconnected += AccountDisconnectedHandler;
         }
@@ -58,6 +59,7 @@ namespace Reown.AppKit.Unity
 
         protected virtual async Task BuildAsync()
         {
+            CreateProfileLoginButtons();
             CreateWalletConnectButton();
 
             var recentWalletExists = WalletUtils.TryGetRecentWallet(out var recentWallet);
@@ -100,6 +102,17 @@ namespace Reown.AppKit.Unity
 
             var responseCount = response.Count;
             CreateAllWalletsListItem(responseCount);
+        }
+
+        private void CreateProfileLoginButtons()
+        {
+            var socials = AppKit.Config.socials;
+
+            if (socials == null || socials.Length == 0)
+                return;
+
+            var socialButtons = new SocialLoginButtons(socials);
+            View.Add(socialButtons);
         }
 
         protected virtual void CreateWalletConnectButton()
@@ -176,7 +189,7 @@ namespace Reown.AppKit.Unity
 
             if (disposing)
             {
-                AppKit.Initialized -= Web3ModalInitializedHandler;
+                AppKit.Initialized -= InitializedHandler;
                 AppKit.AccountDisconnected -= AccountDisconnectedHandler;
             }
 

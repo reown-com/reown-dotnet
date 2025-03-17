@@ -1,10 +1,12 @@
 using System;
 using System.Linq;
+using System.Numerics;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Reown.Core.Common.Logging;
 using Reown.Core.Common.Model.Errors;
+using Reown.Core.Common.Utils;
 using Reown.Sign.Models;
 using Reown.Sign.Models.Engine;
 using Reown.Sign.Models.Engine.Methods;
@@ -18,6 +20,36 @@ namespace Reown.AppKit.Unity
     {
         private ConnectionProposal _connectionProposal;
         private SignClientUnity _signClient;
+
+        private static readonly string[] _supportedMethods = new[]
+        {
+            "eth_accounts",
+            "eth_requestAccounts",
+            "eth_sendRawTransaction",
+            "eth_sign",
+            "eth_signTransaction",
+            "eth_signTypedData",
+            "eth_signTypedData_v3",
+            "eth_signTypedData_v4",
+            "eth_sendTransaction",
+            "personal_sign",
+            "wallet_switchEthereumChain",
+            "wallet_addEthereumChain",
+            "wallet_getPermissions",
+            "wallet_requestPermissions",
+            "wallet_registerOnboarding",
+            "wallet_watchAsset",
+            "wallet_scanQRCode"
+        };
+
+        private static readonly string[] _supportedEvents = new[]
+        {
+            "chainChanged",
+            "accountsChanged",
+            "message",
+            "disconnect",
+            "connect"
+        };
 
         public WalletConnectConnector()
         {
@@ -45,7 +77,7 @@ namespace Reown.AppKit.Unity
 
         private void ActiveSessionChangedHandler(object sender, Session session)
         {
-            if (session == null)
+            if (session == null || IsAccountConnected)
                 return;
 
             var currentAccount = GetCurrentAccount();
@@ -54,6 +86,9 @@ namespace Reown.AppKit.Unity
 
         private async void ActiveChainIdChangedHandler(object sender, SessionEvent<JToken> sessionEvent)
         {
+            if (!IsAccountConnected)
+                return;
+            
             if (sessionEvent.ChainId == "eip155:0")
                 return;
 
@@ -112,11 +147,11 @@ namespace Reown.AppKit.Unity
 
         protected override ConnectionProposal ConnectCore()
         {
-            if (_connectionProposal is { IsConnected: false })
-                return _connectionProposal;
-
             var activeChain = AppKit.NetworkController.ActiveChain;
-            var sortedChains = activeChain != null ? DappSupportedChains.OrderByDescending(chainEntry => chainEntry.ChainId == activeChain.ChainId) : DappSupportedChains;
+            var sortedChains = activeChain != null
+                ? DappSupportedChains.OrderByDescending(chainEntry => chainEntry.ChainId == activeChain.ChainId)
+                : DappSupportedChains;
+            
             var connectOptions = new ConnectOptions
             {
                 OptionalNamespaces = sortedChains
@@ -125,38 +160,13 @@ namespace Reown.AppKit.Unity
                         group => group.Key,
                         group => new ProposedNamespace
                         {
-                            Methods = new[]
-                            {
-                                "eth_accounts",
-                                "eth_requestAccounts",
-                                "eth_sendRawTransaction",
-                                "eth_sign",
-                                "eth_signTransaction",
-                                "eth_signTypedData",
-                                "eth_signTypedData_v3",
-                                "eth_signTypedData_v4",
-                                "eth_sendTransaction",
-                                "personal_sign",
-                                "wallet_switchEthereumChain",
-                                "wallet_addEthereumChain",
-                                "wallet_getPermissions",
-                                "wallet_requestPermissions",
-                                "wallet_registerOnboarding",
-                                "wallet_watchAsset",
-                                "wallet_scanQRCode"
-                            },
+                            Methods = _supportedMethods,
                             Chains = group.Select(chainEntry => chainEntry.ChainId).ToArray(),
-                            Events = new[]
-                            {
-                                "chainChanged",
-                                "accountsChanged",
-                                "message",
-                                "disconnect",
-                                "connect"
-                            }
+                            Events = _supportedEvents
                         }
                     )
             };
+            
             _connectionProposal = new WalletConnectConnectionProposal(this, _signClient, connectOptions, AppKit.SiweController);
             return _connectionProposal;
         }
@@ -177,74 +187,15 @@ namespace Reown.AppKit.Unity
             }
         }
 
-        private async Task WaitForSessionUpdateAsync(TimeSpan timeout)
-        {
-            var tcs = new TaskCompletionSource<bool>();
-            var sessionUpdateHandler = new EventHandler<Session>((s, session) => { tcs.TrySetResult(true); });
-
-            _signClient.SessionUpdatedUnity += sessionUpdateHandler;
-            try
-            {
-                await Task.WhenAny(tcs.Task, Task.Delay(timeout));
-            }
-            finally
-            {
-                _signClient.SessionUpdatedUnity -= sessionUpdateHandler;
-            }
-        }
-
         protected override async Task ChangeActiveChainAsyncCore(Chain chain)
         {
-            if (ActiveSessionSupportsMethod("wallet_addEthereumChain") && !ActiveSessionIncludesChain(chain.ChainId))
+            if (!ActiveSessionIncludesChain(chain.ChainId) &&
+                ActiveSessionSupportsMethod("wallet_addEthereumChain") &&
+                ActiveSessionSupportsMethod("wallet_switchEthereumChain"))
             {
-                var ethereumChain = new EthereumChain(
-                    chain.ChainReference,
-                    chain.Name,
-                    chain.NativeCurrency,
-                    new[]
-                    {
-                        chain.RpcUrl
-                    },
-                    new[]
-                    {
-                        chain.BlockExplorer.url
-                    }
-                );
-
-                var caip2ChainId = $"eip155:{ethereumChain.chainIdDecimal}";
-                if (!_signClient.AddressProvider.DefaultSession.Namespaces.TryGetValue("eip155", out var @namespace)
-                    || !@namespace.Chains.Contains(caip2ChainId))
-                {
-                    try
-                    {
-                        await AppKit.Evm.RpcRequestAsync<string>("wallet_addEthereumChain", ethereumChain);
-
-                        await _signClient.AddressProvider.SetDefaultChainIdAsync(chain.ChainId);
-
-                        await WaitForSessionUpdateAsync(TimeSpan.FromSeconds(5));
-
-                        OnChainChanged(new ChainChangedEventArgs(chain.ChainId));
-                        OnAccountChanged(new AccountChangedEventArgs(GetCurrentAccount()));
-                    }
-                    catch (ReownNetworkException e)
-                    {
-                        try
-                        {
-                            var metaMaskError = JsonConvert.DeserializeObject<MetaMaskError>(e.Message);
-                            ReownLogger.LogError($"[MetaMask Error] {metaMaskError.Message}");
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.LogException(ex);
-                        }
-
-                        throw;
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogException(e);
-                    }
-                }
+                // If the active session supports wallet_addEthereumChain and wallet_switchEthereumChain methods,
+                // we assume it's a MetaMask session and try to make it work.
+                await ChangeActiveMetaMaskChainAsync(chain);
             }
             else
             {
@@ -257,6 +208,81 @@ namespace Reown.AppKit.Unity
             }
         }
 
+        private async Task ChangeActiveMetaMaskChainAsync(Chain chain)
+        {
+            try
+            {
+                // We use wallet_addEthereumChain for all chains except for Ethereum and Linea because
+                // MetaMask ships with these chains by default and wallet_addEthereumChain is not supported for them.
+                // For other chains using wallet_addEthereumChain will add the chain to MetaMask or switch to it if it's already added.
+
+                if (chain.ChainReference is "1" or "59144")
+                {
+                    await AppKit.Evm.RpcRequestAsync<string>("wallet_switchEthereumChain", new SwitchEthereumChain(chain.ChainReference));
+                }
+                else
+                {
+                    var ethereumChain = new EthereumChain(
+                        chain.ChainReference,
+                        chain.Name,
+                        chain.NativeCurrency,
+                        new[]
+                        {
+                            chain.RpcUrl
+                        },
+                        new[]
+                        {
+                            chain.BlockExplorer.url
+                        }
+                    );
+
+                    await AppKit.Evm.RpcRequestAsync<string>("wallet_addEthereumChain", ethereumChain);
+                }
+
+
+                await _signClient.AddressProvider.SetDefaultChainIdAsync(chain.ChainId);
+
+                await WaitForSessionUpdateAsync(TimeSpan.FromSeconds(5));
+
+                OnChainChanged(new ChainChangedEventArgs(chain.ChainId));
+                OnAccountChanged(new AccountChangedEventArgs(GetCurrentAccount()));
+            }
+            catch (ReownNetworkException e)
+            {
+                try
+                {
+                    var metaMaskError = JsonConvert.DeserializeObject<MetaMaskError>(e.Message);
+                    ReownLogger.LogError($"[MetaMask Error] {metaMaskError.Message}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                }
+
+                throw;
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+        }
+
+        private async Task WaitForSessionUpdateAsync(TimeSpan timeout)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+            var sessionUpdateHandler = new EventHandler<Session>((_, _) => tcs.TrySetResult(true));
+
+            _signClient.SessionUpdatedUnity += sessionUpdateHandler;
+            try
+            {
+                await Task.WhenAny(tcs.Task, Task.Delay(timeout));
+            }
+            finally
+            {
+                _signClient.SessionUpdatedUnity -= sessionUpdateHandler;
+            }
+        }
+
         protected override Task<Account> GetAccountAsyncCore()
         {
             return Task.FromResult(GetCurrentAccount());
@@ -264,14 +290,13 @@ namespace Reown.AppKit.Unity
 
         protected override Task<Account[]> GetAccountsAsyncCore()
         {
-            var caipAddresses = _signClient.AddressProvider.AllAccounts();
-            return Task.FromResult(caipAddresses.Select(caip25Address => new Account(caip25Address.Address, caip25Address.ChainId)).ToArray());
+            var accounts = _signClient.AddressProvider.AllAccounts();
+            return Task.FromResult(accounts.ToArray());
         }
 
-        private Account GetCurrentAccount()
+        protected virtual Account GetCurrentAccount()
         {
-            var caipAddress = _signClient.AddressProvider.CurrentAccount();
-            return new Account(caipAddress.Address, caipAddress.ChainId);
+            return _signClient.AddressProvider.CurrentAccount();
         }
 
         private bool ActiveSessionSupportsMethod(string method)

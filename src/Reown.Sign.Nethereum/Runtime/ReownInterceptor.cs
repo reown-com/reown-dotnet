@@ -51,16 +51,18 @@ namespace Reown.Sign.Nethereum
 
                 if (request.Method == ApiMethods.personal_sign.ToString())
                 {
-                    return await _reownSignService.PersonalSignAsync((string)request.RawParameters[0]);
+                    if (request.RawParameters.Length == 1)
+                        return await _reownSignService.PersonalSignAsync((string)request.RawParameters[0]);
+
+                    return await _reownSignService.PersonalSignAsync((string)request.RawParameters[0], (string)request.RawParameters[1]);
                 }
 
                 if (request.Method == ApiMethods.eth_signTypedData_v4.ToString())
                 {
-                    // If parameter has only one element, it's a json data.
-                    // Otherwise, expect the data to be at index 1
-                    var dataIndex = request.RawParameters.Length > 1 ? 1 : 0;
-                    
-                    return await _reownSignService.EthSignTypedDataV4Async((string)request.RawParameters[dataIndex]);
+                    if (request.RawParameters.Length == 1)
+                        return await _reownSignService.EthSignTypedDataV4Async((string)request.RawParameters[0]);
+
+                    return await _reownSignService.EthSignTypedDataV4Async((string)request.RawParameters[1], (string)request.RawParameters[0]);
                 }
 
                 if (request.Method == ApiMethods.wallet_switchEthereumChain.ToString())
@@ -70,7 +72,7 @@ namespace Reown.Sign.Nethereum
 
                 if (request.Method == ApiMethods.wallet_addEthereumChain.ToString())
                 {
-                    return await _reownSignService.WalletAddEthereumChainAsync((EthereumChain)request.RawParameters[0]);
+                    return await _reownSignService.WalletAddEthereumChainAsync((AddEthereumChainParameter)request.RawParameters[0]);
                 }
 
                 throw new NotImplementedException();
@@ -97,44 +99,60 @@ namespace Reown.Sign.Nethereum
             if (!_reownSignService.IsWalletConnected)
                 throw new InvalidOperationException("[ReownInterceptor] Wallet is not connected");
 
-            if (!_reownSignService.IsMethodSupported(method))
-                return await base
-                    .InterceptSendRequestAsync(interceptedSendRequestAsync, method, route, paramList)
-                    .ConfigureAwait(false);
-
-            if (method == ApiMethods.eth_sendTransaction.ToString())
+            if (_reownSignService.IsMethodSupported(method))
             {
-                return await _reownSignService.SendTransactionAsync((TransactionInput)paramList[0]);
-            }
-
-            if (method == ApiMethods.personal_sign.ToString())
-            {
-                return await _reownSignService.PersonalSignAsync((string)paramList[0]);
-            }
-
-            if (method == ApiMethods.eth_signTypedData_v4.ToString())
-            {
-                return await _reownSignService.EthSignTypedDataV4Async((string)paramList[0]);
-            }
-
-            if (method == ApiMethods.wallet_switchEthereumChain.ToString())
-            {
-                return await _reownSignService.WalletSwitchEthereumChainAsync((SwitchEthereumChainParameter)paramList[0]);
-            }
-
-            if (method == ApiMethods.wallet_addEthereumChain.ToString())
-            {
-                try
+                if (method == ApiMethods.eth_sendTransaction.ToString())
                 {
-                    return await _reownSignService.WalletAddEthereumChainAsync((EthereumChain)paramList[0]);
+                    return await _reownSignService.SendTransactionAsync((TransactionInput)paramList[0]);
                 }
-                catch (InvalidCastException)
+
+                if (method == ApiMethods.personal_sign.ToString())
                 {
-                    return await _reownSignService.WalletAddEthereumChainAsync((AddEthereumChainParameter)paramList[0]);
+                    if (paramList.Length == 1)
+                        return await _reownSignService.PersonalSignAsync((string)paramList[0]);
+
+                    return await _reownSignService.PersonalSignAsync((string)paramList[0], (string)paramList[1]);
                 }
+
+                if (method == ApiMethods.eth_signTypedData_v4.ToString())
+                {
+                    if (paramList.Length == 1)
+                        return await _reownSignService.EthSignTypedDataV4Async((string)paramList[0]);
+
+                    return await _reownSignService.EthSignTypedDataV4Async((string)paramList[1], (string)paramList[0]);
+                }
+
+                if (method == ApiMethods.wallet_switchEthereumChain.ToString())
+                {
+                    try
+                    {
+                        return await _reownSignService.WalletSwitchEthereumChainAsync((SwitchEthereumChain)paramList[0]);
+                    }
+                    catch (InvalidCastException)
+                    {
+                        return await _reownSignService.WalletSwitchEthereumChainAsync((SwitchEthereumChainParameter)paramList[0]);
+                    }
+                }
+
+                if (method == ApiMethods.wallet_addEthereumChain.ToString())
+                {
+                    try
+                    {
+                        return await _reownSignService.WalletAddEthereumChainAsync((EthereumChain)paramList[0]);
+                    }
+                    catch (InvalidCastException)
+                    {
+                        return await _reownSignService.WalletAddEthereumChainAsync((AddEthereumChainParameter)paramList[0]);
+                    }
+                }
+
+
+                throw new NotImplementedException();
             }
 
-            throw new NotImplementedException($"Method {method} is not implemented");
+            return await base
+                .InterceptSendRequestAsync(interceptedSendRequestAsync, method, route, paramList)
+                .ConfigureAwait(false);
         }
     }
 }

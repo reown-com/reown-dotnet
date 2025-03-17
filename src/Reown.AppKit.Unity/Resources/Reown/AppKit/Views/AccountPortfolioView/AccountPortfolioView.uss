@@ -1,0 +1,51 @@
+#account-portfolio-view__balance-container {
+    align-items: center;
+    padding: 3 0 3 0;
+}
+
+#account-portfolio-view__account-chip-container {
+    flex-direction: row;
+    justify-content: center;
+    margin: -25 10 10 10;
+}
+
+#account-portfolio-view__account-chip {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 8 12 8 8;
+    border-radius: var(--ro-border-radius-s);
+    border-width: 1px;
+    border-color: var(--ro-gray-glass-002);
+    overflow: hidden;
+    background-color: var(--ro-gray-glass-002);
+    transition-property: background-color;
+    transition-duration: 200ms;
+}
+
+#account-portfolio-view__account-chip:hover {
+    background-color: var(--ro-gray-glass-005);
+}
+
+#account-portfolio-view__account-chip-avatar {
+    width: 28;
+    height: 28;
+    margin-right: 8px;
+}
+
+#account-portfolio-view__account-chip-content {
+    flex-direction: row;
+}
+
+#account-portfolio-view__account-chip-content-name {
+    margin: 0 6 0 0;
+    padding: 0;
+    -unity-text-align: middle-center;
+    color: var(--ro-color-fg-100);
+    font-size: var(--ro-font-size-large);
+}
+
+#account-portfolio-view__account-chip-content-icon {
+    --unity-image-tint-color: var(--ro-color-fg-200);
+    --unity-image: resource('Reown/AppKit/Icons/icon_bold_chevronbottom');
+}

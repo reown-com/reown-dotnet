@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Reown.AppKit.Unity.Profile;
 using Reown.Sign.Models;
 using Reown.Sign.Unity;
 using UnityEngine;
@@ -52,7 +53,7 @@ namespace Reown.AppKit.Unity
             webGlConnector.AccountChanged += AccountChangedHandler;
             webGlConnector.ChainChanged += ChainChangedHandler;
 
-            _connectors.Add(ConnectorType.WebGl, webGlConnector);
+            RegisterConnector(ConnectorType.WebGl, webGlConnector);
             
             // Only one connector is supported on WebGL
             ActiveConnector = webGlConnector;
@@ -64,7 +65,16 @@ namespace Reown.AppKit.Unity
             walletConnectConnector.AccountChanged += AccountChangedHandler;
             walletConnectConnector.ChainChanged += ChainChangedHandler;
             walletConnectConnector.SignatureRequested += SignatureRequestedHandler;
-            _connectors.Add(ConnectorType.WalletConnect, walletConnectConnector);
+            RegisterConnector(ConnectorType.WalletConnect, walletConnectConnector);
+
+            // --- Reown Profile Connector
+            var profileConnector = new ProfileConnector();
+            profileConnector.AccountConnected += (_, e) => ConnectorAccountConnected(profileConnector, e);
+            profileConnector.AccountDisconnected += ConnectorAccountDisconnectedHandler;
+            profileConnector.AccountChanged += AccountChangedHandler;
+            profileConnector.ChainChanged += ChainChangedHandler;
+            profileConnector.SignatureRequested += SignatureRequestedHandler;
+            RegisterConnector(ConnectorType.Profile, profileConnector);
 #endif
 
             await Task.WhenAll(_connectors.Values.Select(c => c.InitializeAsync(config, signClient)));
@@ -121,6 +131,11 @@ namespace Reown.AppKit.Unity
         protected override Task<Account[]> GetAccountsAsyncCore()
         {
             return ActiveConnector.GetAccountsAsync();
+        }
+
+        public void RegisterConnector(ConnectorType connectorType, Connector connector)
+        {
+            _connectors.Add(connectorType, connector);
         }
 
         public bool TryGetConnector<T>(ConnectorType connectorType, out T connector) where T : Connector

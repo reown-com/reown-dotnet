@@ -5,7 +5,9 @@ using Nethereum.ABI.EIP712;
 using Nethereum.JsonRpc.Client;
 using Nethereum.Web3;
 using Reown.AppKit.Unity;
+using Reown.AppKit.Unity.Profile;
 using Reown.Core;
+using Reown.Core.Common.Model.Errors;
 using UnityEngine;
 using UnityEngine.UIElements;
 using ButtonUtk = UnityEngine.UIElements.Button;
@@ -15,6 +17,7 @@ namespace Sample
     public class Dapp : MonoBehaviour
     {
         [SerializeField] private UIDocument _uiDocument;
+        private int _messageCounter = 0;
 
         private ButtonStruct[] _buttons;
         private VisualElement _buttonsContainer;
@@ -55,12 +58,12 @@ namespace Sample
                     OnClick = OnPersonalSignButton,
                     AccountRequired = true
                 },
-                new ButtonStruct
-                {
-                    Text = "Sign Typed Data",
-                    OnClick = OnSignTypedDataV4Button,
-                    AccountRequired = true
-                },
+                // new ButtonStruct
+                // {
+                //     Text = "Sign Typed Data",
+                //     OnClick = OnSignTypedDataV4Button,
+                //     AccountRequired = true
+                // },
                 new ButtonStruct
                 {
                     Text = "Send Transaction",
@@ -77,10 +80,10 @@ namespace Sample
                 {
                     Text = "Read Contract",
                     OnClick = OnReadContractClicked,
-                    AccountRequired = true,
+                    // AccountRequired = true,
                     ChainIds = new HashSet<string>
                     {
-                        "eip155:1"
+                        "eip155:10"
                     }
                 },
                 new ButtonStruct
@@ -153,11 +156,13 @@ namespace Sample
                     }
                 };
 
-                AppKit.AccountConnected += async (_, e) => RefreshButtons();
+                AppKit.AccountConnected += (_, e) => RefreshButtons();
 
                 AppKit.AccountDisconnected += (_, _) => RefreshButtons();
 
                 AppKit.AccountChanged += (_, e) => RefreshButtons();
+
+                AppKit.NetworkController.ChainChanged += (_, e) => RefreshButtons();
 
                 // After the scene and UI are loaded, try to resume the session from the storage
                 var sessionResumed = await AppKit.ConnectorController.TryResumeSessionAsync();
@@ -210,24 +215,32 @@ namespace Sample
         {
             Debug.Log("[AppKit Sample] OnPersonalSignButton");
 
+            var messageCounter = ++_messageCounter;
             try
             {
                 var account = await AppKit.GetAccountAsync();
 
-                const string message = "Hello from Unity!";
+                var message = $"Hello from Unity! (Request #{messageCounter})";
+
+                Notification.ShowMessage($"Signing message:\n\n{message}");
+
+#if !UNITY_WEBGL || !UNITY_EDITOR
+                // await System.Threading.Tasks.Task.Delay(1_000);
+#endif
 
                 // It's also possible to sign a message as a byte array
                 // var messageBytes = System.Text.Encoding.UTF8.GetBytes(message);
                 // var signature = await AppKit.Evm.SignMessageAsync(messageBytes);
 
                 var signature = await AppKit.Evm.SignMessageAsync(message);
+                Debug.Log($"Recieved signature: {signature}");
                 var isValid = await AppKit.Evm.VerifyMessageSignatureAsync(account.Address, message, signature);
 
-                Notification.ShowMessage($"Signature valid: {isValid}");
+                Notification.ShowMessage($"Signature valid: {isValid} (Request #{messageCounter})");
             }
-            catch (RpcResponseException e)
+            catch (ReownNetworkException e)
             {
-                Notification.ShowMessage($"{nameof(RpcResponseException)}:\n{e.Message}");
+                Notification.ShowMessage($"Error processing personal_sign request #{messageCounter}\n\n{nameof(RpcResponseException)}:\n{e.Message}");
                 Debug.LogException(e, this);
             }
         }
@@ -335,28 +348,22 @@ namespace Sample
 
         public async void OnReadContractClicked()
         {
-            if (AppKit.NetworkController.ActiveChain.ChainId != "eip155:1")
-            {
-                Notification.ShowMessage("Please switch to Ethereum mainnet.");
-                return;
-            }
+            // An example of reading a smart contract state.
+            // This example uses the WCT staking contract on the Optimism Mainnet
 
-            const string contractAddress = "0xb47e3cd837ddf8e4c57f05d70ab865de6e193bbb"; // on Ethereum mainnet
-            const string yugaLabsAddress = "0xA858DDc0445d8131daC4d1DE01f834ffcbA52Ef1";
-            const string abi = CryptoPunksAbi;
+            const string contractAddress = "0x521B4C065Bbdbe3E20B3727340730936912DfA46";
+
+            // Can be JSON or human-readable ABI that includes only the function you want to call.
+            // It's recommended to use JSON ABI for better performance.
+            const string abi = "function supply() view returns (uint256)";
 
             Notification.ShowMessage("Reading smart contract state...");
 
             try
             {
-                var tokenName = await AppKit.Evm.ReadContractAsync<string>(contractAddress, abi, "name");
-                Debug.Log($"Token name: {tokenName}");
-
-                var balance = await AppKit.Evm.ReadContractAsync<BigInteger>(contractAddress, abi, "balanceOf", new object[]
-                {
-                    yugaLabsAddress
-                });
-                var result = $"Yuga Labs owns: {balance} {tokenName} tokens active chain.";
+                var staked = await AppKit.Evm.ReadContractAsync<BigInteger>(contractAddress, abi, "supply");
+                var stakedFormated = Web3.Convert.FromWei(staked); // WCT token has 18 decimals
+                var result = $"Total Tokens Staked:\n{stakedFormated:N0} WCT";
 
                 Notification.ShowMessage(result);
             }

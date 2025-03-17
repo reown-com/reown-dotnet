@@ -11,9 +11,10 @@ namespace Reown.AppKit.Unity
     {
         protected override Task InitializeAsyncCore(IEnumerable<Chain> supportedChains)
         {
-            Chains = new ReadOnlyDictionary<string, Chain>(supportedChains.ToDictionary(c => c.ChainId, c => c));
+            var supportedChainsArray = supportedChains.ToArray();
+            Chains = new ReadOnlyDictionary<string, Chain>(supportedChainsArray.ToDictionary(c => c.ChainId, c => c));
 
-            ActiveChain = null;
+            ActiveChain = supportedChainsArray[0];
 
             return Task.CompletedTask;
         }
@@ -52,12 +53,12 @@ namespace Reown.AppKit.Unity
 
         protected override async void ConnectorAccountConnectedHandlerCore(object sender, Connector.AccountConnectedEventArgs e)
         {
-            var accounts = await e.GetAccounts();
+            var accounts = await e.GetAccountsAsync();
             var previousChain = ActiveChain;
 
             if (ActiveChain == null)
             {
-                var defaultAccount = await e.GetAccount();
+                var defaultAccount = await e.GetAccountAsync();
 
                 if (Chains.TryGetValue(defaultAccount.ChainId, out var defaultAccountChain))
                 {
@@ -81,7 +82,7 @@ namespace Reown.AppKit.Unity
             }
             else
             {
-                var defaultAccount = await e.GetAccount();
+                var defaultAccount = await e.GetAccountAsync();
                 if (defaultAccount.ChainId == ActiveChain.ChainId)
                     return;
 

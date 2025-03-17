@@ -43,12 +43,14 @@ namespace Reown.AppKit.Unity.WebGl
                 NativeViewType.Connect => WebGlViewType.Connect,
                 NativeViewType.None => WebGlViewType.Connect,
                 NativeViewType.Account => WebGlViewType.Account,
+                NativeViewType.AccountSettings => WebGlViewType.Account,
+                NativeViewType.AccountPortfolio => WebGlViewType.Account,
                 NativeViewType.WalletSearch => WebGlViewType.AllWallets,
                 NativeViewType.NetworkSearch => WebGlViewType.Networks,
                 NativeViewType.QrCode => WebGlViewType.ConnectingWalletConnect,
                 NativeViewType.Wallet => WebGlViewType.ConnectWallets,
                 NativeViewType.NetworkLoading => WebGlViewType.Networks,
-                _ => throw new System.NotImplementedException()
+                _ => throw new System.NotImplementedException($"The view type {viewType} is not implemented in {nameof(ModalControllerWebGl)}.")
             };
         }
     }

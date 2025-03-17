@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using UnityEngine;
 using Reown.AppKit.Unity.Http;
 using Reown.AppKit.Unity.Utils;
 
@@ -48,17 +47,23 @@ namespace Reown.AppKit.Unity
             get => _profileAvatar;
             set => SetField(ref _profileAvatar, value);
         }
-        
-        public string Balance
+
+        public float NativeTokenBalance
         {
-            get => _balance;
-            set => SetField(ref _balance, value);
+            get => _nativeTokenBalance;
+            set => SetField(ref _nativeTokenBalance, value);
         }
-        
-        public string BalanceSymbol
+
+        public string NativeTokenSymbol
         {
-            get => _balanceSymbol;
-            set => SetField(ref _balanceSymbol, value);
+            get => _nativeTokenSymbol;
+            set => SetField(ref _nativeTokenSymbol, value);
+        }
+
+        public float TotalBalanceUsd
+        {
+            get => _totalBalanceUsd;
+            set => SetField(ref _totalBalanceUsd, value);
         }
 
         private ConnectorController _connectorController;
@@ -73,12 +78,16 @@ namespace Reown.AppKit.Unity
         
         private string _profileName;
         private AccountAvatar _profileAvatar;
-        
-        private string _balance;
-        private string _balanceSymbol;
+
+        private float _nativeTokenBalance;
+        private string _nativeTokenSymbol;
+        private float _totalBalanceUsd;
         
         public event PropertyChangedEventHandler PropertyChanged;
-        
+
+        private readonly object _updateLock = new();
+        private Task _currentUpdateTask;
+
         public async Task InitializeAsync(ConnectorController connectorController, NetworkController networkController, BlockchainApiController blockchainApiController)
         {
             if (IsInitialized)
@@ -96,32 +105,60 @@ namespace Reown.AppKit.Unity
 
         private async void ConnectorAccountConnectedHandler(object sender, Connector.AccountConnectedEventArgs e)
         {
-            var account = await e.GetAccount();
+            var account = await e.GetAccountAsync();
             if (account.AccountId == AccountId)
                 return;
-            
-            Address = account.Address;
-            AccountId = account.AccountId;
-            ChainId = account.ChainId;
-            
-            await Task.WhenAll(
-                UpdateBalance(),
-                UpdateProfile()
-            );
+
+            lock (_updateLock)
+            {
+                Address = account.Address;
+                AccountId = account.AccountId;
+                ChainId = account.ChainId;
+
+                _currentUpdateTask = Task.WhenAll(
+                    UpdateBalance(),
+                    UpdateProfile()
+                );
+            }
+
+            await _currentUpdateTask;
         }
 
         private async void ConnectorAccountChangedHandler(object sender, Connector.AccountChangedEventArgs e)
         {
             var oldAddress = Address;
+            Task previousTask;
 
-            Address = e.Account.Address;
-            AccountId = e.Account.AccountId;
-            ChainId = e.Account.ChainId;
+            lock (_updateLock)
+            {
+                previousTask = _currentUpdateTask;
+                Address = e.Account.Address;
+                AccountId = e.Account.AccountId;
+                ChainId = e.Account.ChainId;
+            }
 
-            await Task.WhenAll(
-                UpdateBalance(),
-                e.Account.Address != oldAddress ? UpdateProfile() : Task.CompletedTask
-            );
+            // Wait for any existing update to complete before starting new ones
+            if (previousTask != null)
+            {
+                try
+                {
+                    await previousTask;
+                }
+                catch (Exception)
+                {
+                    // Ignore any errors from previous task
+                }
+            }
+
+            lock (_updateLock)
+            {
+                _currentUpdateTask = Task.WhenAll(
+                    UpdateBalance(),
+                    e.Account.Address != oldAddress ? UpdateProfile() : Task.CompletedTask
+                );
+            }
+
+            await _currentUpdateTask;
         }
 
         public async Task UpdateProfile()
@@ -161,25 +198,48 @@ namespace Reown.AppKit.Unity
             
             var response = await _blockchainApiController.GetBalanceAsync(Address);
             
+            // -- Native token balance
+            var nativeTokenSymbol = _networkController.ActiveChain.NativeCurrency.symbol;
             if (response.Balances.Length == 0)
             {
-                Balance = "0.000";
-                BalanceSymbol = _networkController.ActiveChain.NativeCurrency.symbol;
+                NativeTokenBalance = 0;
+                NativeTokenSymbol = nativeTokenSymbol;
+                TotalBalanceUsd = 0;
                 return;
             }
-            
-            var balance = Array.Find(response.Balances,x => x.chainId == ChainId && string.IsNullOrWhiteSpace(x.address));
+
+            var balance = Array.Find(response.Balances, x =>
+                x.chainId == ChainId
+                // && string.IsNullOrWhiteSpace(x.address)
+                && x.symbol == nativeTokenSymbol
+            );
 
             if (string.IsNullOrWhiteSpace(balance.quantity.numeric))
             {
-                Balance = "0.000";
-                BalanceSymbol = _networkController.ActiveChain.NativeCurrency.symbol;
+                NativeTokenBalance = 0;
+                NativeTokenSymbol = nativeTokenSymbol;
             }
             else
             {
-                Balance = balance.quantity.numeric;
-                BalanceSymbol = balance.symbol;
+                if (float.TryParse(balance.quantity.numeric, out var parsedBalance))
+                    NativeTokenBalance = parsedBalance;
+                else
+                    NativeTokenBalance = 0;
+
+                NativeTokenSymbol = balance.symbol;
             }
+
+            // -- Total balance in USD
+            var totalBalanceUsd = 0f;
+            foreach (var b in response.Balances)
+            {
+                if (float.TryParse(b.value, out var result))
+                {
+                    totalBalanceUsd += result;
+                }
+            }
+
+            TotalBalanceUsd = totalBalanceUsd;
         }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)

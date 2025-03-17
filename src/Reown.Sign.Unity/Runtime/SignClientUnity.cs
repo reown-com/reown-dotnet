@@ -25,14 +25,16 @@ namespace Reown.Sign.Unity
         public event EventHandler<Session> SessionConnectedUnity;
         public event EventHandler<Session> SessionUpdatedUnity;
         public event EventHandler SessionDisconnectedUnity;
+        public event EventHandler<SessionRequestEvent> SessionRequestSentUnity;
 
         private SignClientUnity(SignClientOptions options) : base(options)
         {
             Linker = new Linker(this);
 
-            SessionConnected += OnSessionConnected;
-            SessionUpdateRequest += OnSessionUpdated;
-            SessionDeleted += OnSessionDeleted;
+            SessionConnected += SessionConnectedHandler;
+            SessionUpdateRequest += SessionUpdatedHandler;
+            SessionDeleted += SessionDeletedHandler;
+            SessionRequestSent += SessionRequestSentHandler;
         }
 
         public static async Task<SignClientUnity> Create(SignClientOptions options)
@@ -110,20 +112,25 @@ namespace Reown.Sign.Unity
             return true;
         }
 
-        private void OnSessionConnected(object sender, Session session)
+        private void SessionConnectedHandler(object sender, Session session)
         {
             UnitySyncContext.Context.Post(_ => { SessionConnectedUnity?.Invoke(this, session); }, null);
         }
 
-        private void OnSessionUpdated(object sender, SessionEvent sessionEvent)
+        private void SessionUpdatedHandler(object sender, SessionEvent sessionEvent)
         {
             var sessionStruct = Session.Values.First(s => s.Topic == sessionEvent.Topic);
             UnitySyncContext.Context.Post(_ => { SessionUpdatedUnity?.Invoke(this, sessionStruct); }, null);
         }
 
-        private void OnSessionDeleted(object sender, SessionEvent _)
+        private void SessionDeletedHandler(object sender, SessionEvent _)
         {
             UnitySyncContext.Context.Post(_ => { SessionDisconnectedUnity?.Invoke(this, EventArgs.Empty); }, null);
+        }
+
+        private void SessionRequestSentHandler(object sender, SessionRequestEvent e)
+        {
+            UnitySyncContext.Context.Post(_ => { SessionRequestSentUnity?.Invoke(this, e); }, null);
         }
 
         protected override void Dispose(bool disposing)

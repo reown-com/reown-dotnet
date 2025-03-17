@@ -55,23 +55,23 @@ namespace Reown.Sign.Nethereum
             return await _signClient.Request<EthSendTransaction, string>(sendTransactionRequest);
         }
 
-        protected override async Task<object> PersonalSignAsyncCore(string message)
+        protected override async Task<object> PersonalSignAsyncCore(string message, string address = null)
         {
-            var address = GetDefaultAddress();
+            address ??= GetDefaultAddress();
             var signDataRequest = new PersonalSign(message, address);
             return await _signClient.Request<PersonalSign, string>(signDataRequest);
         }
 
-        protected override async Task<object> EthSignTypedDataV4AsyncCore(string data)
+        protected override async Task<object> EthSignTypedDataV4AsyncCore(string data, string address = null)
         {
-            var address = GetDefaultAddress();
+            address ??= GetDefaultAddress();
             var signDataRequest = new EthSignTypedDataV4(address, data);
             return await _signClient.Request<EthSignTypedDataV4, string>(signDataRequest);
         }
 
-        protected override async Task<object> WalletSwitchEthereumChainAsyncCore(SwitchEthereumChainParameter chainId)
+        protected override async Task<object> WalletSwitchEthereumChainAsyncCore(SwitchEthereumChain arg)
         {
-            var switchChainRequest = new WalletSwitchEthereumChain(chainId.ChainId.HexValue);
+            var switchChainRequest = new WalletSwitchEthereumChain(arg.chainId);
             return await _signClient.Request<WalletSwitchEthereumChain, string>(switchChainRequest);
         }
 

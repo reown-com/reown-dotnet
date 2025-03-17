@@ -16,6 +16,11 @@ namespace Reown.AppKit.Unity
             get => _modalViews[_history.Peek()];
         }
 
+        public int HistoryCount
+        {
+            get => _history.Count;
+        }
+
         public VisualElement RootVisualElement { get; }
 
         public RouterController(VisualElement parent)
@@ -93,9 +98,11 @@ namespace Reown.AppKit.Unity
             RegisterModalView(ViewType.QrCode, new QrCodePresenter(this, RootVisualElement));
             RegisterModalView(ViewType.Wallet, new WalletPresenter(this, RootVisualElement));
             RegisterModalView(ViewType.WalletSearch, new WalletSearchPresenter(this, RootVisualElement));
-            RegisterModalView(ViewType.Account, new AccountPresenter(this, RootVisualElement));
+            RegisterModalView(ViewType.AccountSettings, new AccountSettingsPresenter(this, RootVisualElement));
+            RegisterModalView(ViewType.AccountPortfolio, new AccountPortfolioPresenter(this, RootVisualElement));
             RegisterModalView(ViewType.NetworkSearch, new NetworkSearchPresenter(this, RootVisualElement));
             RegisterModalView(ViewType.NetworkLoading, new NetworkLoadingPresenter(this, RootVisualElement));
+            RegisterModalView(ViewType.WebWallet, new SocialLoginPresenter(this, RootVisualElement));
 
             if (AppKit.SiweController.IsEnabled)
                 RegisterModalView(ViewType.Siwe, new SiwePresenter(this, RootVisualElement));

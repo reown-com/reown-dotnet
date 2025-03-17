@@ -32,6 +32,17 @@ namespace Reown.AppKit.Unity
             ChainConstants.Chains.Ronin
         };
 
+        // Currently supported only on native platforms
+        public SocialLogin[] socials =
+        {
+            SocialLogin.Google,
+            SocialLogin.X,
+            SocialLogin.Apple,
+            SocialLogin.Discord,
+            SocialLogin.Facebook,
+            SocialLogin.GitHub
+        };
+
         public Wallet[] customWallets;
 
         public Metadata metadata;

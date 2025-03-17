@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="Balance.uss"/>
+    <ui:Label name="balance__symbol" text="$"/>
+    <ui:Label name="balance__integer" text="0"/>
+    <ui:Label name="balance__decimal" text=".00"/>
+</ui:UXML>

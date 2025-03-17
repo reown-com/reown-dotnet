@@ -31,5 +31,8 @@ Button {
     margin-bottom: 16px;
     white-space: normal;
     -unity-text-align: middle-center;
+    text-overflow: ellipsis;
+    -unity-text-overflow-position: end;
+    overflow: hidden;
 }
 

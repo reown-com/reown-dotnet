@@ -25,20 +25,24 @@ namespace Reown.AppKit.Unity
 
         // -- Sign Message ---------------------------------------------
 
-        public Task<string> SignMessageAsync(string message)
+        public async Task<string> SignMessageAsync(string message, string address = null)
         {
             if (string.IsNullOrWhiteSpace(message))
                 throw new ArgumentNullException(nameof(message));
 
-            return SignMessageAsyncCore(message);
+            address ??= (await AppKit.GetAccountAsync()).Address;
+            
+            return await SignMessageAsyncCore(message, address);
         }
 
-        public Task<string> SignMessageAsync(byte[] rawMessage)
+        public async Task<string> SignMessageAsync(byte[] rawMessage, string address = null)
         {
             if (rawMessage == null || rawMessage.Length == 0)
                 throw new ArgumentNullException(nameof(rawMessage));
 
-            return SignMessageAsyncCore(rawMessage);
+            address ??= (await AppKit.GetAccountAsync()).Address;
+
+            return await SignMessageAsyncCore(rawMessage, address);
         }
 
 
@@ -67,6 +71,14 @@ namespace Reown.AppKit.Unity
             return VerifyMessageSignatureAsyncCore(address, message, signature);
         }
 
+        public Task<bool> VerifyMessageSignatureAsync(VerifyMessageSignatureParams parameters)
+        {
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+
+            return VerifyMessageSignatureAsyncCore(parameters.Address, parameters.Message, parameters.Signature);
+        }
+
 
         // -- Verify Typed Data ----------------------------------------
 
@@ -82,12 +94,28 @@ namespace Reown.AppKit.Unity
             return VerifyTypedDataSignatureAsyncCore(address, data, signature);
         }
 
+        public Task<bool> VerifyTypedDataSignatureAsync(VerifyTypedDataSignatureParams parameters)
+        {
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+
+            return VerifyTypedDataSignatureAsyncCore(parameters.Address, parameters.Data, parameters.Signature);
+        }
+
 
         // -- Read Contract -------------------------------------------
 
         public Task<TReturn> ReadContractAsync<TReturn>(string contractAddress, string contractAbi, string methodName, object[] arguments = null)
         {
             return ReadContractAsyncCore<TReturn>(contractAddress, contractAbi, methodName, arguments);
+        }
+
+        public Task<TReturn> ReadContractAsync<TReturn>(ReadContractParams parameters)
+        {
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+
+            return ReadContractAsyncCore<TReturn>(parameters.ContractAddress, parameters.ContractAbi, parameters.MethodName, parameters.Arguments);
         }
 
 
@@ -108,6 +136,14 @@ namespace Reown.AppKit.Unity
             return WriteContractAsyncCore(contractAddress, contractAbi, methodName, value, gas, arguments);
         }
 
+        public Task<string> WriteContractAsync(WriteContractParams parameters)
+        {
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+
+            return WriteContractAsyncCore(parameters.ContractAddress, parameters.ContractAbi, parameters.MethodName, parameters.Value, parameters.Gas, parameters.Arguments);
+        }
+
 
         // -- Send Transaction ----------------------------------------
 
@@ -118,10 +154,18 @@ namespace Reown.AppKit.Unity
 
             return SendTransactionAsyncCore(addressTo, value, data);
         }
-        
-        
+
+        public Task<string> SendTransactionAsync(SendTransactionParams parameters)
+        {
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+
+            return SendTransactionAsyncCore(parameters.AddressTo, parameters.Value, parameters.Data);
+        }
+
+
         // -- Send Raw Transaction ------------------------------------
-        
+
         public Task<string> SendRawTransactionAsync(string signedTransaction)
         {
             if (string.IsNullOrWhiteSpace(signedTransaction))
@@ -141,6 +185,14 @@ namespace Reown.AppKit.Unity
             return EstimateGasAsyncCore(addressTo, value, data);
         }
 
+        public Task<BigInteger> EstimateGasAsync(SendTransactionParams parameters)
+        {
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+
+            return EstimateGasAsyncCore(parameters.AddressTo, parameters.Value, parameters.Data);
+        }
+
         public Task<BigInteger> EstimateGasAsync(string contractAddress, string contractAbi, string methodName, BigInteger value = default, params object[] arguments)
         {
             if (string.IsNullOrWhiteSpace(contractAddress))
@@ -152,10 +204,18 @@ namespace Reown.AppKit.Unity
             
             return EstimateGasAsyncCore(contractAddress, contractAbi, methodName, value, arguments);
         }
-        
-        
+
+        public Task<BigInteger> EstimateGasAsync(WriteContractParams parameters)
+        {
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+
+            return EstimateGasAsyncCore(parameters.ContractAddress, parameters.ContractAbi, parameters.MethodName, parameters.Value, parameters.Arguments);
+        }
+
+
         // -- Gas Price ------------------------------------------------
-        
+
         public Task<BigInteger> GetGasPriceAsync()
         {
             return GetGasPriceAsyncCore();
@@ -175,8 +235,8 @@ namespace Reown.AppKit.Unity
 
         protected abstract Task InitializeAsyncCore(SignClientUnity signClient);
         protected abstract Task<BigInteger> GetBalanceAsyncCore(string address);
-        protected abstract Task<string> SignMessageAsyncCore(string message);
-        protected abstract Task<string> SignMessageAsyncCore(byte[] rawMessage);
+        protected abstract Task<string> SignMessageAsyncCore(string message, string address);
+        protected abstract Task<string> SignMessageAsyncCore(byte[] rawMessage, string address);
         protected abstract Task<bool> VerifyMessageSignatureAsyncCore(string address, string message, string signature);
         protected abstract Task<string> SignTypedDataAsyncCore(string dataJson);
         protected abstract Task<bool> VerifyTypedDataSignatureAsyncCore(string address, string dataJson, string signature);
