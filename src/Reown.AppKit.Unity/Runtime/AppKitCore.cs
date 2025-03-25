@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Reown.AppKit.Unity.Components;
+using Reown.AppKit.Unity.Model;
 using Reown.AppKit.Unity.Profile;
 using Reown.AppKit.Unity.Utils;
 using Reown.Sign.Models;
@@ -60,7 +61,7 @@ namespace Reown.AppKit.Unity
 
             ConnectorController.AccountConnected += AccountConnectedHandler;
             ConnectorController.AccountDisconnected += AccountDisconnectedHandler;
-            
+
             EventsController.SendEvent(new Event
             {
                 name = "MODAL_LOADED"
@@ -98,6 +99,51 @@ namespace Reown.AppKit.Unity
         protected override Task DisconnectAsyncCore()
         {
             return ConnectorController.DisconnectAsync();
+        }
+
+        protected override async Task ConnectAsyncCore(Wallet wallet)
+        {
+            WalletUtils.SetLastViewedWallet(wallet);
+
+#if UNITY_STANDALONE
+            // Show QR code with wallet logo on desktop
+            OpenModal(ViewType.Wallet);
+            return Task.CompletedTask; // TODO: wait for connection
+#else
+            if (!Linker.CanOpenURL(wallet.MobileLink))
+                throw new InvalidOperationException($"Cannot open URL: {wallet.MobileLink}");
+
+            if (!ConnectorController
+                    .TryGetConnector<WalletConnectConnector>
+                        (ConnectorType.WalletConnect, out var connector))
+                throw new Exception("No WalletConnect connector"); // TODO: use custom exception
+
+            var connectionProposal = (WalletConnectConnectionProposal)connector.Connect();
+
+            if (string.IsNullOrEmpty(connectionProposal.Uri))
+            {
+                var tcsUri = new TaskCompletionSource<bool>();
+
+                void OnConnectionProposalOnConnectionUpdated(ConnectionProposal _)
+                {
+                    if (string.IsNullOrEmpty(connectionProposal.Uri))
+                        return;
+                    tcsUri.SetResult(true);
+                    connectionProposal.ConnectionUpdated -= OnConnectionProposalOnConnectionUpdated;
+                }
+
+                connectionProposal.ConnectionUpdated += OnConnectionProposalOnConnectionUpdated;
+
+                await tcsUri.Task;
+            }
+
+            var tcsConnection = new TaskCompletionSource<bool>();
+            connectionProposal.Connected += _ => tcsConnection.SetResult(true);
+
+            Linker.OpenSessionProposalDeepLink(connectionProposal.Uri, wallet.MobileLink);
+
+            await tcsConnection.Task;
+#endif
         }
 
         protected virtual ModalController CreateModalController()

@@ -1,5 +1,8 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Reown.AppKit.Unity.Model;
 using Reown.Core.Common.Utils;
 using Reown.Sign.Models;
 using Reown.Sign.Unity;
@@ -115,6 +118,40 @@ namespace Reown.AppKit.Unity
             return Instance.DisconnectAsyncCore();
         }
 
+        public static async Task ConnectAsync(string walletId)
+        {
+            if (string.IsNullOrEmpty(walletId))
+                throw new ArgumentNullException(nameof(walletId));
+
+            if (!IsInitialized)
+                throw new Exception("AppKit not initialized"); // TODO: use custom ex type
+
+            if (IsAccountConnected)
+                throw new Exception("Account is already connected"); // TODO: use custom ex type
+
+            var response = await ApiController.GetWallets(1, 1, includedWalletIds: new[] { walletId });
+
+            Debug.Log(JsonConvert.SerializeObject(response));
+
+            if (response.Data.Length == 0)
+                throw new Exception($"Wallet with id {walletId} not found"); // TODO: use custom ex type
+
+            var wallet = response.Data.First();
+
+            await Instance.ConnectAsyncCore(wallet);
+        }
+
+        public static Task ConnectAsync(Wallet wallet)
+        {
+            if (!IsInitialized)
+                throw new Exception("AppKit not initialized"); // TODO: use custom ex type
+
+            if (IsAccountConnected)
+                throw new Exception("Account is already connected"); // TODO: use custom ex type
+
+            return Instance.ConnectAsyncCore(wallet);
+        }
+
         protected abstract Task InitializeAsyncCore();
 
         protected abstract void OpenModalCore(ViewType viewType = ViewType.None);
@@ -122,6 +159,8 @@ namespace Reown.AppKit.Unity
         protected abstract void CloseModalCore();
 
         protected abstract Task DisconnectAsyncCore();
+
+        protected abstract Task ConnectAsyncCore(Wallet wallet);
 
         public class InitializeEventArgs : EventArgs
         {
