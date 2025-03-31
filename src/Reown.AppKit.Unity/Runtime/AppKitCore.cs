@@ -97,7 +97,22 @@ namespace Reown.AppKit.Unity
 
         protected override Task DisconnectAsyncCore()
         {
-            return ConnectorController.DisconnectAsync();
+            var tcs = new TaskCompletionSource<bool>();
+
+            ConnectorController.AccountDisconnected += LocalAccountDisconnectedHandler;
+
+            return Task.WhenAll(tcs.Task, ConnectorController.DisconnectAsync());
+
+            async void LocalAccountDisconnectedHandler(object _, Connector.AccountDisconnectedEventArgs args)
+            {
+                ConnectorController.AccountDisconnected -= LocalAccountDisconnectedHandler;
+
+                // AppKit JS/Wagmi doesn't disconnect immediately
+#if UNITY_WEBGL && !UNITY_EDITOR
+                await UnityEventsDispatcher.WaitForSecondsAsync(0.2f);
+#endif
+                tcs.SetResult(true);
+            }
         }
 
         protected virtual ModalController CreateModalController()
