@@ -80,7 +80,6 @@ namespace Reown.AppKit.Unity
 
                 var isConnectedToReownWallet = ConnectorController.ActiveConnector is ProfileConnector;
                 ModalController.Open(isConnectedToReownWallet ? ViewType.AccountPortfolio : ViewType.AccountSettings);
-                // ModalController.Open(ViewType.AccountSettings);
             }
             else
             {
@@ -105,10 +104,12 @@ namespace Reown.AppKit.Unity
         {
             WalletUtils.SetLastViewedWallet(wallet);
 
-#if UNITY_STANDALONE
+            var tcsConnection = new TaskCompletionSource<bool>();
+            ConnectorController.AccountConnected += (_, _) => tcsConnection.SetResult(true);
+
+#if UNITY_STANDALONE || UNITY_WEBGL
             // Show QR code with wallet logo on desktop
             OpenModal(ViewType.Wallet);
-            return Task.CompletedTask; // TODO: wait for connection
 #else
             if (!Linker.CanOpenURL(wallet.MobileLink))
                 throw new InvalidOperationException($"Cannot open URL: {wallet.MobileLink}");
@@ -136,14 +137,11 @@ namespace Reown.AppKit.Unity
 
                 await tcsUri.Task;
             }
-
-            var tcsConnection = new TaskCompletionSource<bool>();
-            connectionProposal.Connected += _ => tcsConnection.SetResult(true);
-
+            
             Linker.OpenSessionProposalDeepLink(connectionProposal.Uri, wallet.MobileLink);
+#endif
 
             await tcsConnection.Task;
-#endif
         }
 
         protected virtual ModalController CreateModalController()

@@ -14,7 +14,7 @@ namespace Reown.AppKit.Unity
     {
         [VersionMarker]
         public const string Version = "unity-appkit-v1.3.0";
-        
+
         public static AppKit Instance { get; protected set; }
 
         public static ModalController ModalController { get; protected set; }
@@ -30,9 +30,9 @@ namespace Reown.AppKit.Unity
         public static EvmService Evm { get; protected set; }
 
         public static AppKitConfig Config { get; private set; }
-        
+
         public SignClientUnity SignClient { get; protected set; }
-        
+
         public static bool IsInitialized { get; private set; }
 
         public static bool IsAccountConnected
@@ -129,14 +129,15 @@ namespace Reown.AppKit.Unity
             if (IsAccountConnected)
                 throw new Exception("Account is already connected"); // TODO: use custom ex type
 
-            var response = await ApiController.GetWallets(1, 1, includedWalletIds: new[] { walletId });
-
-            Debug.Log(JsonConvert.SerializeObject(response));
+            var response = await ApiController.GetWallets(1, 1, includedWalletIds: new[]
+            {
+                walletId
+            });
 
             if (response.Data.Length == 0)
                 throw new Exception($"Wallet with id {walletId} not found"); // TODO: use custom ex type
 
-            var wallet = response.Data.First();
+            var wallet = response.Data[0];
 
             await Instance.ConnectAsyncCore(wallet);
         }
