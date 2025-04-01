@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Reown.Sign.Models;
@@ -9,6 +10,10 @@ namespace Reown.AppKit.Unity.Profile
     public class ProfileConnector : WalletConnectConnector
     {
         public string Email { get; private set; }
+
+        public string Username { get; private set; }
+
+        public string Provider { get; private set; }
 
         public Account[] SmartAccounts { get; private set; }
 
@@ -36,18 +41,20 @@ namespace Reown.AppKit.Unity.Profile
                     .DeserializeObject<string[]>(sessionProperties["smartAccounts"])
                     .Select(x => new Account(x))
                     .ToArray();
-                
+
                 var allAccounts = await GetAccountsAsyncCore();
                 EoaAccounts = allAccounts
                     .Except(SmartAccounts)
                     .ToArray();
 
-                Email = sessionProperties["email"];
+                Email = sessionProperties.GetValueOrDefault("email");
+                Username = sessionProperties.GetValueOrDefault("username");
+                Provider = sessionProperties.GetValueOrDefault("provider");
 
                 base.OnAccountConnected(e);
 
                 var preferredAccountTypeStr = PlayerPrefs.GetString(PreferredAccountTypeKey);
-                
+
                 var preferredAccountType = Enum.TryParse<AccountType>(preferredAccountTypeStr, out var accountType)
                     ? accountType
                     : AccountType.SmartAccount;
@@ -76,7 +83,7 @@ namespace Reown.AppKit.Unity.Profile
             PreferredAccount = accountType == AccountType.SmartAccount
                 ? SmartAccounts.First(a => a.ChainId == chainId)
                 : EoaAccounts.First(a => a.ChainId == chainId);
-            
+
             PreferredAccountType = accountType;
 
             // The preferred account type is saved so it can be recovered after the session is resumed
