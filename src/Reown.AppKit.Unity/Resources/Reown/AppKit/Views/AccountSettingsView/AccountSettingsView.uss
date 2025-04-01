@@ -1,3 +1,8 @@
+.modal--landscape AccountSettingsView {
+    flex-direction: row;
+    justify-content: center;
+}
+
 #account-settings-view__profile {
     display: flex;
     flex-direction: column;
@@ -5,6 +10,7 @@
     justify-content: center;
     margin-bottom: 12px;
     margin-top: -12px;
+    min-width: 200px;
 }
 
 #account-settings-view__profile-avatar {
@@ -70,4 +76,13 @@
 
 #account-settings-view__profile-address-copy-link-container {
     justify-content: flex-end;
+}
+
+#account-settings-view__buttons {
+    width: 100%;
+}
+
+.modal--landscape #account-settings-view__buttons {
+    padding-left: 32px;
+    max-width: 400px;
 }
