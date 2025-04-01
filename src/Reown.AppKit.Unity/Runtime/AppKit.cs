@@ -1,5 +1,8 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Reown.AppKit.Unity.Model;
 using Reown.Core.Common.Utils;
 using Reown.Sign.Models;
 using Reown.Sign.Unity;
@@ -11,7 +14,7 @@ namespace Reown.AppKit.Unity
     {
         [VersionMarker]
         public const string Version = "unity-appkit-v1.3.0";
-        
+
         public static AppKit Instance { get; protected set; }
 
         public static ModalController ModalController { get; protected set; }
@@ -27,9 +30,9 @@ namespace Reown.AppKit.Unity
         public static EvmService Evm { get; protected set; }
 
         public static AppKitConfig Config { get; private set; }
-        
+
         public SignClientUnity SignClient { get; protected set; }
-        
+
         public static bool IsInitialized { get; private set; }
 
         public static bool IsAccountConnected
@@ -115,6 +118,41 @@ namespace Reown.AppKit.Unity
             return Instance.DisconnectAsyncCore();
         }
 
+        public static async Task ConnectAsync(string walletId)
+        {
+            if (string.IsNullOrEmpty(walletId))
+                throw new ArgumentNullException(nameof(walletId));
+
+            if (!IsInitialized)
+                throw new Exception("AppKit not initialized"); // TODO: use custom ex type
+
+            if (IsAccountConnected)
+                throw new Exception("Account is already connected"); // TODO: use custom ex type
+
+            var response = await ApiController.GetWallets(1, 1, includedWalletIds: new[]
+            {
+                walletId
+            });
+
+            if (response.Data.Length == 0)
+                throw new Exception($"Wallet with id {walletId} not found"); // TODO: use custom ex type
+
+            var wallet = response.Data[0];
+
+            await Instance.ConnectAsyncCore(wallet);
+        }
+
+        public static Task ConnectAsync(Wallet wallet)
+        {
+            if (!IsInitialized)
+                throw new Exception("AppKit not initialized"); // TODO: use custom ex type
+
+            if (IsAccountConnected)
+                throw new Exception("Account is already connected"); // TODO: use custom ex type
+
+            return Instance.ConnectAsyncCore(wallet);
+        }
+
         protected abstract Task InitializeAsyncCore();
 
         protected abstract void OpenModalCore(ViewType viewType = ViewType.None);
@@ -122,6 +160,8 @@ namespace Reown.AppKit.Unity
         protected abstract void CloseModalCore();
 
         protected abstract Task DisconnectAsyncCore();
+
+        protected abstract Task ConnectAsyncCore(Wallet wallet);
 
         public class InitializeEventArgs : EventArgs
         {

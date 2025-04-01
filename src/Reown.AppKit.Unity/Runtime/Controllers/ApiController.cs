@@ -35,24 +35,42 @@ namespace Reown.AppKit.Unity
             null;
 #endif
 
-        public async Task<GetWalletsResponse> GetWallets(int page, int count, string search = null)
+        private void ValidatePaginationParameters(int page, int count)
         {
             if (page < 1)
                 throw new ArgumentOutOfRangeException(nameof(page), "Page must be greater than 0");
-
             if (count < 1)
                 throw new ArgumentOutOfRangeException(nameof(count), "Count must be greater than 0");
+        }
 
+        public async Task<GetWalletsResponse> GetWallets(
+            int page,
+            int count,
+            string search = null,
+            string[] includedWalletIds = null,
+            string[] excludedWalletIds = null)
+        {
+            ValidatePaginationParameters(page, count);
 
-            return await _httpClient.GetAsync<GetWalletsResponse>("getWallets", new Dictionary<string, string>()
+            var parameters = new Dictionary<string, string>
             {
-                { "page", page.ToString() },
-                { "entries", count.ToString() },
-                { "search", search },
-                { "platform", Platform },
-                { "include", _includedWalletIdsString },
-                { "exclude", _excludedWalletIdsString }
-            });
+                ["page"] = page.ToString(),
+                ["entries"] = count.ToString(),
+                ["platform"] = Platform
+            };
+
+            if (search != null)
+                parameters["search"] = search;
+
+            parameters["include"] = includedWalletIds?.Length > 0
+                ? string.Join(",", includedWalletIds)
+                : _includedWalletIdsString;
+
+            parameters["exclude"] = excludedWalletIds?.Length > 0
+                ? string.Join(",", excludedWalletIds)
+                : _excludedWalletIdsString;
+
+            return await _httpClient.GetAsync<GetWalletsResponse>("getWallets", parameters);
         }
 
         public async Task<ApiGetAnalyticsConfigResponse> GetAnalyticsConfigAsync()

@@ -172,10 +172,6 @@ namespace Reown.AppKit.Unity
                 // Wallet declined connection, don't throw/log.
                 // The `SessionConnectionErroredHandler` will handle the error.
             }
-            catch (Exception e)
-            {
-                Debug.LogError($"[WCCP] Exception: {e.Message}");
-            }
         }
 
         protected override void Dispose(bool disposing)
