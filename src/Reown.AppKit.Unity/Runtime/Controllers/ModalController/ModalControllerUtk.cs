@@ -90,8 +90,13 @@ namespace Reown.AppKit.Unity
 
         private void TickHandler()
         {
+#if ENABLE_INPUT_SYSTEM
+            if (UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame)
+                RouterController.GoBack();
+#elif ENABLE_LEGACY_INPUT_MANAGER
             if (Input.GetKeyDown(KeyCode.Escape))
                 RouterController.GoBack();
+#endif
         }
     }
 }

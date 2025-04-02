@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Reown.AppKit.Unity.Components;
+using Reown.AppKit.Unity.Model;
 using Reown.AppKit.Unity.Profile;
 using Reown.AppKit.Unity.Utils;
 using Reown.Sign.Models;
@@ -60,7 +61,7 @@ namespace Reown.AppKit.Unity
 
             ConnectorController.AccountConnected += AccountConnectedHandler;
             ConnectorController.AccountDisconnected += AccountDisconnectedHandler;
-            
+
             EventsController.SendEvent(new Event
             {
                 name = "MODAL_LOADED"
@@ -79,7 +80,6 @@ namespace Reown.AppKit.Unity
 
                 var isConnectedToReownWallet = ConnectorController.ActiveConnector is ProfileConnector;
                 ModalController.Open(isConnectedToReownWallet ? ViewType.AccountPortfolio : ViewType.AccountSettings);
-                // ModalController.Open(ViewType.AccountSettings);
             }
             else
             {
@@ -97,7 +97,66 @@ namespace Reown.AppKit.Unity
 
         protected override Task DisconnectAsyncCore()
         {
-            return ConnectorController.DisconnectAsync();
+            var tcs = new TaskCompletionSource<bool>();
+
+            ConnectorController.AccountDisconnected += LocalAccountDisconnectedHandler;
+
+            return Task.WhenAll(tcs.Task, ConnectorController.DisconnectAsync());
+
+            async void LocalAccountDisconnectedHandler(object _, Connector.AccountDisconnectedEventArgs args)
+            {
+                ConnectorController.AccountDisconnected -= LocalAccountDisconnectedHandler;
+
+                // AppKit JS/Wagmi doesn't disconnect immediately
+#if UNITY_WEBGL && !UNITY_EDITOR
+                await UnityEventsDispatcher.WaitForSecondsAsync(0.2f);
+#endif
+                tcs.SetResult(true);
+            }
+        }
+
+        protected override async Task ConnectAsyncCore(Wallet wallet)
+        {
+            WalletUtils.SetLastViewedWallet(wallet);
+
+            var tcsConnection = new TaskCompletionSource<bool>();
+            ConnectorController.AccountConnected += (_, _) => tcsConnection.SetResult(true);
+
+#if UNITY_STANDALONE || UNITY_WEBGL
+            // Show QR code with wallet logo on desktop
+            OpenModal(ViewType.Wallet);
+#else
+            if (!Linker.CanOpenURL(wallet.MobileLink))
+                throw new InvalidOperationException($"Cannot open URL: {wallet.MobileLink}");
+
+            if (!ConnectorController
+                    .TryGetConnector<WalletConnectConnector>
+                        (ConnectorType.WalletConnect, out var connector))
+                throw new Exception("No WalletConnect connector"); // TODO: use custom exception
+
+            var connectionProposal = (WalletConnectConnectionProposal)connector.Connect();
+
+            if (string.IsNullOrEmpty(connectionProposal.Uri))
+            {
+                var tcsUri = new TaskCompletionSource<bool>();
+
+                void OnConnectionProposalOnConnectionUpdated(ConnectionProposal _)
+                {
+                    if (string.IsNullOrEmpty(connectionProposal.Uri))
+                        return;
+                    tcsUri.SetResult(true);
+                    connectionProposal.ConnectionUpdated -= OnConnectionProposalOnConnectionUpdated;
+                }
+
+                connectionProposal.ConnectionUpdated += OnConnectionProposalOnConnectionUpdated;
+
+                await tcsUri.Task;
+            }
+            
+            Linker.OpenSessionProposalDeepLink(connectionProposal.Uri, wallet.MobileLink);
+#endif
+
+            await tcsConnection.Task;
         }
 
         protected virtual ModalController CreateModalController()
