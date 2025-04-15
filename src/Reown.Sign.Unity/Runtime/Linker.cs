@@ -65,8 +65,18 @@ namespace Reown.Sign.Unity
             if (session.Peer.Metadata == null)
                 return;
 
-            var redirectNative = session.Peer.Metadata.Redirect?.Native;
+            // ReSharper disable once InlineOutVariableDeclaration
             string deeplink;
+
+#if UNITY_STANDALONE
+            // On desktop don't use redirect url from peer metadata because it 
+            // can include mobile app url when connected via QR code.
+            // Instead, we load recent wallet's deeplink which returns native url
+            // for active platform (desktop or mobile) from the wallet explorer
+            if (!TryGetRecentWalletDeepLink(out deeplink))
+                return;
+#else
+            var redirectNative = session.Peer.Metadata.Redirect?.Native;
 
             if (string.IsNullOrWhiteSpace(redirectNative))
             {
@@ -82,6 +92,7 @@ namespace Reown.Sign.Unity
                 deeplink = redirectNative;
                 ReownLogger.Log($"[Linker] Open native deep link: {deeplink}");
             }
+#endif
 
             if (!deeplink.Contains("://"))
             {
@@ -130,7 +141,7 @@ namespace Reown.Sign.Unity
             {
 #if !UNITY_EDITOR && UNITY_IOS
                 return _CanOpenURL(url);
-#elif !UNITY_EDITOR && UNITY_ANDROID 
+#elif !UNITY_EDITOR && UNITY_ANDROID
                 using var urlCheckerClass = new AndroidJavaClass("com.reown.sign.unity.Linker");
                 using var unityPlayerClass = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
                 using var currentContext = unityPlayerClass.GetStatic<AndroidJavaObject>("currentActivity");
