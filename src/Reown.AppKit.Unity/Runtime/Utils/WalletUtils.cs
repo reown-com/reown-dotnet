@@ -56,6 +56,7 @@ namespace Reown.AppKit.Unity.Utils
         public static void RemoveLastViewedWallet()
         {
             PlayerPrefs.DeleteKey("RE_LAST_VIEWED_WALLET");
+            PlayerPrefs.DeleteKey("RE_RECENT_WALLET_DEEPLINK");
         }
 
         public static bool TryGetLastViewedWallet(out Wallet wallet)

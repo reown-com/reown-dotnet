@@ -13,9 +13,6 @@ namespace Reown.AppKit.Unity
         private WalletConnectConnectionProposal _connectionProposal;
         private readonly WaitForSecondsRealtime _waitForSeconds05;
 
-        private const string DefaultWebWalletUrl = "https://web-wallet.walletconnect.org/";
-
-        private string _webWalletUrl;
         private string _providerName;
 
         public SocialLoginPresenter(RouterController router, VisualElement parent, bool hideView = true) : base(router, parent, hideView)
@@ -27,18 +24,12 @@ namespace Reown.AppKit.Unity
         {
             base.OnVisibleCore();
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            _webWalletUrl = PlayerPrefs.GetString("RE_WEB_WALLET_URL", DefaultWebWalletUrl);
-#else
-            _webWalletUrl = DefaultWebWalletUrl;
-#endif
-            
             _providerName = PlayerPrefs.GetString("RE_SOCIAL_PROVIDER_NAME", "unknown");
             View.MainLabel.text = $"Log in with {_providerName}";
             View.MessageLabel.text = "Preparing to connect...";
 
             View.ProviderIcon.vectorImage = Resources.Load<VectorImage>($"Reown/AppKit/Images/Social/{_providerName}");
-            
+
             if (!AppKit.ConnectorController
                     .TryGetConnector<ProfileConnector>
                         (ConnectorType.Profile, out var connector))
@@ -65,7 +56,7 @@ namespace Reown.AppKit.Unity
 
         private void OpenWebWallet()
         {
-            var deepLink = Linker.BuildConnectionDeepLink(_webWalletUrl, _connectionProposal.Uri);
+            var deepLink = Linker.BuildConnectionDeepLink(ProfileConnector.WebWalletUrl, _connectionProposal.Uri);
             deepLink = $"{deepLink}&provider={_providerName}";
             Application.OpenURL(deepLink);
         }
