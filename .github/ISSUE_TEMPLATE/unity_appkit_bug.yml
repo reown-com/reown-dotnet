@@ -1,0 +1,54 @@
+name: 🐛 Unity AppKit Bug Report
+description: Report a reproducible bug or regression in AppKit for Unity.
+title: '[bug]: '
+labels: ['bug', 'needs review', 'unity']
+body:
+  - type: markdown
+    attributes:
+      value: A clear and concise description of what the bug is.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Please provide a clear and concise description of what the bug is. Include screenshots if needed. Test using the [latest SDK release](https://github.com/reown-com/reown-dotnet/releases) to make sure your issue has not already been fixed.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Provide a detailed list of steps that reproduce the issue.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: AppKit version
+      description: What is the latest version of AppKit SDK that this issue reproduces on?
+      placeholder: 1.3.0
+    validations:
+      required: true
+  - type: dropdown
+    id: install-type
+    attributes:
+      label: How did you install the package?
+      options:
+        - OpenUPM
+        - Git via Unity Package Manager
+        - Copy in `/Packages` directory
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: unity-version
+    attributes:
+      label: Version of the Unity Editor
+      description: Which version of the Unity Editor are you using?
+      placeholder: 6000.0.43f1
+    validations:
+      required: true
+  - type: input
+    id: wallets
+    attributes:
+      label: What wallets did you use for testing?
+      description: List all wallets used during testing. E.g. MetaMask Android, Trust iOS.
