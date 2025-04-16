@@ -72,7 +72,7 @@ mergeInto(LibraryManager.library, {
         const socials = parameters.socials;
 
         // Load the scripts and initialize the configuration
-        import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.7.1/dist/appkit.js").then(async (AppKit) => {
+        import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.7.3/dist/appkit.js").then(async (AppKit) => {
             const WagmiCore = AppKit['WagmiCore'];
             const WagmiAdapter = AppKit['WagmiAdapter'];
             const Viem = AppKit['Viem'];
