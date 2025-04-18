@@ -100,8 +100,15 @@ mergeInto(LibraryManager.library, {
                     socials: socials
                 }
             })
-
-            await reconnect(wagmiAdapter.wagmiConfig);
+            
+            // Reconnect to WalletConnect when connector is ready
+            WagmiCore.watchConnectors(wagmiAdapter.wagmiConfig, {
+              onChange(connectors) {
+                if (connectors.includes(connector => connector.id === 'walletConnect')) {
+                  reconnect(wagmiAdapter.wagmiConfig)
+                }
+              }
+            })
 
             // Store the configuration and modal globally
             _appKitConfig = {
