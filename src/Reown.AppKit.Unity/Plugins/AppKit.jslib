@@ -20,8 +20,8 @@ mergeInto(LibraryManager.library, {
         return resultJson;
     },
 
-    $ExecuteCall__deps: ['$SerializeJson'],
-    $ExecuteCall: async function (callFn, id, methodNameStrPtr, parameterStrPtr, callbackPtr) {
+    $ExecuteCallAsync__deps: ['$SerializeJson'],
+    $ExecuteCallAsync: async function (callFn, id, methodNameStrPtr, parameterStrPtr, callbackPtr) {
         if (!_appKitConfig) {
             console.error("AppKit is not initialized. Call Initialize first.");
             return;
@@ -36,7 +36,7 @@ mergeInto(LibraryManager.library, {
         try {
             // Call the method using the provided function
             let result = await callFn(_appKitConfig, methodName, parameterObj);
-
+            
             if (result === undefined || result === null) {
                 {{{makeDynCall('viii', 'callbackPtr')}}}(id, undefined, undefined);
                 return;
@@ -54,6 +54,39 @@ mergeInto(LibraryManager.library, {
             let errorStrPtr = stringToNewUTF8(errorJson);
             {{{makeDynCall('viii', 'callbackPtr')}}}(id, undefined, errorStrPtr);
             _free(errorStrPtr);
+        }
+    },
+
+    $ExecuteCall__deps: ['$SerializeJson'],
+    $ExecuteCall: function (callFn, methodNameStrPtr, parameterStrPtr) {
+        if (!_appKitConfig) {
+            console.error("AppKit is not initialized. Call Initialize first.");
+            return;
+        }
+
+        // Convert the method name and parameter to JS strings
+        let methodName = UTF8ToString(methodNameStrPtr);
+        let parameterStr = UTF8ToString(parameterStrPtr);
+        
+        let parameterObj = parameterStr === "" ? undefined : JSON.parse(parameterStr);
+
+        try {
+            // Call the method using the provided function (synchronously)
+            let result = callFn(_appKitConfig, methodName, parameterObj);
+
+            if (result === undefined || result === null) {
+                return null;
+            }
+
+            let resultJson = SerializeJson(result);
+            
+            let resultStrPtr = stringToNewUTF8(resultJson);
+            return resultStrPtr;
+        } catch (error) {
+            console.error("[AppKit] Error executing sync call", error);
+            let errorJson = JSON.stringify(error, ['name', 'message']);
+            let errorStrPtr = stringToNewUTF8(errorJson);
+            return errorStrPtr;
         }
     },
 
@@ -173,28 +206,52 @@ mergeInto(LibraryManager.library, {
         });
     },
 
-    ModalCall__deps: ['$ExecuteCall'],
-    ModalCall: async function (id, methodNameStrPtr, parameterStrPtr, callbackPtr) {
+    ModalCallAsync__deps: ['$ExecuteCallAsync'],
+    ModalCallAsync: async function (id, methodNameStrPtr, parameterStrPtr, callbackPtr) {
         const callFn = async (appKitConfig, methodName, parameterObj) => {
             return await appKitConfig.modal[methodName](parameterObj);
         };
-        await ExecuteCall(callFn, id, methodNameStrPtr, parameterStrPtr, callbackPtr);
+        await ExecuteCallAsync(callFn, id, methodNameStrPtr, parameterStrPtr, callbackPtr);
     },
 
-    WagmiCall__deps: ['$ExecuteCall'],
-    WagmiCall: async function (id, methodNameStrPtr, parameterStrPtr, callbackPtr) {
+    ModalCall__deps: ['$ExecuteCall'],
+    ModalCall: function (methodNameStrPtr, parameterStrPtr) {
+        const callFn = (appKitConfig, methodName, parameterObj) => {
+            return appKitConfig.modal[methodName](parameterObj);
+        };
+        return ExecuteCall(callFn, methodNameStrPtr, parameterStrPtr);
+    },
+
+    WagmiCallAsync__deps: ['$ExecuteCallAsync'],
+    WagmiCallAsync: async function (id, methodNameStrPtr, parameterStrPtr, callbackPtr) {
         const callFn = async (appKitConfig, methodName, parameterObj) => {
             return await appKitConfig.wagmiCore[methodName](appKitConfig.config, parameterObj);
         };
-        await ExecuteCall(callFn, id, methodNameStrPtr, parameterStrPtr, callbackPtr);
+        await ExecuteCallAsync(callFn, id, methodNameStrPtr, parameterStrPtr, callbackPtr);
     },
     
-    ViemCall__deps: ['$ExecuteCall'],
-    ViemCall: async function (id, methodNameStrPtr, parameterStrPtr, callbackPtr) {
+    WagmiCall__deps: ['$ExecuteCall'],
+    WagmiCall: function (methodNameStrPtr, parameterStrPtr) {
+        const callFn = (appKitConfig, methodName, parameterObj) => {
+            return appKitConfig.wagmiCore[methodName](appKitConfig.config, parameterObj);
+        };
+        return ExecuteCall(callFn, methodNameStrPtr, parameterStrPtr);
+    },
+    
+    ViemCallAsync__deps: ['$ExecuteCallAsync'],
+    ViemCallAsync: async function (id, methodNameStrPtr, parameterStrPtr, callbackPtr) {
         const callFn = async (appKitConfig, methodName, parameterObj) => {
             return await appKitConfig.viem[methodName](parameterObj);
         };
-        await ExecuteCall(callFn, id, methodNameStrPtr, parameterStrPtr, callbackPtr);
+        await ExecuteCallAsync(callFn, id, methodNameStrPtr, parameterStrPtr, callbackPtr);
+    },
+    
+    ViemCall__deps: ['$ExecuteCall'],
+    ViemCall: function (methodNameStrPtr, parameterStrPtr) {
+        const callFn = (appKitConfig, methodName, parameterObj) => {
+            return appKitConfig.viem[methodName](parameterObj);
+        };
+        return ExecuteCall(callFn, methodNameStrPtr, parameterStrPtr);
     },
 
     WagmiWatchAccount__deps: ['$SerializeJson'],
@@ -222,6 +279,16 @@ mergeInto(LibraryManager.library, {
     ModalSubscribeState__deps: ['$SerializeJson'],
     ModalSubscribeState: function (callbackPtr) {
         _appKitConfig.modal.subscribeState(newState => {
+            const json = SerializeJson(newState);
+            const dataStr = stringToNewUTF8(json);
+            {{{makeDynCall('vi', 'callbackPtr')}}}(dataStr);
+            _free(dataStr);
+        });
+    },
+
+    ModalSubscribeAccount__deps: ['$SerializeJson'],
+    ModalSubscribeAccount: function (callbackPtr) {
+        _appKitConfig.modal.subscribeAccount(newState => {
             const json = SerializeJson(newState);
             const dataStr = stringToNewUTF8(json);
             {{{makeDynCall('vi', 'callbackPtr')}}}(dataStr);
