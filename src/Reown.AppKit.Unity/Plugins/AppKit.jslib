@@ -137,7 +137,7 @@ mergeInto(LibraryManager.library, {
             // Reconnect to WalletConnect when connector is ready
             WagmiCore.watchConnectors(wagmiAdapter.wagmiConfig, {
               onChange(connectors) {
-                if (connectors.includes(connector => connector.id === 'walletConnect')) {
+                if (connectors.some(connector => connector.id === 'walletConnect')) {
                   reconnect(wagmiAdapter.wagmiConfig)
                 }
               }
