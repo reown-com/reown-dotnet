@@ -15,26 +15,114 @@ namespace Reown.AppKit.Unity.WebGl
         private static readonly Dictionary<int, PendingInteropCall> PendingInteropCalls = new();
 
         private readonly ExternalMethod _externalMethod;
+        private readonly ExternalMethodAsync _asyncExternalMethod;
 
         private readonly JsonConverter[] _jsonConverts =
         {
             new ByteArrayJsonConverter()
         };
 
-        public InteropService(ExternalMethod externalMethod)
+        public InteropService(ExternalMethod externalMethod, ExternalMethodAsync asyncExternalMethod)
         {
             _externalMethod = externalMethod;
+            _asyncExternalMethod = asyncExternalMethod;
+        }
+
+        private string SerializeRequestParameter<TReq>(TReq requestParameter)
+        {
+            if (Equals(requestParameter, default(TReq)))
+                return null;
+
+            if (typeof(TReq) == typeof(string))
+                return requestParameter as string;
+
+            return JsonConvert.SerializeObject(requestParameter, _jsonConverts);
+        }
+
+        private static PendingInteropCall CreatePendingCall<TRes>()
+        {
+            var tcs = new TaskCompletionSource<object>();
+            return new PendingInteropCall(typeof(TRes), tcs);
+        }
+
+        private static object ProcessResponseData(string responseData, Type targetType)
+        {
+            if (responseData == null)
+                return null;
+
+            if (targetType == typeof(string))
+            {
+                return responseData.Trim('"');
+            }
+            else if (targetType == typeof(int) && int.TryParse(responseData, out var intResult))
+            {
+                return intResult;
+            }
+            else if (targetType == typeof(float) && float.TryParse(responseData, out var floatResult))
+            {
+                return floatResult;
+            }
+            else if (targetType == typeof(double) && double.TryParse(responseData, out var doubleResult))
+            {
+                return doubleResult;
+            }
+            else if (targetType == typeof(bool) && bool.TryParse(responseData, out var boolResult))
+            {
+                return boolResult;
+            }
+            else if (targetType == typeof(char) && char.TryParse(responseData, out var charResult))
+            {
+                return charResult;
+            }
+            else if (targetType == typeof(BigInteger) && BigInteger.TryParse(responseData, out var bigIntResult))
+            {
+                return bigIntResult;
+            }
+            else if (targetType != typeof(void))
+            {
+                return JsonConvert.DeserializeObject(responseData, targetType);
+            }
+
+            return null;
+        }
+
+        public TRes InteropCall<TReq, TRes>(string methodName, TReq requestParameter)
+        {
+            try
+            {
+                var paramStr = SerializeRequestParameter(requestParameter);
+                var responseData = _externalMethod(methodName, paramStr);
+
+                if (responseData == null)
+                {
+                    return default;
+                }
+
+                try
+                {
+                    var result = ProcessResponseData(responseData, typeof(TRes));
+                    return (TRes)result;
+                }
+                catch (Exception e)
+                {
+                    throw new FormatException($"Failed to deserialize response: {responseData}", e);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e is FormatException)
+                    throw;
+
+                throw new InteropException(e.Message);
+            }
         }
 
         public async Task<TRes> InteropCallAsync<TReq, TRes>(string methodName, TReq requestParameter, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var tcs = new TaskCompletionSource<object>();
-
             var id = Guid.NewGuid().GetHashCode();
-
-            var pendingInteropCall = new PendingInteropCall(typeof(TRes), tcs);
+            var pendingInteropCall = CreatePendingCall<TRes>();
             PendingInteropCalls.Add(id, pendingInteropCall);
 
             var cancellationTokenRegistration = cancellationToken.Register(() =>
@@ -48,27 +136,16 @@ namespace Reown.AppKit.Unity.WebGl
 
             try
             {
-                string paramStr = null;
-                if (!Equals(requestParameter, default(TReq)))
-                {
-                    if (typeof(TReq) == typeof(string))
-                    {
-                        paramStr = requestParameter as string;
-                    }
-                    else
-                    {
-                        paramStr = JsonConvert.SerializeObject(requestParameter, _jsonConverts);
-                    }
-                }
+                var paramStr = SerializeRequestParameter(requestParameter);
+                _asyncExternalMethod(id, methodName, paramStr, TcsCallback);
 
-                _externalMethod(id, methodName, paramStr, TcsCallback);
-
-                var result = await tcs.Task;
+                var result = await pendingInteropCall.TaskCompletionSource.Task;
                 return (TRes)result;
             }
             finally
             {
                 await cancellationTokenRegistration.DisposeAsync();
+                PendingInteropCalls.Remove(id);
             }
         }
 
@@ -97,7 +174,7 @@ namespace Reown.AppKit.Unity.WebGl
                     return;
                 }
             }
-            
+
             if (responseData == null)
             {
                 pendingCall.TaskCompletionSource.SetResult(null);
@@ -105,54 +182,24 @@ namespace Reown.AppKit.Unity.WebGl
                 return;
             }
 
-            object res = null;
-            if (pendingCall.ResType == typeof(string))
+            try
             {
-                res = responseData.Trim('"');
+                var result = ProcessResponseData(responseData, pendingCall.ResType);
+                pendingCall.TaskCompletionSource.SetResult(result);
             }
-            else if (pendingCall.ResType == typeof(int) && int.TryParse(responseData, out var intResult))
+            catch (Exception e)
             {
-                res = intResult;
+                pendingCall.TaskCompletionSource.SetException(e);
             }
-            else if (pendingCall.ResType == typeof(float) && float.TryParse(responseData, out var floatResult))
+            finally
             {
-                res = floatResult;
+                PendingInteropCalls.Remove(id);
             }
-            else if (pendingCall.ResType == typeof(double) && double.TryParse(responseData, out var doubleResult))
-            {
-                res = doubleResult;
-            }
-            else if (pendingCall.ResType == typeof(bool) && bool.TryParse(responseData, out var boolResult))
-            {
-                res = boolResult;
-            }
-            else if (pendingCall.ResType == typeof(char) && char.TryParse(responseData, out var charResult))
-            {
-                res = charResult;
-            }
-            else if (pendingCall.ResType == typeof(BigInteger) && BigInteger.TryParse(responseData, out var bigIntResult))
-            {
-                res = bigIntResult;
-            }
-            else if (pendingCall.ResType != typeof(void))
-            {
-                try
-                {
-                    res = JsonConvert.DeserializeObject(responseData, pendingCall.ResType);
-                }
-                catch (Exception e)
-                {
-                    pendingCall.TaskCompletionSource.SetException(e);
-                    PendingInteropCalls.Remove(id);
-                    return;
-                }
-            }
-
-            pendingCall.TaskCompletionSource.SetResult(res);
-            PendingInteropCalls.Remove(id);
         }
 
-        public delegate void ExternalMethod(int id, string methodName, string parameter, ExternalMethodCallback callback);
+        public delegate void ExternalMethodAsync(int id, string methodName, string parameter, ExternalMethodCallback callback);
+
+        public delegate string ExternalMethod(string methodName, string parameter);
 
         public delegate void ExternalMethodCallback(int id, string responseData, string responseError = null);
 
