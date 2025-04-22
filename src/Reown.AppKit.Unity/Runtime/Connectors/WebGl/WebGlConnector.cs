@@ -37,8 +37,8 @@ namespace Reown.AppKit.Unity
                 projectId = appKitConfig.projectId,
                 metadata = appKitConfig.metadata,
                 supportedChains = supportedChains,
-                includeWalletIds = appKitConfig.includedWalletIds ?? Array.Empty<string>(),
-                excludeWalletIds = appKitConfig.excludedWalletIds ?? Array.Empty<string>(),
+                includeWalletIds = appKitConfig.includedWalletIds,
+                excludeWalletIds = appKitConfig.excludedWalletIds,
 
                 enableEmail = appKitConfig.enableEmail,
                 enableOnramp = appKitConfig.enableOnramp,
