@@ -126,24 +126,12 @@ namespace Reown.Sign.Controllers
             return session.CurrentAccount(chainId);
         }
 
-        [Obsolete("Use CurrentAccount instead")]
-        public Account CurrentAddress(string chainId = null, Models.Session session = null)
-        {
-            return CurrentAccount(chainId, session);
-        }
-
         public IEnumerable<Account> AllAccounts(string @namespace = null, Models.Session session = null)
         {
             @namespace ??= DefaultNamespace;
             session ??= DefaultSession;
 
             return session.AllAccounts(@namespace);
-        }
-
-        [Obsolete("Use AllAccounts instead")]
-        public IEnumerable<Account> AllAddresses(string @namespace = null, Models.Session session = null)
-        {
-            return AllAccounts(@namespace, session);
         }
 
         public void Dispose()
