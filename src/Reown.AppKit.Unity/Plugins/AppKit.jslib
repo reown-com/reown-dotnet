@@ -103,6 +103,9 @@ mergeInto(LibraryManager.library, {
         const enableOnramp = parameters.enableOnramp;
         const enableAnalytics = parameters.enableAnalytics;
         const socials = parameters.socials;
+        
+        const excludeWalletIds = parameters.excludeWalletIds;
+        const includeWalletIds = parameters.includeWalletIds;
 
         // Load the scripts and initialize the configuration
         import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.7.3/dist/appkit.js").then(async (AppKit) => {
@@ -126,6 +129,8 @@ mergeInto(LibraryManager.library, {
                 metadata: metadata,
                 projectId,
                 isUnity: true,
+                excludeWalletIds: excludeWalletIds,
+                includeWalletIds: includeWalletIds,
                 features: {
                     email: enableEmail,
                     analytics: enableAnalytics,
