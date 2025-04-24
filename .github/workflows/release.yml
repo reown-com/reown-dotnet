@@ -8,6 +8,7 @@ on:
       - '**.md'
       - '.gitignore'
       - '.editorconfig'
+      - '.github/ISSUE_TEMPLATE/**'
   workflow_dispatch:
 
 concurrency: 

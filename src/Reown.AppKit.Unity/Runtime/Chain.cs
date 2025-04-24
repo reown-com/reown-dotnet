@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Reown.AppKit.Unity
 {
@@ -8,10 +7,6 @@ namespace Reown.AppKit.Unity
     public class Chain
     {
         public virtual string Name { get; }
-
-        // https://github.com/wevm/viem/blob/main/src/chains/index.ts
-        [Obsolete("The ViemName property will be removed")]
-        public virtual string ViemName { get; }
         public virtual Currency NativeCurrency { get; }
         public virtual BlockExplorer BlockExplorer { get; }
         public virtual string RpcUrl { get; }
@@ -36,8 +31,7 @@ namespace Reown.AppKit.Unity
             BlockExplorer blockExplorer,
             string rpcUrl,
             bool isTestnet,
-            string imageUrl,
-            string viemName = null)
+            string imageUrl)
         {
             ChainNamespace = chainNamespace;
             ChainReference = chainReference;
@@ -47,12 +41,6 @@ namespace Reown.AppKit.Unity
             RpcUrl = rpcUrl;
             IsTestnet = isTestnet;
             ImageUrl = imageUrl;
-            ViemName = viemName;
-
-            if (!string.IsNullOrWhiteSpace(viemName))
-            {
-                Debug.LogWarning($"The ViemName property is deprecated and will be removed in the future. You don't need to set <i>{viemName}</i> for the chain <b>{name}</b> in the `Chain` constructor.");
-            }
         }
 
         public override string ToString()
@@ -125,29 +113,53 @@ namespace Reown.AppKit.Unity
         public static Dictionary<string, string> ImageIds { get; } = new()
         {
             // Ethereum
-            { References.Ethereum, "692ed6ba-e569-459a-556a-776476829e00" },
+            {
+                References.Ethereum, "692ed6ba-e569-459a-556a-776476829e00"
+            },
             // Ethereum Goerli
-            { References.EthereumGoerli, "692ed6ba-e569-459a-556a-776476829e00" },
+            {
+                References.EthereumGoerli, "692ed6ba-e569-459a-556a-776476829e00"
+            },
             // Optimism
-            { References.Optimism, "ab9c186a-c52f-464b-2906-ca59d760a400" },
+            {
+                References.Optimism, "ab9c186a-c52f-464b-2906-ca59d760a400"
+            },
             // Ronin
-            { References.Ronin, "b8101fc0-9c19-4b6f-ec65-f6dfff106e00" },
+            {
+                References.Ronin, "b8101fc0-9c19-4b6f-ec65-f6dfff106e00"
+            },
             // RoninSaigon
-            { References.RoninSaigon, "b8101fc0-9c19-4b6f-ec65-f6dfff106e00" },
+            {
+                References.RoninSaigon, "b8101fc0-9c19-4b6f-ec65-f6dfff106e00"
+            },
             // Arbitrum
-            { References.Arbitrum, "600a9a04-c1b9-42ca-6785-9b4b6ff85200" },
+            {
+                References.Arbitrum, "600a9a04-c1b9-42ca-6785-9b4b6ff85200"
+            },
             // Celo
-            { References.Celo, "ab781bbc-ccc6-418d-d32d-789b15da1f00" },
+            {
+                References.Celo, "ab781bbc-ccc6-418d-d32d-789b15da1f00"
+            },
             // Celo Alfajores
-            { References.CeloAlfajores, "ab781bbc-ccc6-418d-d32d-789b15da1f00" },
+            {
+                References.CeloAlfajores, "ab781bbc-ccc6-418d-d32d-789b15da1f00"
+            },
             // Base
-            { References.Base, "7289c336-3981-4081-c5f4-efc26ac64a00" },
+            {
+                References.Base, "7289c336-3981-4081-c5f4-efc26ac64a00"
+            },
             // Base Goerli
-            { References.BaseGoerli, "7289c336-3981-4081-c5f4-efc26ac64a00" },
+            {
+                References.BaseGoerli, "7289c336-3981-4081-c5f4-efc26ac64a00"
+            },
             // Polygon
-            { References.Polygon, "41d04d42-da3b-4453-8506-668cc0727900" },
+            {
+                References.Polygon, "41d04d42-da3b-4453-8506-668cc0727900"
+            },
             // Avalanche
-            { References.Avalanche, "30c46e53-e989-45fb-4549-be3bd4eb3b00" },
+            {
+                References.Avalanche, "30c46e53-e989-45fb-4549-be3bd4eb3b00"
+            }
         };
 
         public static class Chains
@@ -160,8 +172,7 @@ namespace Reown.AppKit.Unity
                 new BlockExplorer("Etherscan", "https://etherscan.io"),
                 "https://cloudflare-eth.com",
                 false,
-                $"{ChainImageUrl}/{ImageIds[References.Ethereum]}",
-                "mainnet"
+                $"{ChainImageUrl}/{ImageIds[References.Ethereum]}"
             );
 
             public static readonly Chain EthereumGoerli = new(
@@ -172,8 +183,7 @@ namespace Reown.AppKit.Unity
                 new BlockExplorer("Etherscan", "https://goerli.etherscan.io"),
                 "https://goerli.infura.io/v3/",
                 true,
-                $"{ChainImageUrl}/{ImageIds[References.EthereumGoerli]}",
-                "goerli"
+                $"{ChainImageUrl}/{ImageIds[References.EthereumGoerli]}"
             );
 
             public static readonly Chain Optimism = new(
@@ -184,8 +194,7 @@ namespace Reown.AppKit.Unity
                 new BlockExplorer("Optimistic Etherscan", "https://optimistic.etherscan.io"),
                 "https://mainnet.optimism.io",
                 false,
-                $"{ChainImageUrl}/{ImageIds[References.Optimism]}",
-                "optimism"
+                $"{ChainImageUrl}/{ImageIds[References.Optimism]}"
             );
 
             public static readonly Chain Ronin = new(
@@ -196,8 +205,7 @@ namespace Reown.AppKit.Unity
                 new BlockExplorer("Ronin Explorer", "https://app.roninchain.com/"),
                 "https://api.roninchain.com/rpc",
                 false,
-                $"{ChainImageUrl}/{ImageIds[References.Ronin]}",
-                "ronin"
+                $"{ChainImageUrl}/{ImageIds[References.Ronin]}"
             );
 
             public static readonly Chain RoninSaigon = new(
@@ -208,8 +216,7 @@ namespace Reown.AppKit.Unity
                 new BlockExplorer("Ronin Explorer", "https://explorer.roninchain.com"),
                 "\thttps://api-gateway.skymavis.com/rpc/testnet",
                 false,
-                $"{ChainImageUrl}/{ImageIds[References.Ronin]}",
-                "saigon"
+                $"{ChainImageUrl}/{ImageIds[References.Ronin]}"
             );
 
             public static readonly Chain Arbitrum = new(
@@ -220,8 +227,7 @@ namespace Reown.AppKit.Unity
                 new BlockExplorer("Arbitrum Explorer", "https://arbiscan.io"),
                 "https://arb1.arbitrum.io/rpc",
                 false,
-                $"{ChainImageUrl}/{ImageIds[References.Arbitrum]}",
-                "arbitrum"
+                $"{ChainImageUrl}/{ImageIds[References.Arbitrum]}"
             );
 
             public static readonly Chain Celo = new(
@@ -232,8 +238,7 @@ namespace Reown.AppKit.Unity
                 new BlockExplorer("Celo Explorer", "https://explorer.celo.org"),
                 "https://forno.celo.org",
                 false,
-                $"{ChainImageUrl}/{ImageIds[References.Celo]}",
-                "celo"
+                $"{ChainImageUrl}/{ImageIds[References.Celo]}"
             );
 
             public static readonly Chain CeloAlfajores = new(
@@ -244,8 +249,7 @@ namespace Reown.AppKit.Unity
                 new BlockExplorer("Celo Explorer", "https://alfajores-blockscout.celo-testnet.org"),
                 "https://alfajores-forno.celo-testnet.org",
                 true,
-                $"{ChainImageUrl}/{ImageIds[References.CeloAlfajores]}",
-                "celoAlfajores"
+                $"{ChainImageUrl}/{ImageIds[References.CeloAlfajores]}"
             );
 
             public static readonly Chain Base = new(
@@ -256,8 +260,7 @@ namespace Reown.AppKit.Unity
                 new BlockExplorer("BaseScan", "https://basescan.org/"),
                 "https://mainnet.base.org",
                 false,
-                $"{ChainImageUrl}/{ImageIds[References.Base]}",
-                "base"
+                $"{ChainImageUrl}/{ImageIds[References.Base]}"
             );
 
             public static readonly Chain BaseGoerli = new(
@@ -268,8 +271,7 @@ namespace Reown.AppKit.Unity
                 new BlockExplorer("BaseScan", "https://goerli.basescan.org/"),
                 "https://goerli.base.org",
                 true,
-                $"{ChainImageUrl}/{ImageIds[References.BaseGoerli]}",
-                "baseGoerli"
+                $"{ChainImageUrl}/{ImageIds[References.BaseGoerli]}"
             );
 
             public static readonly Chain Polygon = new(
@@ -280,8 +282,7 @@ namespace Reown.AppKit.Unity
                 new BlockExplorer("Polygon Explorer", "https://polygonscan.com"),
                 "https://polygon-rpc.com",
                 false,
-                $"{ChainImageUrl}/{ImageIds[References.Polygon]}",
-                "polygon"
+                $"{ChainImageUrl}/{ImageIds[References.Polygon]}"
             );
 
             public static readonly Chain Avalanche = new(
@@ -292,8 +293,7 @@ namespace Reown.AppKit.Unity
                 new BlockExplorer("Avalanche Explorer", "https://snowtrace.io/"),
                 "https://api.avax.network/ext/bc/C/rpc",
                 false,
-                $"{ChainImageUrl}/{ImageIds[References.Avalanche]}",
-                "avalanche"
+                $"{ChainImageUrl}/{ImageIds[References.Avalanche]}"
             );
 
             public static readonly IReadOnlyCollection<Chain> All = new HashSet<Chain>

@@ -1,8 +1,10 @@
 using System.Numerics;
 using System.Threading.Tasks;
 using Nethereum.Contracts;
+using Newtonsoft.Json;
 using Reown.AppKit.Unity.WebGl.Wagmi;
 using Reown.Sign.Unity;
+using UnityEngine;
 
 namespace Reown.AppKit.Unity
 {
@@ -13,11 +15,11 @@ namespace Reown.AppKit.Unity
         {
             return Task.CompletedTask;
         }
-        
+
         protected override async Task<BigInteger> GetBalanceAsyncCore(string address)
         {
-             var result = await WagmiInterop.GetBalanceAsync(address);
-             return BigInteger.Parse(result.value);
+            var result = await WagmiInterop.GetBalanceAsync(address);
+            return BigInteger.Parse(result.value);
         }
 
         protected override Task<string> SignMessageAsyncCore(string message, string address)
@@ -59,6 +61,7 @@ namespace Reown.AppKit.Unity
         {
             return WagmiInterop.SendTransactionAsync(addressTo, value.ToString(), data);
         }
+
         protected override Task<string> SendRawTransactionAsyncCore(string signedTransaction)
         {
             throw new System.NotImplementedException();
@@ -66,7 +69,7 @@ namespace Reown.AppKit.Unity
 
         protected override async Task<BigInteger> EstimateGasAsyncCore(string addressTo, BigInteger value, string data = null)
         {
-            var result = await  WagmiInterop.EstimateGasAsync(addressTo, value.ToString(), data);
+            var result = await WagmiInterop.EstimateGasAsync(addressTo, value.ToString(), data);
             return BigInteger.Parse(result);
         }
 
@@ -74,10 +77,10 @@ namespace Reown.AppKit.Unity
         {
             var contract = new ContractBuilder(contractAbi, contractAddress);
             var function = contract.GetFunctionAbi(methodName);
-            
+
             var functionBuilder = new FunctionBuilder(contractAddress, function);
             var data = functionBuilder.GetData(arguments);
-            
+
             var result = await WagmiInterop.EstimateGasAsync(contractAddress, value.ToString(), data);
             return BigInteger.Parse(result);
         }

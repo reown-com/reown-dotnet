@@ -1,0 +1,108 @@
+name: 🐛👾 Unity AppKit Bug Report
+description: Report a reproducible bug or regression in AppKit for Unity.
+title: '[bug]: '
+labels: ['bug', 'needs review', 'unity']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Unity AppKit Bug Report
+        Thank you for taking the time to file a bug report. Complete the form below with as much detail as possible to help us reproduce and fix the issue.
+        
+        Before submitting, please:
+        - Test with the [latest SDK release](https://github.com/reown-com/reown-dotnet/releases) to ensure the issue hasn't been fixed
+        - Search [existing issues](https://github.com/reown-com/reown-dotnet/issues?q=is%3Aissue%20) to avoid duplicates
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Please provide a clear and concise description of what the bug is. Include screenshots if needed. Test using the [latest SDK release](https://github.com/reown-com/reown-dotnet/releases) to make sure your issue has not already been fixed.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Provide a detailed list of steps that reproduce the issue.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: AppKit version
+      description: What is the latest version of AppKit SDK that this issue reproduces on?
+      placeholder: 1.3.0
+    validations:
+      required: true
+  - type: dropdown
+    id: install-type
+    attributes:
+      label: How did you install the package?
+      options:
+        - OpenUPM
+        - Git via Unity Package Manager
+        - Copy in `/Packages` directory
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: unity-version
+    attributes:
+      label: Version of the Unity Editor
+      description: Which version of the Unity Editor are you using?
+      placeholder: 6000.0.43f1
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      description: On which platform(s) does this issue occur?
+      multiple: true
+      options:
+        - Windows Unity Editor
+        - macOS Unity Editor
+        - Windows Standalone
+        - macOS Standalone
+        - iOS
+        - Android
+        - WebGL
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: wallets
+    attributes:
+      label: What wallets did you use for testing?
+      description: List all wallets used during testing. E.g. MetaMask Android, Trust iOS.
+    validations:
+      required: true
+  - type: checkboxes
+    id: troubleshooting
+    attributes:
+      label: Troubleshooting steps
+      description: Please confirm you've completed the following troubleshooting steps
+      options:
+        - label: I've tested with the latest version of the SDK
+          required: true
+        - label: I've checked the Unity console for errors
+          required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Add any other context, logs, or screenshots about the problem here.

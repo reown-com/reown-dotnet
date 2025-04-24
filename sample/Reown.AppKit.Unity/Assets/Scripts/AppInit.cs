@@ -114,6 +114,7 @@ namespace Sample
             }
 
             PlayerPrefs.SetString("RE_WEB_WALLET_URL", url);
+            PlayerPrefs.SetString("RE_RECENT_WALLET_DEEPLINK", url);
             PlayerPrefs.Save();
             Debug.Log($"Web Wallet URL set to {url}");
         }

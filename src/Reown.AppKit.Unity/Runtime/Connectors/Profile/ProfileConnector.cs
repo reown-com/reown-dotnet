@@ -23,7 +23,21 @@ namespace Reown.AppKit.Unity.Profile
 
         public Account PreferredAccount { get; private set; }
 
+        public static string WebWalletUrl
+        {
+            get
+            {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                // Allow to override the web wallet URL in development
+                return PlayerPrefs.GetString("RE_WEB_WALLET_URL", DefaultWebWalletUrl);
+#else
+                return DefaultWebWalletUrl;
+#endif
+            }
+        }
+
         private const string PreferredAccountTypeKey = "PreferredAccount";
+        private const string DefaultWebWalletUrl = "https://web-wallet.walletconnect.org/";
 
         public ProfileConnector()
         {
@@ -34,6 +48,8 @@ namespace Reown.AppKit.Unity.Profile
         {
             try
             {
+                PlayerPrefs.SetString("RE_RECENT_WALLET_DEEPLINK", WebWalletUrl);
+
                 var addressProvider = SignClient.AddressProvider;
                 var sessionProperties = addressProvider.DefaultSession.SessionProperties;
 

@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using AOT;
@@ -8,7 +7,6 @@ using Newtonsoft.Json;
 using Reown.AppKit.Unity.WebGl.Modal;
 using Reown.AppKit.Unity.WebGl.Wagmi;
 using Reown.Sign.Models;
-using Reown.Sign.Nethereum.Model;
 using Reown.Sign.Unity;
 
 namespace Reown.AppKit.Unity
@@ -39,8 +37,8 @@ namespace Reown.AppKit.Unity
                 projectId = appKitConfig.projectId,
                 metadata = appKitConfig.metadata,
                 supportedChains = supportedChains,
-                includeWalletIds = appKitConfig.includedWalletIds ?? Array.Empty<string>(),
-                excludeWalletIds = appKitConfig.excludedWalletIds ?? Array.Empty<string>(),
+                includeWalletIds = appKitConfig.includedWalletIds,
+                excludeWalletIds = appKitConfig.excludedWalletIds,
 
                 enableEmail = appKitConfig.enableEmail,
                 enableOnramp = appKitConfig.enableOnramp,
@@ -73,7 +71,7 @@ namespace Reown.AppKit.Unity
 
         protected override async Task<bool> TryResumeSessionAsyncCore()
         {
-            var getAccountResult = await WagmiInterop.GetAccountAsync();
+            var getAccountResult = WagmiInterop.GetAccount();
 
             if (getAccountResult.isConnected)
             {
@@ -116,19 +114,19 @@ namespace Reown.AppKit.Unity
             await WagmiInterop.SwitchChainAsync(int.Parse(chain.ChainReference)); // TODO: remove parsing
         }
 
-        protected override async Task<Account> GetAccountAsyncCore()
+        protected override Task<Account> GetAccountAsyncCore()
         {
-            var wagmiAccount = await WagmiInterop.GetAccountAsync();
-            return new Account(wagmiAccount.address, $"eip155:{wagmiAccount.chainId}");
+            var wagmiAccount = WagmiInterop.GetAccount();
+            return Task.FromResult(new Account(wagmiAccount.address, $"eip155:{wagmiAccount.chainId}"));
         }
 
-        protected override async Task<Account[]> GetAccountsAsyncCore()
+        protected override Task<Account[]> GetAccountsAsyncCore()
         {
-            var wagmiAccount = await WagmiInterop.GetAccountAsync();
+            var wagmiAccount = WagmiInterop.GetAccount();
             var chainId = $"eip155:{wagmiAccount.chainId}";
-            return wagmiAccount.addresses
+            return Task.FromResult(wagmiAccount.addresses
                 .Select(addr => new Account(addr, chainId))
-                .ToArray();
+                .ToArray());
         }
 
         private void WatchAccountTriggeredHandler(GetAccountReturnType arg)
