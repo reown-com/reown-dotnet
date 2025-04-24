@@ -224,18 +224,6 @@ namespace Reown.AppKit.Unity
 
         public class AccountConnectedEventArgs : EventArgs
         {
-            [Obsolete("Use GetAccountAsync instead")]
-            public Func<Task<Account>> GetAccount
-            {
-                get => GetAccountAsync;
-            }
-
-            [Obsolete("Use GetAccountsAsync instead")]
-            public Func<Task<Account[]>> GetAccounts
-            {
-                get => GetAccountsAsync;
-            }
-
             public Func<Task<Account>> GetAccountAsync { get; }
 
             public Func<Task<Account[]>> GetAccountsAsync { get; }

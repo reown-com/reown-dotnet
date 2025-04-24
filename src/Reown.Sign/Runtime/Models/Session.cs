@@ -110,12 +110,6 @@ namespace Reown.Sign.Models
             return new Account(accountId);
         }
 
-        [Obsolete("Use CurrentAccount instead")]
-        public Account CurrentAddress(string chainId)
-        {
-            return CurrentAccount(chainId);
-        }
-
         public IEnumerable<Account> AllAccounts(string @namespace)
         {
             ValidateNamespaceAndTopic(@namespace);
@@ -124,18 +118,6 @@ namespace Reown.Sign.Models
             return defaultNamespace.Accounts.Length == 0
                 ? new List<Account>().AsReadOnly()
                 : defaultNamespace.Accounts.Select(accountId => new Account(accountId));
-        }
-
-        [Obsolete("Use AllAccounts instead")]
-        public IEnumerable<Account> AllAddresses(string @namespace)
-        {
-            return AllAccounts(@namespace);
-        }
-
-        [Obsolete("Use `new Account(fullAddress)` instead")]
-        public static Account CreateCaip25Address(string fullAddress)
-        {
-            return new Account(fullAddress);
         }
 
         private void ValidateNamespaceAndTopic(string @namespace)

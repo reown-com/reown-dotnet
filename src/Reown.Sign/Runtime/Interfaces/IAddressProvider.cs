@@ -25,13 +25,7 @@ namespace Reown.Sign.Interfaces
 
         public Account CurrentAccount(string chainId = null, Session session = null);
 
-        [Obsolete("Use CurrentAccount instead.")]
-        Account CurrentAddress(string chainId = null, Session session = null);
-
         public IEnumerable<Account> AllAccounts(string @namespace = null, Session session = null);
-
-        [Obsolete("Use AllAccounts instead.")]
-        IEnumerable<Account> AllAddresses(string @namespace = null, Session session = null);
 
         public Task LoadDefaultsAsync();
     }
