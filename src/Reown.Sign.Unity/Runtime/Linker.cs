@@ -36,9 +36,8 @@ namespace Reown.Sign.Unity
 
 #if UNITY_EDITOR && (UNITY_IOS || UNITY_ANDROID)
             // In editor we cannot open _mobile_ deep links, so we just log the uri
-            Debug.Log($"[Linker] Requested to open mobile deep link. The uri: {uri}");
+            ReownLogger.Log($"[Linker] Requested to open mobile deep link. The uri: {uri}");
 #else
-
             if (string.IsNullOrWhiteSpace(nativeRedirect))
                 throw new Exception(
                     $"[Linker] No link found for {Application.platform} platform.");
@@ -105,7 +104,7 @@ namespace Reown.Sign.Unity
 
             deeplink = $"{deeplink}?requestId={requestId}&sessionTopic={session.Topic}";
 
-            Debug.Log($"[Linker] Opening URL {deeplink}");
+            ReownLogger.Log($"[Linker] Opening URL {deeplink}");
             Application.OpenURL(deeplink);
         }
 
