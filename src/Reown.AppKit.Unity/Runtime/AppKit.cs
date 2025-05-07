@@ -40,6 +40,14 @@ namespace Reown.AppKit.Unity
             get => ConnectorController.IsAccountConnected;
         }
 
+        public static Account Account
+        {
+            get
+            {
+                return ConnectorController.Account;
+            }
+        }
+
         public static bool IsModalOpen
         {
             get => ModalController.IsOpen;
@@ -102,6 +110,7 @@ namespace Reown.AppKit.Unity
             Instance.CloseModalCore();
         }
 
+        [Obsolete("Use Account property instead")]
         public static Task<Account> GetAccountAsync()
         {
             return ConnectorController.GetAccountAsync();

@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using System.Threading.Tasks;
 using Reown.Sign.Unity;
+using UnityEngine;
 
 namespace Reown.AppKit.Unity
 {
@@ -30,8 +31,8 @@ namespace Reown.AppKit.Unity
             if (string.IsNullOrWhiteSpace(message))
                 throw new ArgumentNullException(nameof(message));
 
-            address ??= (await AppKit.GetAccountAsync()).Address;
-            
+            address ??= AppKit.Account.Address;
+
             return await SignMessageAsyncCore(message, address);
         }
 
@@ -40,7 +41,7 @@ namespace Reown.AppKit.Unity
             if (rawMessage == null || rawMessage.Length == 0)
                 throw new ArgumentNullException(nameof(rawMessage));
 
-            address ??= (await AppKit.GetAccountAsync()).Address;
+            address ??= AppKit.Account.Address;
 
             return await SignMessageAsyncCore(rawMessage, address);
         }
@@ -170,18 +171,18 @@ namespace Reown.AppKit.Unity
         {
             if (string.IsNullOrWhiteSpace(signedTransaction))
                 throw new ArgumentNullException(nameof(signedTransaction));
-            
+
             return SendRawTransactionAsyncCore(signedTransaction);
         }
-        
-        
+
+
         // -- Estimate Gas --------------------------------------------
-        
+
         public Task<BigInteger> EstimateGasAsync(string addressTo, BigInteger value, string data = null)
         {
             if (string.IsNullOrWhiteSpace(addressTo))
                 throw new ArgumentNullException(nameof(addressTo));
-            
+
             return EstimateGasAsyncCore(addressTo, value, data);
         }
 
@@ -201,7 +202,7 @@ namespace Reown.AppKit.Unity
                 throw new ArgumentNullException(nameof(contractAbi));
             if (string.IsNullOrWhiteSpace(methodName))
                 throw new ArgumentNullException(nameof(methodName));
-            
+
             return EstimateGasAsyncCore(contractAddress, contractAbi, methodName, value, arguments);
         }
 
@@ -231,7 +232,7 @@ namespace Reown.AppKit.Unity
 
             return RpcRequestAsyncCore<T>(method, parameters);
         }
-        
+
 
         protected abstract Task InitializeAsyncCore(SignClientUnity signClient);
         protected abstract Task<BigInteger> GetBalanceAsyncCore(string address);

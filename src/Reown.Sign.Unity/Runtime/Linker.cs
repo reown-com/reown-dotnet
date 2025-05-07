@@ -35,7 +35,7 @@ namespace Reown.Sign.Unity
                 throw new ArgumentException("[Linker] Uri cannot be empty.");
 
 #if UNITY_EDITOR && (UNITY_IOS || UNITY_ANDROID)
-            // In editor we cannot open _mobile_ deep links, so we just log the uri
+            // In the Editor we cannot open _mobile_ deep links, so we just log the uri
             ReownLogger.Log($"[Linker] Requested to open mobile deep link. The uri: {uri}");
 #else
             if (string.IsNullOrWhiteSpace(nativeRedirect))
@@ -58,6 +58,12 @@ namespace Reown.Sign.Unity
 
         public static void OpenSessionRequestDeepLink(Session session, long requestId)
         {
+#if UNITY_EDITOR && (UNITY_IOS || UNITY_ANDROID)
+            // In the Editor we cannot open _mobile_ deep links, so we just log and ignore it
+            ReownLogger.Log($"[Linker] Requested to open mobile deep link. Ignoring.");
+            return;
+#endif
+
             if (session == null)
                 throw new ArgumentNullException(nameof(session));
 

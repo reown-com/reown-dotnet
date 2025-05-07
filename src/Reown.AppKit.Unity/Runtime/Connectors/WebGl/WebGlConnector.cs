@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using Reown.AppKit.Unity.WebGl.Modal;
 using Reown.AppKit.Unity.WebGl.Wagmi;
 using Reown.Sign.Models;
 using Reown.Sign.Unity;
+using UnityEngine;
 
 namespace Reown.AppKit.Unity
 {
@@ -19,6 +21,25 @@ namespace Reown.AppKit.Unity
 
         private static TaskCompletionSource<bool> _initializationTaskCompletionSource;
 
+        public override Account Account
+        {
+            get
+            {
+                var wagmiAccount = WagmiInterop.GetAccount();
+                return new Account(wagmiAccount.address, $"eip155:{wagmiAccount.chainId}");
+            }
+        }
+
+        public override IEnumerable<Account> Accounts
+        {
+            get
+            {
+                var wagmiAccount = WagmiInterop.GetAccount();
+                var chainId = $"eip155:{wagmiAccount.chainId}";
+                return wagmiAccount.addresses.Select(addr => new Account(addr, chainId));
+            }
+        }
+
         private string _lastAccountStatus;
 
         public WebGlConnector()
@@ -26,25 +47,25 @@ namespace Reown.AppKit.Unity
             Type = ConnectorType.WebGl;
         }
 
-        protected override async Task InitializeAsyncCore(AppKitConfig appKitConfig, SignClientUnity _)
+        protected override async Task InitializeAsyncCore(AppKitConfig config, SignClientUnity signClient)
         {
-            var supportedChains = appKitConfig.supportedChains
+            var supportedChains = config.supportedChains
                 .Select(c => new WebGlChain(c))
                 .ToArray();
 
             var parameters = new WebGlInitializeParameters
             {
-                projectId = appKitConfig.projectId,
-                metadata = appKitConfig.metadata,
+                projectId = config.projectId,
+                metadata = config.metadata,
                 supportedChains = supportedChains,
-                includeWalletIds = appKitConfig.includedWalletIds,
-                excludeWalletIds = appKitConfig.excludedWalletIds,
+                includeWalletIds = config.includedWalletIds,
+                excludeWalletIds = config.excludedWalletIds,
 
-                enableEmail = appKitConfig.enableEmail,
-                enableOnramp = appKitConfig.enableOnramp,
-                enableAnalytics = appKitConfig.enableAnalytics,
-                enableCoinbaseWallet = appKitConfig.enableCoinbaseWallet,
-                socials = appKitConfig.socials?.Any() == true ? appKitConfig.socials.Select(x => x.Slug).ToArray() : null
+                enableEmail = config.enableEmail,
+                enableOnramp = config.enableOnramp,
+                enableAnalytics = config.enableAnalytics,
+                enableCoinbaseWallet = config.enableCoinbaseWallet,
+                socials = config.socials?.Any() == true ? config.socials.Select(x => x.Slug).ToArray() : null
             };
 
             var parametersJson = JsonConvert.SerializeObject(parameters);
@@ -116,17 +137,12 @@ namespace Reown.AppKit.Unity
 
         protected override Task<Account> GetAccountAsyncCore()
         {
-            var wagmiAccount = WagmiInterop.GetAccount();
-            return Task.FromResult(new Account(wagmiAccount.address, $"eip155:{wagmiAccount.chainId}"));
+            return Task.FromResult(Account);
         }
 
         protected override Task<Account[]> GetAccountsAsyncCore()
         {
-            var wagmiAccount = WagmiInterop.GetAccount();
-            var chainId = $"eip155:{wagmiAccount.chainId}";
-            return Task.FromResult(wagmiAccount.addresses
-                .Select(addr => new Account(addr, chainId))
-                .ToArray());
+            return Task.FromResult(Accounts.ToArray());
         }
 
         private void WatchAccountTriggeredHandler(GetAccountReturnType arg)
@@ -139,7 +155,7 @@ namespace Reown.AppKit.Unity
             if (_lastAccountStatus == "connected" && previousLastAccountStatus != "connected")
             {
                 IsAccountConnected = true;
-                var accountConnectedEventArgs = new AccountConnectedEventArgs(GetAccountAsync, GetAccountsAsync);
+                var accountConnectedEventArgs = new AccountConnectedEventArgs(GetAccountAsync, GetAccountsAsync, Account, Accounts);
                 OnAccountConnected(accountConnectedEventArgs);
             }
             else if (_lastAccountStatus == "disconnected" && previousLastAccountStatus != "disconnected")

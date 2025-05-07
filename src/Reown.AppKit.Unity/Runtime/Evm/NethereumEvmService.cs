@@ -290,7 +290,7 @@ namespace Reown.AppKit.Unity
 
         protected override async Task<BigInteger> EstimateGasAsyncCore(string addressTo, BigInteger value, string data = null)
         {
-            var account = await AppKit.GetAccountAsync();
+            var account = AppKit.Account;
             var transactionInput = new TransactionInput(data, addressTo, new HexBigInteger(value))
             {
                 From = account.Address
@@ -303,7 +303,7 @@ namespace Reown.AppKit.Unity
             var contract = Web3.Eth.GetContract(contractAbi, contractAddress);
             var function = contract.GetFunction(methodName);
 
-            var account = await AppKit.GetAccountAsync();
+            var account = AppKit.Account;
 
             var transactionInput = new TransactionInput(function.GetData(arguments), contractAddress, new HexBigInteger(value))
             {
