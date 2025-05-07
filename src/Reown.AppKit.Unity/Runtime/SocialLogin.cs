@@ -80,5 +80,7 @@ namespace Reown.AppKit.Unity
         public static SocialLogin GitHub => new("GitHub", "github");
         public static SocialLogin Facebook => new("Facebook", "facebook");
         public static SocialLogin Discord => new("Discord", "discord");
+        
+        public static SocialLogin Email => new("Email", "email");
     }
 }

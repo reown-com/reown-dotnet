@@ -39,7 +39,8 @@ namespace Reown.AppKit.Unity
             "wallet_requestPermissions",
             "wallet_registerOnboarding",
             "wallet_watchAsset",
-            "wallet_scanQRCode"
+            "wallet_scanQRCode",
+            "wallet_grantPermissions"
         };
 
         private static readonly string[] _supportedEvents = new[]

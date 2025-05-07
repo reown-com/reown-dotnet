@@ -1,0 +1,55 @@
+{
+  "dependencies": {
+    "com.bgtools.playerprefseditor": "1.2.2",
+    "com.reown.appkit.unity": "file:./../../../src/Reown.AppKit.Unity",
+    "com.reown.core": "file:./../../../src/Reown.Core",
+    "com.reown.core.common": "file:./../../../src/Reown.Core.Common",
+    "com.reown.core.crypto": "file:./../../../src/Reown.Core.Crypto",
+    "com.reown.core.network": "file:./../../../src/Reown.Core.Network",
+    "com.reown.core.storage": "file:./../../../src/Reown.Core.Storage",
+    "com.reown.sign": "file:./../../../src/Reown.Sign",
+    "com.reown.sign.nethereum": "file:./../../../src/Reown.Sign.Nethereum",
+    "com.reown.sign.nethereum.unity": "file:./../../../src/Reown.Sign.Nethereum.Unity",
+    "com.reown.sign.unity": "file:./../../../src/Reown.Sign.Unity",
+    "com.reown.unity.dependencies": "file:./../../../src/Reown.Unity.Dependencies",
+    "com.skibitsky.scene-reference": "1.1.1",
+    "com.unity.ide.rider": "3.0.36",
+    "com.unity.ide.visualstudio": "2.0.23",
+    "com.unity.mobile.android-logcat": "1.4.5",
+    "com.unity.nuget.newtonsoft-json": "3.2.1",
+    "com.unity.test-framework": "1.4.6",
+    "com.unity.ugui": "2.0.0",
+    "com.yasirkula.ingamedebugconsole": "1.6.8",
+    "io.sentry.unity": "3.1.0",
+    "com.unity.modules.androidjni": "1.0.0",
+    "com.unity.modules.animation": "1.0.0",
+    "com.unity.modules.assetbundle": "1.0.0",
+    "com.unity.modules.audio": "1.0.0",
+    "com.unity.modules.director": "1.0.0",
+    "com.unity.modules.imageconversion": "1.0.0",
+    "com.unity.modules.imgui": "1.0.0",
+    "com.unity.modules.jsonserialize": "1.0.0",
+    "com.unity.modules.particlesystem": "1.0.0",
+    "com.unity.modules.screencapture": "1.0.0",
+    "com.unity.modules.ui": "1.0.0",
+    "com.unity.modules.uielements": "1.0.0",
+    "com.unity.modules.unitywebrequest": "1.0.0",
+    "com.unity.modules.unitywebrequestassetbundle": "1.0.0",
+    "com.unity.modules.unitywebrequesttexture": "1.0.0",
+    "com.unity.modules.unitywebrequestwww": "1.0.0"
+  },
+  "scopedRegistries": [
+    {
+      "name": "package.openupm.com",
+      "url": "https://package.openupm.com",
+      "scopes": [
+        "com.bgtools.playerprefseditor",
+        "com.mixpanel.unity",
+        "com.openupm",
+        "com.skibitsky.scene-reference",
+        "com.yasirkula.ingamedebugconsole",
+        "io.sentry.unity"
+      ]
+    }
+  ]
+}

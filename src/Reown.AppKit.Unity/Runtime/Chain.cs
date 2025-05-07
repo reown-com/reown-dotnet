@@ -185,6 +185,17 @@ namespace Reown.AppKit.Unity
                 true,
                 $"{ChainImageUrl}/{ImageIds[References.EthereumGoerli]}"
             );
+            
+            public static readonly Chain EthereumSepolia = new(
+                Namespaces.Evm,
+                "11155111",
+                "Ethereum Sepolia",
+                new Currency("Ether", "ETH", 18),
+                new BlockExplorer("Etherscan", "https://sepolia.etherscan.io"),
+                "https://ethereum-sepolia-rpc.publicnode.com",
+                true,
+                $"{ChainImageUrl}/{ImageIds[References.Ethereum]}"
+            );
 
             public static readonly Chain Optimism = new(
                 Namespaces.Evm,

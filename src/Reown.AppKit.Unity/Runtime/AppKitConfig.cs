@@ -35,6 +35,7 @@ namespace Reown.AppKit.Unity
         // Currently supported only on native platforms
         public SocialLogin[] socials =
         {
+            SocialLogin.Email,
             SocialLogin.Google,
             SocialLogin.X,
             SocialLogin.Apple,

@@ -15,11 +15,13 @@ namespace Reown.Sign.Nethereum
 
         public readonly HashSet<string> SignMethods = new()
         {
-            ApiMethods.eth_sendTransaction.ToString(),
-            ApiMethods.personal_sign.ToString(),
-            ApiMethods.eth_signTypedData_v4.ToString(),
-            ApiMethods.wallet_switchEthereumChain.ToString(),
-            ApiMethods.wallet_addEthereumChain.ToString()
+            nameof(ApiMethods.eth_sendTransaction),
+            nameof(ApiMethods.personal_sign),
+            nameof(ApiMethods.eth_signTypedData_v4),
+            nameof(ApiMethods.wallet_switchEthereumChain),
+            nameof(ApiMethods.wallet_addEthereumChain),
+            nameof(ApiMethods.wallet_grantPermissions),
+            nameof(ApiMethods.wallet_revokePermissions),
         };
 
         public ReownInterceptor(ReownSignService reownSignService)
@@ -44,12 +46,12 @@ namespace Reown.Sign.Nethereum
 
             if (_reownSignService.IsMethodSupported(request.Method))
             {
-                if (request.Method == ApiMethods.eth_sendTransaction.ToString())
+                if (request.Method == nameof(ApiMethods.eth_sendTransaction))
                 {
                     return await _reownSignService.SendTransactionAsync((TransactionInput)request.RawParameters[0]);
                 }
 
-                if (request.Method == ApiMethods.personal_sign.ToString())
+                if (request.Method == nameof(ApiMethods.personal_sign))
                 {
                     if (request.RawParameters.Length == 1)
                         return await _reownSignService.PersonalSignAsync((string)request.RawParameters[0]);
@@ -57,7 +59,7 @@ namespace Reown.Sign.Nethereum
                     return await _reownSignService.PersonalSignAsync((string)request.RawParameters[0], (string)request.RawParameters[1]);
                 }
 
-                if (request.Method == ApiMethods.eth_signTypedData_v4.ToString())
+                if (request.Method == nameof(ApiMethods.eth_signTypedData_v4))
                 {
                     if (request.RawParameters.Length == 1)
                         return await _reownSignService.EthSignTypedDataV4Async((string)request.RawParameters[0]);
@@ -65,12 +67,12 @@ namespace Reown.Sign.Nethereum
                     return await _reownSignService.EthSignTypedDataV4Async((string)request.RawParameters[1], (string)request.RawParameters[0]);
                 }
 
-                if (request.Method == ApiMethods.wallet_switchEthereumChain.ToString())
+                if (request.Method == nameof(ApiMethods.wallet_switchEthereumChain))
                 {
                     return await _reownSignService.WalletSwitchEthereumChainAsync((SwitchEthereumChainParameter)request.RawParameters[0]);
                 }
 
-                if (request.Method == ApiMethods.wallet_addEthereumChain.ToString())
+                if (request.Method == nameof(ApiMethods.wallet_addEthereumChain))
                 {
                     return await _reownSignService.WalletAddEthereumChainAsync((AddEthereumChainParameter)request.RawParameters[0]);
                 }
@@ -101,12 +103,12 @@ namespace Reown.Sign.Nethereum
 
             if (_reownSignService.IsMethodSupported(method))
             {
-                if (method == ApiMethods.eth_sendTransaction.ToString())
+                if (method == nameof(ApiMethods.eth_sendTransaction))
                 {
                     return await _reownSignService.SendTransactionAsync((TransactionInput)paramList[0]);
                 }
 
-                if (method == ApiMethods.personal_sign.ToString())
+                if (method == nameof(ApiMethods.personal_sign))
                 {
                     if (paramList.Length == 1)
                         return await _reownSignService.PersonalSignAsync((string)paramList[0]);
@@ -114,7 +116,7 @@ namespace Reown.Sign.Nethereum
                     return await _reownSignService.PersonalSignAsync((string)paramList[0], (string)paramList[1]);
                 }
 
-                if (method == ApiMethods.eth_signTypedData_v4.ToString())
+                if (method == nameof(ApiMethods.eth_signTypedData_v4))
                 {
                     if (paramList.Length == 1)
                         return await _reownSignService.EthSignTypedDataV4Async((string)paramList[0]);
@@ -122,7 +124,7 @@ namespace Reown.Sign.Nethereum
                     return await _reownSignService.EthSignTypedDataV4Async((string)paramList[1], (string)paramList[0]);
                 }
 
-                if (method == ApiMethods.wallet_switchEthereumChain.ToString())
+                if (method == nameof(ApiMethods.wallet_switchEthereumChain))
                 {
                     try
                     {
@@ -134,7 +136,7 @@ namespace Reown.Sign.Nethereum
                     }
                 }
 
-                if (method == ApiMethods.wallet_addEthereumChain.ToString())
+                if (method == nameof(ApiMethods.wallet_addEthereumChain))
                 {
                     try
                     {

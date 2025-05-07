@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="SettingsInfoItem.uss" />
+    <ui:VisualElement name="Container">
+        <ui:Label name="Label" text="Label"/>
+        <ui:Label name="Value" text="Value"/>
+        <ui:Label name="Copied" text="Value copied to clipboard"/>
+    </ui:VisualElement>
+</ui:UXML>
