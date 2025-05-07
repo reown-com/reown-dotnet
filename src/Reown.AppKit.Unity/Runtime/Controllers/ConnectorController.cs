@@ -24,6 +24,16 @@ namespace Reown.AppKit.Unity
             }
         }
 
+        public override Account Account
+        {
+            get => ActiveConnector.Account;
+        }
+
+        public override IEnumerable<Account> Accounts
+        {
+            get => ActiveConnector.Accounts;
+        }
+
         public Connector ActiveConnector
         {
             get => _activeConnector;

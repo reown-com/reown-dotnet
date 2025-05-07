@@ -105,7 +105,7 @@ namespace Reown.AppKit.Unity
 
         private async void ConnectorAccountConnectedHandler(object sender, Connector.AccountConnectedEventArgs e)
         {
-            var account = await e.GetAccountAsync();
+            var account = e.Account;
             if (account.AccountId == AccountId)
                 return;
 

@@ -49,7 +49,7 @@ mergeInto(LibraryManager.library, {
             {{{makeDynCall('viii', 'callbackPtr')}}}(id, resultStrPtr, undefined);
             _free(resultStrPtr);
         } catch (error) {
-            console.error("[AppKit] Error executing call", error);
+            console.error("[AppKit] Error executing async call", error);
             let errorJson = JSON.stringify(error, ['name', 'message']);
             let errorStrPtr = stringToNewUTF8(errorJson);
             {{{makeDynCall('viii', 'callbackPtr')}}}(id, undefined, errorStrPtr);

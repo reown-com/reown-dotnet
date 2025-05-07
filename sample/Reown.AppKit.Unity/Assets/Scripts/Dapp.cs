@@ -4,6 +4,7 @@ using System.Numerics;
 using Nethereum.ABI.EIP712;
 using Nethereum.JsonRpc.Client;
 using Nethereum.Web3;
+using Newtonsoft.Json;
 using Reown.AppKit.Unity;
 using Reown.AppKit.Unity.Profile;
 using Reown.Core;
@@ -198,7 +199,7 @@ namespace Sample
             {
                 Notification.ShowMessage("Getting balance with WalletConnect Blockchain API...");
 
-                var account = await AppKit.GetAccountAsync();
+                var account = AppKit.Account;
 
                 var balance = await AppKit.Evm.GetBalanceAsync(account.Address);
 
@@ -218,7 +219,7 @@ namespace Sample
             var messageCounter = ++_messageCounter;
             try
             {
-                var account = await AppKit.GetAccountAsync();
+                var account = AppKit.Account;
 
                 var message = $"Hello from Unity! (Request #{messageCounter})";
 
@@ -291,7 +292,7 @@ namespace Sample
 
             Notification.ShowMessage("Signing typed data...");
 
-            var account = await AppKit.GetAccountAsync();
+            var account = AppKit.Account;
 
             Debug.Log("Get mail typed definition");
             var typedData = GetMailTypedDefinition();
