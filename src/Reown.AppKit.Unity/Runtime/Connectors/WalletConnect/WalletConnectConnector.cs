@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -18,10 +19,31 @@ namespace Reown.AppKit.Unity
 {
     public class WalletConnectConnector : Connector
     {
+        public override Account Account
+        {
+            get => SignClient.AddressProvider.CurrentAccount();
+        }
+
+        public override IEnumerable<Account> Accounts
+        {
+            get => _signClient.AddressProvider.AllAccounts();
+        }
+
+        public SignClientUnity SignClient
+        {
+            get => _signClient;
+        }
+
+        public WalletConnectConnector()
+        {
+            ImageId = "ef1a1fcf-7fe8-4d69-bd6d-fda1345b4400";
+            Type = ConnectorType.WalletConnect;
+        }
+
         private ConnectionProposal _connectionProposal;
         private SignClientUnity _signClient;
 
-        private static readonly string[] _supportedMethods = new[]
+        private static readonly string[] _supportedMethods =
         {
             "eth_accounts",
             "eth_requestAccounts",
@@ -43,7 +65,7 @@ namespace Reown.AppKit.Unity
             "wallet_grantPermissions"
         };
 
-        private static readonly string[] _supportedEvents = new[]
+        private static readonly string[] _supportedEvents =
         {
             "chainChanged",
             "accountsChanged",
@@ -52,24 +74,13 @@ namespace Reown.AppKit.Unity
             "connect"
         };
 
-        public WalletConnectConnector()
-        {
-            ImageId = "ef1a1fcf-7fe8-4d69-bd6d-fda1345b4400";
-            Type = ConnectorType.WalletConnect;
-        }
-
-        public SignClientUnity SignClient
-        {
-            get => _signClient;
-        }
-
         protected override Task InitializeAsyncCore(AppKitConfig config, SignClientUnity signClient)
         {
             _signClient = signClient;
             DappSupportedChains = config.supportedChains;
 
             _signClient.SubscribeToSessionEvent("chainChanged", ActiveChainIdChangedHandler);
-            
+
             _signClient.SessionUpdatedUnity += ActiveSessionChangedHandler;
             _signClient.SessionDisconnectedUnity += SessionDeletedHandler;
 
@@ -81,15 +92,14 @@ namespace Reown.AppKit.Unity
             if (session == null || IsAccountConnected)
                 return;
 
-            var currentAccount = GetCurrentAccount();
-            OnAccountChanged(new AccountChangedEventArgs(currentAccount));
+            OnAccountChanged(new AccountChangedEventArgs(Account));
         }
 
         private async void ActiveChainIdChangedHandler(object sender, SessionEvent<JToken> sessionEvent)
         {
             if (!IsAccountConnected)
                 return;
-            
+
             if (sessionEvent.ChainId == "eip155:0")
                 return;
 
@@ -99,14 +109,14 @@ namespace Reown.AppKit.Unity
             await _signClient.AddressProvider.SetDefaultChainIdAsync(sessionEvent.ChainId);
 
             OnChainChanged(new ChainChangedEventArgs(sessionEvent.ChainId));
-            OnAccountChanged(new AccountChangedEventArgs(GetCurrentAccount()));
+            OnAccountChanged(new AccountChangedEventArgs(Account));
         }
 
         private async void SessionDeletedHandler(object sender, EventArgs e)
         {
             if (!IsAccountConnected)
                 return;
-            
+
             IsAccountConnected = false;
             OnAccountDisconnected(AccountDisconnectedEventArgs.Empty);
         }
@@ -127,18 +137,14 @@ namespace Reown.AppKit.Unity
                     return true;
                 }
 
-                var account = await GetAccountAsyncCore();
                 var siweSession = JsonConvert.DeserializeObject<SiweSession>(siweSessionJson);
-                
-                var addressesMatch = string.Equals(siweSession.EthAddress, account.Address, StringComparison.InvariantCultureIgnoreCase);
-                var chainsMatch = siweSession.EthChainIds.Contains(Core.Utils.ExtractChainReference(account.ChainId));
+
+                var addressesMatch = string.Equals(siweSession.EthAddress, Account.Address, StringComparison.InvariantCultureIgnoreCase);
+                var chainsMatch = siweSession.EthChainIds.Contains(Core.Utils.ExtractChainReference(Account.ChainId));
 
                 // If siwe session found, but it doesn't match the sign session, request signature (i.e. new siwe session)
                 if (!addressesMatch || !chainsMatch)
-                {
                     OnSignatureRequested();
-                    return true;
-                }
 
                 return true;
             }
@@ -152,7 +158,7 @@ namespace Reown.AppKit.Unity
             var sortedChains = activeChain != null
                 ? DappSupportedChains.OrderByDescending(chainEntry => chainEntry.ChainId == activeChain.ChainId)
                 : DappSupportedChains;
-            
+
             var connectOptions = new ConnectOptions
             {
                 OptionalNamespaces = sortedChains
@@ -167,7 +173,7 @@ namespace Reown.AppKit.Unity
                         }
                     )
             };
-            
+
             _connectionProposal = new WalletConnectConnectionProposal(this, _signClient, connectOptions, AppKit.SiweController);
             return _connectionProposal;
         }
@@ -205,7 +211,7 @@ namespace Reown.AppKit.Unity
 
                 await _signClient.AddressProvider.SetDefaultChainIdAsync(chain.ChainId);
                 OnChainChanged(new ChainChangedEventArgs(chain.ChainId));
-                OnAccountChanged(new AccountChangedEventArgs(GetCurrentAccount()));
+                OnAccountChanged(new AccountChangedEventArgs(Account));
             }
         }
 
@@ -246,7 +252,7 @@ namespace Reown.AppKit.Unity
                 await WaitForSessionUpdateAsync(TimeSpan.FromSeconds(5));
 
                 OnChainChanged(new ChainChangedEventArgs(chain.ChainId));
-                OnAccountChanged(new AccountChangedEventArgs(GetCurrentAccount()));
+                OnAccountChanged(new AccountChangedEventArgs(Account));
             }
             catch (ReownNetworkException e)
             {
@@ -286,18 +292,12 @@ namespace Reown.AppKit.Unity
 
         protected override Task<Account> GetAccountAsyncCore()
         {
-            return Task.FromResult(GetCurrentAccount());
+            return Task.FromResult(Account);
         }
 
         protected override Task<Account[]> GetAccountsAsyncCore()
         {
-            var accounts = _signClient.AddressProvider.AllAccounts();
-            return Task.FromResult(accounts.ToArray());
-        }
-
-        protected virtual Account GetCurrentAccount()
-        {
-            return _signClient.AddressProvider.CurrentAccount();
+            return Task.FromResult(Accounts.ToArray());
         }
 
         private bool ActiveSessionSupportsMethod(string method)

@@ -131,14 +131,16 @@ namespace Reown.AppKit.Unity.WebGl.Wagmi
         {
             var parameter = new SignMessageParameter
             {
-                message = message,                account = address
+                message = message,
+                account = address
             };
 
             return SignMessageAsync(parameter);
         }
 
         public static Task<string> SignMessageAsync(byte[] rawMessage, string address)
-        {            var parameter = new SignRawMessageParameter
+        {
+            var parameter = new SignRawMessageParameter
             {
                 message = new
                 {

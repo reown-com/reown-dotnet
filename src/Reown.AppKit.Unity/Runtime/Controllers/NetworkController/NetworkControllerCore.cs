@@ -34,7 +34,9 @@ namespace Reown.AppKit.Unity
                 name = "SWITCH_NETWORK",
                 properties = new Dictionary<string, object>
                 {
-                    { "network", chain.ChainId }
+                    {
+                        "network", chain.ChainId
+                    }
                 }
             });
         }
@@ -43,7 +45,7 @@ namespace Reown.AppKit.Unity
         {
             if (ActiveChain?.ChainId == e.ChainId)
                 return;
-            
+
             var chain = Chains.GetValueOrDefault(e.ChainId);
 
             var previousChain = ActiveChain;
@@ -53,12 +55,12 @@ namespace Reown.AppKit.Unity
 
         protected override async void ConnectorAccountConnectedHandlerCore(object sender, Connector.AccountConnectedEventArgs e)
         {
-            var accounts = await e.GetAccountsAsync();
             var previousChain = ActiveChain;
+            var accounts = e.Accounts.ToArray();
 
             if (ActiveChain == null)
             {
-                var defaultAccount = await e.GetAccountAsync();
+                var defaultAccount = e.Account;
 
                 if (Chains.TryGetValue(defaultAccount.ChainId, out var defaultAccountChain))
                 {
@@ -82,7 +84,7 @@ namespace Reown.AppKit.Unity
             }
             else
             {
-                var defaultAccount = await e.GetAccountAsync();
+                var defaultAccount = e.Account;
                 if (defaultAccount.ChainId == ActiveChain.ChainId)
                     return;
 
