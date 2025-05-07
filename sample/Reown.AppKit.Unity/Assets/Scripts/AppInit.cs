@@ -49,7 +49,7 @@ namespace Sample
         [ConsoleMethod("accounts", "Lists all connected accounts")]
         public static async void Accounts()
         {
-            var accounts = await AppKit.ConnectorController.GetAccountsAsync();
+            var accounts = AppKit.ConnectorController.Accounts.ToArray();
 
             if (accounts == null || accounts.Length == 0)
             {
