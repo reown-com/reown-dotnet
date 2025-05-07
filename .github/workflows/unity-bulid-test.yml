@@ -5,6 +5,9 @@ on:
     types: [opened, reopened, synchronize]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   buildForAllSupportedPlatforms:
     if: github.event.pull_request.draft == false
