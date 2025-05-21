@@ -53,7 +53,7 @@ namespace Reown.AppKit.Unity
 
         private void OnOpenLinkClicked()
         {
-            var encodedUri = HttpUtility.UrlEncode(_connectionProposal.Uri);
+            var encodedUri = System.Net.WebUtility.UrlEncode(_connectionProposal.Uri);
             var url = Path.Combine(_wallet.WebappLink, $"wc?uri={encodedUri}");
             Debug.Log(url);
             Application.OpenURL(url);

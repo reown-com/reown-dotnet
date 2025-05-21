@@ -57,8 +57,8 @@ namespace Reown.Core.Common.Utils
                 delim = "&";
             }
 
-            return source + delim + HttpUtility.UrlEncode(key)
-                   + "=" + HttpUtility.UrlEncode(value);
+            return source + delim + System.Net.WebUtility.UrlEncode(key)
+                   + "=" + System.Net.WebUtility.UrlEncode(value);
         }
 
         public static async Task<T> WithTimeout<T>(this Task<T> task, int timeout = 1000,
