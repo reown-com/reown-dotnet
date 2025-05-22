@@ -80,5 +80,11 @@ namespace Reown.Sign.Nethereum
             var addEthereumChainRequest = new WalletAddEthereumChain(chain);
             return await _signClient.Request<WalletAddEthereumChain, string>(addEthereumChainRequest);
         }
+
+        protected override async Task<PermissionsResponse> WalletRequestPermissionsAsyncCore(PermissionsRequest request)
+        {
+            var data = new WalletGrantPermissions(request);
+            return await _signClient.Request<WalletGrantPermissions, PermissionsResponse>(data);
+        }
     }
 }

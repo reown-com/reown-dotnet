@@ -1,8 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Reown.Sign.Nethereum.Model;
 using Reown.Sign.Unity;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Reown.AppKit.Unity
 {
@@ -233,6 +237,18 @@ namespace Reown.AppKit.Unity
             return RpcRequestAsyncCore<T>(method, parameters);
         }
 
+
+        // wallet_grantPermissions
+        public Task<PermissionsResponse> GrantPermissionsAsync(PermissionsRequest request)
+        {
+            return RpcRequestAsync<PermissionsResponse>("wallet_grantPermissions", request);
+        }
+
+        // wallet_revokePermissions
+        public Task RevokePermissionsAsync(string context)
+        {
+            throw new NotImplementedException();
+        }
 
         protected abstract Task InitializeAsyncCore(SignClientUnity signClient);
         protected abstract Task<BigInteger> GetBalanceAsyncCore(string address);

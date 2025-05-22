@@ -162,10 +162,17 @@ namespace Reown.AppKit.Unity
         {
             ReownLogger.Log($"[EVM] Verifying signature with EIP-191");
             // -- EIP-191
-            var recoveredAddress = _ethereumMessageSigner.EncodeUTF8AndEcRecover(message, signature);
-            if (recoveredAddress.IsTheSameAddress(address))
+            try
             {
-                return true;
+                var recoveredAddress = _ethereumMessageSigner.EncodeUTF8AndEcRecover(message, signature);
+                if (recoveredAddress.IsTheSameAddress(address))
+                {
+                    return true;
+                }
+            }
+            catch (Exception)
+            {
+                // Ignore the exception and try other methods
             }
 
             // -- ERC-6492

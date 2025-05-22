@@ -4,10 +4,14 @@ using System.Numerics;
 using Nethereum.ABI.EIP712;
 using Nethereum.JsonRpc.Client;
 using Nethereum.Web3;
+using Newtonsoft.Json;
 using Reown.AppKit.Unity;
+using Reown.AppKit.Unity.Http;
 using Reown.AppKit.Unity.Profile;
 using Reown.Core;
 using Reown.Core.Common.Model.Errors;
+using Reown.Core.Common.Utils;
+using Reown.Sign.Nethereum.Model;
 using UnityEngine;
 using UnityEngine.UIElements;
 using ButtonUtk = UnityEngine.UIElements.Button;
@@ -21,6 +25,13 @@ namespace Sample
 
         private ButtonStruct[] _buttons;
         private VisualElement _buttonsContainer;
+
+        private PermissionsResponse _permissionsResponse;
+
+        private const string BackendUrl = "http://localhost:3015";
+
+        private const string ABI =
+            @"[{""type"":""constructor"",""inputs"":[{""name"":""initialValue"",""type"":""uint256"",""internalType"":""uint256""}],""stateMutability"":""nonpayable""},{""type"":""function"",""name"":""getCount"",""inputs"":[],""outputs"":[{""name"":"""",""type"":""uint256"",""internalType"":""uint256""}],""stateMutability"":""view""},{""type"":""function"",""name"":""increment"",""inputs"":[],""outputs"":[{""name"":"""",""type"":""uint256"",""internalType"":""uint256""}],""stateMutability"":""nonpayable""},{""type"":""event"",""name"":""CounterIncremented"",""inputs"":[{""name"":""caller"",""type"":""address"",""indexed"":true,""internalType"":""address""},{""name"":""newValue"",""type"":""uint256"",""indexed"":false,""internalType"":""uint256""}],""anonymous"":false}]";
 
         private void Awake()
         {
@@ -54,37 +65,21 @@ namespace Sample
                 },
                 new ButtonStruct
                 {
+                    Text = "Grant Permission",
+                    OnClick = OnGrantPermissionButton,
+                    AccountRequired = true
+                },
+                new ButtonStruct
+                {
                     Text = "Personal Sign",
                     OnClick = OnPersonalSignButton,
                     AccountRequired = true
                 },
-                // new ButtonStruct
-                // {
-                //     Text = "Sign Typed Data",
-                //     OnClick = OnSignTypedDataV4Button,
-                //     AccountRequired = true
-                // },
                 new ButtonStruct
                 {
-                    Text = "Send Transaction",
-                    OnClick = OnSendTransactionButton,
+                    Text = "Increment",
+                    OnClick = OnIncrementButton,
                     AccountRequired = true
-                },
-                new ButtonStruct
-                {
-                    Text = "Get Balance",
-                    OnClick = OnGetBalanceButton,
-                    AccountRequired = true
-                },
-                new ButtonStruct
-                {
-                    Text = "Read Contract",
-                    OnClick = OnReadContractClicked,
-                    // AccountRequired = true,
-                    ChainIds = new HashSet<string>
-                    {
-                        "eip155:10"
-                    }
                 },
                 new ButtonStruct
                 {
@@ -190,23 +185,96 @@ namespace Sample
             AppKit.OpenModal(ViewType.Account);
         }
 
-        public async void OnGetBalanceButton()
+        public async void OnGrantPermissionButton()
         {
-            Debug.Log("[AppKit Sample] OnGetBalanceButton");
+            Debug.Log("[AppKit Sample] OnGrantPermissionButton");
+
+            if (AppKit.NetworkController.ActiveChain.ChainReference != ChainConstants.References.BaseSepolia)
+            {
+                Notification.ShowMessage("Switch to Base Sepolia...");
+                return;
+            }
 
             try
             {
-                Notification.ShowMessage("Getting balance with WalletConnect Blockchain API...");
+                var httpClient = new UnityHttpClient();
 
-                var account = await AppKit.GetAccountAsync();
+                Notification.ShowMessage("Requesting permissions...");
 
-                var balance = await AppKit.Evm.GetBalanceAsync(account.Address);
+                Debug.Log($"$[AppKit Sample] Getting backend signer key at {BackendUrl}/signer");
+                var response = await httpClient.GetAsync<Dictionary<string, string>>($"{BackendUrl}/signer");
+                Debug.Log($"[AppKit Sample] Signer's key: {response["key"]}");
 
-                Notification.ShowMessage($"Balance: {Web3.Convert.FromWei(balance)} ETH");
+                var signer = new Signer(response["key"]);
+
+                var permission = new Permission
+                {
+                    Type = "contract-call",
+                    Data = new Dictionary<string, object>
+                    {
+                        {
+                            "address", "0x0C46225550aCa909460150E341B49d447e3b2c75"
+                        },
+                        {
+                            "abi", ABI
+                        },
+                        {
+                            "functions", new Function[]
+                            {
+                                new()
+                                {
+                                    FunctionName = "increment"
+                                }
+                            }
+                        }
+                    }
+                };
+
+                Debug.Log($"[AppKit Sample] Granting permission:\n{JsonConvert.SerializeObject(permission, Formatting.Indented)}");
+
+                var account = AppKit.Account;
+                var chainId = "0x14a34";
+                var address = account.Address;
+
+                var permissionRequest = new PermissionsRequest(signer, TimeSpan.FromDays(10), chainId, address, permission);
+
+                Debug.Log($"[AppKit Sample] Permission request:\n{JsonConvert.SerializeObject(permissionRequest, Formatting.Indented)}");
+
+                var result = await AppKit.Evm.GrantPermissionsAsync(permissionRequest);
+
+                Debug.Log($"[AppKit Sample] Permission response:\n{JsonConvert.SerializeObject(result, Formatting.Indented)}");
+
+                Notification.ShowMessage($"Permission granted! Context: {result.Context}");
+
+                _permissionsResponse = result;
             }
             catch (Exception e)
             {
-                Notification.ShowMessage($"{nameof(RpcResponseException)}:\n{e.Message}");
+                Debug.LogException(e);
+            }
+        }
+
+        public async void OnIncrementButton()
+        {
+            if (_permissionsResponse == null)
+            {
+                Notification.ShowMessage("No permissions found.");
+                return;
+            }
+
+            try
+            {
+                Notification.ShowMessage("Requesting /increment");
+
+                var httpClient = new UnityHttpClient();
+                var permissionString = JsonConvert.SerializeObject(_permissionsResponse);
+                var response = await httpClient.PostAsync<Dictionary<string, string>>($"{BackendUrl}/increment", permissionString);
+                Debug.Log($"[AppKit Sample] Increment response:\n{JsonConvert.SerializeObject(response, Formatting.Indented)}");
+                Notification.ShowMessage("Success (see logs)");
+            }
+            catch (Exception e)
+            {
+                Notification.ShowMessage($"Error processing increment request\n\n{nameof(RpcResponseException)}:\n{e.Message}");
                 Debug.LogException(e, this);
             }
         }
@@ -261,138 +329,6 @@ namespace Sample
                 Debug.LogException(e, this);
             }
         }
-
-        public async void OnSendTransactionButton()
-        {
-            Debug.Log("[AppKit Sample] OnSendTransactionButton");
-
-            const string toAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
-
-            try
-            {
-                Notification.ShowMessage("Sending transaction...");
-
-                var value = Web3.Convert.ToWei(0.001);
-                var result = await AppKit.Evm.SendTransactionAsync(toAddress, value);
-                Debug.Log("Transaction hash: " + result);
-
-                Notification.ShowMessage("Transaction sent");
-            }
-            catch (Exception e)
-            {
-                Notification.ShowMessage($"Error sending transaction.\n{e.Message}");
-                Debug.LogException(e, this);
-            }
-        }
-
-        public async void OnSignTypedDataV4Button()
-        {
-            Debug.Log("[AppKit Sample] OnSignTypedDataV4Button");
-
-            Notification.ShowMessage("Signing typed data...");
-
-            var account = await AppKit.GetAccountAsync();
-
-            Debug.Log("Get mail typed definition");
-            var typedData = GetMailTypedDefinition();
-            var mail = new Mail
-            {
-                From = new Person
-                {
-                    Name = "Cow",
-                    Wallets = new List<string>
-                    {
-                        "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
-                        "0xDeaDbeefdEAdbeefdEadbEEFdeadbeEFdEaDbeeF"
-                    }
-                },
-                To = new List<Person>
-                {
-                    new()
-                    {
-                        Name = "Bob",
-                        Wallets = new List<string>
-                        {
-                            "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
-                            "0xB0BdaBea57B0BDABeA57b0bdABEA57b0BDabEa57",
-                            "0xB0B0b0b0b0b0B000000000000000000000000000"
-                        }
-                    }
-                },
-                Contents = "Hello, Bob!"
-            };
-
-            // Convert CAIP-2 chain reference to EIP-155 chain ID
-            // This is equivalent to `account.ChainId.Split(":")[1]`, but allocates less memory
-            var ethChainId = Utils.ExtractChainReference(account.ChainId);
-
-            typedData.Domain.ChainId = BigInteger.Parse(ethChainId);
-            typedData.SetMessage(mail);
-
-            var jsonMessage = typedData.ToJson();
-
-            try
-            {
-                var signature = await AppKit.Evm.SignTypedDataAsync(jsonMessage);
-
-                var isValid = await AppKit.Evm.VerifyTypedDataSignatureAsync(account.Address, jsonMessage, signature);
-
-                Notification.ShowMessage($"Signature valid: {isValid}");
-            }
-            catch (Exception e)
-            {
-                Notification.ShowMessage("Error signing typed data");
-                Debug.LogException(e, this);
-            }
-        }
-
-        public async void OnReadContractClicked()
-        {
-            // An example of reading a smart contract state.
-            // This example uses the WCT staking contract on the Optimism Mainnet
-
-            const string contractAddress = "0x521B4C065Bbdbe3E20B3727340730936912DfA46";
-
-            // Can be JSON or human-readable ABI that includes only the function you want to call.
-            // It's recommended to use JSON ABI for better performance.
-            const string abi = "function supply() view returns (uint256)";
-
-            Notification.ShowMessage("Reading smart contract state...");
-
-            try
-            {
-                var staked = await AppKit.Evm.ReadContractAsync<BigInteger>(contractAddress, abi, "supply");
-                var stakedFormated = Web3.Convert.FromWei(staked); // WCT token has 18 decimals
-                var result = $"Total Tokens Staked:\n{stakedFormated:N0} WCT";
-
-                Notification.ShowMessage(result);
-            }
-            catch (Exception e)
-            {
-                Notification.ShowMessage($"Contract reading error.\n{e.Message}");
-                Debug.LogException(e, this);
-            }
-        }
-
-        private TypedData<Domain> GetMailTypedDefinition()
-        {
-            return new TypedData<Domain>
-            {
-                Domain = new Domain
-                {
-                    Name = "Ether Mail",
-                    Version = "1",
-                    ChainId = 1,
-                    VerifyingContract = "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
-                },
-                Types = MemberDescriptionFactory.GetTypesMemberDescription(typeof(Domain), typeof(Group), typeof(Mail), typeof(Person)),
-                PrimaryType = nameof(Mail)
-            };
-        }
-
-        public const string CryptoPunksAbi =
-            @"[{""constant"":true,""inputs"":[{""name"":""_owner"",""type"":""address""}],""name"":""balanceOf"",""outputs"":[{""name"":""balance"",""type"":""uint256""}],""payable"":false,""stateMutability"":""view"",""type"":""function""},
-        {""constant"":true,""inputs"":[],""name"":""name"",""outputs"":[{""name"":"""",""type"":""string""}],""payable"":false,""stateMutability"":""view"",""type"":""function""}]";
     }
 
     internal struct ButtonStruct

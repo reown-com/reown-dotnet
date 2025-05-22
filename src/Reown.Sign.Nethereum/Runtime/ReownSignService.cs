@@ -60,11 +60,17 @@ namespace Reown.Sign.Nethereum
             return WalletAddEthereumChainAsyncCore(ethereumChain);
         }
 
+        public Task<PermissionsResponse> WalletRequestPermissionsAsync(PermissionsRequest request)
+        {
+            return WalletRequestPermissionsAsyncCore(request);
+        }
+
         protected abstract bool IsMethodSupportedCore(string method);
         protected abstract Task<object> SendTransactionAsyncCore(TransactionInput transaction);
         protected abstract Task<object> PersonalSignAsyncCore(string message, string address = null);
         protected abstract Task<object> EthSignTypedDataV4AsyncCore(string data, string address = null);
         protected abstract Task<object> WalletSwitchEthereumChainAsyncCore(SwitchEthereumChain arg);
         protected abstract Task<object> WalletAddEthereumChainAsyncCore(EthereumChain chain);
+        protected abstract Task<PermissionsResponse> WalletRequestPermissionsAsyncCore(PermissionsRequest request);
     }
 }

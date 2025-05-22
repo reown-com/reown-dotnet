@@ -97,11 +97,13 @@ namespace Reown.AppKit.Unity
         {
             public const string Ethereum = "1";
             public const string EthereumGoerli = "5";
+            public const string EthereumSepolia = "11155111";
             public const string Optimism = "10";
             public const string Ronin = "2020";
             public const string RoninSaigon = "2021";
             public const string Base = "8453";
             public const string BaseGoerli = "84531";
+            public const string BaseSepolia = "84532";
             public const string Arbitrum = "42161";
             public const string Celo = "42220";
             public const string CeloAlfajores = "44787";
@@ -175,6 +177,7 @@ namespace Reown.AppKit.Unity
                 $"{ChainImageUrl}/{ImageIds[References.Ethereum]}"
             );
 
+            [Obsolete("EthereumGoerli object will be removed. Make a local copy or use EthereumSepolia.")]
             public static readonly Chain EthereumGoerli = new(
                 Namespaces.Evm,
                 References.EthereumGoerli,
@@ -185,10 +188,10 @@ namespace Reown.AppKit.Unity
                 true,
                 $"{ChainImageUrl}/{ImageIds[References.EthereumGoerli]}"
             );
-            
+
             public static readonly Chain EthereumSepolia = new(
                 Namespaces.Evm,
-                "11155111",
+                References.EthereumSepolia,
                 "Ethereum Sepolia",
                 new Currency("Ether", "ETH", 18),
                 new BlockExplorer("Etherscan", "https://sepolia.etherscan.io"),
@@ -274,6 +277,18 @@ namespace Reown.AppKit.Unity
                 $"{ChainImageUrl}/{ImageIds[References.Base]}"
             );
 
+            public static readonly Chain BaseSepolia = new(
+                Namespaces.Evm,
+                References.BaseSepolia,
+                "Base Sepolia",
+                new Currency("Ether", "ETH", 18),
+                new BlockExplorer("BaseScan", "https://sepolia.basescan.org/"),
+                "https://sepolia.base.org",
+                true,
+                $"{ChainImageUrl}/{ImageIds[References.BaseGoerli]}"
+            );
+
+            [Obsolete("BaseGoerli object will be removed. Make a local copy or use BaseSepolia.")]
             public static readonly Chain BaseGoerli = new(
                 Namespaces.Evm,
                 References.BaseGoerli,

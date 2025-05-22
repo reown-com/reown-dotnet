@@ -21,7 +21,7 @@ namespace Reown.Sign.Nethereum
             nameof(ApiMethods.wallet_switchEthereumChain),
             nameof(ApiMethods.wallet_addEthereumChain),
             nameof(ApiMethods.wallet_grantPermissions),
-            nameof(ApiMethods.wallet_revokePermissions),
+            nameof(ApiMethods.wallet_revokePermissions)
         };
 
         public ReownInterceptor(ReownSignService reownSignService)
@@ -148,6 +148,10 @@ namespace Reown.Sign.Nethereum
                     }
                 }
 
+                if (method == nameof(ApiMethods.wallet_grantPermissions))
+                {
+                    return await _reownSignService.WalletRequestPermissionsAsync((PermissionsRequest)paramList[0]);
+                }
 
                 throw new NotImplementedException();
             }

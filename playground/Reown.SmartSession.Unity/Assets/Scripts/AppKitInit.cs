@@ -23,7 +23,7 @@ namespace Sample
 
             // The very basic configuration of SIWE
             // Uncomment it and pass into AppKitConfig below to enable 1-Click Auth and SIWE
-            
+
             // var siweConfig = new SiweConfig
             // {
             //     GetMessageParams = () => new SiweMessageParams
@@ -38,7 +38,7 @@ namespace Sample
             // siweConfig.SignInSuccess += _ => Debug.Log("[Dapp] SIWE Sign In Success!");
             // siweConfig.SignOutSuccess += () => Debug.Log("[Dapp] SIWE Sign Out Success!");
 
-            
+
             // AppKit configuration
             var appKitConfig = new AppKitConfig
             {
@@ -60,8 +60,8 @@ namespace Sample
                 connectViewWalletsCountMobile = 5,
                 supportedChains = new[]
                 {
-                    ChainConstants.Chains.Ethereum,
-                    ChainConstants.Chains.EthereumSepolia,
+                    // ChainConstants.Chains.Ethereum,
+                    ChainConstants.Chains.BaseSepolia
                 },
                 socials = new[]
                 {
@@ -79,7 +79,7 @@ namespace Sample
             await AppKit.InitializeAsync(
                 appKitConfig
             );
-            
+
 #if !UNITY_WEBGL
             var clientId = await AppKit.Instance.SignClient.CoreClient.Crypto.GetClientId();
             SentrySdk.ConfigureScope(scope =>
