@@ -176,11 +176,9 @@ namespace Sample
             }
         }
 
-        public async void OnConnectButton()
+        public void OnConnectButton()
         {
-            // await AppKit.ConnectAsync("26d3d9e7224a1eb49089aa5f03fb9f3b883e04050404594d980d4e1e74e1dbea"); // abs
-            await AppKit.ConnectAsync("53332571a2e1b748add766da51b90dc9d1e9d65d2c301969add5ba3939339513");
-            // AppKit.OpenModal();
+            AppKit.OpenModal();
         }
 
         public void OnNetworkButton()
