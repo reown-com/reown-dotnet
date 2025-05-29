@@ -73,9 +73,9 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          packageMode: true
-          scopedRegistryUrl: https://package.openupm.com
-          registryScopes: 'com.reown, com.nethereum.unity'
+          # packageMode: true
+          # scopedRegistryUrl: https://package.openupm.com
+          # registryScopes: 'com.reown, com.nethereum.unity'
           projectPath: ${{ matrix.projectPath }}
           unityVersion: ${{ matrix.unityVersion }}
           testMode: ${{ matrix.testMode }}
