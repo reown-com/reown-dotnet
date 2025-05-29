@@ -91,11 +91,7 @@ namespace Reown.AppKit.Unity
             }
             else
             {
-                // TODO use linker?
-                var encodedUri = HttpUtility.UrlEncode(_connectionProposal.Uri);
-                var url = Path.Combine(_wallet.WebappLink, $"wc?uri={encodedUri}");
-                Debug.Log(url);
-                Application.OpenURL(url);
+                Linker.OpenSessionProposalDeepLink(_connectionProposal.Uri, _wallet.WebappLink);
             }
         }
 
@@ -169,8 +165,12 @@ namespace Reown.AppKit.Unity
                         "undefined"
 #endif
                     },
-                    { "name", _wallet.Name },
-                    { "explorer_id", _wallet.Id }
+                    {
+                        "name", _wallet.Name
+                    },
+                    {
+                        "explorer_id", _wallet.Id
+                    }
                 }
             });
         }

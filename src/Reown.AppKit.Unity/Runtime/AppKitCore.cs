@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Model;
 using Reown.AppKit.Unity.Profile;
@@ -123,11 +124,38 @@ namespace Reown.AppKit.Unity
             ConnectorController.AccountConnected += (_, _) => tcsConnection.SetResult(true);
 
 #if UNITY_STANDALONE || UNITY_WEBGL
-            // Show QR code with wallet logo on desktop
-            OpenModal(ViewType.Wallet);
-#else
-            if (!Linker.CanOpenURL(wallet.MobileLink))
-                throw new InvalidOperationException($"Cannot open URL: {wallet.MobileLink}");
+            if (!string.IsNullOrEmpty(wallet.MobileLink) || !string.IsNullOrEmpty(wallet.DesktopLink))
+            {
+                OpenModal(ViewType.Wallet);
+                return;
+            }
+#endif
+
+            string baseUrl;
+            if (!string.IsNullOrEmpty(wallet.MobileLink))
+            {
+                // On mobile, we can check if the link can be opened 
+                // But only for wallets configured with "Installed Wallet Detection"
+                // https://docs.reown.com/appkit/unity/core/options#enable-installed-wallet-detection
+                if (!Linker.CanOpenURL(wallet.MobileLink))
+                    throw new InvalidOperationException($"Cannot open URL: {wallet.MobileLink}. " +
+                                                        $"This might be due to the wallet not being installed or the link not configured for the Installed Wallet Detection." +
+                                                        $"See https://docs.reown.com/appkit/unity/core/options#enable-installed-wallet-detection for more details.");
+
+                baseUrl = wallet.MobileLink;
+            }
+            else if (!string.IsNullOrEmpty(wallet.DesktopLink))
+            {
+                baseUrl = wallet.DesktopLink;
+            }
+            else if (!string.IsNullOrEmpty(wallet.WebappLink))
+            {
+                baseUrl = wallet.WebappLink;
+            }
+            else
+            {
+                throw new InvalidOperationException($"No valid link provided for the wallet {wallet.Name} ({wallet.Id})");
+            }
 
             if (!ConnectorController
                     .TryGetConnector<WalletConnectConnector>
@@ -152,9 +180,8 @@ namespace Reown.AppKit.Unity
 
                 await tcsUri.Task;
             }
-            
-            Linker.OpenSessionProposalDeepLink(connectionProposal.Uri, wallet.MobileLink);
-#endif
+
+            Linker.OpenSessionProposalDeepLink(connectionProposal.Uri, baseUrl);
 
             await tcsConnection.Task;
         }
