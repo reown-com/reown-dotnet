@@ -29,20 +29,20 @@ namespace Reown.Sign.Unity
             _signClient.SessionRequestSentUnity += SessionRequestSentHandler;
         }
 
-        public static void OpenSessionProposalDeepLink(string uri, string nativeRedirect)
+        public static void OpenSessionProposalDeepLink(string wcUri, string baseUrl)
         {
-            if (string.IsNullOrWhiteSpace(uri))
+            if (string.IsNullOrWhiteSpace(wcUri))
                 throw new ArgumentException("[Linker] Uri cannot be empty.");
 
 #if UNITY_EDITOR && (UNITY_IOS || UNITY_ANDROID)
             // In the Editor we cannot open _mobile_ deep links, so we just log the uri
-            ReownLogger.Log($"[Linker] Requested to open mobile deep link. The uri: {uri}");
+            ReownLogger.Log($"[Linker] Requested to open mobile deep link. The uri: {wcUri}");
 #else
-            if (string.IsNullOrWhiteSpace(nativeRedirect))
+            if (string.IsNullOrWhiteSpace(baseUrl))
                 throw new Exception(
                     $"[Linker] No link found for {Application.platform} platform.");
 
-            var url = BuildConnectionDeepLink(nativeRedirect, uri);
+            var url = BuildConnectionDeepLink(baseUrl, wcUri);
 
             ReownLogger.Log($"[Linker] Opening URL {url}");
 
