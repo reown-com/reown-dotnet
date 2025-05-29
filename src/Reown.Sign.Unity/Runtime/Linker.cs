@@ -36,7 +36,7 @@ namespace Reown.Sign.Unity
 
 #if UNITY_EDITOR && (UNITY_IOS || UNITY_ANDROID)
             // In the Editor we cannot open _mobile_ deep links, so we just log the uri
-            ReownLogger.Log($"[Linker] Requested to open mobile deep link. The uri: {uri}");
+            ReownLogger.Log($"[Linker] Requested to open mobile deep link. The uri: {wcUri}");
 #else
             if (string.IsNullOrWhiteSpace(baseUrl))
                 throw new Exception(
