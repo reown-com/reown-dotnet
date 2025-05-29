@@ -17,7 +17,7 @@ namespace Reown.AppKit.Unity
 
         private readonly QrCodePresenter _qrCodePresenter;
         private readonly DeepLinkPresenter _deepLinkPresenter;
-        private readonly WebAppPresenter _webAppPresenter;
+        private readonly DeepLinkPresenter _webAppPresenter;
 
         private readonly Label _qrCodeTab;
         private readonly Label _deepLinkTab;
@@ -46,7 +46,7 @@ namespace Reown.AppKit.Unity
 
             _qrCodePresenter = new QrCodePresenter(router, _qrCodeContent, false);
             _deepLinkPresenter = new DeepLinkPresenter(router, _deepLinkContent, false);
-            _webAppPresenter = new WebAppPresenter(router, _webAppContent, false);
+            _webAppPresenter = new DeepLinkPresenter(router, _webAppContent, false, false);
 
             _tabContentToViewController.Add(_qrCodeContent, _qrCodePresenter);
             _tabContentToViewController.Add(_deepLinkContent, _deepLinkPresenter);
@@ -94,8 +94,12 @@ namespace Reown.AppKit.Unity
         {
             var eventProperties = new Dictionary<string, object>
             {
-                { "name", wallet.Name },
-                { "explorer_id", wallet.Id }
+                {
+                    "name", wallet.Name
+                },
+                {
+                    "explorer_id", wallet.Id
+                }
             };
 
             var walletPlatform = EventUtils.GetWalletPlatform(wallet);

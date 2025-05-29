@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Web;
 using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Model;
 using Reown.AppKit.Unity.Utils;
@@ -18,16 +20,19 @@ namespace Reown.AppKit.Unity
         private WalletConnectConnectionProposal _connectionProposal;
         private Wallet _wallet;
         private string _continueInText;
+        private bool _isNativeWallet;
         private bool _isLoadingDeepLink;
         private Coroutine _loadingCoroutine;
         private bool _disposed;
 
         private const string ContinueInTextTemplate = "Continue in {0}";
 
-        public DeepLinkPresenter(RouterController router, VisualElement parent, bool hideView = true) : base(router, parent, hideView)
+        public DeepLinkPresenter(RouterController router, VisualElement parent, bool hideView = true, bool isNativeWallet = true) : base(router, parent, hideView)
         {
             View.CopyLinkClicked += OnCopyLinkClicked;
             View.TryAgainLinkClicked += OnTryAgainLinkClicked;
+
+            _isNativeWallet = isNativeWallet;
 
             _waitForSeconds5 = new WaitForSecondsRealtime(5f);
             _waitForSeconds05 = new WaitForSecondsRealtime(0.5f);
@@ -79,8 +84,19 @@ namespace Reown.AppKit.Unity
 
         public void OpenDeepLink()
         {
-            var redirect = Application.isMobilePlatform ? _wallet.MobileLink : _wallet.DesktopLink;
-            Linker.OpenSessionProposalDeepLink(_connectionProposal.Uri, redirect);
+            if (_isNativeWallet)
+            {
+                var redirect = Application.isMobilePlatform ? _wallet.MobileLink : _wallet.DesktopLink;
+                Linker.OpenSessionProposalDeepLink(_connectionProposal.Uri, redirect);
+            }
+            else
+            {
+                // TODO use linker?
+                var encodedUri = HttpUtility.UrlEncode(_connectionProposal.Uri);
+                var url = Path.Combine(_wallet.WebappLink, $"wc?uri={encodedUri}");
+                Debug.Log(url);
+                Application.OpenURL(url);
+            }
         }
 
         private void OnTryAgainLinkClicked()
