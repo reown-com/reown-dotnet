@@ -52,11 +52,15 @@ jobs:
   testAllModes:
     name: Test in ${{ matrix.testMode }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
     strategy:
       fail-fast: false
       matrix:
         projectPath:
-          - 'sample/Reown.AppKit.Unity'
+          - 'src/Reown.Sign.Unity'
         unityVersion: 
           - '6000.0.41f1' # some version must be included for package testing
         testMode:
@@ -73,9 +77,9 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          # packageMode: true
-          # scopedRegistryUrl: https://package.openupm.com
-          # registryScopes: 'com.reown, com.nethereum.unity'
+          packageMode: true
+          scopedRegistryUrl: https://package.openupm.com
+          registryScopes: 'com.reown, com.nethereum.unity'
           projectPath: ${{ matrix.projectPath }}
           unityVersion: ${{ matrix.unityVersion }}
           testMode: ${{ matrix.testMode }}
