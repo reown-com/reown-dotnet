@@ -122,9 +122,8 @@ namespace Reown.AppKit.Unity
 
             try
             {
-                var account = await GetAccountAsyncCore();
-                var ethAddress = account.Address;
-                var ethChainId = Core.Utils.ExtractChainReference(account.ChainId);
+                var ethAddress = Account.Address;
+                var ethChainId = Core.Utils.ExtractChainReference(Account.ChainId);
 
                 var siweMessage = await AppKit.SiweController.CreateMessageAsync(ethAddress, ethChainId);
 
