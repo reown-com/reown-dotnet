@@ -65,7 +65,16 @@ namespace Reown.AppKit.Unity
             "eip155:11155420",
             "eip155:999999999",
             "eip155:1313161554",
-            "eip155:1313161555"
+            "eip155:1313161555",
+            "eip155:146",
+            "eip155:1111",
+            "eip155:1112",
+            "eip155:10143",
+            "eip155:57054",
+            "eip155:80069",
+            "eip155:80094",
+            "eip155:560048",
+            "eip155:911867"
         };
 
         protected override Task InitializeAsyncCore(SignClientUnity signClient)
