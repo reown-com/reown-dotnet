@@ -24,19 +24,19 @@ namespace Sample
 
             // The very basic configuration of SIWE
             // Uncomment it and pass into AppKitConfig below to enable 1-Click Auth and SIWE
-            var siweConfig = new SiweConfig
-            {
-                GetMessageParams = () => new SiweMessageParams
-                {
-                    Domain = "example.com",
-                    Uri = "https://example.com/login"
-                },
-                SignOutOnChainChange = false
-            };
-
-            // Subscribe to SIWE events
-            siweConfig.SignInSuccess += _ => Debug.Log("[Dapp] SIWE Sign In Success!");
-            siweConfig.SignOutSuccess += () => Debug.Log("[Dapp] SIWE Sign Out Success!");
+            // var siweConfig = new SiweConfig
+            // {
+            //     GetMessageParams = () => new SiweMessageParams
+            //     {
+            //         Domain = "example.com",
+            //         Uri = "https://example.com/login"
+            //     },
+            //     SignOutOnChainChange = false
+            // };
+            //
+            // // Subscribe to SIWE events
+            // siweConfig.SignInSuccess += _ => Debug.Log("[Dapp] SIWE Sign In Success!");
+            // siweConfig.SignOutSuccess += () => Debug.Log("[Dapp] SIWE Sign Out Success!");
 
 
             // AppKit configuration
@@ -44,7 +44,7 @@ namespace Sample
             {
                 // Project ID from https://cloud.reown.com/
                 projectId = "884a108399b5e7c9bc00bd9be4ccb2cc",
-                siweConfig = siweConfig,
+                // siweConfig = siweConfig,
                 metadata = new Metadata(
                     "AppKit Unity",
                     "AppKit Unity Sample",
