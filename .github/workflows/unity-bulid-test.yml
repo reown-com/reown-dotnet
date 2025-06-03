@@ -63,7 +63,7 @@ jobs:
           - 'sample/Reown.AppKit.Unity'
           # - 'src/Reown.Sign.Unity'
         unityVersion: 
-          - '6000.0.41f1' # some version must be included for package testing
+          - '6000.1.5f1' # some version must be included for package testing
         testMode:
           # - playmode
           - editmode
