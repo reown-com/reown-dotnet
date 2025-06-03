@@ -10,6 +10,6 @@
   ],
   "dependencies": {
     "com.reown.sign": "1.4.0",
-    "com.nethereum.unity": "4.26.0"
+    "com.nethereum.unity": "5.0.0"
   }
 }
