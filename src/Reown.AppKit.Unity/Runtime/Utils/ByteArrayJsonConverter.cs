@@ -5,33 +5,30 @@ using Reown.Core.Common.Utils;
 namespace Reown.AppKit.Unity.Utils
 {
     /// <summary>
-    /// Converts byte array to hex string and vice versa.
+    ///     Converts byte array to hex string and vice versa.
     /// </summary>
     /// <remarks>
-    /// The default behavior of Newtonsoft.Json is to convert byte arrays to base64 strings.
+    ///     The default behavior of Newtonsoft.Json is to convert byte arrays to base64 strings.
     /// </remarks>
-    public class ByteArrayJsonConverter : JsonConverter
+    public class ByteArrayJsonConverter : JsonConverter<byte[]>
     {
-        public override bool CanConvert(Type objectType)
+        public override byte[] ReadJson(JsonReader reader, Type objectType, byte[] existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
-            return objectType == typeof(byte[]);
-        }
-
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            if (reader.TokenType == JsonToken.Null)
-                return null;
-
-            if (reader.TokenType == JsonToken.String)
+            switch (reader.TokenType)
             {
-                var hexString = (string)reader.Value;
-                return hexString.HexToByteArray();
+                case JsonToken.Null:
+                    return null;
+                case JsonToken.String:
+                {
+                    var hexString = (string)reader.Value;
+                    return hexString.HexToByteArray();
+                }
+                default:
+                    throw new JsonSerializationException("Expected byte array object value");
             }
-
-            throw new JsonSerializationException("Expected byte array object value");
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, byte[] value, JsonSerializer serializer)
         {
             if (value == null)
             {
@@ -39,9 +36,7 @@ namespace Reown.AppKit.Unity.Utils
                 return;
             }
 
-            var byteArray = (byte[])value;
-            var hexString = byteArray.ToHex(true);
-
+            var hexString = value.ToHex(true);
             writer.WriteValue(hexString);
         }
     }

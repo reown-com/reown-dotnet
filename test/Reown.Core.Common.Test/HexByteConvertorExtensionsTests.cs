@@ -21,9 +21,35 @@ public class HexByteConvertorExtensionsTests
     [InlineData(1, false, "1")]
     [InlineData(4096, false, "1000")]
     [InlineData(37714555429, false, "8c7f67225")]
-    public void ToHex_Values_ReturnsExpectedHex(BigInteger value, bool prefix, string expected)
+    public void BigIntegerToHex_Values_ReturnsExpectedHex(BigInteger value, bool prefix, string expected)
     {
         var result = value.ToHex(prefix);
         Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void ByteArrayToHex_Values_ReturnsExpectedHex()
+    {
+        // "Hello World"
+        var byteArray = "Hello World"u8.ToArray();
+        const string expectedWithPrefix = "0x48656c6c6f20576f726c64";
+        const string expectedWithoutPrefix = "48656c6c6f20576f726c64";
+
+        var resultWithPrefix = byteArray.ToHex(true);
+        var resultWithoutPrefix = byteArray.ToHex(false);
+
+        Assert.Equal(expectedWithPrefix, resultWithPrefix);
+        Assert.Equal(expectedWithoutPrefix, resultWithoutPrefix);
+
+        // Empty byte array
+        var emptyByteArray = Array.Empty<byte>();
+        const string expectedEmptyWithPrefix = "0x";
+        const string expectedEmptyWithoutPrefix = "";
+
+        var resultEmptyWithPrefix = emptyByteArray.ToHex(true);
+        var resultEmptyWithoutPrefix = emptyByteArray.ToHex(false);
+
+        Assert.Equal(expectedEmptyWithPrefix, resultEmptyWithPrefix);
+        Assert.Equal(expectedEmptyWithoutPrefix, resultEmptyWithoutPrefix);
     }
 }

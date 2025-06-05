@@ -78,7 +78,7 @@ namespace Reown.AppKit.Unity.WebGl.Wagmi
             }
             catch (JsonReaderException e)
             {
-                // If the ABI is not valid JSON, assume it's a human-readable ABI and try to parse it
+                // If the ABI is not a valid JSON, assume it's a human-readable ABI and try to parse it
                 var abiJson = ViemInterop.ParseAbi(abiStr);
                 if (abiJson == null)
                     throw new InvalidOperationException($"Failed to parse ABI: {e.Message}");
