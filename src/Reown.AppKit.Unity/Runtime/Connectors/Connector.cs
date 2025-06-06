@@ -21,6 +21,10 @@ namespace Reown.AppKit.Unity
 
         public virtual bool IsAccountConnected { get; protected set; }
 
+        public virtual Account Account { get; protected set; }
+
+        public virtual IEnumerable<Account> Accounts { get; protected set; }
+
         public event EventHandler<SignatureRequest> SignatureRequested;
         public event EventHandler<AccountConnectedEventArgs> AccountConnected;
         public event EventHandler<AccountDisconnectedEventArgs> AccountDisconnected;
@@ -56,7 +60,7 @@ namespace Reown.AppKit.Unity
                 return false;
 
             IsAccountConnected = true;
-            OnAccountConnected(new AccountConnectedEventArgs(GetAccountAsync, GetAccountsAsync));
+            OnAccountConnected(new AccountConnectedEventArgs(GetAccountAsync, GetAccountsAsync, Account, Accounts));
 
             return true;
         }
@@ -103,7 +107,7 @@ namespace Reown.AppKit.Unity
 
         protected virtual void ConnectionConnectedHandler(ConnectionProposal connectionProposal)
         {
-            OnAccountConnected(new AccountConnectedEventArgs(GetAccountAsync, GetAccountsAsync));
+            OnAccountConnected(new AccountConnectedEventArgs(GetAccountAsync, GetAccountsAsync, Account, Accounts));
             if (connectionProposal.IsSignarureRequested)
             {
                 OnSignatureRequested();
@@ -118,9 +122,8 @@ namespace Reown.AppKit.Unity
 
             try
             {
-                var account = await GetAccountAsyncCore();
-                var ethAddress = account.Address;
-                var ethChainId = Core.Utils.ExtractChainReference(account.ChainId);
+                var ethAddress = Account.Address;
+                var ethChainId = Core.Utils.ExtractChainReference(Account.ChainId);
 
                 var siweMessage = await AppKit.SiweController.CreateMessageAsync(ethAddress, ethChainId);
 
@@ -147,7 +150,7 @@ namespace Reown.AppKit.Unity
                         }
                     });
 
-                    OnAccountConnected(new AccountConnectedEventArgs(GetAccountAsync, GetAccountsAsync));
+                    OnAccountConnected(new AccountConnectedEventArgs(GetAccountAsync, GetAccountsAsync, Account, Accounts));
                 }
                 else
                 {
@@ -218,20 +221,29 @@ namespace Reown.AppKit.Unity
 
         protected abstract Task ChangeActiveChainAsyncCore(Chain chain);
 
+        [Obsolete("Use Account property instead")]
         protected abstract Task<Account> GetAccountAsyncCore();
 
+        [Obsolete("Use Accounts property instead")]
         protected abstract Task<Account[]> GetAccountsAsyncCore();
 
         public class AccountConnectedEventArgs : EventArgs
         {
+            public Account Account { get; }
+            public IEnumerable<Account> Accounts { get; }
+
+            [Obsolete("Use Account property instead")]
             public Func<Task<Account>> GetAccountAsync { get; }
 
+            [Obsolete("Use Accounts property instead")]
             public Func<Task<Account[]>> GetAccountsAsync { get; }
 
-            public AccountConnectedEventArgs(Func<Task<Account>> getAccount, Func<Task<Account[]>> getAccounts)
+            public AccountConnectedEventArgs(Func<Task<Account>> getAccount, Func<Task<Account[]>> getAccounts, Account account = default, IEnumerable<Account> accounts = null)
             {
                 GetAccountAsync = getAccount;
                 GetAccountsAsync = getAccounts;
+                Account = account;
+                Accounts = accounts;
             }
         }
 

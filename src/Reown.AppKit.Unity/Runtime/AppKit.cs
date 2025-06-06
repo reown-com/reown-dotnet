@@ -13,7 +13,7 @@ namespace Reown.AppKit.Unity
     public abstract class AppKit : MonoBehaviour
     {
         [VersionMarker]
-        public const string Version = "unity-appkit-v1.4.0";
+        public const string Version = "unity-appkit-v1.4.1";
 
         public static AppKit Instance { get; protected set; }
 
@@ -38,6 +38,14 @@ namespace Reown.AppKit.Unity
         public static bool IsAccountConnected
         {
             get => ConnectorController.IsAccountConnected;
+        }
+
+        public static Account Account
+        {
+            get
+            {
+                return ConnectorController.Account;
+            }
         }
 
         public static bool IsModalOpen
@@ -102,6 +110,7 @@ namespace Reown.AppKit.Unity
             Instance.CloseModalCore();
         }
 
+        [Obsolete("Use Account property instead")]
         public static Task<Account> GetAccountAsync()
         {
             return ConnectorController.GetAccountAsync();

@@ -52,9 +52,12 @@ namespace Reown.AppKit.Unity
             return WagmiInterop.ReadContractAsync<TReturn>(contractAddress, contractAbi, methodName, arguments);
         }
 
-        protected override Task<string> WriteContractAsyncCore(string contractAddress, string contractAbi, string methodName, BigInteger value = default, BigInteger gas = default, params object[] arguments)
+        protected override async Task<string> WriteContractAsyncCore(string contractAddress, string contractAbi, string methodName, BigInteger value = default, BigInteger gas = default, params object[] arguments)
         {
-            return WagmiInterop.WriteContractAsync(contractAddress, contractAbi, methodName, value.ToString(), gas.ToString(), arguments);
+            if (gas == 0)
+                gas = await EstimateGasAsyncCore(contractAddress, contractAbi, methodName, value, arguments);
+
+            return await WagmiInterop.WriteContractAsync(contractAddress, contractAbi, methodName, value.ToString(), gas.ToString(), arguments);
         }
 
         protected override Task<string> SendTransactionAsyncCore(string addressTo, BigInteger value, string data = null)

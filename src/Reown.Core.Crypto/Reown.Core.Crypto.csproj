@@ -10,11 +10,11 @@
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Portable.BouncyCastle"/>
-    </ItemGroup>
-    <ItemGroup>
         <ProjectReference Include="..\Reown.Core.Common\Reown.Core.Common.csproj"/>
         <ProjectReference Include="..\Reown.Core.Network\Reown.Core.Network.csproj"/>
         <ProjectReference Include="..\Reown.Core.Storage\Reown.Core.Storage.csproj"/>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="BouncyCastle.Cryptography"/>
     </ItemGroup>
 </Project>

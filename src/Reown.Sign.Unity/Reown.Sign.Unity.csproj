@@ -10,11 +10,15 @@
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
-    
+
     <ItemGroup>
-      <ProjectReference Include="..\Reown.Sign\Reown.Sign.csproj" />
-      <Reference Include="UnityEngine">
-        <HintPath>$(UnityDllPath)</HintPath>
-      </Reference>
+        <ProjectReference Include="..\Reown.Sign\Reown.Sign.csproj"/>
+        <Reference Include="UnityEngine">
+            <HintPath>$(UnityDllPath)</HintPath>
+        </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="NUnit"/>
     </ItemGroup>
 </Project>

@@ -78,7 +78,7 @@ namespace Reown.AppKit.Unity.WebGl.Wagmi
             }
             catch (JsonReaderException e)
             {
-                // If the ABI is not valid JSON, assume it's a human-readable ABI and try to parse it
+                // If the ABI is not a valid JSON, assume it's a human-readable ABI and try to parse it
                 var abiJson = ViemInterop.ParseAbi(abiStr);
                 if (abiJson == null)
                     throw new InvalidOperationException($"Failed to parse ABI: {e.Message}");
@@ -131,14 +131,16 @@ namespace Reown.AppKit.Unity.WebGl.Wagmi
         {
             var parameter = new SignMessageParameter
             {
-                message = message,                account = address
+                message = message,
+                account = address
             };
 
             return SignMessageAsync(parameter);
         }
 
         public static Task<string> SignMessageAsync(byte[] rawMessage, string address)
-        {            var parameter = new SignRawMessageParameter
+        {
+            var parameter = new SignRawMessageParameter
             {
                 message = new
                 {

@@ -1,6 +1,6 @@
 {
   "name": "com.reown.sign",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "displayName": "Reown.Sign",
   "unity": "2022.3",
   "author": "Reown",
@@ -8,6 +8,6 @@
     "reown"
   ],
   "dependencies": {
-    "com.reown.core": "1.4.0"
+    "com.reown.core": "1.4.1"
   }
 }

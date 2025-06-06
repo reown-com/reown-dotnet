@@ -23,6 +23,13 @@ namespace Reown.AppKit.Unity.Profile
 
         public Account PreferredAccount { get; private set; }
 
+        public override Account Account
+        {
+            get => PreferredAccount != default
+                ? PreferredAccount
+                : base.Account;
+        }
+
         public static string WebWalletUrl
         {
             get
@@ -44,7 +51,7 @@ namespace Reown.AppKit.Unity.Profile
             Type = ConnectorType.Profile;
         }
 
-        protected override async void OnAccountConnected(AccountConnectedEventArgs e)
+        protected override void OnAccountConnected(AccountConnectedEventArgs e)
         {
             try
             {
@@ -58,8 +65,7 @@ namespace Reown.AppKit.Unity.Profile
                     .Select(x => new Account(x))
                     .ToArray();
 
-                var allAccounts = await GetAccountsAsyncCore();
-                EoaAccounts = allAccounts
+                EoaAccounts = e.Accounts
                     .Except(SmartAccounts)
                     .ToArray();
 
@@ -85,7 +91,7 @@ namespace Reown.AppKit.Unity.Profile
         public void SetPreferredAccount(AccountType accountType)
         {
             SetPreferredAccountCore(accountType);
-            OnAccountChanged(new AccountChangedEventArgs(GetCurrentAccount()));
+            OnAccountChanged(new AccountChangedEventArgs(Account));
         }
 
         private void SetPreferredAccountCore(AccountType accountType)
@@ -104,13 +110,6 @@ namespace Reown.AppKit.Unity.Profile
 
             // The preferred account type is saved so it can be recovered after the session is resumed
             PlayerPrefs.SetString(PreferredAccountTypeKey, accountType.ToString());
-        }
-
-        protected override Account GetCurrentAccount()
-        {
-            return PreferredAccount != default
-                ? PreferredAccount
-                : base.GetCurrentAccount();
         }
     }
 

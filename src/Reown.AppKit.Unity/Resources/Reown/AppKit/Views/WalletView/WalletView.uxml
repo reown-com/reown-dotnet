@@ -15,7 +15,7 @@
                     <Reown.AppKit.Unity.Components.DeepLinkView/>
                 </ui:VisualElement>
                 <ui:VisualElement name="WebAppContent" class="tabbed__content">
-                    <Reown.AppKit.Unity.Components.WebAppView/>
+                    <Reown.AppKit.Unity.Components.DeepLinkView/>
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="wallet-view__get-wallet-container">

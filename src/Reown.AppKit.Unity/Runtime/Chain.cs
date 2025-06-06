@@ -102,11 +102,16 @@ namespace Reown.AppKit.Unity
             public const string RoninSaigon = "2021";
             public const string Base = "8453";
             public const string BaseGoerli = "84531";
+            public const string BaseSepolia = "84532";
             public const string Arbitrum = "42161";
             public const string Celo = "42220";
             public const string CeloAlfajores = "44787";
             public const string Polygon = "137";
             public const string Avalanche = "43114";
+            public const string Abstract = "2741";
+            public const string AbstractTestnet = "11124";
+            public const string Sei = "1329";
+            public const string SeiTestnet = "1328";
         }
 
         // https://specs.walletconnect.com/2.0/specs/meta-clients/web3modal/api#known-static-asset-ids
@@ -159,8 +164,12 @@ namespace Reown.AppKit.Unity
             // Avalanche
             {
                 References.Avalanche, "30c46e53-e989-45fb-4549-be3bd4eb3b00"
+            },
+            // Abstract
+            {
+                References.Abstract, "fc2427d1-5af9-4a9c-8da5-6f94627cd900"
             }
-        };
+        };   
 
         public static class Chains
         {
@@ -263,6 +272,7 @@ namespace Reown.AppKit.Unity
                 $"{ChainImageUrl}/{ImageIds[References.Base]}"
             );
 
+            [Obsolete("Base Goerli config will be removed in the future. Use BaseSepolia instead or create a custom chain object with Base Goerli RPC URL")]
             public static readonly Chain BaseGoerli = new(
                 Namespaces.Evm,
                 References.BaseGoerli,
@@ -274,9 +284,64 @@ namespace Reown.AppKit.Unity
                 $"{ChainImageUrl}/{ImageIds[References.BaseGoerli]}"
             );
 
+            public static readonly Chain BaseSepolia = new(
+                Namespaces.Evm,
+                References.BaseSepolia,
+                "Base Sepolia",
+                new Currency("Ether", "ETH", 18),
+                new BlockExplorer("BaseScan", "https://sepolia.basescan.org/"),
+                "https://sepolia.base.org",
+                true,
+                $"{ChainImageUrl}/{ImageIds[References.BaseGoerli]}"
+            );
+
+            public static readonly Chain Abstract = new(
+                Namespaces.Evm,
+                References.Abstract,
+                "Abstract",
+                new Currency("ETH", "ETH", 18),
+                new BlockExplorer("Absscan", "https://abscan.org/"),
+                "https://api.mainnet.abs.xyz",
+                false,
+                $"{ChainImageUrl}/{ImageIds[References.Ethereum]}"
+            );
+
+            public static readonly Chain AbstractTestnet = new(
+                Namespaces.Evm,
+                References.AbstractTestnet,
+                "Abstract Testnet",
+                new Currency("ETH", "ETH", 18),
+                new BlockExplorer("Absscan", "https://sepolia.abscan.org/"),
+                "https://api.testnet.abs.xyz",
+                true,
+                $"{ChainImageUrl}/{ImageIds[References.Ethereum]}"
+            );
+
+            public static readonly Chain Sei = new(
+                Namespaces.Evm,
+                References.Sei,
+                "Sei",
+                new Currency("SEI", "SEI", 18),
+                new BlockExplorer("Sei Explorer", "https://seitrace.com/"),
+                "https://evm-rpc.sei-apis.com",
+                false,
+                "https://i.ibb.co/JwG1DpR9/SeiIcon.jpg"
+            );
+
+            public static readonly Chain SeiTestnet = new(
+                Namespaces.Evm,
+                References.SeiTestnet,
+                "Sei Testnet",
+                new Currency("Sei", "SEI", 18),
+                new BlockExplorer("Seitrace", "https://seitrace.com"),
+                "https://evm-rpc-testnet.sei-apis.com",
+                true,
+                "https://i.ibb.co/JwG1DpR9/SeiIcon.jpg"
+            );
+
             public static readonly Chain Polygon = new(
                 Namespaces.Evm,
-                "137",
+                References.Polygon,
                 "Polygon",
                 new Currency("Polygon Ecosystem Token", "POL", 18),
                 new BlockExplorer("Polygon Explorer", "https://polygonscan.com"),
@@ -307,9 +372,11 @@ namespace Reown.AppKit.Unity
                 Celo,
                 CeloAlfajores,
                 Base,
-                BaseGoerli,
+                BaseSepolia,
                 Polygon,
-                Avalanche
+                Avalanche,
+                Abstract,
+                AbstractTestnet,
             };
         }
     }

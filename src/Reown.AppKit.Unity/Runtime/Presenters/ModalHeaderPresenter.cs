@@ -134,8 +134,17 @@ namespace Reown.AppKit.Unity
             // Left slot
             if (Router.HistoryCount > 1)
             {
-                _goBackIconLink.style.display = DisplayStyle.Flex;
-                View.leftSlot.style.visibility = Visibility.Visible;
+                if (args.newPresenter.EnableCloseButton)
+                {
+                    _goBackIconLink.style.display = DisplayStyle.Flex;
+                    View.leftSlot.style.visibility = Visibility.Visible;
+                }
+                else
+                {
+                    _goBackIconLink.style.display = DisplayStyle.None;
+                    View.leftSlot.style.visibility = Visibility.Hidden;
+                }
+               
             }
             else if (_leftSlotItems.TryGetValue(args.newViewType, out var newItem))
             {

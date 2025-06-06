@@ -24,7 +24,6 @@ namespace Sample
 
             // The very basic configuration of SIWE
             // Uncomment it and pass into AppKitConfig below to enable 1-Click Auth and SIWE
-            
             // var siweConfig = new SiweConfig
             // {
             //     GetMessageParams = () => new SiweMessageParams
@@ -39,12 +38,13 @@ namespace Sample
             // siweConfig.SignInSuccess += _ => Debug.Log("[Dapp] SIWE Sign In Success!");
             // siweConfig.SignOutSuccess += () => Debug.Log("[Dapp] SIWE Sign Out Success!");
 
-            
+
             // AppKit configuration
             var appKitConfig = new AppKitConfig
             {
                 // Project ID from https://cloud.reown.com/
                 projectId = "884a108399b5e7c9bc00bd9be4ccb2cc",
+                // siweConfig = siweConfig,
                 metadata = new Metadata(
                     "AppKit Unity",
                     "AppKit Unity Sample",
@@ -84,7 +84,7 @@ namespace Sample
             await AppKit.InitializeAsync(
                 appKitConfig
             );
-            
+
 #if !UNITY_WEBGL
             // The Mixpanel are Sentry are used by the sample project to collect telemetry
             var clientId = await AppKit.Instance.SignClient.CoreClient.Crypto.GetClientId();
@@ -99,13 +99,14 @@ namespace Sample
             });
 #endif
 
-            Debug.Log($"[AppKit Init] AppKit initialized. Loading menu scene...");
+            Debug.Log("[AppKit Init] AppKit initialized. Loading menu scene...");
             SceneManager.LoadScene(_menuScene);
         }
 
         /// <summary>
         ///     This method returns a list of Reown sample wallets on iOS and Android.
-        ///     These wallets are used for testing and are not included in the default list of wallets returned by AppKit's REST API.
+        ///     These wallets are used for testing and are not included in the default list of wallets returned by AppKit's REST
+        ///     API.
         ///     On other platforms, this method returns null, so only the default list of wallets is used.
         /// </summary>
         private Wallet[] GetCustomWallets()

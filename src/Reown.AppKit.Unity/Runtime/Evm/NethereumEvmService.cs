@@ -12,6 +12,7 @@ using Nethereum.Signer;
 using Nethereum.Signer.EIP712;
 using Nethereum.Util;
 using Nethereum.Web3;
+using Reown.Core.Common.Logging;
 using Reown.Sign.Nethereum.Unity;
 using Reown.Sign.Unity;
 using UnityEngine;
@@ -64,9 +65,18 @@ namespace Reown.AppKit.Unity
             "eip155:11155420",
             "eip155:999999999",
             "eip155:1313161554",
-            "eip155:1313161555"
+            "eip155:1313161555",
+            "eip155:146",
+            "eip155:1111",
+            "eip155:1112",
+            "eip155:10143",
+            "eip155:57054",
+            "eip155:80069",
+            "eip155:80094",
+            "eip155:560048",
+            "eip155:911867"
         };
-        
+
         protected override Task InitializeAsyncCore(SignClientUnity signClient)
         {
             _interceptor = new ReownSignUnityInterceptor(signClient);
@@ -76,7 +86,7 @@ namespace Reown.AppKit.Unity
             AppKit.ChainChanged += ChainChangedHandler;
             return Task.CompletedTask;
         }
-        
+
 
         // -- Nethereum Web3 Instance ---------------------------------
 
@@ -159,36 +169,30 @@ namespace Reown.AppKit.Unity
 
         protected override async Task<bool> VerifyMessageSignatureAsyncCore(string address, string message, string signature)
         {
-            Debug.Log($"[EVM] Verifying signature with EIP-191");
+            ReownLogger.Log($"[EVM] Verifying signature with EIP-191");
             // -- EIP-191
             var recoveredAddress = _ethereumMessageSigner.EncodeUTF8AndEcRecover(message, signature);
-            Debug.Log($"[EVM] EIP-191 signature valid: {recoveredAddress.IsTheSameAddress(address)}\nRecovered address: {recoveredAddress}\nCurrent address:{address}");
             if (recoveredAddress.IsTheSameAddress(address))
             {
                 return true;
             }
 
             // -- ERC-6492
-            Debug.Log($"[EVM] Verifying signature with ERC-6492");
+            ReownLogger.Log($"[EVM] Verifying signature with ERC-6492");
             var erc6492Service = Web3.Eth.SignatureValidationPredeployContractERC6492;
             if (erc6492Service.IsERC6492Signature(signature))
             {
-                Debug.Log($"[EVM] Preparing ERC-6492 request....");
                 return await erc6492Service.IsValidSignatureMessageAsync(address, message, signature.HexToByteArray());
-            }
-            else
-            {
-                Debug.Log($"[EVM] The signature is NOT ERC-6492");
             }
 
             // -- ERC-1271
-            Debug.Log($"[EVM] Verifying signature with ERC-1271");
+            ReownLogger.Log($"[EVM] Verifying signature with ERC-1271");
             var ethGetCode = await Web3.Eth.GetCode.SendRequestAsync(address);
             if (ethGetCode is { Length: > 2 })
             {
                 var hashedMessage = _ethereumMessageSigner.HashPrefixedMessage(Encoding.UTF8.GetBytes(message));
 
-                var isValidSignatureFunctionMessage = new IsValidSignatureFunction()
+                var isValidSignatureFunctionMessage = new IsValidSignatureFunction
                 {
                     Hash = hashedMessage,
                     Signature = signature.HexToByteArray()
@@ -198,7 +202,6 @@ namespace Reown.AppKit.Unity
 
                 try
                 {
-                    Debug.Log($"[EVM] Preparing ERC-1271 request....");
                     var result = await handler.QueryAsync<byte[]>(address, isValidSignatureFunctionMessage);
 
                     // The magic value 0x1626ba7e
@@ -224,7 +227,7 @@ namespace Reown.AppKit.Unity
             }
             else
             {
-                Debug.Log($"[EVM] ERC-1271 verification failed because smart contract hasn't been found at {address}");
+                ReownLogger.LogError($"[EVM] ERC-1271 verification failed because smart contract hasn't been found at {address}");
             }
 
             return false;
@@ -282,8 +285,8 @@ namespace Reown.AppKit.Unity
             var transactionInput = new TransactionInput(data, addressTo, new HexBigInteger(value));
             return Web3.Client.SendRequestAsync<string>("eth_sendTransaction", null, transactionInput);
         }
-        
-        
+
+
         // -- Send Raw Transaction ------------------------------------
 
         protected override Task<string> SendRawTransactionAsyncCore(string signedTransaction)
@@ -293,10 +296,10 @@ namespace Reown.AppKit.Unity
 
 
         // -- Estimate Gas ---------------------------------------------
-        
+
         protected override async Task<BigInteger> EstimateGasAsyncCore(string addressTo, BigInteger value, string data = null)
         {
-            var account = await AppKit.GetAccountAsync();
+            var account = AppKit.Account;
             var transactionInput = new TransactionInput(data, addressTo, new HexBigInteger(value))
             {
                 From = account.Address
@@ -309,7 +312,7 @@ namespace Reown.AppKit.Unity
             var contract = Web3.Eth.GetContract(contractAbi, contractAddress);
             var function = contract.GetFunction(methodName);
 
-            var account = await AppKit.GetAccountAsync();
+            var account = AppKit.Account;
 
             var transactionInput = new TransactionInput(function.GetData(arguments), contractAddress, new HexBigInteger(value))
             {
@@ -319,8 +322,8 @@ namespace Reown.AppKit.Unity
             var result = await Web3.Eth.Transactions.EstimateGas.SendRequestAsync(transactionInput);
             return result.Value;
         }
-        
-        
+
+
         // -- Get Gas Price -------------------------------------------
 
         protected override async Task<BigInteger> GetGasPriceAsyncCore()

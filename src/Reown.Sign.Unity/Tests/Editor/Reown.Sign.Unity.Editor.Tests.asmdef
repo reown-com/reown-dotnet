@@ -1,0 +1,18 @@
+{
+  "name": "Reown.Sign.Unity.Editor.Tests",
+  "rootNamespace": "",
+  "references": [
+    "Reown.Sign.Unity"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

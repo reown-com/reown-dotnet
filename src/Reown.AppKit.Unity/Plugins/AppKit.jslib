@@ -49,7 +49,7 @@ mergeInto(LibraryManager.library, {
             {{{makeDynCall('viii', 'callbackPtr')}}}(id, resultStrPtr, undefined);
             _free(resultStrPtr);
         } catch (error) {
-            console.error("[AppKit] Error executing call", error);
+            console.error("[AppKit] Error executing async call", error);
             let errorJson = JSON.stringify(error, ['name', 'message']);
             let errorStrPtr = stringToNewUTF8(errorJson);
             {{{makeDynCall('viii', 'callbackPtr')}}}(id, undefined, errorStrPtr);
@@ -108,7 +108,7 @@ mergeInto(LibraryManager.library, {
         const includeWalletIds = parameters.includeWalletIds;
 
         // Load the scripts and initialize the configuration
-        import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.7.3/dist/appkit.js").then(async (AppKit) => {
+        import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.7.8/dist/appkit.js").then(async (AppKit) => {
             const WagmiCore = AppKit['WagmiCore'];
             const WagmiAdapter = AppKit['WagmiAdapter'];
             const Viem = AppKit['Viem'];

@@ -537,7 +537,7 @@ namespace Reown.Core.Crypto
             }
         }
 
-        private string EncodeJwt(IridiumJWTSigned data)
+        private static string EncodeJwt(IridiumJWTSigned data)
         {
             return string.Join(JwtDelimiter,
                 EncodeJson(data.Header),
@@ -546,12 +546,12 @@ namespace Reown.Core.Crypto
             );
         }
 
-        private string EncodeSig(byte[] signature)
+        private static string EncodeSig(byte[] signature)
         {
             return Base64.EncodeToBase64UrlString(signature);
         }
 
-        private string EncodeJson<T>(T data)
+        private static string EncodeJson<T>(T data)
         {
             return Base64.EncodeToBase64UrlString(
                 JsonEncoding.GetBytes(
@@ -560,7 +560,7 @@ namespace Reown.Core.Crypto
             );
         }
 
-        private string EncodeIss(Ed25519PublicKeyParameters publicKey)
+        private static string EncodeIss(Ed25519PublicKeyParameters publicKey)
         {
             var publicKeyRaw = publicKey.GetEncoded();
             var header = Base58Encoding.Decode(MulticodecEd25519Header);
@@ -569,15 +569,9 @@ namespace Reown.Core.Crypto
             return string.Join(DidDelimiter, DidPrefix, DidMethod, multicodec);
         }
 
-        private Ed25519PrivateKeyParameters KeypairFromSeed(byte[] seed)
+        private static Ed25519PrivateKeyParameters KeypairFromSeed(byte[] seed)
         {
             return new Ed25519PrivateKeyParameters(seed);
-
-            /*var options = new KeyCreationParameters()
-            {
-                ExportPolicy = KeyExportPolicies.AllowPlaintextExport
-            };
-            return Key.Import(SignatureAlgorithm.Ed25519, seed, KeyBlobFormat.RawPrivateKey, options);*/
         }
 
         private async Task<string> SetPrivateKey(string publicKey, string privateKey)
@@ -605,7 +599,7 @@ namespace Reown.Core.Crypto
             }
         }
 
-        private byte[] DeriveSharedKey(string privateKeyA, string publicKeyB)
+        private static byte[] DeriveSharedKey(string privateKeyA, string publicKeyB)
         {
             var keyA = new X25519PrivateKeyParameters(privateKeyA.HexToByteArray());
             var keyB = new X25519PublicKeyParameters(publicKeyB.HexToByteArray());
@@ -616,23 +610,9 @@ namespace Reown.Core.Crypto
             agreement.CalculateAgreement(keyB, data, 0);
 
             return data;
-
-            /*using (var keyA = Key.Import(KeyAgreementAlgorithm.X25519, privateKeyA.HexToByteArray(),
-                       KeyBlobFormat.RawPrivateKey))
-            {
-                var keyB = PublicKey.Import(KeyAgreementAlgorithm.X25519, publicKeyB.HexToByteArray(),
-                    KeyBlobFormat.RawPublicKey);
-
-                var options = new SharedSecretCreationParameters
-                {
-                    ExportPolicy = KeyExportPolicies.AllowPlaintextArchiving
-                };
-
-                return KeyAgreementAlgorithm.X25519.Agree(keyA, keyB, options);
-            }*/
         }
 
-        private byte[] DeriveSymmetricKey(byte[] secretKey)
+        private static byte[] DeriveSymmetricKey(byte[] secretKey)
         {
             var generator = new HkdfBytesGenerator(new Sha256Digest());
             generator.Init(new HkdfParameters(secretKey, Array.Empty<byte>(), Array.Empty<byte>()));
@@ -648,8 +628,6 @@ namespace Reown.Core.Crypto
             var param = Deserialize(encoded);
             var @sealed = param.Sealed;
             var iv = param.Iv;
-            var type = int.Parse(Bases.Base10.Encode(param.Type));
-            var isType1 = type == Type1;
 
             var aead = new ChaCha20Poly1305();
             aead.Init(false, new ParametersWithIV(new KeyParameter(symKey.HexToByteArray()), iv));
