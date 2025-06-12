@@ -4,7 +4,7 @@ version: 2
 updates:
   # ─── NuGet dependencies ──────────────────────────────────────────────────────
   - package-ecosystem: "nuget" # Dependabot speaks "nuget", not "dotnet"
-    directory: "/" 
+    directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -31,8 +31,8 @@ updates:
       # This lets us control framework upgrades on your own schedule.
       - dependency-name: "Microsoft.NETCore.App*"
         update-types: ["version-update:semver-major"]
-              - dependency-name: "Microsoft.AspNetCore.*"
-          update-types: ["version-update:semver-major"]
+      - dependency-name: "Microsoft.AspNetCore.*"
+        update-types: ["version-update:semver-major"]
 
   # ─── GitHub Actions used in the repo ──────────────────────────────────────────
   - package-ecosystem: "github-actions"
