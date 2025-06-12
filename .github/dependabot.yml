@@ -1,0 +1,55 @@
+# .github/dependabot.yml
+version: 2
+
+updates:
+  # ─── NuGet dependencies ──────────────────────────────────────────────────────
+  - package-ecosystem: "nuget" # Dependabot speaks "nuget", not "dotnet"
+    directory: "/" 
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 10
+
+    commit-message:
+      prefix: "deps" # e.g. "deps: bump Newtonsoft.Json to 13.0.4"
+      prefix-development: "deps-dev"
+      include: "scope" # adds (NuGet) or (test) after the prefix
+
+    labels:
+      - "dependencies"
+      - "nuget"
+
+    reviewers:
+      - "skibitsky" # swap for whatever team owns the code
+
+    # For repositories using Central Package Management (Directory.Packages.props)
+    # Dependabot will automatically detect and update the central package versions
+
+    ignore:
+      # Skip major-version jumps for the .NET runtime & ASP.NET core stack.
+      # This lets us control framework upgrades on your own schedule.
+      - dependency-name: "Microsoft.NETCore.App*"
+        update-types: ["version-update:semver-major"]
+              - dependency-name: "Microsoft.AspNetCore.*"
+          update-types: ["version-update:semver-major"]
+
+  # ─── GitHub Actions used in the repo ──────────────────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 5
+
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+
+    labels:
+      - "dependencies"
+      - "github-actions"
+
+    reviewers:
+      - "skibitsky"
