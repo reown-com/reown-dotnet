@@ -122,6 +122,14 @@
         "com.unity.nuget.newtonsoft-json": "3.2.1"
       }
     },
+    "com.reown.walletkit": {
+      "version": "file:./../../../src/Reown.WalletKit",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.reown.sign": "1.4.1"
+      }
+    },
     "com.skibitsky.scene-reference": {
       "version": "1.1.1",
       "depth": 0,
