@@ -17,6 +17,11 @@ namespace Reown.AppKit.Unity
         private readonly ModalOpenStateChangedEventArgs _openStateChangedEventArgsTrueOnClose = new(false);
 
         private readonly ModalOpenStateChangedEventArgs _openStateChangedEventArgsTrueOnOpen = new(true);
+
+#if ENABLE_INPUT_SYSTEM
+        private UnityEngine.InputSystem.Keyboard _keyboard;
+#endif
+
         public UIDocument UIDocument { get; private set; }
 
         public Modal Modal { get; private set; }
@@ -29,8 +34,11 @@ namespace Reown.AppKit.Unity
 
         protected override Task InitializeAsyncCore()
         {
-            var web3Modal = AppKit.Instance;
-            UIDocument = web3Modal.GetComponentInChildren<UIDocument>(true);
+#if ENABLE_INPUT_SYSTEM
+            _keyboard = UnityEngine.InputSystem.Keyboard.current;
+#endif
+
+            UIDocument = AppKit.Instance.GetComponentInChildren<UIDocument>(true);
 
             AppKitModalElement = UIDocument.rootVisualElement.Children().First();
 
@@ -66,7 +74,9 @@ namespace Reown.AppKit.Unity
                 name = "MODAL_OPEN",
                 properties = new Dictionary<string, object>
                 {
-                    { "connected", AppKit.IsAccountConnected }
+                    {
+                        "connected", AppKit.IsAccountConnected
+                    }
                 }
             });
         }
@@ -83,7 +93,9 @@ namespace Reown.AppKit.Unity
                 name = "MODAL_CLOSE",
                 properties = new Dictionary<string, object>
                 {
-                    { "connected", AppKit.IsAccountConnected }
+                    {
+                        "connected", AppKit.IsAccountConnected
+                    }
                 }
             });
         }
@@ -91,7 +103,7 @@ namespace Reown.AppKit.Unity
         private void TickHandler()
         {
 #if ENABLE_INPUT_SYSTEM
-            if (UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame)
+            if (_keyboard != null && _keyboard.escapeKey.wasPressedThisFrame)
                 RouterController.GoBack();
 #elif ENABLE_LEGACY_INPUT_MANAGER
             if (Input.GetKeyDown(KeyCode.Escape))
