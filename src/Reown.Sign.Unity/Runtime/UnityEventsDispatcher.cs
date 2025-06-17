@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Threading;
 using System.Threading.Tasks;
 using Reown.Sign.Unity.Utils;
 using UnityEngine;
@@ -96,12 +97,22 @@ namespace Reown.Sign.Unity
             Instance.StartCoroutine(InvokeNextFrameRoutine(action));
         }
 
-        public static async Task WaitForSecondsAsync(float seconds)
+        /// <summary>
+        ///     Asynchronously waits for the specified number of seconds on the Unity main thread.
+        /// </summary>
+        /// <param name="seconds">The delay duration, in seconds.</param>
+        /// <param name="cancellationToken">Optional token that can be used to cancel the wait before it completes.</param>
+        /// <returns>A task that completes after the delay has elapsed or the operation is cancelled.</returns>
+        /// <remarks>
+        ///     For Unity 6000.0 or newer this method delegates to <see cref="Awaitable.WaitForSecondsAsync"/>.
+        ///     For earlier Unity versions it falls back to a coroutine-based implementation.
+        /// </remarks>
+        public static async Task WaitForSecondsAsync(float seconds, CancellationToken cancellationToken = default)
         {
 #if UNITY_6000_0_OR_NEWER
-            await Awaitable.WaitForSecondsAsync(seconds);
+            await Awaitable.WaitForSecondsAsync(seconds, cancellationToken);
 #else
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(cancellationToken);
             Instance.StartCoroutine(WaitForSecondsRoutine(seconds, tcs));
             await tcs.Task;
 #endif

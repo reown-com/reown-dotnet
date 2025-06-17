@@ -289,6 +289,14 @@ namespace Reown.AppKit.Unity.WebGl.Wagmi
             return InteropCallAsync<SendTransactionParameter, string>(WagmiMethods.SendTransaction, parameter);
         }
 
+
+        // -- Get Transaction Receipt  --------------------------------
+
+        public static Task<TransactionReceiptReturnType> WaitForTransactionReceipt(WaitForTransactionReceiptParameter parameter)
+        {
+            return InteropCallAsync<WaitForTransactionReceiptParameter, TransactionReceiptReturnType>("waitForTransactionReceipt", parameter);
+        }
+
         // -- Estimate Gas --------------------------------------------
 
         public static Task<string> EstimateGasAsync(string to, string value = "0", string data = null)
