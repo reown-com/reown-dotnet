@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using System.Threading;
 using System.Threading.Tasks;
 using Reown.Sign.Unity;
 using UnityEngine;
@@ -176,6 +177,17 @@ namespace Reown.AppKit.Unity
         }
 
 
+        // -- Get Transaction Receipt  --------------------------------
+
+        public Task<TransactionReceipt> GetTransactionReceiptAsync(string transactionHash, TimeSpan? timeout = null, TimeSpan? pollingInterval = null, CancellationToken ct = default)
+        {
+            if (string.IsNullOrWhiteSpace(transactionHash))
+                throw new ArgumentNullException(nameof(transactionHash));
+
+            return GetTransactionReceiptAsyncCore(transactionHash, timeout, pollingInterval, ct);
+        }
+
+
         // -- Estimate Gas --------------------------------------------
 
         public Task<BigInteger> EstimateGasAsync(string addressTo, BigInteger value, string data = null)
@@ -245,6 +257,7 @@ namespace Reown.AppKit.Unity
         protected abstract Task<string> WriteContractAsyncCore(string contractAddress, string contractAbi, string methodName, BigInteger value = default, BigInteger gas = default, params object[] arguments);
         protected abstract Task<string> SendTransactionAsyncCore(string addressTo, BigInteger value, string data = null);
         protected abstract Task<string> SendRawTransactionAsyncCore(string signedTransaction);
+        protected abstract Task<TransactionReceipt> GetTransactionReceiptAsyncCore(string transactionHash, TimeSpan? timeout = null, TimeSpan? pollingInterval = null, CancellationToken ct = default);
         protected abstract Task<BigInteger> EstimateGasAsyncCore(string addressTo, BigInteger value, string data = null);
         protected abstract Task<BigInteger> EstimateGasAsyncCore(string contractAddress, string contractAbi, string methodName, BigInteger value = default, params object[] arguments);
         protected abstract Task<BigInteger> GetGasPriceAsyncCore();
