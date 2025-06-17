@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Threading;
 using System.Threading.Tasks;
 using Reown.Sign.Unity.Utils;
 using UnityEngine;
@@ -96,12 +97,12 @@ namespace Reown.Sign.Unity
             Instance.StartCoroutine(InvokeNextFrameRoutine(action));
         }
 
-        public static async Task WaitForSecondsAsync(float seconds)
+        public static async Task WaitForSecondsAsync(float seconds, CancellationToken cancellationToken = default)
         {
 #if UNITY_6000_0_OR_NEWER
-            await Awaitable.WaitForSecondsAsync(seconds);
+            await Awaitable.WaitForSecondsAsync(seconds, cancellationToken);
 #else
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(cancellationToken);
             Instance.StartCoroutine(WaitForSecondsRoutine(seconds, tcs));
             await tcs.Task;
 #endif
