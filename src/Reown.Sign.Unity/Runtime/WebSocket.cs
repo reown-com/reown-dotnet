@@ -25,7 +25,7 @@ namespace NativeWebSocket
 
     public delegate void WebSocketErrorEventHandler(string errorMsg);
 
-    public delegate void WebSocketCloseEventHandler(WebSocketCloseCode closeCode);
+    public delegate void ReownWebSocketCloseEventHandler(WebSocketCloseCode closeCode);
 
     public enum WebSocketCloseCode
     {
@@ -60,7 +60,7 @@ namespace NativeWebSocket
         event WebSocketOpenEventHandler OnOpen;
         event WebSocketMessageEventHandler OnMessage;
         event WebSocketErrorEventHandler OnError;
-        event WebSocketCloseEventHandler OnClose;
+        event ReownWebSocketCloseEventHandler OnClose;
     }
 
     public class MainThreadUtil : MonoBehaviour
@@ -242,19 +242,19 @@ namespace NativeWebSocket
 
     /* WebSocket JSLIB functions */
     [DllImport ("__Internal")]
-    public static extern int WebSocketConnect (int instanceId);
+    public static extern int ReownWebSocketConnect (int instanceId);
 
     [DllImport ("__Internal")]
-    public static extern int WebSocketClose (int instanceId, int code, string reason);
+    public static extern int ReownWebSocketClose (int instanceId, int code, string reason);
 
     [DllImport ("__Internal")]
-    public static extern int WebSocketSend (int instanceId, byte[] dataPtr, int dataLength);
+    public static extern int ReownWebSocketSend (int instanceId, byte[] dataPtr, int dataLength);
 
     [DllImport ("__Internal")]
-    public static extern int WebSocketSendText (int instanceId, string message);
+    public static extern int ReownWebSocketSendText (int instanceId, string message);
 
     [DllImport ("__Internal")]
-    public static extern int WebSocketGetState (int instanceId);
+    public static extern int ReownWebSocketGetState (int instanceId);
 
     protected int instanceId;
 
@@ -263,14 +263,14 @@ namespace NativeWebSocket
     public event WebSocketOpenEventHandler OnOpen;
     public event WebSocketMessageEventHandler OnMessage;
     public event WebSocketErrorEventHandler OnError;
-    public event WebSocketCloseEventHandler OnClose;
+    public event ReownWebSocketCloseEventHandler OnClose;
 
     public WebSocket (string url, Dictionary<string, string> headers = null) {
       if (!WebSocketFactory.isInitialized) {
         WebSocketFactory.Initialize ();
       }
 
-      int instanceId = WebSocketFactory.WebSocketAllocate (url);
+      int instanceId = WebSocketFactory.ReownWebSocketAllocate (url);
       WebSocketFactory.instances.Add (instanceId, this);
 
       this.instanceId = instanceId;
@@ -281,10 +281,10 @@ namespace NativeWebSocket
         WebSocketFactory.Initialize ();
       }
 
-      int instanceId = WebSocketFactory.WebSocketAllocate (url);
+      int instanceId = WebSocketFactory.ReownWebSocketAllocate (url);
       WebSocketFactory.instances.Add (instanceId, this);
 
-      WebSocketFactory.WebSocketAddSubProtocol(instanceId, subprotocol);
+      WebSocketFactory.ReownWebSocketAddSubProtocol(instanceId, subprotocol);
 
       this.instanceId = instanceId;
     }
@@ -294,11 +294,11 @@ namespace NativeWebSocket
         WebSocketFactory.Initialize ();
       }
 
-      int instanceId = WebSocketFactory.WebSocketAllocate (url);
+      int instanceId = WebSocketFactory.ReownWebSocketAllocate (url);
       WebSocketFactory.instances.Add (instanceId, this);
 
       foreach (string subprotocol in subprotocols) {
-        WebSocketFactory.WebSocketAddSubProtocol(instanceId, subprotocol);
+        WebSocketFactory.ReownWebSocketAddSubProtocol(instanceId, subprotocol);
       }
 
       this.instanceId = instanceId;
@@ -309,7 +309,7 @@ namespace NativeWebSocket
     }
 
     public Task Connect () {
-      int ret = WebSocketConnect (this.instanceId);
+      int ret = ReownWebSocketConnect (this.instanceId);
 
       if (ret < 0)
         throw WebSocketHelpers.GetErrorMessageFromCode (ret, null);
@@ -323,7 +323,7 @@ namespace NativeWebSocket
 	}
 
     public Task Close (WebSocketCloseCode code = WebSocketCloseCode.Normal, string reason = null) {
-      int ret = WebSocketClose (this.instanceId, (int) code, reason);
+      int ret = ReownWebSocketClose (this.instanceId, (int) code, reason);
 
       if (ret < 0)
         throw WebSocketHelpers.GetErrorMessageFromCode (ret, null);
@@ -332,7 +332,7 @@ namespace NativeWebSocket
     }
 
     public Task Send (byte[] data) {
-      int ret = WebSocketSend (this.instanceId, data, data.Length);
+      int ret = ReownWebSocketSend (this.instanceId, data, data.Length);
 
       if (ret < 0)
         throw WebSocketHelpers.GetErrorMessageFromCode (ret, null);
@@ -341,7 +341,7 @@ namespace NativeWebSocket
     }
 
     public Task SendText (string message) {
-      int ret = WebSocketSendText (this.instanceId, message);
+      int ret = ReownWebSocketSendText (this.instanceId, message);
 
       if (ret < 0)
         throw WebSocketHelpers.GetErrorMessageFromCode (ret, null);
@@ -351,7 +351,7 @@ namespace NativeWebSocket
 
     public WebSocketState State {
       get {
-        int state = WebSocketGetState (this.instanceId);
+        int state = ReownWebSocketGetState (this.instanceId);
 
         if (state < 0)
           throw WebSocketHelpers.GetErrorMessageFromCode (state, null);
@@ -486,7 +486,7 @@ namespace NativeWebSocket
         public event WebSocketOpenEventHandler OnOpen;
         public event WebSocketMessageEventHandler OnMessage;
         public event WebSocketErrorEventHandler OnError;
-        public event WebSocketCloseEventHandler OnClose;
+        public event ReownWebSocketCloseEventHandler OnClose;
 
         public WebSocketState State
         {
@@ -731,25 +731,25 @@ namespace NativeWebSocket
 
     /* WebSocket JSLIB callback setters and other functions */
     [DllImport ("__Internal")]
-    public static extern int WebSocketAllocate (string url);
+    public static extern int ReownWebSocketAllocate (string url);
 
     [DllImport ("__Internal")]
-    public static extern int WebSocketAddSubProtocol (int instanceId, string subprotocol);
+    public static extern int ReownWebSocketAddSubProtocol (int instanceId, string subprotocol);
 
     [DllImport ("__Internal")]
-    public static extern void WebSocketFree (int instanceId);
+    public static extern void ReownWebSocketFree (int instanceId);
 
     [DllImport ("__Internal")]
-    public static extern void WebSocketSetOnOpen (OnOpenCallback callback);
+    public static extern void ReownWebSocketSetOnOpen (OnOpenCallback callback);
 
     [DllImport ("__Internal")]
-    public static extern void WebSocketSetOnMessage (OnMessageCallback callback);
+    public static extern void ReownWebSocketSetOnMessage (OnMessageCallback callback);
 
     [DllImport ("__Internal")]
-    public static extern void WebSocketSetOnError (OnErrorCallback callback);
+    public static extern void ReownWebSocketSetOnError (OnErrorCallback callback);
 
     [DllImport ("__Internal")]
-    public static extern void WebSocketSetOnClose (OnCloseCallback callback);
+    public static extern void ReownWebSocketSetOnClose (OnCloseCallback callback);
 
     /* If callbacks was initialized and set */
     public static bool isInitialized = false;
@@ -759,10 +759,10 @@ namespace NativeWebSocket
      */
     public static void Initialize () {
 
-      WebSocketSetOnOpen (DelegateOnOpenEvent);
-      WebSocketSetOnMessage (DelegateOnMessageEvent);
-      WebSocketSetOnError (DelegateOnErrorEvent);
-      WebSocketSetOnClose (DelegateOnCloseEvent);
+      ReownWebSocketSetOnOpen (DelegateOnOpenEvent);
+      ReownWebSocketSetOnMessage (DelegateOnMessageEvent);
+      ReownWebSocketSetOnError (DelegateOnErrorEvent);
+      ReownWebSocketSetOnClose (DelegateOnCloseEvent);
 
       isInitialized = true;
 
@@ -776,7 +776,7 @@ namespace NativeWebSocket
     public static void HandleInstanceDestroy (int instanceId) {
 
       instances.Remove (instanceId);
-      WebSocketFree (instanceId);
+      ReownWebSocketFree (instanceId);
 
     }
 
