@@ -31,7 +31,7 @@ var LibraryWebSocket = {
      *
      * @param callback Reference to C# static function
      */
-    WebSocketSetOnOpen: function(callback) {
+    ReownWebSocketSetOnOpen: function (callback) {
 
         webSocketState.onOpen = callback;
 
@@ -42,7 +42,7 @@ var LibraryWebSocket = {
      *
      * @param callback Reference to C# static function
      */
-    WebSocketSetOnMessage: function(callback) {
+    ReownWebSocketSetOnMessage: function (callback) {
 
         webSocketState.onMessage = callback;
 
@@ -53,7 +53,7 @@ var LibraryWebSocket = {
      *
      * @param callback Reference to C# static function
      */
-    WebSocketSetOnError: function(callback) {
+    ReownWebSocketSetOnError: function (callback) {
 
         webSocketState.onError = callback;
 
@@ -64,7 +64,7 @@ var LibraryWebSocket = {
      *
      * @param callback Reference to C# static function
      */
-    WebSocketSetOnClose: function(callback) {
+    ReownWebSocketSetOnClose: function (callback) {
 
         webSocketState.onClose = callback;
 
@@ -75,7 +75,7 @@ var LibraryWebSocket = {
      *
      * @param url Server URL
      */
-    WebSocketAllocate: function(url) {
+    ReownWebSocketAllocate: function (url) {
 
         var urlStr = UTF8ToString(url);
         var id = webSocketState.lastId++;
@@ -96,7 +96,7 @@ var LibraryWebSocket = {
      * @param instanceId Instance ID
      * @param subprotocol Subprotocol name to add to instance
      */
-    WebSocketAddSubProtocol: function(instanceId, subprotocol) {
+    ReownWebSocketAddSubProtocol: function (instanceId, subprotocol) {
 
         var subprotocolStr = UTF8ToString(subprotocol);
         webSocketState.instances[instanceId].subprotocols.push(subprotocolStr);
@@ -111,7 +111,7 @@ var LibraryWebSocket = {
      *
      * @param instanceId Instance ID
      */
-    WebSocketFree: function(instanceId) {
+    ReownWebSocketFree: function (instanceId) {
 
         var instance = webSocketState.instances[instanceId];
 
@@ -133,7 +133,7 @@ var LibraryWebSocket = {
      *
      * @param instanceId Instance ID
      */
-    WebSocketConnect: function(instanceId) {
+    ReownWebSocketConnect: function (instanceId) {
 
         var instance = webSocketState.instances[instanceId];
         if (!instance) return -1;
@@ -145,7 +145,7 @@ var LibraryWebSocket = {
 
         instance.ws.binaryType = 'arraybuffer';
 
-        instance.ws.onopen = function() {
+        instance.ws.onopen = function () {
 
             if (webSocketState.debug)
                 console.log("[JSLIB WebSocket] Connected.");
@@ -155,7 +155,7 @@ var LibraryWebSocket = {
 
         };
 
-        instance.ws.onmessage = function(ev) {
+        instance.ws.onmessage = function (ev) {
 
             if (webSocketState.debug)
                 console.log("[JSLIB WebSocket] Received message:", ev.data);
@@ -192,7 +192,7 @@ var LibraryWebSocket = {
 
         };
 
-        instance.ws.onerror = function(ev) {
+        instance.ws.onerror = function (ev) {
 
             if (webSocketState.debug)
                 console.log("[JSLIB WebSocket] Error occured.");
@@ -214,7 +214,7 @@ var LibraryWebSocket = {
 
         };
 
-        instance.ws.onclose = function(ev) {
+        instance.ws.onclose = function (ev) {
 
             if (webSocketState.debug)
                 console.log("[JSLIB WebSocket] Closed.");
@@ -237,7 +237,7 @@ var LibraryWebSocket = {
      * @param code Close status code
      * @param reasonPtr Pointer to reason string
      */
-    WebSocketClose: function(instanceId, code, reasonPtr) {
+    ReownWebSocketClose: function (instanceId, code, reasonPtr) {
 
         var instance = webSocketState.instances[instanceId];
         if (!instance) return -1;
@@ -251,11 +251,11 @@ var LibraryWebSocket = {
         if (instance.ws.readyState === 3)
             return -5;
 
-        var reason = ( reasonPtr ? UTF8ToString(reasonPtr) : undefined );
+        var reason = (reasonPtr ? UTF8ToString(reasonPtr) : undefined);
 
         try {
             instance.ws.close(code, reason);
-        } catch(err) {
+        } catch (err) {
             return -7;
         }
 
@@ -270,7 +270,7 @@ var LibraryWebSocket = {
      * @param bufferPtr Pointer to the message buffer
      * @param length Length of the message in the buffer
      */
-    WebSocketSend: function(instanceId, bufferPtr, length) {
+    ReownWebSocketSend: function (instanceId, bufferPtr, length) {
 
         var instance = webSocketState.instances[instanceId];
         if (!instance) return -1;
@@ -294,7 +294,7 @@ var LibraryWebSocket = {
      * @param bufferPtr Pointer to the message buffer
      * @param length Length of the message in the buffer
      */
-    WebSocketSendText: function(instanceId, message) {
+    ReownWebSocketSendText: function (instanceId, message) {
 
         var instance = webSocketState.instances[instanceId];
         if (!instance) return -1;
@@ -316,7 +316,7 @@ var LibraryWebSocket = {
      *
      * @param instanceId Instance ID
      */
-    WebSocketGetState: function(instanceId) {
+    ReownWebSocketGetState: function (instanceId) {
 
         var instance = webSocketState.instances[instanceId];
         if (!instance) return -1;
