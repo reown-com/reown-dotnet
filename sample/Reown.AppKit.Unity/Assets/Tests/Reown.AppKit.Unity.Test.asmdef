@@ -1,0 +1,40 @@
+{
+    "name": "Reown.AppKit.Unity.Test",
+    "rootNamespace": "Reown.AppKit.Unity.Test",
+    "references": [
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "UniTask",
+        "Reown.AppKit.Unity",
+        "Unity.InputSystem",
+        "Unity.InputSystem.TestFramework",
+        "Reown.WalletKit",
+        "Reown.Core",
+        "Reown.Sign.Unity",
+        "Reown.Core.Storage",
+        "Reown.Core.Common",
+        "Reown.Sign",
+        "Nethereum",
+        "Reown.Core.Network"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll",
+        "NBitcoin.dll",
+        "Nethereum.HdWallet.dll",
+        "Nethereum.Web3.dll",
+        "Nethereum.Accounts.dll",
+        "Nethereum.RPC.dll",
+        "Nethereum.Signer.dll",
+        "Nethereum.Hex.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
