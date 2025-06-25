@@ -1,7 +1,8 @@
 name: "💡 Feature Request"
-description: 'Want us to add something to AppKit?'
-title: '[feature] '
-labels: ['feature-request', 'needs review', 'unity']
+description: "Want us to add something to AppKit?"
+title: "[feature] "
+labels: ["feature-request", "needs review", "unity"]
+assignees: ["skibitsky"]
 body:
   - type: textarea
     attributes:

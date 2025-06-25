@@ -1,10 +1,11 @@
+using System;
 using System.Numerics;
+using System.Threading;
 using System.Threading.Tasks;
 using Nethereum.Contracts;
-using Newtonsoft.Json;
+using Nethereum.Hex.HexTypes;
 using Reown.AppKit.Unity.WebGl.Wagmi;
 using Reown.Sign.Unity;
-using UnityEngine;
 
 namespace Reown.AppKit.Unity
 {
@@ -67,7 +68,41 @@ namespace Reown.AppKit.Unity
 
         protected override Task<string> SendRawTransactionAsyncCore(string signedTransaction)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
+        }
+
+        protected override async Task<TransactionReceipt> GetTransactionReceiptAsyncCore(
+            string transactionHash,
+            TimeSpan? timeout = null,
+            TimeSpan? pollingInterval = null,
+            CancellationToken ct = default)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            var parameter = new WaitForTransactionReceiptParameter
+            {
+                hash = transactionHash,
+                Timeout = timeout.HasValue
+                    ? (int?)timeout.Value.TotalMilliseconds
+                    : null,
+                PollingInterval = pollingInterval.HasValue
+                    ? (int?)pollingInterval.Value.TotalSeconds
+                    : null
+            };
+            var wagmiReceipt = await WagmiInterop.WaitForTransactionReceipt(parameter);
+
+            return new TransactionReceipt
+            {
+                BlockHash = wagmiReceipt.blockHash,
+                BlockNumber = new HexBigInteger(wagmiReceipt.blockNumber),
+                CumulativeGasUsed = new HexBigInteger(wagmiReceipt.cumulativeGasUsed),
+                From = wagmiReceipt.from,
+                GasUsed = new HexBigInteger(wagmiReceipt.gasUsed),
+                StatusSuccessful = wagmiReceipt.status == "success",
+                To = wagmiReceipt.to,
+                TransactionHash = wagmiReceipt.transactionHash,
+                TransactionIndex = new HexBigInteger(wagmiReceipt.transactionIndex)
+            };
         }
 
         protected override async Task<BigInteger> EstimateGasAsyncCore(string addressTo, BigInteger value, string data = null)
@@ -96,7 +131,7 @@ namespace Reown.AppKit.Unity
 
         protected override Task<T> RpcRequestAsyncCore<T>(string method, params object[] parameters)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 #endif

@@ -5,13 +5,14 @@ on:
     branches:
       - main
     paths-ignore:
-      - '**.md'
-      - '.gitignore'
-      - '.editorconfig'
-      - '.github/ISSUE_TEMPLATE/**'
+      - "**.md"
+      - ".gitignore"
+      - ".editorconfig"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/dependabot.yml"
   workflow_dispatch:
 
-concurrency: 
+concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
@@ -86,7 +87,7 @@ jobs:
             exit 1
           fi
           echo "Creating tags for version $VERSION"
-          
+
           dotnet-script ./.github/scripts/get-unity-package-names.csx | while read -r package; do
             TAG="$package/$VERSION"
             echo "Creating tag $TAG"

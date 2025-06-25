@@ -1,13 +1,13 @@
 {
-  "name": "com.reown.core.common",
+  "name": "com.reown.walletkit",
   "version": "1.4.2",
-  "displayName": "Reown.Core.Common",
+  "displayName": "Reown.WalletKit",
   "unity": "2022.3",
   "author": "Reown",
   "keywords": [
     "reown"
   ],
   "dependencies": {
-    "com.unity.nuget.newtonsoft-json": "3.2.1"
+    "com.reown.sign": "1.4.2"
   }
 }

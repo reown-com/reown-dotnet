@@ -49,14 +49,17 @@ namespace Reown.AppKit.Unity.Components
                 if (string.IsNullOrWhiteSpace(value))
                 {
                     LoadingAnimator.Instance.Subscribe(_qrcodeImage);
-                    _data = value;
                 }
                 else
                 {
                     LoadingAnimator.Instance.Unsubscribe(_qrcodeImage);
+#if !UNITY_WEBGL || UNITY_EDITOR
                     _qrcodeImage.image = QRCode.EncodeTexture(value, _fgColor, _bgColor);
-                    _data = value;
+#else
+                    throw new System.NotImplementedException("QrCode.Data is not supported on WebGL.");
+#endif
                 }
+                _data = value;
             }
         }
 
