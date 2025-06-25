@@ -16,11 +16,11 @@ namespace Reown.Core.Controllers
     /// <typeparam name="TValue">The type of the values stored, the value must contain the key</typeparam>
     public class Store<TKey, TValue> : IStore<TKey, TValue> where TValue : IKeyHolder<TKey>
     {
-        private TValue[] cached = Array.Empty<TValue>();
+        private TValue[] _cached = Array.Empty<TValue>();
         protected bool Disposed;
 
-        private bool initialized;
-        private Dictionary<TKey, TValue> map = new();
+        private bool _initialized;
+        private Dictionary<TKey, TValue> _map = new();
 
         /// <summary>
         ///     Create a new Store module with the given ICore, name, and storagePrefix.
@@ -80,7 +80,7 @@ namespace Reown.Core.Controllers
         /// </summary>
         public int Length
         {
-            get => map.Count;
+            get => _map.Count;
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace Reown.Core.Controllers
         /// </summary>
         public TKey[] Keys
         {
-            get => map.Keys.ToArray();
+            get => _map.Keys.ToArray();
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace Reown.Core.Controllers
         /// </summary>
         public TValue[] Values
         {
-            get => map.Values.ToArray();
+            get => _map.Values.ToArray();
         }
 
         /// <summary>
@@ -105,18 +105,18 @@ namespace Reown.Core.Controllers
         /// </summary>
         public async Task Init()
         {
-            if (!initialized)
+            if (!_initialized)
             {
                 await Restore();
 
-                foreach (var value in cached)
+                foreach (var value in _cached)
                 {
                     if (value != null)
-                        map.Add(value.Key, value);
+                        _map.Add(value.Key, value);
                 }
 
-                cached = Array.Empty<TValue>();
-                initialized = true;
+                _cached = Array.Empty<TValue>();
+                _initialized = true;
             }
         }
 
@@ -131,7 +131,7 @@ namespace Reown.Core.Controllers
         {
             IsInitialized();
 
-            return !map.TryAdd(key, value)
+            return !_map.TryAdd(key, value)
                 ? Update(key, value)
                 : Persist();
         }
@@ -211,8 +211,8 @@ namespace Reown.Core.Controllers
                 // ignored if no previous value exists
             }
 
-            map.Remove(key);
-            map.Add(key, update);
+            _map.Remove(key);
+            _map.Add(key, update);
 
             return Persist();
         }
@@ -221,7 +221,7 @@ namespace Reown.Core.Controllers
         {
             IsInitialized();
 
-            return new ReadOnlyDictionary<TKey, TValue>(map);
+            return new ReadOnlyDictionary<TKey, TValue>(_map);
         }
 
         public void Dispose()
@@ -240,11 +240,7 @@ namespace Reown.Core.Controllers
         {
             IsInitialized();
 
-            if (!map.ContainsKey(key)) return Task.CompletedTask;
-
-            map.Remove(key);
-
-            return Persist();
+            return !_map.Remove(key) ? Task.CompletedTask : Persist();
         }
 
         protected virtual Task SetDataStore(TValue[] data)
@@ -262,7 +258,7 @@ namespace Reown.Core.Controllers
 
         protected virtual TValue GetData(TKey key)
         {
-            if (!map.TryGetValue(key, out var data))
+            if (!_map.TryGetValue(key, out var data))
             {
                 throw new KeyNotFoundException($"Key {key} not found in {Name}.");
             }
@@ -280,17 +276,17 @@ namespace Reown.Core.Controllers
             var persisted = await GetDataStore();
             if (persisted == null) return;
             if (persisted.Length == 0) return;
-            if (map.Count > 0)
+            if (_map.Count > 0)
             {
                 throw new InvalidOperationException($"Restoring will override existing data in {Name}.");
             }
 
-            cached = persisted;
+            _cached = persisted;
         }
 
         protected virtual void IsInitialized()
         {
-            if (!initialized)
+            if (!_initialized)
             {
                 throw new InvalidOperationException($"{nameof(Store<TKey, TValue>)} module not initialized.");
             }
@@ -302,9 +298,9 @@ namespace Reown.Core.Controllers
 
             if (disposing)
             {
-                map.Clear();
-                map = null;
-                cached = null;
+                _map.Clear();
+                _map = null;
+                _cached = null;
             }
 
             Disposed = true;

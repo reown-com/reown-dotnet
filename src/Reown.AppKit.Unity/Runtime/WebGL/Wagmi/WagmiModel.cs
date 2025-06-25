@@ -1,5 +1,6 @@
 using System;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Reown.AppKit.Unity.WebGl.Wagmi
 {
@@ -141,5 +142,35 @@ namespace Reown.AppKit.Unity.WebGl.Wagmi
         public string to;
         public string value;
         public string data;
+    }
+
+    [Serializable]
+    public class WaitForTransactionReceiptParameter
+    {
+        public string hash;
+
+        [JsonProperty("pollingInterval", NullValueHandling = NullValueHandling.Ignore)]
+        public int? PollingInterval;
+
+        [JsonProperty("timeout", NullValueHandling = NullValueHandling.Ignore)]
+        public int? Timeout;
+    }
+
+    [Serializable]
+    public class TransactionReceiptReturnType
+    {
+        public string blockHash;
+        public string blockNumber;
+        public string contractAddress;
+        public string cumulativeGasUsed;
+        public string effectiveGasPrice;
+        public string from;
+        public string gasUsed;
+        public string logsBloom;
+        public string root;
+        public string status;
+        public string to;
+        public string transactionHash;
+        public string transactionIndex;
     }
 }

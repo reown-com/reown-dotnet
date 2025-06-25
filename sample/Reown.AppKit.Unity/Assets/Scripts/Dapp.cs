@@ -274,11 +274,20 @@ namespace Sample
             {
                 Notification.ShowMessage("Sending transaction...");
 
-                var value = Web3.Convert.ToWei(0.001);
-                var result = await AppKit.Evm.SendTransactionAsync(toAddress, value);
-                Debug.Log("Transaction hash: " + result);
+                var value = Web3.Convert.ToWei(0.00001);
+                var txHash = await AppKit.Evm.SendTransactionAsync(toAddress, value);
 
-                Notification.ShowMessage("Transaction sent");
+                Notification.ShowMessage("Transaction sent. Waiting for receipt...");
+
+                Debug.Log("Transaction hash: " + txHash);
+                Debug.Log("Waiting for transaction receipt...");
+
+                var txReceipt = await AppKit.Evm.GetTransactionReceiptAsync(txHash);
+                Debug.Log("Transaction receipt:\n" + txReceipt);
+
+                var isSuccess = txReceipt.StatusSuccessful;
+
+                Notification.ShowMessage($"Transaction receipt received. The transaction was successful: {isSuccess}. See console for details.");
             }
             catch (Exception e)
             {

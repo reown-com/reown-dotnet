@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Nethereum.ABI.FunctionEncoding;
 using Nethereum.Contracts.Standards.ERC1271.ContractDefinition;
@@ -292,6 +293,36 @@ namespace Reown.AppKit.Unity
         protected override Task<string> SendRawTransactionAsyncCore(string signedTransaction)
         {
             return Web3.Eth.Transactions.SendRawTransaction.SendRequestAsync(signedTransaction);
+        }
+
+
+        // -- Get Transaction Receipt  --------------------------------
+
+        protected override async Task<TransactionReceipt> GetTransactionReceiptAsyncCore(
+            string transactionHash,
+            TimeSpan? timeout = null,
+            TimeSpan? pollingInterval = null,
+            CancellationToken ct = default)
+        {
+            timeout ??= TimeSpan.FromMinutes(3);
+            pollingInterval ??= TimeSpan.FromSeconds(12);
+            var deadline = DateTime.UtcNow + timeout;
+
+            while (true)
+            {
+                ct.ThrowIfCancellationRequested();
+
+                var rawReceipt = await Web3.Eth.Transactions.GetTransactionReceipt
+                    .SendRequestAsync(transactionHash);
+
+                if (rawReceipt != null)
+                    return new TransactionReceipt(rawReceipt);
+
+                if (DateTime.UtcNow >= deadline)
+                    throw new TimeoutException($"Transaction receipt not found within {timeout}.");
+
+                await UnityEventsDispatcher.WaitForSecondsAsync((float)pollingInterval.Value.TotalSeconds, ct);
+            }
         }
 
 

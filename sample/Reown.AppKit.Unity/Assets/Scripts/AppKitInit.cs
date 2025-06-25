@@ -67,7 +67,8 @@ namespace Sample
                     ChainConstants.Chains.Ronin,
                     ChainConstants.Chains.Avalanche,
                     ChainConstants.Chains.Base,
-                    ChainConstants.Chains.Polygon
+                    ChainConstants.Chains.Polygon,
+                    ChainConstants.Chains.BaseSepolia
                 },
                 socials = new[]
                 {

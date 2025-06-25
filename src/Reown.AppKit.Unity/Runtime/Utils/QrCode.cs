@@ -1,3 +1,5 @@
+#if !UNITY_WEBGL || UNITY_EDITOR
+
 using UnityEngine;
 using ZXing;
 using ZXing.Common;
@@ -58,7 +60,7 @@ namespace Reown.AppKit.Unity.Utils
             return writer.Write(textForEncoding);
         }
     }
-    
+
     /// <summary>
     ///     A barcode renderer which returns a Color32 array
     /// </summary>
@@ -124,23 +126,23 @@ namespace Reown.AppKit.Unity.Utils
             var divisionLeftover = matrix.Width % 32;
             var bitRowRemainder = divisionLeftover > 0 ? divisionLeftover : 32;
 
-            for (int y = 0; y < matrix.Height; y++)
+            for (var y = 0; y < matrix.Height; y++)
             {
                 var ba = matrix.getRow(offset - y, null);
-                int[] bits = ba.Array;
+                var bits = ba.Array;
 
-                for (int x = 0; x < bits.Length; x++)
+                for (var x = 0; x < bits.Length; x++)
                 {
-                    int finalIndex = 32;
+                    var finalIndex = 32;
 
                     if (x == bits.Length - 1)
                     {
                         finalIndex = bitRowRemainder;
                     }
 
-                    for (int i = 0; i < finalIndex; i++)
+                    for (var i = 0; i < finalIndex; i++)
                     {
-                        int bit = (bits[x] >> i) & 1;
+                        var bit = bits[x] >> i & 1;
 
                         if (bit == 1)
                         {
@@ -158,3 +160,4 @@ namespace Reown.AppKit.Unity.Utils
         }
     }
 }
+#endif
