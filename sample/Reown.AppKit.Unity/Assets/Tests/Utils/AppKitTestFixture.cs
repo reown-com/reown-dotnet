@@ -1,8 +1,16 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
+using Reown.Core;
+using Reown.Core.Models;
+using Reown.Core.Storage;
+using Reown.Sign.Unity;
+using Reown.WalletKit;
+using Reown.WalletKit.Interfaces;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
@@ -35,6 +43,8 @@ namespace Reown.AppKit.Unity.Tests
             return new UILayer(uiDocument);
         });
 
+        private readonly List<IWalletKit> _walletKits = new();
+
         [SetUp]
         public virtual void Setup()
         {
@@ -48,6 +58,12 @@ namespace Reown.AppKit.Unity.Tests
             {
                 try
                 {
+                    foreach (var walletKit in _walletKits)
+                        walletKit.Dispose();
+                    _walletKits.Clear();
+
+                    await AppKit.DisconnectAsync();
+
                     await UnloadAllScenesAsync();
                     await UniTask.Delay(100);
                 }
@@ -56,6 +72,24 @@ namespace Reown.AppKit.Unity.Tests
                     Debug.LogException(e);
                 }
             });
+        }
+
+        protected virtual async Task<IWalletKit> CreateWalletKitInstance()
+        {
+            var coreClient = new CoreClient(new CoreOptions
+            {
+                ConnectionBuilder = new ConnectionBuilderUnity(),
+                ProjectId = "ef21cf313a63dbf63f2e9e04f3614029",
+                Name = $"wallet-unity-e2e-test-{Guid.NewGuid().ToString()}",
+                Storage = new InMemoryStorage()
+            });
+
+            var metadata = new Metadata("WalletKit", "Unity E2E Test WalletKit instance", "https://reown.com", "https://reown.com/favicon.ico");
+
+            var wallet = await WalletKitClient.Init(coreClient, metadata);
+            _walletKits.Add(wallet);
+
+            return wallet;
         }
 
         protected virtual async UniTask UnloadAllScenesAsync(CancellationToken cancellationToken = default)
