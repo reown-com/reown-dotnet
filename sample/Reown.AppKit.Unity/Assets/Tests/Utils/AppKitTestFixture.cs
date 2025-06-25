@@ -62,7 +62,8 @@ namespace Reown.AppKit.Unity.Tests
                         walletKit.Dispose();
                     _walletKits.Clear();
 
-                    await AppKit.DisconnectAsync();
+                    if (AppKit.IsAccountConnected)
+                        await AppKit.DisconnectAsync();
 
                     await UnloadAllScenesAsync();
                     await UniTask.Delay(100);
