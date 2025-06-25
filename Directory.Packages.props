@@ -7,8 +7,8 @@
     <PackageVersion Include="Nethereum.HdWallet" Version="5.0.0" />
     <PackageVersion Include="Nethereum.Web3" Version="5.0.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageVersion Include="NUnit" Version="3.5.0" />
-    <PackageVersion Include="Websocket.Client" Version="5.1.2" />
+    <PackageVersion Include="NUnit" Version="3.14.0" />
+    <PackageVersion Include="Websocket.Client" Version="5.2.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageVersion Include="xunit.abstractions" Version="2.0.3" />
