@@ -206,7 +206,7 @@ namespace Reown.AppKit.Unity
             else
             {
                 if (!ActiveSessionIncludesChain(chain.ChainId))
-                    throw new ReownNetworkException("Chain is not supported");
+                    throw new ReownNetworkException("Chain is not supported", ErrorType.DISAPPROVED_CHAINS);
 
                 await _signClient.AddressProvider.SetDefaultChainIdAsync(chain.ChainId);
                 OnChainChanged(new ChainChangedEventArgs(chain.ChainId));

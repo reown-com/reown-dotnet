@@ -50,7 +50,7 @@ namespace Reown.AppKit.Unity
                 throw new ArgumentNullException(nameof(chain));
 
             if (!Chains.Values.Contains(chain))
-                throw new ReownNetworkException("Chain is not supported");
+                throw new ReownNetworkException("Chain is not supported", ErrorType.DISAPPROVED_CHAINS);
 
             await ChangeActiveChainAsyncCore(chain);
         }
@@ -75,7 +75,7 @@ namespace Reown.AppKit.Unity
 
             if (e.NewChain == null)
                 return;
-            
+
             ChainChanged?.Invoke(this, e);
         }
 
