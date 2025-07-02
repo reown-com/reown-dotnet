@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Reown.Core.Common.Logging;
+using Reown.Core.Common.Model.Errors;
 using UnityEngine;
 #if UNITY_WEBGL && !UNITY_EDITOR
 using AOT;

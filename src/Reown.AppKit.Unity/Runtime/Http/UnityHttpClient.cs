@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using Reown.Core.Common.Model.Errors;
+using Reown.AppKit.Unity.Model.Errors;
 using UnityEngine;
 using UnityEngine.Networking;
 using Reown.AppKit.Unity.Utils;

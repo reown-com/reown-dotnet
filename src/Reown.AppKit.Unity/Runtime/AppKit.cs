@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Reown.AppKit.Unity.Model;
-using Reown.Core.Common.Model.Errors;
+using Reown.AppKit.Unity.Model.Errors;
 using Reown.Core.Common.Utils;
 using Reown.Sign.Models;
 using Reown.Sign.Unity;

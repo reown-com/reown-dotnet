@@ -5,7 +5,7 @@ using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Model;
 using Reown.AppKit.Unity.Profile;
 using Reown.AppKit.Unity.Utils;
-using Reown.Core.Common.Model.Errors;
+using Reown.AppKit.Unity.Model.Errors;
 using Reown.Sign.Models;
 using Reown.Sign.Unity;
 using UnityEngine;

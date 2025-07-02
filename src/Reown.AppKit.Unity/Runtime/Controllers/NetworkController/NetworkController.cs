@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Reown.Core.Common.Model.Errors;
+using Reown.AppKit.Unity.Model.Errors;
 using UnityEngine.Assertions;
 
 namespace Reown.AppKit.Unity

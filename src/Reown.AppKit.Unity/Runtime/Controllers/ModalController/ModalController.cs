@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using Reown.Core.Common.Model.Errors;
+using Reown.AppKit.Unity.Model.Errors;
 
 namespace Reown.AppKit.Unity
 {

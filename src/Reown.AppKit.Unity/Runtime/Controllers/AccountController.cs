@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Reown.AppKit.Unity.Http;
 using Reown.AppKit.Unity.Utils;
-using Reown.Core.Common.Model.Errors;
+using Reown.AppKit.Unity.Model.Errors;
 
 namespace Reown.AppKit.Unity
 {
