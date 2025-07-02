@@ -1,4 +1,5 @@
 using System;
+using Reown.Core.Common.Model.Errors;
 
 namespace Reown.AppKit.Unity.WebGl
 {
