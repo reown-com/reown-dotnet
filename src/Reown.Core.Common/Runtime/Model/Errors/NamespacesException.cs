@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 
 namespace Reown.Core.Common.Model.Errors
 {
-    public class NamespacesException : Exception
+    public class NamespacesException : ReownException
     {
         public NamespacesException()
         {

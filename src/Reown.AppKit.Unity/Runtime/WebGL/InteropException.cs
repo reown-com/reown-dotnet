@@ -2,7 +2,7 @@ using System;
 
 namespace Reown.AppKit.Unity.WebGl
 {
-    internal class InteropException : Exception
+    internal class InteropException : ReownException
     {
         public InteropException(string message) : base(message)
         {

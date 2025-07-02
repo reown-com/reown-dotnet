@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 
 namespace Reown.Core.Common.Model.Errors
 {
-    public class ExpiredException : Exception
+    public class ExpiredException : ReownException
     {
         public ExpiredException()
         {

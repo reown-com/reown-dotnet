@@ -166,7 +166,7 @@ namespace NativeWebSocket
         }
     }
 
-    public class WebSocketException : Exception
+    public class WebSocketException : ReownException
     {
         public WebSocketException()
         {
