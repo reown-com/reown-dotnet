@@ -16,13 +16,14 @@ namespace Reown.Core.Common.Model.Errors
 
         /// <summary>
         /// </summary>
-        /// <param name="message">The message that describes the error.</param>
+        /// <param name="message">The message that describes the connector error.</param>
         public ReownConnectorException(string message) : base(message)
         {
         }
 
         /// <summary>
         /// </summary>
+        /// <param name="message">The error message that explains the reason for the connector failure.</param>
         /// <param name="innerException">The exception that is the cause of the current exception.</param>
         public ReownConnectorException(string message, Exception innerException) : base(message, innerException)
         {
@@ -30,6 +31,8 @@ namespace Reown.Core.Common.Model.Errors
 
         /// <summary>
         /// </summary>
+        /// <param name="info">The SerializationInfo that holds the serialized object data about the exception being thrown.</param>
+        /// <param name="context">The StreamingContext that contains contextual information about the source or destination.</param>
         protected ReownConnectorException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
