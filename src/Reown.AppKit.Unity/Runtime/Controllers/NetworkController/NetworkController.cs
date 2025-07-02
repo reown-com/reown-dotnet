@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Reown.Core.Common.Model.Errors;
 using UnityEngine.Assertions;
 
 namespace Reown.AppKit.Unity
@@ -26,7 +27,7 @@ namespace Reown.AppKit.Unity
         public async Task InitializeAsync(ConnectorController connectorController, IEnumerable<Chain> supportedChains)
         {
             if (IsInitialized)
-                throw new Exception("Already initialized"); // TODO: use custom ex type
+                throw new ReownInitializationException("NetworkController is already initialized");
 
             if (supportedChains == null)
                 throw new ArgumentNullException(nameof(supportedChains));
@@ -49,7 +50,7 @@ namespace Reown.AppKit.Unity
                 throw new ArgumentNullException(nameof(chain));
 
             if (!Chains.Values.Contains(chain))
-                throw new Exception("Chain is not supported"); // TODO: use custom ex type
+                throw new ReownNetworkException("Chain is not supported");
 
             await ChangeActiveChainAsyncCore(chain);
         }

@@ -5,6 +5,7 @@ using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Model;
 using Reown.AppKit.Unity.Profile;
 using Reown.AppKit.Unity.Utils;
+using Reown.Core.Common.Model.Errors;
 using Reown.Sign.Models;
 using Reown.Sign.Unity;
 using UnityEngine;
@@ -85,8 +86,7 @@ namespace Reown.AppKit.Unity
             else
             {
                 if (IsAccountConnected && viewType == ViewType.Connect)
-                    // TODO: use custom exception type
-                    throw new Exception("Trying to open Connect view when account is already connected.");
+                    throw new ReownConnectorException("Cannot open Connect view when account is already connected");
                 ModalController.Open(viewType);
             }
         }
@@ -160,7 +160,7 @@ namespace Reown.AppKit.Unity
             if (!ConnectorController
                     .TryGetConnector<WalletConnectConnector>
                         (ConnectorType.WalletConnect, out var connector))
-                throw new Exception("No WalletConnect connector"); // TODO: use custom exception
+                throw new ReownConnectorException("WalletConnect connector not found");
 
             var connectionProposal = (WalletConnectConnectionProposal)connector.Connect();
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using Reown.AppKit.Unity.Profile;
 using Reown.AppKit.Unity.Views.WebWalletView;
+using Reown.Core.Common.Model.Errors;
 using Reown.Sign.Unity;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -33,7 +34,7 @@ namespace Reown.AppKit.Unity
             if (!AppKit.ConnectorController
                     .TryGetConnector<ProfileConnector>
                         (ConnectorType.Profile, out var connector))
-                throw new Exception("No profiles connector"); // TODO: use custom exception
+                throw new ReownConnectorException("Profile connector not found");
 
             _connectionProposal = (WalletConnectConnectionProposal)connector.Connect();
 

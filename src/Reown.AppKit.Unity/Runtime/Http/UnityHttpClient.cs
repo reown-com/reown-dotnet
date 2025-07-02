@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Reown.Core.Common.Model.Errors;
 using UnityEngine;
 using UnityEngine.Networking;
 using Reown.AppKit.Unity.Utils;
@@ -196,7 +197,7 @@ namespace Reown.AppKit.Unity.Http
             {
                 if (uwr.result != UnityWebRequest.Result.Success)
                 {
-                    tcs.SetException(new Exception($"Failed to send web request: {uwr.error}. Url: {url.ToString()}")); // TODO: use custom ex type
+                    tcs.SetException(new ReownHttpException($"Failed to send web request: {uwr.error}. Url: {url.ToString()}"));
                     uwr.Dispose();
                     return;
                 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Utils;
+using Reown.Core.Common.Model.Errors;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -37,7 +38,7 @@ namespace Reown.AppKit.Unity
             if (!AppKit.ConnectorController
                     .TryGetConnector<WalletConnectConnector>
                         (ConnectorType.WalletConnect, out var connector))
-                throw new Exception("No WC connector"); // TODO: use custom exception
+                throw new ReownConnectorException("WalletConnect connector not found");
 
             if (_connectionProposal == null || _connectionProposal.IsConnected)
             {
