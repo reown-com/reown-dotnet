@@ -40,7 +40,7 @@ namespace Reown.Sign.Unity
             ReownLogger.Log($"[Linker] Requested to open mobile deep link. The uri: {wcUri}");
 #else
             if (string.IsNullOrWhiteSpace(baseUrl))
-                throw new ReownConnectorException(
+                throw new ArgumentException(
                     $"[Linker] No link found for {Application.platform} platform.");
 
             var url = BuildConnectionDeepLink(baseUrl, wcUri);
