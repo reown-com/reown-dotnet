@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using UnityEngine;
 
 namespace Reown.AppKit.Unity
 {
@@ -53,7 +52,7 @@ namespace Reown.AppKit.Unity
             OnChainChanged(new ChainChangedEventArgs(previousChain, chain));
         }
 
-        protected override async void ConnectorAccountConnectedHandlerCore(object sender, Connector.AccountConnectedEventArgs accountConnectedEventArgs)
+        protected override void ConnectorAccountConnectedHandlerCore(object sender, Connector.AccountConnectedEventArgs accountConnectedEventArgs)
         {
             var previousChain = ActiveChain;
             var accounts = accountConnectedEventArgs.Accounts.ToArray();
@@ -75,7 +74,7 @@ namespace Reown.AppKit.Unity
                 return;
             }
 
-            ActiveChain = Chains[account.ChainId];;
+            ActiveChain = Chains[account.ChainId];
             OnChainChanged(new ChainChangedEventArgs(previousChain, ActiveChain));
         }
     }
