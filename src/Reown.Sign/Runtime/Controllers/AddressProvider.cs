@@ -55,13 +55,13 @@ namespace Reown.Sign.Controllers
         public string DefaultNamespace
         {
             get => _state.Namespace;
-            set => _state.Namespace = value;
+            private set => _state.Namespace = value;
         }
 
         public string DefaultChainId
         {
             get => _state.ChainId;
-            set => _state.ChainId = value;
+            private set => _state.ChainId = value;
         }
 
         public ISession Sessions { get; private set; }
@@ -244,7 +244,7 @@ namespace Reown.Sign.Controllers
                 _client = null;
                 Sessions = null;
                 DefaultNamespace = null;
-                DefaultSession = default;
+                DefaultSession = null;
             }
 
             _disposed = true;

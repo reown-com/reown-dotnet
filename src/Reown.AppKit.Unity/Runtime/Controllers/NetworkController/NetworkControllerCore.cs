@@ -53,61 +53,30 @@ namespace Reown.AppKit.Unity
             OnChainChanged(new ChainChangedEventArgs(previousChain, chain));
         }
 
-        protected override async void ConnectorAccountConnectedHandlerCore(object sender, Connector.AccountConnectedEventArgs e)
+        protected override async void ConnectorAccountConnectedHandlerCore(object sender, Connector.AccountConnectedEventArgs accountConnectedEventArgs)
         {
             var previousChain = ActiveChain;
-            var accounts = e.Accounts.ToArray();
+            var accounts = accountConnectedEventArgs.Accounts.ToArray();
 
-            if (ActiveChain == null)
+            var defaultAccount = accountConnectedEventArgs.Account;
+
+            if (Chains.TryGetValue(defaultAccount.ChainId, out var defaultAccountChain))
             {
-                var defaultAccount = e.Account;
-
-                if (Chains.TryGetValue(defaultAccount.ChainId, out var defaultAccountChain))
-                {
-                    ActiveChain = defaultAccountChain;
-                    OnChainChanged(new ChainChangedEventArgs(previousChain, defaultAccountChain));
-                    return;
-                }
-
-                var account = Array.Find(accounts, a => Chains.ContainsKey(a.ChainId));
-                if (account == default)
-                {
-                    ActiveChain = null;
-                    OnChainChanged(new ChainChangedEventArgs(previousChain, null));
-                    return;
-                }
-
-                var chain = Chains[account.ChainId];
-
-                ActiveChain = chain;
-                OnChainChanged(new ChainChangedEventArgs(previousChain, chain));
+                ActiveChain = defaultAccountChain;
+                OnChainChanged(new ChainChangedEventArgs(previousChain, defaultAccountChain));
+                return;
             }
-            else
+
+            var account = Array.Find(accounts, a => Chains.ContainsKey(a.ChainId));
+            if (account == default)
             {
-                var defaultAccount = e.Account;
-                if (defaultAccount.ChainId == ActiveChain.ChainId)
-                    return;
-
-                if (Array.Exists(accounts, a => a.ChainId == ActiveChain.ChainId))
-                {
-                    await ChangeActiveChainAsync(ActiveChain);
-                    return;
-                }
-
-                var account = Array.Find(accounts, a => Chains.ContainsKey(a.ChainId));
-                if (account == default)
-                {
-                    ActiveChain = null;
-                    OnChainChanged(new ChainChangedEventArgs(previousChain, null));
-                }
-                else
-                {
-                    var chain = Chains[account.ChainId];
-
-                    ActiveChain = chain;
-                    OnChainChanged(new ChainChangedEventArgs(previousChain, chain));
-                }
+                ActiveChain = null;
+                OnChainChanged(new ChainChangedEventArgs(previousChain, null));
+                return;
             }
+
+            ActiveChain = Chains[account.ChainId];;
+            OnChainChanged(new ChainChangedEventArgs(previousChain, ActiveChain));
         }
     }
 }
