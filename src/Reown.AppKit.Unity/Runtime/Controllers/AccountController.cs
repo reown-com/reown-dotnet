@@ -6,6 +6,8 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Reown.AppKit.Unity.Http;
 using Reown.AppKit.Unity.Utils;
+using Reown.Core.Common.Model.Errors;
+using Reown.AppKit.Unity.Model.Errors;
 
 namespace Reown.AppKit.Unity
 {
@@ -91,7 +93,7 @@ namespace Reown.AppKit.Unity
         public Task InitializeAsync(ConnectorController connectorController, NetworkController networkController, BlockchainApiController blockchainApiController)
         {
             if (IsInitialized)
-                throw new Exception("Already initialized"); // TODO: use custom ex type
+                throw new ReownInitializationException("AccountController is already initialized");
 
             _connectorController = connectorController ?? throw new ArgumentNullException(nameof(connectorController));
             _networkController = networkController ?? throw new ArgumentNullException(nameof(networkController));

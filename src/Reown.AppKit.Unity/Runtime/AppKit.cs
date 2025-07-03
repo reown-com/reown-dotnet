@@ -3,6 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Reown.AppKit.Unity.Model;
+using Reown.Core.Common.Model.Errors;
+using Reown.AppKit.Unity.Model.Errors;
 using Reown.Core.Common.Utils;
 using Reown.Sign.Models;
 using Reown.Sign.Unity;
@@ -82,9 +84,9 @@ namespace Reown.AppKit.Unity
         public static async Task InitializeAsync(AppKitConfig config)
         {
             if (Instance == null)
-                throw new Exception("Instance not set");
+                throw new ReownInitializationException("AppKit instance is not set");
             if (IsInitialized)
-                throw new Exception("Already initialized"); // TODO: use custom ex type
+                throw new ReownInitializationException("AppKit is already initialized");
 
             Config = config ?? throw new ArgumentNullException(nameof(config));
 
@@ -97,7 +99,7 @@ namespace Reown.AppKit.Unity
         public static void OpenModal(ViewType viewType = ViewType.None)
         {
             if (!IsInitialized)
-                throw new Exception("AppKit not initialized"); // TODO: use custom ex type
+                throw new ReownInitializationException("AppKit is not initialized");
 
             Instance.OpenModalCore(viewType);
         }
@@ -119,10 +121,10 @@ namespace Reown.AppKit.Unity
         public static Task DisconnectAsync()
         {
             if (!IsInitialized)
-                throw new Exception("AppKit not initialized"); // TODO: use custom ex type
+                throw new ReownInitializationException("AppKit is not initialized");
 
             if (!IsAccountConnected)
-                throw new Exception("No account connected"); // TODO: use custom ex type
+                throw new ReownConnectorException("No account is connected");
 
             return Instance.DisconnectAsyncCore();
         }
@@ -133,10 +135,10 @@ namespace Reown.AppKit.Unity
                 throw new ArgumentNullException(nameof(walletId));
 
             if (!IsInitialized)
-                throw new Exception("AppKit not initialized"); // TODO: use custom ex type
+                throw new ReownInitializationException("AppKit is not initialized");
 
             if (IsAccountConnected)
-                throw new Exception("Account is already connected"); // TODO: use custom ex type
+                throw new ReownConnectorException("Account is already connected");
 
             var response = await ApiController.GetWallets(1, 1, includedWalletIds: new[]
             {
@@ -144,7 +146,7 @@ namespace Reown.AppKit.Unity
             });
 
             if (response.Data.Length == 0)
-                throw new Exception($"Wallet with id {walletId} not found"); // TODO: use custom ex type
+                throw new ReownConnectorException($"Wallet with id {walletId} not found");
 
             var wallet = response.Data[0];
 
@@ -154,10 +156,10 @@ namespace Reown.AppKit.Unity
         public static Task ConnectAsync(Wallet wallet)
         {
             if (!IsInitialized)
-                throw new Exception("AppKit not initialized"); // TODO: use custom ex type
+                throw new ReownInitializationException("AppKit is not initialized");
 
             if (IsAccountConnected)
-                throw new Exception("Account is already connected"); // TODO: use custom ex type
+                throw new ReownConnectorException("Account is already connected");
 
             return Instance.ConnectAsyncCore(wallet);
         }

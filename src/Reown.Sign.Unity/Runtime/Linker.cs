@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Reown.Core.Common.Logging;
+using Reown.Core.Common.Model.Errors;
 using Reown.Core.Models.Publisher;
 using Reown.Sign.Interfaces;
 using Reown.Sign.Models;
@@ -39,7 +40,7 @@ namespace Reown.Sign.Unity
             ReownLogger.Log($"[Linker] Requested to open mobile deep link. The uri: {wcUri}");
 #else
             if (string.IsNullOrWhiteSpace(baseUrl))
-                throw new Exception(
+                throw new ArgumentException(
                     $"[Linker] No link found for {Application.platform} platform.");
 
             var url = BuildConnectionDeepLink(baseUrl, wcUri);
