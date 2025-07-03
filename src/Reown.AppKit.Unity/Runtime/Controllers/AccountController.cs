@@ -17,13 +17,13 @@ namespace Reown.AppKit.Unity
         {
             get => _connectorController.IsAccountConnected;
         }
-        
+
         public string Address
         {
             get => _address;
             set => SetField(ref _address, value);
         }
-        
+
         public string AccountId
         {
             get => _accountId;
@@ -35,7 +35,7 @@ namespace Reown.AppKit.Unity
             get => _chainId;
             set => SetField(ref _chainId, value);
         }
-        
+
         public string ProfileName
         {
             get => _profileName;
@@ -71,28 +71,28 @@ namespace Reown.AppKit.Unity
         private BlockchainApiController _blockchainApiController;
 
         private readonly UnityHttpClient _httpClient = new();
-        
+
         private string _address;
         private string _accountId;
         private string _chainId;
-        
+
         private string _profileName;
         private AccountAvatar _profileAvatar;
 
         private float _nativeTokenBalance;
         private string _nativeTokenSymbol;
         private float _totalBalanceUsd;
-        
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         private readonly object _updateLock = new();
         private Task _currentUpdateTask;
 
-        public async Task InitializeAsync(ConnectorController connectorController, NetworkController networkController, BlockchainApiController blockchainApiController)
+        public Task InitializeAsync(ConnectorController connectorController, NetworkController networkController, BlockchainApiController blockchainApiController)
         {
             if (IsInitialized)
                 throw new Exception("Already initialized"); // TODO: use custom ex type
-            
+
             _connectorController = connectorController ?? throw new ArgumentNullException(nameof(connectorController));
             _networkController = networkController ?? throw new ArgumentNullException(nameof(networkController));
             _blockchainApiController = blockchainApiController ?? throw new ArgumentNullException(nameof(blockchainApiController));
@@ -100,6 +100,7 @@ namespace Reown.AppKit.Unity
 #if !UNITY_WEBGL || UNITY_EDITOR
             _connectorController.AccountConnected += ConnectorAccountConnectedHandler;
             _connectorController.AccountChanged += ConnectorAccountChangedHandler;
+            return Task.CompletedTask;
 #endif
         }
 
@@ -165,7 +166,7 @@ namespace Reown.AppKit.Unity
         {
             if (string.IsNullOrWhiteSpace(Address))
                 return;
-            
+
             var identity = await _blockchainApiController.GetIdentityAsync(Address);
             ProfileName = string.IsNullOrWhiteSpace(identity.Name)
                 ? Address.Truncate()
@@ -195,11 +196,30 @@ namespace Reown.AppKit.Unity
         {
             if (string.IsNullOrWhiteSpace(Address))
                 return;
-            
+
+            var activeChain = _networkController.ActiveChain;
+            if (activeChain == null)
+            {
+                // Try to find the chain by ChainId if available
+                var chainId = ChainId;
+                if (!string.IsNullOrWhiteSpace(chainId) && _networkController.Chains.TryGetValue(chainId, out var supportedChain))
+                {
+                    activeChain = supportedChain;
+                }
+                else
+                {
+                    // If we can't find a supported chain, set default values and return
+                    NativeTokenBalance = 0;
+                    NativeTokenSymbol = "ETH"; // Default fallback
+                    TotalBalanceUsd = 0;
+                    return;
+                }
+            }
+
             var response = await _blockchainApiController.GetBalanceAsync(Address);
-            
+
             // -- Native token balance
-            var nativeTokenSymbol = _networkController.ActiveChain.NativeCurrency.symbol;
+            var nativeTokenSymbol = activeChain.NativeCurrency.symbol;
             if (response.Balances.Length == 0)
             {
                 NativeTokenBalance = 0;
@@ -255,7 +275,7 @@ namespace Reown.AppKit.Unity
             OnPropertyChanged(propertyName);
             return true;
         }
-        
+
     }
 
     public readonly struct AccountAvatar
