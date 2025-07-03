@@ -1,9 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
+using System.Linq;
 using System.Threading.Tasks;
-using UnityEngine.Networking;
+using Newtonsoft.Json;
 using Reown.AppKit.Unity.Http;
 using Reown.AppKit.Unity.Model;
 
@@ -14,13 +13,17 @@ namespace Reown.AppKit.Unity
         private const string BasePath = "https://api.web3modal.com/";
         private const int TimoutSeconds = 5;
 
-        private readonly string _includedWalletIdsString = AppKit.Config.includedWalletIds is { Length: > 0 }
+        private readonly Lazy<string> _includedWalletIdsString = new(() => AppKit.Config.includedWalletIds is { Length: > 0 }
             ? string.Join(",", AppKit.Config.includedWalletIds)
-            : null;
+            : null);
 
-        private readonly string _excludedWalletIdsString = AppKit.Config.excludedWalletIds is { Length: > 0 }
+        private readonly Lazy<string> _excludedWalletIdsString = new(() => AppKit.Config.excludedWalletIds is { Length: > 0 }
             ? string.Join(",", AppKit.Config.excludedWalletIds)
-            : null;
+            : null);
+
+        private readonly Lazy<string> _chainsString = new(() => AppKit.Config.supportedChains is { Length: > 0 }
+            ? string.Join(",", AppKit.Config.supportedChains.Select(x => x.ChainId))
+            : null);
 
         private readonly UnityHttpClient _httpClient = new(new Uri(BasePath), TimeSpan.FromSeconds(TimoutSeconds),
             new AppKitApiHeaderDecorator()
@@ -35,7 +38,7 @@ namespace Reown.AppKit.Unity
             null;
 #endif
 
-        private void ValidatePaginationParameters(int page, int count)
+        private static void ValidatePaginationParameters(int page, int count)
         {
             if (page < 1)
                 throw new ArgumentOutOfRangeException(nameof(page), "Page must be greater than 0");
@@ -48,7 +51,8 @@ namespace Reown.AppKit.Unity
             int count,
             string search = null,
             string[] includedWalletIds = null,
-            string[] excludedWalletIds = null)
+            string[] excludedWalletIds = null,
+            string[] chains = null)
         {
             ValidatePaginationParameters(page, count);
 
@@ -64,11 +68,15 @@ namespace Reown.AppKit.Unity
 
             parameters["include"] = includedWalletIds?.Length > 0
                 ? string.Join(",", includedWalletIds)
-                : _includedWalletIdsString;
+                : _includedWalletIdsString.Value;
 
             parameters["exclude"] = excludedWalletIds?.Length > 0
                 ? string.Join(",", excludedWalletIds)
-                : _excludedWalletIdsString;
+                : _excludedWalletIdsString.Value;
+
+            parameters["chains"] = chains?.Length > 0
+                ? string.Join(",", chains)
+                : _chainsString.Value;
 
             return await _httpClient.GetAsync<GetWalletsResponse>("getWallets", parameters);
         }
@@ -81,7 +89,10 @@ namespace Reown.AppKit.Unity
 
     public class ApiGetAnalyticsConfigResponse
     {
-        public bool isAnalyticsEnabled { get; set; }
-        public bool isAppKitAuthEnabled { get; set; }
+        [JsonProperty("isAnalyticsEnabled")]
+        public bool IsAnalyticsEnabled { get; set; }
+
+        [JsonProperty("isAppKitAuthEnabled")]
+        public bool IsAppKitAuthEnabled { get; set; }
     }
 }
