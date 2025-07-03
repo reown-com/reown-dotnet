@@ -1,3 +1,4 @@
+using System;
 using Reown.AppKit.Unity;
 using Sample.UI;
 using UnityEngine;
@@ -12,26 +13,26 @@ namespace Sample
         private Button _settingsButton;
         private VisualElement _settingsView;
         private VisualElement _background;
-        
+
         private VisualElement _scrollContentContainer;
         private SettingsInfoItem _clientIdInfoItem;
 
         private void Awake()
         {
             DontDestroyOnLoad(gameObject);
-            
+
             var uiDocument = GetComponent<UIDocument>();
-            
+
             _settingsButton = uiDocument.rootVisualElement.Q<Button>("SettingsButton");
             _settingsView = uiDocument.rootVisualElement.Q<VisualElement>("SettingsView");
             _background = uiDocument.rootVisualElement.Q<VisualElement>("Background");
-            
+
             _settingsButton.clicked += OnSettingsButtonClicked;
-            
+
 #if !UNITY_WEBGL
             SceneManager.sceneLoaded += OnSceneLoaded;
 #endif
-            
+
             AddInfoItems();
         }
 
@@ -42,13 +43,13 @@ namespace Sample
             var appVersion = new SettingsInfoItem("App Version", Application.version);
             _scrollContentContainer.Add(appVersion);
         }
-        
+
         private async void UpdateClientIdInfoItem()
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
             return;
 #endif
-            
+
             if (_clientIdInfoItem != null)
             {
                 _scrollContentContainer.Remove(_clientIdInfoItem);
@@ -56,20 +57,27 @@ namespace Sample
 
             if (AppKit.Instance == null || !AppKit.IsInitialized)
                 return;
-                
+
             var clientId = await AppKit.Instance.SignClient.CoreClient.Crypto.GetClientId();
             _clientIdInfoItem = new SettingsInfoItem("Client ID", clientId);
             _scrollContentContainer.Add(_clientIdInfoItem);
         }
-        
-        
+
+
 #if !UNITY_WEBGL
         private void OnSceneLoaded(Scene arg0, LoadSceneMode arg1)
         {
             UpdateClientIdInfoItem();
         }
 #endif
-        
+
+#if !UNITY_WEBGL
+        private void OnDestroy()
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+#endif
+
         private void OnSettingsButtonClicked()
         {
             _settingsView.visible = !_settingsView.visible;

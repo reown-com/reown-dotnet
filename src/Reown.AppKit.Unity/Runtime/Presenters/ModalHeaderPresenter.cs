@@ -62,7 +62,8 @@ namespace Reown.AppKit.Unity
             // Close button
             View.rightSlot.Add(new IconLink(
                 Resources.Load<VectorImage>("Reown/AppKit/Icons/icon_bold_xmark"),
-                AppKit.CloseModal
+                AppKit.CloseModal,
+                "close-btn"
             ));
         }
 
@@ -144,7 +145,6 @@ namespace Reown.AppKit.Unity
                     _goBackIconLink.style.display = DisplayStyle.None;
                     View.leftSlot.style.visibility = Visibility.Hidden;
                 }
-               
             }
             else if (_leftSlotItems.TryGetValue(args.newViewType, out var newItem))
             {
