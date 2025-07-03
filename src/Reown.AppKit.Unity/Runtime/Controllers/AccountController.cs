@@ -100,8 +100,8 @@ namespace Reown.AppKit.Unity
 #if !UNITY_WEBGL || UNITY_EDITOR
             _connectorController.AccountConnected += ConnectorAccountConnectedHandler;
             _connectorController.AccountChanged += ConnectorAccountChangedHandler;
-            return Task.CompletedTask;
 #endif
+            return Task.CompletedTask;
         }
 
         private async void ConnectorAccountConnectedHandler(object sender, Connector.AccountConnectedEventArgs e)
