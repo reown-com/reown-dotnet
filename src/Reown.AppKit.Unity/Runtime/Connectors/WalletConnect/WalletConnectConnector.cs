@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Reown.Core.Common.Logging;
+using Reown.Core.Common.Model.Errors;
 using Reown.AppKit.Unity.Model.Errors;
 using Reown.Core.Common.Utils;
 using Reown.Sign.Models;

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using Reown.AppKit.Unity.Profile;
 using Reown.AppKit.Unity.Views.WebWalletView;
+using Reown.Core.Common.Model.Errors;
 using Reown.AppKit.Unity.Model.Errors;
 using Reown.Sign.Unity;
 using UnityEngine;

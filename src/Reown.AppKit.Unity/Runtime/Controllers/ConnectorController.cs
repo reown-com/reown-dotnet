@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Reown.AppKit.Unity.Profile;
+using Reown.Core.Common.Model.Errors;
 using Reown.AppKit.Unity.Model.Errors;
 using Reown.Sign.Models;
 using Reown.Sign.Unity;

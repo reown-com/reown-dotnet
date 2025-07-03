@@ -6,6 +6,7 @@ using System.Web;
 using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Model;
 using Reown.AppKit.Unity.Utils;
+using Reown.Core.Common.Model.Errors;
 using Reown.AppKit.Unity.Model.Errors;
 using Reown.Sign.Unity;
 using UnityEngine;

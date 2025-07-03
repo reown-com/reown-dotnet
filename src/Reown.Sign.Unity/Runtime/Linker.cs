@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using Reown.Core.Common.Logging;
 using Reown.Core.Common.Model.Errors;
-using Reown.AppKit.Unity.Model.Errors;
 using Reown.Core.Models.Publisher;
 using Reown.Sign.Interfaces;
 using Reown.Sign.Models;

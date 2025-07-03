@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Utils;
+using Reown.Core.Common.Model.Errors;
 using Reown.AppKit.Unity.Model.Errors;
 using UnityEngine;
 using UnityEngine.UIElements;

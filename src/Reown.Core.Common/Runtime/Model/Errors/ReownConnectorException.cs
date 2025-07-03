@@ -1,8 +1,7 @@
 using System;
 using System.Runtime.Serialization;
-using Reown.Core.Common.Model.Errors;
 
-namespace Reown.AppKit.Unity.Model.Errors
+namespace Reown.Core.Common.Model.Errors
 {
     /// <summary>
     /// </summary>

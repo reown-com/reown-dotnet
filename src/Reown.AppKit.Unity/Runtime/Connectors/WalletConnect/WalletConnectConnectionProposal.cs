@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Reown.AppKit.Unity.Model.Errors;
+using Reown.Core.Common.Model.Errors;
 using Reown.Sign.Interfaces;
 using Reown.Sign.Models;
 using Reown.Sign.Models.Engine;
