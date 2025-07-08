@@ -75,7 +75,7 @@ namespace Reown.AppKit.Unity.Tests
             });
         }
 
-        protected virtual async Task<IWalletKit> CreateWalletKitInstance()
+        protected virtual async UniTask<IWalletKit> CreateWalletKitInstance()
         {
             var coreClient = new CoreClient(new CoreOptions
             {

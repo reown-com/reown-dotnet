@@ -37,6 +37,7 @@ namespace Reown.AppKit.Unity.Test
                     Assert.That(AppKit.IsModalOpen, Is.False);
                     Assert.That(AppKit.IsAccountConnected, Is.False);
 
+                    // Connect
                     var connectButton = DappUi.Q<Button>("connect-btn");
 
                     await UtkUtils.TapAsync(connectButton);
@@ -111,6 +112,25 @@ namespace Reown.AppKit.Unity.Test
 
                     Assert.That(AppKit.IsModalOpen, Is.False);
                     Assert.That(AppKit.IsAccountConnected, Is.True);
+
+                    await UniTask.Delay(500);
+
+                    // Disconnect
+                    var accountDisconnectedTaskCompletionSource = new UniTaskCompletionSource();
+                    AppKit.AccountDisconnected += (_, _) =>
+                    {
+                        accountDisconnectedTaskCompletionSource.TrySetResult();
+                    };
+
+                    var disconnectButton = DappUi.Q<Button>("disconnect-btn");
+                    await UtkUtils.TapAsync(disconnectButton);
+                    await UniTask.Delay(300);
+
+                    await accountDisconnectedTaskCompletionSource.Task;
+
+                    Assert.That(AppKit.IsAccountConnected, Is.False);
+
+                    walletKit.Dispose();
                 }
                 catch (Exception e)
                 {
