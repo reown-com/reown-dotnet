@@ -77,7 +77,7 @@ namespace Reown.Core.Controllers
         {
             get => Store.Values;
         }
-        
+
         public event EventHandler<PairingCreatedEventArgs> PairingCreated;
 
         public event EventHandler<PairingEvent> PairingExpired;
@@ -99,7 +99,7 @@ namespace Reown.Core.Controllers
                 _initialized = true;
             }
         }
-        
+
         /// <summary>
         ///     Parse a session proposal URI and return all information in the URI in a
         ///     new <see cref="UriParameters" /> object
@@ -192,12 +192,12 @@ namespace Reown.Core.Controllers
             {
                 await ActivatePairing(topic);
             }
-            
+
             PairingCreated?.Invoke(this, new PairingCreatedEventArgs
             {
                 Pairing = pairing
             });
-            
+
             await CoreClient.Relayer.Subscribe(topic, new SubscribeOptions
             {
                 Relay = relay
@@ -231,7 +231,7 @@ namespace Reown.Core.Controllers
                 Relay = relay,
                 Active = false
             };
-            
+
             var uri = $"{ICoreClient.Protocol}:{topic}@{ICoreClient.Version}?"
                 .AddQueryParam("symKey", symKey)
                 .AddQueryParam("relay-protocol", relay.Protocol)
@@ -245,12 +245,12 @@ namespace Reown.Core.Controllers
 
             await Store.Set(topic, pairing);
             await CoreClient.Relayer.Subscribe(topic);
-            
+
             PairingCreated?.Invoke(this, new PairingCreatedEventArgs
             {
                 Pairing = pairing
             });
-            
+
             CoreClient.Expirer.Set(topic, expiry);
 
             return new CreatePairingData
@@ -365,7 +365,7 @@ namespace Reown.Core.Controllers
             PairingCreated += PairingCreatedCallback;
             CoreClient.Expirer.Expired += ExpiredCallback;
         }
-        
+
         private void PairingCreatedCallback(object sender, PairingCreatedEventArgs e)
         {
             if (e.Pairing.Methods is { Length: > 0 })
@@ -400,7 +400,7 @@ namespace Reown.Core.Controllers
             var expirerHasDeleted = !CoreClient.Expirer.Has(topic);
             var pairingHasDeleted = !Store.Keys.Contains(topic);
             var symKeyHasDeleted = !await CoreClient.Crypto.HasKeys(topic);
-            
+
             _ = _expectedPairingMethos.Remove(topic);
 
             await CoreClient.Relayer.Unsubscribe(topic);
@@ -457,7 +457,7 @@ namespace Reown.Core.Controllers
             }
         }
 
-        private void ValidateUri(string uri)
+        private static void ValidateUri(string uri)
         {
             if (!IsValidUrl(uri))
                 throw new FormatException($"Invalid URI format: {uri}");
@@ -556,7 +556,7 @@ namespace Reown.Core.Controllers
                 });
             }
         }
-        
+
         public void Dispose()
         {
             Dispose(true);

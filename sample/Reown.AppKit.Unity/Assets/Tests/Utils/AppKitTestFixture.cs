@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
+using Reown.AppKit.Unity.Test;
 using Reown.Core;
 using Reown.Core.Models;
 using Reown.Core.Storage;
@@ -21,29 +22,29 @@ namespace Reown.AppKit.Unity.Tests
 {
     internal class AppKitTestFixture
     {
-        public UILayer DappUi
+        public DappTestView DappUi
         {
             get => _dappUi.Value;
         }
 
-        public UILayer AppKitUi
+        public AppKitTestView AppKitUi
         {
             get => _appKitUi.Value;
         }
 
-        private readonly Lazy<UILayer> _dappUi = new(() =>
+        private readonly Lazy<DappTestView> _dappUi = new(() =>
         {
             var uiDocument = GameObject.Find("Dapp UI").GetComponent<UIDocument>();
-            return new UILayer(uiDocument);
+            return new DappTestView(uiDocument.rootVisualElement);
         });
 
-        private readonly Lazy<UILayer> _appKitUi = new(() =>
+        private readonly Lazy<AppKitTestView> _appKitUi = new(() =>
         {
             var uiDocument = GameObject.Find("Reown AppKit").GetComponentInChildren<UIDocument>();
-            return new UILayer(uiDocument);
+            return new AppKitTestView(uiDocument.rootVisualElement);
         });
 
-        private readonly List<IWalletKit> _walletKits = new();
+        // private readonly List<IWalletKit> _walletKits = new();
 
         [SetUp]
         public virtual void Setup()
@@ -58,10 +59,6 @@ namespace Reown.AppKit.Unity.Tests
             {
                 try
                 {
-                    foreach (var walletKit in _walletKits)
-                        walletKit.Dispose();
-                    _walletKits.Clear();
-
                     if (AppKit.IsAccountConnected)
                         await AppKit.DisconnectAsync();
 
@@ -73,24 +70,6 @@ namespace Reown.AppKit.Unity.Tests
                     Debug.LogException(e);
                 }
             });
-        }
-
-        protected virtual async UniTask<IWalletKit> CreateWalletKitInstance()
-        {
-            var coreClient = new CoreClient(new CoreOptions
-            {
-                ConnectionBuilder = new ConnectionBuilderUnity(),
-                ProjectId = "ef21cf313a63dbf63f2e9e04f3614029",
-                Name = $"wallet-unity-e2e-test-{Guid.NewGuid().ToString()}",
-                Storage = new InMemoryStorage()
-            });
-
-            var metadata = new Metadata("WalletKit", "Unity E2E Test WalletKit instance", "https://reown.com", "https://reown.com/favicon.ico");
-
-            var wallet = await WalletKitClient.Init(coreClient, metadata);
-            _walletKits.Add(wallet);
-
-            return wallet;
         }
 
         protected virtual async UniTask UnloadAllScenesAsync(CancellationToken cancellationToken = default)

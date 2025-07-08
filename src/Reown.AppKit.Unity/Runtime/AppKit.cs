@@ -110,7 +110,7 @@ namespace Reown.AppKit.Unity
 
         public static bool IsInitialized
         {
-            get => Instance._isInitialized;
+            get => Instance?._isInitialized ?? false;
         }
 
         public static bool IsAccountConnected
