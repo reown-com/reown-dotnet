@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Reown.Core.Common.Model.Errors;
+using Reown.AppKit.Unity.Model.Errors;
 using Reown.Sign.Models;
 using Reown.Sign.Models.Cacao;
 using Reown.Sign.Unity;
@@ -40,7 +41,7 @@ namespace Reown.AppKit.Unity
         public async Task InitializeAsync(AppKitConfig config, SignClientUnity signClient)
         {
             if (IsInitialized)
-                throw new Exception("Already initialized"); // TODO: use custom ex type
+                throw new ReownInitializationException("Connector is already initialized");
 
             await InitializeAsyncCore(config, signClient);
             IsInitialized = true;
@@ -49,10 +50,10 @@ namespace Reown.AppKit.Unity
         public async Task<bool> TryResumeSessionAsync()
         {
             if (!IsInitialized)
-                throw new Exception("Connector not initialized"); // TODO: use custom ex type
+                throw new ReownInitializationException("Connector is not initialized");
 
             if (IsAccountConnected)
-                throw new Exception("Account already connected"); // TODO: use custom ex type
+                throw new ReownConnectorException("Account is already connected");
 
             var isResumed = await TryResumeSessionAsyncCore();
 
@@ -68,7 +69,7 @@ namespace Reown.AppKit.Unity
         public ConnectionProposal Connect()
         {
             if (!IsInitialized)
-                throw new Exception("Connector not initialized"); // TODO: use custom ex type
+                throw new ReownInitializationException("Connector is not initialized");
 
             var connection = ConnectCore();
 
@@ -92,7 +93,7 @@ namespace Reown.AppKit.Unity
         public Task<Account> GetAccountAsync()
         {
             if (!IsAccountConnected)
-                throw new Exception("No account connected"); // TODO: use custom ex type
+                throw new ReownConnectorException("No account is connected");
 
             return GetAccountAsyncCore();
         }
@@ -100,7 +101,7 @@ namespace Reown.AppKit.Unity
         public Task<Account[]> GetAccountsAsync()
         {
             if (!IsAccountConnected)
-                throw new Exception("No account connected"); // TODO: use custom ex type
+                throw new ReownConnectorException("No account is connected");
 
             return GetAccountsAsyncCore();
         }
