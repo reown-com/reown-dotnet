@@ -3,9 +3,14 @@ using System.Collections;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
+using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Tests;
+using Reown.Core.Common.Model.Errors;
+using Reown.Core.Network.Models;
 using UnityEngine;
 using UnityEngine.TestTools;
+
+// ReSharper disable AccessToDisposedClosure
 
 namespace Reown.AppKit.Unity.Test
 {
@@ -20,14 +25,7 @@ namespace Reown.AppKit.Unity.Test
                 {
                     using var wallet = await WalletFixture.CreateWallet();
 
-                    if (!AppKit.IsInitialized)
-                    {
-                        var tcs = new UniTaskCompletionSource();
-                        AppKit.Initialized += (_, _) => tcs.TrySetResult();
-                        await tcs.Task;
-                    }
-
-                    await UniTask.Delay(100);
+                    await WaitForAppKitAsync();
 
                     Assert.That(AppKit.IsModalOpen, Is.False);
                     Assert.That(AppKit.IsAccountConnected, Is.False);
@@ -82,6 +80,39 @@ namespace Reown.AppKit.Unity.Test
                 {
                     Debug.LogException(e);
                 }
+            });
+        }
+
+        [UnityTest]
+        public IEnumerator ShouldReject()
+        {
+            return UniTask.ToCoroutine(async () =>
+            {
+                using var wallet = await WalletFixture.CreateWallet();
+
+                await WaitForAppKitAsync();
+
+                await DappUi.TapConnectAsync();
+
+                var accountConnectedTaskCompletionSource = new UniTaskCompletionSource();
+                AppKit.AccountConnected += (_, args) => accountConnectedTaskCompletionSource.TrySetResult();
+
+                var walletConnectionTaskCompletionSource = new UniTaskCompletionSource();
+                const ErrorType rejectErrorType = ErrorType.DISAPPROVED_CHAINS;
+                wallet.WalletKit.SessionProposed += async (sender, @event) =>
+                {
+                    var id = @event.Id;
+                    await wallet.WalletKit.RejectSession(id, Error.FromErrorType(rejectErrorType));
+                    walletConnectionTaskCompletionSource.TrySetResult();
+                };
+
+                var uri = await AppKitUi.GetWalletConnectUriAsync();
+                await wallet.WalletKit.Pair(uri);
+
+                await walletConnectionTaskCompletionSource.Task;
+
+                await UniTask.WaitUntilValueChanged(AppKitUi.Q<Snackbar>(), s => s.Message);
+                await AppKitUi.ValidateSnackbarAsync(true, SdkErrors.MessageFromType(rejectErrorType));
             });
         }
     }

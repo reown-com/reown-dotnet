@@ -1,17 +1,9 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using Reown.AppKit.Unity.Test;
-using Reown.Core;
-using Reown.Core.Models;
-using Reown.Core.Storage;
-using Reown.Sign.Unity;
-using Reown.WalletKit;
-using Reown.WalletKit.Interfaces;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
@@ -24,27 +16,17 @@ namespace Reown.AppKit.Unity.Tests
     {
         public DappTestView DappUi
         {
-            get => _dappUi.Value;
+            get => _dappUi ??= new DappTestView(GameObject.Find("Dapp UI").GetComponent<UIDocument>().rootVisualElement);
         }
 
         public AppKitTestView AppKitUi
         {
-            get => _appKitUi.Value;
+            get => _appKitUi ??= new AppKitTestView(GameObject.Find("Reown AppKit").GetComponentInChildren<UIDocument>().rootVisualElement);
         }
 
-        private readonly Lazy<DappTestView> _dappUi = new(() =>
-        {
-            var uiDocument = GameObject.Find("Dapp UI").GetComponent<UIDocument>();
-            return new DappTestView(uiDocument.rootVisualElement);
-        });
+        private DappTestView _dappUi;
+        private AppKitTestView _appKitUi;
 
-        private readonly Lazy<AppKitTestView> _appKitUi = new(() =>
-        {
-            var uiDocument = GameObject.Find("Reown AppKit").GetComponentInChildren<UIDocument>();
-            return new AppKitTestView(uiDocument.rootVisualElement);
-        });
-
-        // private readonly List<IWalletKit> _walletKits = new();
 
         [SetUp]
         public virtual void Setup()
@@ -62,7 +44,11 @@ namespace Reown.AppKit.Unity.Tests
                     if (AppKit.IsAccountConnected)
                         await AppKit.DisconnectAsync();
 
+                    _dappUi = null;
+                    _appKitUi = null;
+
                     await UnloadAllScenesAsync();
+
                     await UniTask.Delay(100);
                 }
                 catch (Exception e)
@@ -70,6 +56,18 @@ namespace Reown.AppKit.Unity.Tests
                     Debug.LogException(e);
                 }
             });
+        }
+
+        protected virtual async UniTask WaitForAppKitAsync()
+        {
+            if (!AppKit.IsInitialized)
+            {
+                var tcs = new UniTaskCompletionSource();
+                AppKit.Initialized += (_, _) => tcs.TrySetResult();
+                await tcs.Task;
+            }
+
+            await UniTask.Delay(100);
         }
 
         protected virtual async UniTask UnloadAllScenesAsync(CancellationToken cancellationToken = default)
@@ -108,21 +106,6 @@ namespace Reown.AppKit.Unity.Tests
             foreach (var root in ddolScene.GetRootGameObjects())
                 if (root != null)
                     Object.Destroy(root);
-        }
-    }
-
-    internal class UILayer
-    {
-        public UIDocument UIDocument { get; }
-
-        public UILayer(UIDocument uiDocument)
-        {
-            UIDocument = uiDocument;
-        }
-
-        public T Q<T>(string name = null) where T : VisualElement
-        {
-            return UIDocument.rootVisualElement.Q<T>(name);
         }
     }
 }

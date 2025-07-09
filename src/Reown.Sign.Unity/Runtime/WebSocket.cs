@@ -555,7 +555,6 @@ namespace NativeWebSocket
 
         public Task Send(byte[] bytes)
         {
-            // return m_Socket.SendAsync(buffer, WebSocketMessageType.Binary, true, CancellationToken.None);
             return SendMessage(sendBytesQueue, WebSocketMessageType.Binary, new ArraySegment<byte>(bytes));
         }
 
@@ -701,7 +700,7 @@ namespace NativeWebSocket
             }
             finally
             {
-                await new WaitForUpdate();
+                await new WaitForBackgroundThread();
                 OnClose?.Invoke(closeCode);
             }
         }
@@ -831,15 +830,5 @@ namespace NativeWebSocket
 
     }
 #endif
-
-        /// <summary>
-        ///     Create WebSocket client instance
-        /// </summary>
-        /// <returns>The WebSocket instance.</returns>
-        /// <param name="url">WebSocket valid URL.</param>
-        public static WebSocket CreateInstance(string url)
-        {
-            return new WebSocket(url);
-        }
     }
 }

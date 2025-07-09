@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Text;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using NBitcoin;
 using Nethereum.HdWallet;
-using NUnit.Framework;
 using Reown.Core;
 using Reown.Core.Models;
 using Reown.Core.Storage;
@@ -13,7 +10,6 @@ using Reown.Sign.Models;
 using Reown.Sign.Unity;
 using Reown.WalletKit;
 using Reown.WalletKit.Interfaces;
-using UnityEngine;
 
 namespace Reown.AppKit.Unity.Tests
 {

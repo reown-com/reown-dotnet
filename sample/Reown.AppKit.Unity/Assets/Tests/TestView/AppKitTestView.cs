@@ -21,6 +21,19 @@ namespace Reown.AppKit.Unity.Test
             await UtkUtils.TapAsync(wcListItem);
         }
 
+        public async UniTask ValidateSnackbarAsync(bool visible, string message = null)
+        {
+            await UniTask.Delay(50);
+
+            var snackbar = Q<Snackbar>();
+            Assert.IsNotNull(snackbar, "Snackbar not found");
+
+            Assert.That(Mathf.Approximately(snackbar.style.opacity.value, 0), Is.Not.EqualTo(visible));
+
+            if (!string.IsNullOrWhiteSpace(message))
+                Assert.That(snackbar.Message, Is.EqualTo(message));
+        }
+
         public async UniTask<string> GetWalletConnectUriAsync()
         {
             await OpenWalletConnectAsync();
@@ -34,8 +47,7 @@ namespace Reown.AppKit.Unity.Test
             Assert.That(qrCode.Data, Does.StartWith("wc:"));
 
             // Snackbar is invisible
-            var snackbar = Q<Snackbar>();
-            Assert.That(Mathf.Approximately(snackbar.style.opacity.value, 0), Is.True);
+            await ValidateSnackbarAsync(false);
 
             var copyLink = Q<VisualElement>("qrcode-view__copy-link");
             Assert.IsNotNull(copyLink, "Copy link button not found");
@@ -44,8 +56,7 @@ namespace Reown.AppKit.Unity.Test
             await UtkUtils.TapAsync(copyLink);
 
             // Snackbar is visible
-            await UniTask.Delay(100);
-            Assert.That(Mathf.Approximately(snackbar.style.opacity.value, 0), Is.Not.True);
+            await ValidateSnackbarAsync(true);
 
             // Pairing URL has been copied
             Assert.That(GUIUtility.systemCopyBuffer, Is.EqualTo(qrCode.Data));
