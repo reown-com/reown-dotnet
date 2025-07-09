@@ -107,6 +107,7 @@ namespace Sample
 
                 var buttonUtk = new ButtonUtk
                 {
+                    name = $"{button.Text.Replace(" ", "-").ToLowerInvariant()}-btn",
                     text = button.Text
                 };
                 buttonUtk.clicked += button.OnClick;

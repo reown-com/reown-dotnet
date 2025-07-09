@@ -1,5 +1,7 @@
 using System;
 using System.Threading.Tasks;
+using Reown.Core.Common.Model.Errors;
+using Reown.AppKit.Unity.Model.Errors;
 
 namespace Reown.AppKit.Unity
 {
@@ -14,7 +16,7 @@ namespace Reown.AppKit.Unity
         public async Task InitializeAsync()
         {
             if (_isInitialized)
-                throw new Exception("Already initialized"); // TODO: use custom ex type
+                throw new ReownInitializationException("ModalController is already initialized");
 
             OpenStateChanged += OpenStateChangedHandler;
             await InitializeAsyncCore();

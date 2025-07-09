@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Reown.AppKit.Unity.Profile;
+using Reown.Core.Common.Model.Errors;
+using Reown.AppKit.Unity.Model.Errors;
 using Reown.Sign.Models;
 using Reown.Sign.Unity;
 using UnityEngine;
@@ -112,7 +114,7 @@ namespace Reown.AppKit.Unity
         protected override ConnectionProposal ConnectCore()
         {
             if (!TryGetConnector<WalletConnectConnector>(ConnectorType.WalletConnect, out var wcConnector))
-                throw new Exception("No WC connector"); // TODO: use custom exception
+                throw new ReownConnectorException("WalletConnect connector not found");
 
             return wcConnector.Connect();
         }

@@ -18,6 +18,7 @@ using Reown.Sign.Models.Engine;
 using Reown.Sign.Models.Engine.Events;
 using Reown.Sign.Models.Engine.Methods;
 using Reown.TestUtils;
+using Reown.WalletKit.Interfaces;
 using Xunit;
 using Xunit.Abstractions;
 using Metadata = Reown.Core.Metadata;
@@ -107,7 +108,9 @@ public class WalletKitSignTests : IClassFixture<CryptoWalletFixture>, IAsyncLife
 
     private static readonly Namespaces TestNamespaces = new()
     {
-        { "eip155", TestNamespace }
+        {
+            "eip155", TestNamespace
+        }
     };
 
     private static readonly ConnectOptions TestConnectOptions = new ConnectOptions()
@@ -117,7 +120,7 @@ public class WalletKitSignTests : IClassFixture<CryptoWalletFixture>, IAsyncLife
     private readonly ITestOutputHelper _testOutputHelper;
     private CoreClient _coreClient;
     private SignClient _dapp;
-    private WalletKitClient _wallet;
+    private IWalletKit _wallet;
     private string uriString;
     private Task<Session> sessionApproval;
     private Session session;
@@ -177,19 +180,19 @@ public class WalletKitSignTests : IClassFixture<CryptoWalletFixture>, IAsyncLife
         Assert.NotNull(_dapp);
         Assert.NotNull(_coreClient);
         Assert.Null(_wallet.Metadata.Redirect);
-        
+
         ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
     }
 
     public async Task DisposeAsync()
     {
         ReownLogger.Instance = null;
-        
+
         if (_coreClient.Relayer.Connected)
         {
             await _coreClient.Relayer.TransportClose();
         }
-        
+
         _wallet.Dispose();
         _dapp.Dispose();
     }

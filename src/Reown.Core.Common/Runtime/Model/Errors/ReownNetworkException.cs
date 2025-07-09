@@ -7,7 +7,7 @@ namespace Reown.Core.Common.Model.Errors
     ///     An exception that is thrown internally by Reown.Core.Network. This
     ///     type can also be JSON serialized
     /// </summary>
-    public class ReownNetworkException : Exception
+    public class ReownNetworkException : ReownException
     {
         /// <summary>
         ///     Create a new exception with the given message and error type

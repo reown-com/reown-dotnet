@@ -40,7 +40,7 @@ namespace Reown.AppKit.Unity
             {
                 var response = await apiController.GetAnalyticsConfigAsync();
 
-                _state = response.isAnalyticsEnabled
+                _state = response.IsAnalyticsEnabled
                     ? AnalyticsState.Enabled
                     : AnalyticsState.Disabled;
             }
@@ -69,7 +69,7 @@ namespace Reown.AppKit.Unity
                 };
 
                 var requestJson = JsonConvert.SerializeObject(request);
-                
+
                 await _httpClient.PostAsync("e", requestJson);
             }
             catch (Exception e)

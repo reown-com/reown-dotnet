@@ -186,7 +186,7 @@ namespace Reown.AppKit.Unity.Components
             var asset = Resources.Load<VisualTreeAsset>("Reown/AppKit/Components/ListItem/ListItem");
             asset.CloneTree(this);
 
-            name = Name;
+            name = label != null ? $"{label.Replace(' ', '-').ToLowerInvariant()}-list-item" : Name;
 
             LabelElement = this.Q<Label>(NameLabel);
             IconImageElement = this.Q<Image>(NameIconImage);

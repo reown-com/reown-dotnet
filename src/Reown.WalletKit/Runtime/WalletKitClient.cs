@@ -27,126 +27,117 @@ namespace Reown.WalletKit
 
         public IDictionary<string, Session> ActiveSessions
         {
-            get
-            {
-                return this.Engine.ActiveSessions;
-            }
+            get => Engine.ActiveSessions;
         }
 
         public IDictionary<long, ProposalStruct> PendingSessionProposals
         {
-            get
-            {
-                return this.Engine.PendingSessionProposals;
-            }
+            get => Engine.PendingSessionProposals;
         }
 
         public PendingRequestStruct[] PendingSessionRequests
         {
-            get
-            {
-                return this.Engine.PendingSessionRequests;
-            }
+            get => Engine.PendingSessionRequests;
         }
 
         public IWalletKitEngine Engine { get; }
         public ICoreClient CoreClient { get; }
         public Metadata Metadata { get; }
-    
-        public static async Task<WalletKitClient> Init(ICoreClient coreClient, Metadata metadata, string name = null)
+
+        public static async Task<IWalletKit> Init(ICoreClient coreClient, Metadata metadata, string name = null)
         {
             var wallet = new WalletKitClient(coreClient, metadata, name);
             await wallet.Initialize();
 
             return wallet;
         }
-    
+
         private WalletKitClient(ICoreClient coreClient, Metadata metadata, string name = null)
         {
-            this.Metadata = metadata;
-            if (string.IsNullOrWhiteSpace(this.Metadata.Name))
-                this.Metadata.Name = name;
-        
-            this.Name = string.IsNullOrWhiteSpace(name) ? "Web3Wallet" : name;
-            this.Context = $"{Name}-context";
-            this.CoreClient = coreClient;
-        
-            this.Engine = new WalletKitEngine(this);
-        
+            Metadata = metadata;
+            if (string.IsNullOrWhiteSpace(Metadata.Name))
+                Metadata.Name = name;
+
+            Name = string.IsNullOrWhiteSpace(name) ? "Web3Wallet" : name;
+            Context = $"{Name}-context";
+            CoreClient = coreClient;
+
+            Engine = new WalletKitEngine(this);
+
             WrapEngineEvents();
         }
 
         private void WrapEngineEvents()
         {
-            Engine.SessionExpired += (sender, @struct) => this.SessionExpired?.Invoke(sender, @struct);
-            Engine.SessionProposed += (sender, @event) => this.SessionProposed?.Invoke(sender, @event);
-            Engine.SessionConnected += (sender, @struct) => this.SessionConnected?.Invoke(sender, @struct);
+            Engine.SessionExpired += (sender, @struct) => SessionExpired?.Invoke(sender, @struct);
+            Engine.SessionProposed += (sender, @event) => SessionProposed?.Invoke(sender, @event);
+            Engine.SessionConnected += (sender, @struct) => SessionConnected?.Invoke(sender, @struct);
             Engine.SessionConnectionErrored +=
-                (sender, exception) => this.SessionConnectionErrored?.Invoke(sender, exception);
-            Engine.SessionUpdated += (sender, @event) => this.SessionUpdated?.Invoke(sender, @event);
-            Engine.SessionExtended += (sender, @event) => this.SessionExtended?.Invoke(sender, @event);
-            Engine.SessionPinged += (sender, @event) => this.SessionPinged?.Invoke(sender, @event);
-            Engine.SessionDeleted += (sender, @event) => this.SessionDeleted?.Invoke(sender, @event);
+                (sender, exception) => SessionConnectionErrored?.Invoke(sender, exception);
+            Engine.SessionUpdated += (sender, @event) => SessionUpdated?.Invoke(sender, @event);
+            Engine.SessionExtended += (sender, @event) => SessionExtended?.Invoke(sender, @event);
+            Engine.SessionPinged += (sender, @event) => SessionPinged?.Invoke(sender, @event);
+            Engine.SessionDeleted += (sender, @event) => SessionDeleted?.Invoke(sender, @event);
         }
-    
+
         public Task Pair(string uri, bool activatePairing = false)
         {
-            return this.Engine.Pair(uri, activatePairing);
+            return Engine.Pair(uri, activatePairing);
         }
 
         public Task<Session> ApproveSession(long id, Namespaces namespaces, string relayProtocol = null)
         {
-            return this.Engine.ApproveSession(id, namespaces, relayProtocol);
+            return Engine.ApproveSession(id, namespaces, relayProtocol);
         }
 
         public Task<Session> ApproveSession(ProposalStruct proposal, params string[] approvedAddresses)
         {
-            return this.Engine.ApproveSession(proposal, approvedAddresses);
+            return Engine.ApproveSession(proposal, approvedAddresses);
         }
 
         public Task RejectSession(long id, Error reason)
         {
-            return this.Engine.RejectSession(id, reason);
+            return Engine.RejectSession(id, reason);
         }
 
         public Task RejectSession(ProposalStruct proposal, Error reason)
         {
-            return this.Engine.RejectSession(proposal, reason);
+            return Engine.RejectSession(proposal, reason);
         }
 
         public Task RejectSession(ProposalStruct proposal, string reason)
         {
-            return this.Engine.RejectSession(proposal, reason);
+            return Engine.RejectSession(proposal, reason);
         }
 
         public Task UpdateSession(string topic, Namespaces namespaces)
         {
-            return this.Engine.UpdateSession(topic, namespaces);
+            return Engine.UpdateSession(topic, namespaces);
         }
 
         public Task ExtendSession(string topic)
         {
-            return this.Engine.ExtendSession(topic);
+            return Engine.ExtendSession(topic);
         }
 
         public Task RespondSessionRequest<T, TR>(string topic, JsonRpcResponse<TR> response)
         {
-            return this.Engine.RespondSessionRequest<T, TR>(topic, response);
+            return Engine.RespondSessionRequest<T, TR>(topic, response);
         }
 
         public Task EmitSessionEvent<T>(string topic, EventData<T> eventData, string chainId)
         {
-            return this.Engine.EmitSessionEvent(topic, eventData, chainId);
+            return Engine.EmitSessionEvent(topic, eventData, chainId);
         }
 
         public Task DisconnectSession(string topic, Error reason)
         {
-            return this.Engine.DisconnectSession(topic, reason);
+            return Engine.DisconnectSession(topic, reason);
         }
-        
+
         private Task Initialize()
         {
-            return this.Engine.Init();
+            return Engine.Init();
         }
 
         public void Dispose()

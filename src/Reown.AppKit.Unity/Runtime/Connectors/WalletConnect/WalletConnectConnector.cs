@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Reown.Core.Common.Logging;
 using Reown.Core.Common.Model.Errors;
+using Reown.AppKit.Unity.Model.Errors;
 using Reown.Core.Common.Utils;
 using Reown.Sign.Models;
 using Reown.Sign.Models.Engine;
@@ -206,7 +207,7 @@ namespace Reown.AppKit.Unity
             else
             {
                 if (!ActiveSessionIncludesChain(chain.ChainId))
-                    throw new Exception("Chain is not supported"); // TODO: use custom ex type
+                    throw new ReownNetworkException("Chain is not supported", ErrorType.DISAPPROVED_CHAINS);
 
                 await _signClient.AddressProvider.SetDefaultChainIdAsync(chain.ChainId);
                 OnChainChanged(new ChainChangedEventArgs(chain.ChainId));

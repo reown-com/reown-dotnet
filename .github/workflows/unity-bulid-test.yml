@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         projectPath:
-          - 'sample/Reown.AppKit.Unity'
+          - "sample/Reown.AppKit.Unity"
         targetPlatform:
           # - StandaloneOSX # Build a macOS standalone (Intel 64-bit).
           # - StandaloneWindows # Build a Windows standalone.
@@ -28,7 +28,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ${{ matrix.projectPath }}/Library
           key: Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}
@@ -39,7 +39,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          unityVersion: '6000.1.5f1'
+          unityVersion: "6000.1.5f1"
           buildsPath: Builds
           projectPath: ${{ matrix.projectPath }}
           targetPlatform: ${{ matrix.targetPlatform }}
@@ -60,17 +60,22 @@ jobs:
       fail-fast: false
       matrix:
         projectPath:
-          - 'sample/Reown.AppKit.Unity'
+          - "sample/Reown.AppKit.Unity"
           # - 'src/Reown.Sign.Unity'
-        unityVersion: 
-          - '6000.1.5f1' # some version must be included for package testing
+        unityVersion:
+          - "6000.1.5f1" # some version must be included for package testing
         testMode:
-          # - playmode
+          - playmode
           - editmode
     steps:
       - uses: actions/checkout@v4
         with:
           lfs: true
+      - uses: actions/cache@v4
+        with:
+          path: ${{ matrix.projectPath }}/Library
+          key: Library-${{ matrix.projectPath }}-${{ matrix.testMode }}
+          restore-keys: Library-
       - uses: game-ci/unity-test-runner@v4
         id: tests
         env:
@@ -87,7 +92,7 @@ jobs:
           artifactsPath: ${{ matrix.testMode }}-artifacts
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           checkName: ${{ matrix.testMode }} Test Results
-          coverageOptions: 'generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+my.assembly.*'
+          coverageOptions: "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+my.assembly.*"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -115,7 +120,7 @@ jobs:
           name: Build-WebGL
           path: Builds/WebGL
       - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v20
+        uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
