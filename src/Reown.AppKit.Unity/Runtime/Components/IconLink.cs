@@ -106,12 +106,12 @@ namespace Reown.AppKit.Unity.Components
         {
         }
 
-        public IconLink(VectorImage icon, Action clickEvent)
+        public IconLink(VectorImage icon, Action clickEvent, string name = null)
         {
             var asset = Resources.Load<VisualTreeAsset>("Reown/AppKit/Components/IconLink/IconLink");
             asset.CloneTree(this);
 
-            name = Name;
+            this.name = name ?? Name;
 
             image = this.Q<Image>();
             if (icon == null)

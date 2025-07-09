@@ -1,7 +1,5 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Reown.AppKit.Unity.Model;
 using Reown.Core.Common.Model.Errors;
 using Reown.AppKit.Unity.Model.Errors;
@@ -17,44 +15,122 @@ namespace Reown.AppKit.Unity
         [VersionMarker]
         public const string Version = "unity-appkit-v1.4.2";
 
+        // ---------------------------------------------------------------------
+        // Singleton
+        // ---------------------------------------------------------------------
         public static AppKit Instance { get; protected set; }
 
-        public static ModalController ModalController { get; protected set; }
-        public static AccountController AccountController { get; protected set; }
-        public static ConnectorController ConnectorController { get; protected set; }
-        public static ApiController ApiController { get; protected set; }
-        public static BlockchainApiController BlockchainApiController { get; protected set; }
-        public static NotificationController NotificationController { get; protected set; }
-        public static NetworkController NetworkController { get; protected set; }
-        public static EventsController EventsController { get; protected set; }
-        public static SiweController SiweController { get; protected set; }
+        // ---------------------------------------------------------------------
+        //  Instance‑level state (all stateful data lives here)
+        // ---------------------------------------------------------------------
+        private ModalController _modalController;
+        private AccountController _accountController;
+        private ConnectorController _connectorController;
+        private ApiController _apiController;
+        private BlockchainApiController _blockchainApiController;
+        private NotificationController _notificationController;
+        private NetworkController _networkController;
+        private EventsController _eventsController;
+        private SiweController _siweController;
+        private EvmService _evm;
 
-        public static EvmService Evm { get; protected set; }
-
-        public static AppKitConfig Config { get; private set; }
+        private AppKitConfig _config;
+        private bool _isInitialized;
 
         public SignClientUnity SignClient { get; protected set; }
 
-        public static bool IsInitialized { get; private set; }
+        // ---------------------------------------------------------------------
+        //  Public static properties
+        // ---------------------------------------------------------------------
+        public static ModalController ModalController
+        {
+            get => Instance._modalController;
+            protected set => Instance._modalController = value;
+        }
+
+        public static AccountController AccountController
+        {
+            get => Instance._accountController;
+            protected set => Instance._accountController = value;
+        }
+
+        public static ConnectorController ConnectorController
+        {
+            get => Instance._connectorController;
+            protected set => Instance._connectorController = value;
+        }
+
+        public static ApiController ApiController
+        {
+            get => Instance._apiController;
+            protected set => Instance._apiController = value;
+        }
+
+        public static BlockchainApiController BlockchainApiController
+        {
+            get => Instance._blockchainApiController;
+            protected set => Instance._blockchainApiController = value;
+        }
+
+        public static NotificationController NotificationController
+        {
+            get => Instance._notificationController;
+            protected set => Instance._notificationController = value;
+        }
+
+        public static NetworkController NetworkController
+        {
+            get => Instance._networkController;
+            protected set => Instance._networkController = value;
+        }
+
+        public static EventsController EventsController
+        {
+            get => Instance._eventsController;
+            protected set => Instance._eventsController = value;
+        }
+
+        public static SiweController SiweController
+        {
+            get => Instance._siweController;
+            protected set => Instance._siweController = value;
+        }
+
+        public static EvmService Evm
+        {
+            get => Instance._evm;
+            protected set => Instance._evm = value;
+        }
+
+        public static AppKitConfig Config
+        {
+            get => Instance._config;
+            private set => Instance._config = value;
+        }
+
+        public static bool IsInitialized
+        {
+            get => Instance?._isInitialized ?? false;
+        }
 
         public static bool IsAccountConnected
         {
-            get => ConnectorController.IsAccountConnected;
+            get => ConnectorController?.IsAccountConnected ?? false;
         }
 
         public static Account Account
         {
-            get
-            {
-                return ConnectorController.Account;
-            }
+            get => ConnectorController.Account;
         }
 
         public static bool IsModalOpen
         {
-            get => ModalController.IsOpen;
+            get => ModalController?.IsOpen ?? false;
         }
 
+        // ---------------------------------------------------------------------
+        //  Public static events
+        // ---------------------------------------------------------------------
         public static event EventHandler<InitializeEventArgs> Initialized;
 
         public static event EventHandler<Connector.AccountConnectedEventArgs> AccountConnected
@@ -81,6 +157,9 @@ namespace Reown.AppKit.Unity
             remove => NetworkController.ChainChanged -= value;
         }
 
+        // ---------------------------------------------------------------------
+        //  Public static methods
+        // ---------------------------------------------------------------------
         public static async Task InitializeAsync(AppKitConfig config)
         {
             if (Instance == null)
@@ -88,11 +167,11 @@ namespace Reown.AppKit.Unity
             if (IsInitialized)
                 throw new ReownInitializationException("AppKit is already initialized");
 
-            Config = config ?? throw new ArgumentNullException(nameof(config));
+            Instance._config = config ?? throw new ArgumentNullException(nameof(config));
 
             await Instance.InitializeAsyncCore();
 
-            IsInitialized = true;
+            Instance._isInitialized = true;
             Initialized?.Invoke(null, new InitializeEventArgs());
         }
 
@@ -149,7 +228,6 @@ namespace Reown.AppKit.Unity
                 throw new ReownConnectorException($"Wallet with id {walletId} not found");
 
             var wallet = response.Data[0];
-
             await Instance.ConnectAsyncCore(wallet);
         }
 
@@ -164,22 +242,33 @@ namespace Reown.AppKit.Unity
             return Instance.ConnectAsyncCore(wallet);
         }
 
+        // ---------------------------------------------------------------------
+        //  Unity lifecycle
+        // ---------------------------------------------------------------------
+        protected virtual void OnDestroy()
+        {
+            if (Instance != this)
+                return;
+
+            Instance = null;
+        }
+
+        // ---------------------------------------------------------------------
+        //  Abstract extension points
+        // ---------------------------------------------------------------------
         protected abstract Task InitializeAsyncCore();
-
         protected abstract void OpenModalCore(ViewType viewType = ViewType.None);
-
         protected abstract void CloseModalCore();
-
         protected abstract Task DisconnectAsyncCore();
-
         protected abstract Task ConnectAsyncCore(Wallet wallet);
 
+        // ---------------------------------------------------------------------
+        //  Helper types
+        // ---------------------------------------------------------------------
         public class InitializeEventArgs : EventArgs
         {
             [Preserve]
-            public InitializeEventArgs()
-            {
-            }
+            public InitializeEventArgs() { }
         }
     }
 }
