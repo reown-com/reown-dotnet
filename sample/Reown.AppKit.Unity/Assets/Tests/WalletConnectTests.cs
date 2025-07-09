@@ -138,7 +138,6 @@ namespace Reown.AppKit.Unity.Test
                 await walletConnectionTaskCompletionSource.Task;
 
                 Debug.Log($"[{nameof(ShouldReject)}] Validating error message...");
-                await UniTask.WaitUntilValueChanged(AppKitUi.Q<Snackbar>(), s => s.Message);
                 await AppKitUi.ValidateSnackbarAsync(true, SdkErrors.MessageFromType(rejectErrorType));
             });
         }
