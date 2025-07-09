@@ -260,14 +260,14 @@
       "url": "https://packages.unity.com"
     },
     "com.yasirkula.ingamedebugconsole": {
-      "version": "1.8.1",
+      "version": "1.8.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
       "url": "https://package.openupm.com"
     },
     "io.sentry.unity": {
-      "version": "3.2.2",
+      "version": "3.2.3",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
