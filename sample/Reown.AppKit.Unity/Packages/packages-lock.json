@@ -125,6 +125,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
+        "com.unity.modules.androidjni": "1.0.0",
         "com.reown.sign": "1.4.3"
       }
     },
