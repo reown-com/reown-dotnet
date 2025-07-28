@@ -116,6 +116,9 @@ namespace Reown.AppKit.Unity
         protected virtual void UpdateProfileName()
         {
             var profileName = AppKit.AccountController.ProfileName;
+            if (string.IsNullOrWhiteSpace(profileName))
+                return;
+                
             if (profileName.Length > 15)
                 profileName = profileName.Truncate(6);
 
