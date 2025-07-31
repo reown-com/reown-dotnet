@@ -69,9 +69,7 @@ namespace Reown.AppKit.Unity
         {
             "chainChanged",
             "accountsChanged",
-            "message",
-            "disconnect",
-            "connect"
+            "reown_updateEmail"
         };
 
         protected override Task InitializeAsyncCore(AppKitConfig config, SignClientUnity signClient)
