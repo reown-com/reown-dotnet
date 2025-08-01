@@ -86,7 +86,7 @@ namespace Reown.AppKit.Unity
             if (!profileConnector.IsSmartAccountEnabled(AppKit.Account.ChainId))
                 return;
 
-            _profileConnector = (ProfileConnector)AppKit.ConnectorController.ActiveConnector;
+            _profileConnector = profileConnector;
 
             var anotherAccountType = _profileConnector.PreferredAccountType == AccountType.SmartAccount
                 ? AccountType.Eoa.ToFriendlyString()
