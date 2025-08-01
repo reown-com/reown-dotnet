@@ -69,9 +69,7 @@ namespace Reown.AppKit.Unity
         {
             "chainChanged",
             "accountsChanged",
-            "message",
-            "disconnect",
-            "connect"
+            "reown_updateEmail"
         };
 
         protected override Task InitializeAsyncCore(AppKitConfig config, SignClientUnity signClient)
@@ -112,7 +110,7 @@ namespace Reown.AppKit.Unity
             OnAccountChanged(new AccountChangedEventArgs(Account));
         }
 
-        private async void SessionDeletedHandler(object sender, EventArgs e)
+        private void SessionDeletedHandler(object sender, EventArgs e)
         {
             if (!IsAccountConnected)
                 return;

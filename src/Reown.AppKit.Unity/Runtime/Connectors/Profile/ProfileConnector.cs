@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Reown.Sign.Models;
+using Reown.Sign.Unity;
 using UnityEngine;
 
 namespace Reown.AppKit.Unity.Profile
@@ -18,6 +20,7 @@ namespace Reown.AppKit.Unity.Profile
         public Account[] SmartAccounts { get; private set; }
 
         public Account[] EoaAccounts { get; private set; }
+
 
         public AccountType PreferredAccountType { get; private set; } = AccountType.None;
 
@@ -46,9 +49,23 @@ namespace Reown.AppKit.Unity.Profile
         private const string PreferredAccountTypeKey = "PreferredAccount";
         private const string DefaultWebWalletUrl = "https://web-wallet.walletconnect.org/";
 
+        private readonly HashSet<string> _smartAccountEnabledChains = new();
+
         public ProfileConnector()
         {
             Type = ConnectorType.Profile;
+        }
+
+        public bool IsSmartAccountEnabled(string chainId)
+        {
+            return _smartAccountEnabledChains.Contains(chainId);
+        }
+
+        protected override async Task InitializeAsyncCore(AppKitConfig config, SignClientUnity signClient)
+        {
+            await base.InitializeAsyncCore(config, signClient);
+
+            AppKit.ChainChanged += ChainChangedHandler;
         }
 
         protected override void OnAccountConnected(AccountConnectedEventArgs e)
@@ -60,15 +77,21 @@ namespace Reown.AppKit.Unity.Profile
                 var addressProvider = SignClient.AddressProvider;
                 var sessionProperties = addressProvider.DefaultSession.SessionProperties;
 
-                SmartAccounts = JsonConvert
-                    .DeserializeObject<string[]>(sessionProperties["smartAccounts"])
-                    .Select(x => new Account(x))
-                    .ToArray();
+                // Extract smart account addresses and chain IDs that support smart accounts
+                var smartAccountAddresses = JsonConvert.DeserializeObject<string[]>(sessionProperties["smartAccounts"]);
+                SmartAccounts = new Account[smartAccountAddresses.Length];
+                for (var i = 0; i < smartAccountAddresses.Length; i++)
+                {
+                    var account = new Account(smartAccountAddresses[i]);
+                    SmartAccounts[i] = account;
+                    _smartAccountEnabledChains.Add(account.ChainId);
+                }
 
+                // Extract EOA accounts
                 EoaAccounts = e.Accounts
                     .Except(SmartAccounts)
                     .ToArray();
-
+                
                 Email = sessionProperties.GetValueOrDefault("email");
                 Username = sessionProperties.GetValueOrDefault("username");
                 Provider = sessionProperties.GetValueOrDefault("provider");
@@ -94,12 +117,25 @@ namespace Reown.AppKit.Unity.Profile
             OnAccountChanged(new AccountChangedEventArgs(Account));
         }
 
+        private void ChainChangedHandler(object _, NetworkController.ChainChangedEventArgs args)
+        {
+            // Refresh preferred account when the chain changes
+            SetPreferredAccountCore(PreferredAccountType);
+        }
+
         private void SetPreferredAccountCore(AccountType accountType)
         {
             if (AppKit.NetworkController.ActiveChain == null)
                 return;
 
             var chainId = AppKit.NetworkController.ActiveChain.ChainId;
+
+            if (accountType == AccountType.SmartAccount && !_smartAccountEnabledChains.Contains(chainId))
+            {
+                // If the preferred account type is SmartAccount but the current chain does not support it,
+                // we need to switch to EOA accounts.
+                accountType = AccountType.Eoa;
+            }
 
             // Find preferred account for the current chain
             PreferredAccount = accountType == AccountType.SmartAccount
