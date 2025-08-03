@@ -81,8 +81,8 @@ namespace Reown.AppKit.Unity
                     return;
                 }
 
-                var isConnectedToReownWallet = ConnectorController.ActiveConnector is ProfileConnector;
-                ModalController.Open(isConnectedToReownWallet ? ViewType.AccountPortfolio : ViewType.AccountSettings);
+                var accountViewType = GetAccountViewType();
+                ModalController.Open(accountViewType);
             }
             else
             {
@@ -185,6 +185,18 @@ namespace Reown.AppKit.Unity
             Linker.OpenSessionProposalDeepLink(connectionProposal.Uri, baseUrl);
 
             await tcsConnection.Task;
+        }
+
+        private static ViewType GetAccountViewType()
+        {
+            if (ConnectorController.ActiveConnector is not ProfileConnector profileConnector)
+                return ViewType.AccountSettings;
+
+            if (profileConnector.PreferredAccountType == AccountType.SmartAccount
+                && profileConnector.IsSmartAccountEnabled(NetworkController.ActiveChain.ChainId))
+                return ViewType.AccountPortfolio;
+
+            return ViewType.AccountSettings;
         }
 
         protected virtual ModalController CreateModalController()

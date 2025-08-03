@@ -80,10 +80,13 @@ namespace Reown.AppKit.Unity
 
         protected virtual void CreateSmartAccountToggleButton(VisualElement buttonsListView)
         {
-            if (AppKit.ConnectorController.ActiveConnector is not ProfileConnector)
+            if (AppKit.ConnectorController.ActiveConnector is not ProfileConnector profileConnector)
                 return;
 
-            _profileConnector = (ProfileConnector)AppKit.ConnectorController.ActiveConnector;
+            if (!profileConnector.IsSmartAccountEnabled(AppKit.Account.ChainId))
+                return;
+
+            _profileConnector = profileConnector;
 
             var anotherAccountType = _profileConnector.PreferredAccountType == AccountType.SmartAccount
                 ? AccountType.Eoa.ToFriendlyString()
