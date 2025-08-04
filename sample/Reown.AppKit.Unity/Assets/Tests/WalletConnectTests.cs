@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Linq;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using Reown.AppKit.Unity.Components;
@@ -86,9 +87,18 @@ namespace Reown.AppKit.Unity.Test
                         accountDisconnectedTaskCompletionSource.TrySetResult();
                     };
 
+                    var walletDisconnectedTaskCompletionSource = new UniTaskCompletionSource();
+                    wallet.WalletKit.SessionDeleted += (sender, @event) =>
+                    {
+                        Debug.Log($"[{nameof(ShouldConnectAndDisconnect)}] Wallet session deleted with ID: {@event.Id}");
+                        walletDisconnectedTaskCompletionSource.TrySetResult();
+                    };
+
                     Debug.Log($"[{nameof(ShouldConnectAndDisconnect)}] Tapping disconnect button...");
                     await DappUi.TapDisconnectAsync();
-                    await accountDisconnectedTaskCompletionSource.Task;
+
+                    await UniTask.WhenAll(accountDisconnectedTaskCompletionSource.Task, walletDisconnectedTaskCompletionSource.Task);
+                    
                     Debug.Log($"[{nameof(ShouldConnectAndDisconnect)}] Verifying disconnected state...");
                     Assert.That(AppKit.IsAccountConnected, Is.False);
                 }
