@@ -3,7 +3,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="BouncyCastle.Cryptography" Version="2.6.1" />
+    <PackageVersion Include="BouncyCastle.Cryptography" Version="2.6.2" />
     <PackageVersion Include="Nethereum.HdWallet" Version="5.0.0" />
     <PackageVersion Include="Nethereum.Web3" Version="5.0.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
