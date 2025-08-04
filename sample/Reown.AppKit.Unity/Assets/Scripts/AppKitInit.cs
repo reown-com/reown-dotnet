@@ -49,7 +49,7 @@ namespace Sample
                     "AppKit Unity",
                     "AppKit Unity Sample",
                     "https://reown.com",
-                    "https://raw.githubusercontent.com/reown-com/reown-dotnet/main/media/appkit-icon.png",
+                    "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/develop/sample/Reown.AppKit.Unity/Assets/Textures/appkit-icon-unity.png",
                     new RedirectData
                     {
                         // Used by native wallets to redirect back to the app after approving requests
@@ -87,7 +87,7 @@ namespace Sample
             );
 
 #if !UNITY_WEBGL
-            // The Mixpanel are Sentry are used by the sample project to collect telemetry
+            // The Mixpanel and Sentry are used by the sample project to collect telemetry
             var clientId = await AppKit.Instance.SignClient.CoreClient.Crypto.GetClientId();
             Mixpanel.Identify(clientId);
 
@@ -132,6 +132,12 @@ namespace Sample
                     Name = "Flutter Wallet Prod",
                     ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-flutter.png?raw=true",
                     MobileLink = "wcflutterwallet://"
+                },
+                new Wallet
+                {
+                    Name = "React Web Wallet",
+                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-react.png?raw=true",
+                    WebappLink = "https://react-wallet.walletconnect.com"
                 }
             };
 #endif
@@ -156,6 +162,12 @@ namespace Sample
                     Name = "Flutter Wallet Prod",
                     ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-flutter.png?raw=true",
                     MobileLink = "wcflutterwallet://"
+                },
+                new Wallet
+                {
+                    Name = "React Web Wallet",
+                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-react.png?raw=true",
+                    WebappLink = "https://react-wallet.walletconnect.com"
                 }
             };
 #endif
