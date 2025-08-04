@@ -21,9 +21,6 @@ updates:
       - "dependencies"
       - "nuget"
 
-    reviewers:
-      - "skibitsky" # swap for whatever team owns the code
-
     # For repositories using Central Package Management (Directory.Packages.props)
     # Dependabot will automatically detect and update the central package versions
 
@@ -51,7 +48,4 @@ updates:
 
     labels:
       - "dependencies"
-      - "github-actions"
-
-    reviewers:
-      - "skibitsky"
+      - "github-actions"+
