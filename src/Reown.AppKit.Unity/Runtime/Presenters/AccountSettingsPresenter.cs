@@ -44,6 +44,9 @@ namespace Reown.AppKit.Unity
 
         private void AccountPropertyChangedHandler(object sender, PropertyChangedEventArgs e)
         {
+            if (AppKit.AccountController == null)
+                return;
+                
             switch (e.PropertyName)
             {
                 case nameof(AccountController.ProfileName):
@@ -77,10 +80,13 @@ namespace Reown.AppKit.Unity
 
         protected virtual void CreateSmartAccountToggleButton(VisualElement buttonsListView)
         {
-            if (AppKit.ConnectorController.ActiveConnector is not ProfileConnector)
+            if (AppKit.ConnectorController.ActiveConnector is not ProfileConnector profileConnector)
                 return;
 
-            _profileConnector = (ProfileConnector)AppKit.ConnectorController.ActiveConnector;
+            if (!profileConnector.IsSmartAccountEnabled(AppKit.Account.ChainId))
+                return;
+
+            _profileConnector = profileConnector;
 
             var anotherAccountType = _profileConnector.PreferredAccountType == AccountType.SmartAccount
                 ? AccountType.Eoa.ToFriendlyString()
@@ -115,7 +121,13 @@ namespace Reown.AppKit.Unity
 
         protected virtual void UpdateProfileName()
         {
+            if (AppKit.AccountController == null)
+                return;
+                
             var profileName = AppKit.AccountController.ProfileName;
+            if (string.IsNullOrWhiteSpace(profileName))
+                return;
+                
             if (profileName.Length > 15)
                 profileName = profileName.Truncate(6);
 
@@ -124,6 +136,9 @@ namespace Reown.AppKit.Unity
 
         protected virtual void UpdateProfileAvatar()
         {
+            if (AppKit.AccountController == null)
+                return;
+                
             var avatar = AppKit.AccountController.ProfileAvatar;
 
             if (avatar.IsEmpty || avatar.AvatarFormat != "png" && avatar.AvatarFormat != "jpg" && avatar.AvatarFormat != "jpeg")
@@ -228,6 +243,9 @@ namespace Reown.AppKit.Unity
 
         protected virtual void OnBlockExplorerButtonClick()
         {
+            if (AppKit.NetworkController?.ActiveChain == null || AppKit.AccountController == null)
+                return;
+                
             var chain = AppKit.NetworkController.ActiveChain;
             var blockExplorerUrl = chain.BlockExplorer.url;
             var address = AppKit.AccountController.Address;
@@ -236,6 +254,9 @@ namespace Reown.AppKit.Unity
 
         protected virtual void OnCopyAddressButtonClick()
         {
+            if (AppKit.AccountController == null)
+                return;
+                
             var address = AppKit.AccountController.Address;
             GUIUtility.systemCopyBuffer = address;
             AppKit.NotificationController.Notify(NotificationType.Success, "Ethereum address copied");
@@ -259,8 +280,10 @@ namespace Reown.AppKit.Unity
 
             if (disposing)
             {
-                AppKit.AccountController.PropertyChanged -= AccountPropertyChangedHandler;
-                AppKit.NetworkController.ChainChanged -= ChainChangedHandler;
+                if (AppKit.AccountController != null)
+                    AppKit.AccountController.PropertyChanged -= AccountPropertyChangedHandler;
+                if (AppKit.NetworkController != null)
+                    AppKit.NetworkController.ChainChanged -= ChainChangedHandler;
 
                 _networkIcon?.UnsubscribeImage(_networkButton.IconImageElement);
                 _avatar?.UnsubscribeImage(View.ProfileAvatarImage);

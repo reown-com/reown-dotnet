@@ -28,6 +28,9 @@ namespace Reown.AppKit.Unity
 
         private void AccountPropertyChangedHandler(object sender, PropertyChangedEventArgs e)
         {
+            if (AppKit.AccountController == null)
+                return;
+                
             switch (e.PropertyName)
             {
                 case nameof(AccountController.ProfileName):
@@ -45,7 +48,13 @@ namespace Reown.AppKit.Unity
 
         protected virtual void UpdateProfileName()
         {
+            if (AppKit.AccountController == null)
+                return;
+                
             var profileName = AppKit.AccountController.ProfileName;
+            if (string.IsNullOrWhiteSpace(profileName))
+                return;
+                
             if (profileName.Length > 15)
                 profileName = profileName.Truncate(6);
 
@@ -54,6 +63,9 @@ namespace Reown.AppKit.Unity
 
         protected virtual void UpdateProfileAvatar()
         {
+            if (AppKit.AccountController == null)
+                return;
+                
             var avatar = AppKit.AccountController.ProfileAvatar;
 
             if (avatar.IsEmpty || avatar.AvatarFormat != "png" && avatar.AvatarFormat != "jpg" && avatar.AvatarFormat != "jpeg")
@@ -78,7 +90,8 @@ namespace Reown.AppKit.Unity
 
             if (disposing)
             {
-                AppKit.AccountController.PropertyChanged -= AccountPropertyChangedHandler;
+                if (AppKit.AccountController != null)
+                    AppKit.AccountController.PropertyChanged -= AccountPropertyChangedHandler;
 
                 _avatar?.UnsubscribeImage(View.AvatarImage);
             }

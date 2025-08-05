@@ -13,7 +13,7 @@ namespace Reown.AppKit.Unity
     public abstract class AppKit : MonoBehaviour
     {
         [VersionMarker]
-        public const string Version = "unity-appkit-v1.4.3";
+        public const string Version = "unity-appkit-v1.4.4";
 
         // ---------------------------------------------------------------------
         // Singleton
@@ -44,19 +44,19 @@ namespace Reown.AppKit.Unity
         // ---------------------------------------------------------------------
         public static ModalController ModalController
         {
-            get => Instance._modalController;
+            get => Instance?._modalController;
             protected set => Instance._modalController = value;
         }
 
         public static AccountController AccountController
         {
-            get => Instance._accountController;
+            get => Instance?._accountController;
             protected set => Instance._accountController = value;
         }
 
         public static ConnectorController ConnectorController
         {
-            get => Instance._connectorController;
+            get => Instance?._connectorController;
             protected set => Instance._connectorController = value;
         }
 
@@ -74,13 +74,13 @@ namespace Reown.AppKit.Unity
 
         public static NotificationController NotificationController
         {
-            get => Instance._notificationController;
+            get => Instance?._notificationController;
             protected set => Instance._notificationController = value;
         }
 
         public static NetworkController NetworkController
         {
-            get => Instance._networkController;
+            get => Instance?._networkController;
             protected set => Instance._networkController = value;
         }
 
