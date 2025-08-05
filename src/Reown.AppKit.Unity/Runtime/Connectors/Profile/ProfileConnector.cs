@@ -119,6 +119,9 @@ namespace Reown.AppKit.Unity.Profile
 
         private void ChainChangedHandler(object _, NetworkController.ChainChangedEventArgs args)
         {
+            if (!IsAccountConnected)
+                return;
+            
             // Refresh preferred account when the chain changes
             SetPreferredAccountCore(PreferredAccountType);
         }
