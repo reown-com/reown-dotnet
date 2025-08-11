@@ -1,0 +1,23 @@
+{
+  "headers": [
+    {
+      "source": "/Build/(.*).br",
+      "has": [
+        {
+          "type": "header",
+          "key": "Accept-Encoding",
+          "value": "^((?!br).)*$"
+        }
+      ],
+      "headers": [
+        { "key": "Content-Encoding", "value": "br" }
+      ]
+    },
+    {
+      "source": "/StreamingAssets/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    }
+  ]
+}
