@@ -59,14 +59,18 @@ namespace Reown.Sign.Unity
 
         public static void OpenSessionRequestDeepLink(Session session, long requestId)
         {
-#if UNITY_EDITOR && (UNITY_IOS || UNITY_ANDROID)
-            // In the Editor we cannot open _mobile_ deep links, so we just log and ignore it
-            ReownLogger.Log($"[Linker] Requested to open mobile deep link. Ignoring.");
-            return;
-#endif
-
             if (session == null)
                 throw new ArgumentNullException(nameof(session));
+            
+#if UNITY_EDITOR && (UNITY_IOS || UNITY_ANDROID)
+            // In the Editor we cannot open _mobile_ deep links, so we just log and ignore it
+            var nativeRedirect = session.Peer.Metadata.Redirect?.Native;
+            if (string.IsNullOrWhiteSpace(nativeRedirect) || !nativeRedirect.StartsWith("http"))
+            {
+                ReownLogger.Log($"[Linker] Requested to open mobile deep link while in the Editor. Ignoring.");
+                return;
+            }
+#endif
 
             if (session.Peer.Metadata == null)
                 return;
