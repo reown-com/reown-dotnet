@@ -1268,9 +1268,6 @@ namespace Reown.Sign
             return session;
         }
 
-        // TODO: remove?
-        public IDictionary<long, AuthPendingRequest> PendingAuthRequests { get; } = new Dictionary<long, AuthPendingRequest>();
-
         public string FormatAuthMessage(AuthPayloadParams payloadParams, string iss)
         {
             var cacaoPayload = CacaoPayload.FromAuthPayloadParams(payloadParams, iss);
