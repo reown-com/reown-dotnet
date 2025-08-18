@@ -25,7 +25,7 @@ jobs:
           - WebGL # WebGL.
     steps:
       - uses: jlumbroso/free-disk-space@v1.3.1
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - uses: actions/cache@v4
@@ -68,7 +68,7 @@ jobs:
           - playmode
           - editmode
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           lfs: true
       - uses: actions/cache@v4
@@ -105,7 +105,7 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Download WebGL Build Artifact
