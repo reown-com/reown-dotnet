@@ -374,14 +374,12 @@ namespace Reown.Sign.Interfaces
 
 
         bool HasSessionAuthenticateRequestSubscribers { get; }
-        
+
         Task<AuthenticateData> Authenticate(AuthParams authParams);
 
         Task RejectSessionAuthenticate(RejectParams rejectParams);
 
         Task<Session> ApproveSessionAuthenticate(long requestId, CacaoObject[] auths);
-
-        IDictionary<long, AuthPendingRequest> PendingAuthRequests { get; }
 
         string FormatAuthMessage(AuthPayloadParams payloadParams, string iss);
     }
