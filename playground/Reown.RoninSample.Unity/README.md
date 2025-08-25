@@ -9,7 +9,7 @@ Reown AppKit supports all current Ronin Wallet platforms and provides multiple c
 ### Mobile Ronin Wallet
 
 - WalletConnect QR code: display a QR code in the game; the Ronin mobile app scans it to establish the session.
-- Same-device deep link: when the game runs on the same mobiledevice as Ronin Wallet, AppKit deep links to complete the connection.
+- Same-device deep link: when the game runs on the same mobile device as Ronin Wallet, AppKit deep links to complete the connection.
 - In-app browser: when opened in the built-in browser inside mobile Ronin Wallet, AppKit connects within that environment.
 
 ### Ronin Wallet Browser Extension
