@@ -8,9 +8,10 @@
         <Authors>skibitsky</Authors>
         <Description>Reown request interceptor for Nethereum</Description>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     </PropertyGroup>
     <ItemGroup>
+      <None Include="LICENSE.md" Pack="true" PackagePath=""/>
       <ProjectReference Include="..\Reown.Sign\Reown.Sign.csproj" />
     </ItemGroup>
     <ItemGroup>

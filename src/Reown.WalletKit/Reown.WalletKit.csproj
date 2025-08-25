@@ -8,7 +8,7 @@
         <Description>The ultimate toolkit for building and connecting wallets.</Description>
         <Authors>pedrouid, gigajuwels, edkek, skibitsky</Authors>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
         <PackageIcon>walletkit-icon.png</PackageIcon>
         <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
@@ -19,6 +19,7 @@
       <None Include="..\..\media\walletkit-icon.png" Pack="True" PackagePath="\">
         <Link>walletkit-icon.png</Link>
       </None>
+      <None Include="LICENSE.md" Pack="true" PackagePath="\"/>
       <None Include="README.md" Pack="true" PackagePath="\"/>
     </ItemGroup>
 </Project>
