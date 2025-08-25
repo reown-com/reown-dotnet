@@ -41,10 +41,10 @@ public class Main : MonoBehaviour
             // Project ID from https://cloud.reown.com/
             projectId = "610570e13c15bf6e35d12aa2ba945100", // don't use this project id in prod!
             metadata = new Metadata(
-                name: "My Game",
-                description: "Short description",
-                url: "https://example.com",
-                iconUrl: "https://example.com/logo.png"
+                name: "Ronin Sample",
+                description: "Sample Unity project demonstrating how to use Reown AppKit SDK with Ronin chain and Ronin Wallet.",
+                url: "https://reown.com",
+                iconUrl: "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/develop/sample/Reown.AppKit.Unity/Assets/Textures/appkit-icon-unity.png"
             ),
             // Optional. Can be used to show only specific wallets in AppKit UI
             // Wallet IDs can be found at: https://walletguide.walletconnect.network
@@ -66,10 +66,10 @@ public class Main : MonoBehaviour
         // Initialize AppKit with config
         await AppKit.InitializeAsync(config);
         
-        await ResumeSessionOrOpenAppKitModal();
+        await ResumeSessionOrSubscribeToAccountConnectedEvent();
     }
 
-    public async Task ResumeSessionOrOpenAppKitModal()
+    public async Task ResumeSessionOrSubscribeToAccountConnectedEvent()
     {
         // Try to resume account connection from the last session
         var resumed = await AppKit.ConnectorController.TryResumeSessionAsync();
