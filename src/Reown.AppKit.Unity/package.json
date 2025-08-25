@@ -4,6 +4,8 @@
   "displayName": "Reown.AppKit.Unity",
   "unity": "2022.3",
   "author": "Reown",
+  "changelogUrl": "https://github.com/reown-com/reown-dotnet/releases",
+  "documentationUrl": "https://docs.reown.com/appkit/unity",
   "keywords": [
     "walletconnect",
     "ethereum",
