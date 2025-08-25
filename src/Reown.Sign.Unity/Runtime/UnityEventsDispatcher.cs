@@ -87,7 +87,7 @@ namespace Reown.Sign.Unity
             {
                 _tick -= value;
 
-                if (!TickHasListeners)
+                if (!TickHasListeners && _tickCoroutine != null)
                     StopCoroutine(_tickCoroutine);
             }
         }
