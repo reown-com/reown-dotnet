@@ -19,7 +19,7 @@
       <None Include="..\..\media\walletkit-icon.png" Pack="True" PackagePath="\">
         <Link>walletkit-icon.png</Link>
       </None>
-      <None Include="LICENSE.md" Pack="true" PackagePath="\"/>
-      <None Include="README.md" Pack="true" PackagePath="\"/>
+      <None Include="LICENSE.md" Pack="true" PackagePath=""/>
+      <None Include="README.md" Pack="true" PackagePath=""/>
     </ItemGroup>
 </Project>
