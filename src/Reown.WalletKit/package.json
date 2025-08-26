@@ -1,6 +1,6 @@
 {
   "name": "com.reown.walletkit",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "displayName": "Reown.WalletKit",
   "unity": "2022.3",
   "author": "Reown",
@@ -8,6 +8,6 @@
     "reown"
   ],
   "dependencies": {
-    "com.reown.sign": "1.4.4"
+    "com.reown.sign": "1.4.5"
   }
 }
