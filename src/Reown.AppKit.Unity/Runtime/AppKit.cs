@@ -13,7 +13,7 @@ namespace Reown.AppKit.Unity
     public abstract class AppKit : MonoBehaviour
     {
         [VersionMarker]
-        public const string Version = "unity-appkit-v1.4.4";
+        public const string Version = "unity-appkit-v1.4.5";
 
         // ---------------------------------------------------------------------
         // Singleton

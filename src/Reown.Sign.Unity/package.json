@@ -1,6 +1,6 @@
 {
   "name": "com.reown.sign.unity",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "displayName": "Reown.Sign.Unity",
   "unity": "2022.3",
   "author": "Reown",
@@ -10,6 +10,6 @@
   ],
   "dependencies": {
     "com.unity.modules.androidjni": "1.0.0",
-    "com.reown.sign": "1.4.4"
+    "com.reown.sign": "1.4.5"
   }
 }
