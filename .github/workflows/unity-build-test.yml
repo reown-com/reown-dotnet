@@ -76,7 +76,7 @@ jobs:
           path: ${{ matrix.projectPath }}/Library
           key: Library-${{ matrix.projectPath }}-${{ matrix.testMode }}
           restore-keys: Library-
-      - uses: game-ci/unity-test-runner@3b26780ddfe24a0ee2aebb0a65297ab69fc5bb4c # v4.5
+      - uses: game-ci/unity-test-runner@0ff419b913a3630032cbe0de48a0099b5a9f0ed9 # v4.3.1
         id: tests
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
