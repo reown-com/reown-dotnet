@@ -11,13 +11,13 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: 17
-          distribution: 'zulu' # Alternative distribution options are available.
-      - uses: actions/checkout@v4
+          distribution: "zulu" # Alternative distribution options are available.
+      - uses: actions/checkout@v5
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
       - name: Cache SonarQube Cloud packages
         uses: actions/cache@v4
         with:
@@ -41,11 +41,11 @@ jobs:
         run: dotnet tool install --global dotnet-coverage
       - name: Build and analyze
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"reown-com_reown-dotnet" /o:"reown-com" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
-          dotnet build --no-incremental
-          dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
-          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"reown-com_reown-dotnet" /o:"reown-com" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.token="$env:SONAR_TOKEN"
+          dotnet build Reown.NoUnity.slnf --no-incremental
+          dotnet-coverage collect "dotnet test Reown.NoUnity.slnf" -f xml -o "coverage.xml"
+          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="$env:SONAR_TOKEN"

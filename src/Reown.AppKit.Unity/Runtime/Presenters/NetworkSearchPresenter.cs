@@ -39,7 +39,7 @@ namespace Reown.AppKit.Unity
                 AppKit.NetworkController.ChainChanged += ChainChangedHandler;
 
                 var activeChain = AppKit.NetworkController.ActiveChain;
-                if (activeChain != default)
+                if (activeChain != null)
                     HighlightActiveChain(activeChain.ChainId);
             };
         }
@@ -157,7 +157,7 @@ namespace Reown.AppKit.Unity
 
             if (disposing)
             {
-                AppKit.NetworkController.ChainChanged += ChainChangedHandler;
+                AppKit.NetworkController.ChainChanged -= ChainChangedHandler;
             }
 
             _disposed = true;

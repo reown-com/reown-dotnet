@@ -1,6 +1,6 @@
 {
   "name": "com.reown.core.network",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "displayName": "Reown.Core.Network",
   "unity": "2022.3",
   "author": "Reown",
@@ -8,6 +8,6 @@
     "reown"
   ],
   "dependencies": {
-    "com.reown.core.common": "1.4.4"
+    "com.reown.core.common": "1.4.5"
   }
 }

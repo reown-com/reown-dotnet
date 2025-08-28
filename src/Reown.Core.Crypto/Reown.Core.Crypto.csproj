@@ -7,9 +7,10 @@
         <Title>Reown.Core.Crypto</Title>
         <Authors>pedrouid, gigajuwels, edkek, skibitsky</Authors>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     </PropertyGroup>
     <ItemGroup>
+        <None Include="LICENSE.md" Pack="true" PackagePath=""/>
         <ProjectReference Include="..\Reown.Core.Common\Reown.Core.Common.csproj"/>
         <ProjectReference Include="..\Reown.Core.Network\Reown.Core.Network.csproj"/>
         <ProjectReference Include="..\Reown.Core.Storage\Reown.Core.Storage.csproj"/>

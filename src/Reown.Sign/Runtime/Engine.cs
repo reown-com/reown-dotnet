@@ -45,6 +45,10 @@ namespace Reown.Sign
 
         private DisposeHandlerToken[] _messageDisposeHandlers = Array.Empty<DisposeHandlerToken>();
 
+        private EventHandler<PairingEvent> _pairingPingedForwarder;
+        private EventHandler<PairingEvent> _pairingDeletedForwarder;
+        private EventHandler<PairingEvent> _pairingExpiredForwarder;
+
         protected bool Disposed;
 
         /// <summary>
@@ -354,7 +358,7 @@ namespace Reown.Sign
                 Relay = new ProtocolOptions
                 {
                     Protocol = queryParams["relay-protocol"],
-                    Data = queryParams.ContainsKey("relay-data") ? queryParams["relay-data"] : null
+                    Data = queryParams.GetValueOrDefault("relay-data")
                 }
             };
 
@@ -464,7 +468,7 @@ namespace Reown.Sign
             {
                 if (session == null)
                     return;
-                
+
                 if (!string.IsNullOrWhiteSpace(session.PairingTopic) && session.PairingTopic != topic)
                     return;
 
@@ -935,7 +939,7 @@ namespace Reown.Sign
             {
                 "wc_sessionAuthenticate"
             });
-            
+
             var publicKey = await Client.CoreClient.Crypto.GenerateKeyPair();
             var responseTopic = Client.CoreClient.Crypto.HashKey(publicKey);
 
@@ -943,20 +947,20 @@ namespace Reown.Sign
             {
                 ReceiverPublicKey = publicKey
             }, responseTopic);
-                
+
             await Task.WhenAll(
                 Client.Auth.Keys.Set(AuthConstants.AuthPublicKeyName, new AuthKey(responseTopic, publicKey)),
                 Client.Auth.Pairings.Set(responseTopic, new AuthPairing(responseTopic, pairingData.Topic))
             );
 
             await Client.CoreClient.Relayer.Subscribe(responseTopic);
-            
+
             if (authParams.Methods is { Length: > 0 })
             {
                 var chainId = authParams.Chains[0];
                 var @namespace = Core.Utils.ExtractChainNamespace(chainId);
                 var recapStr = ReCap.CreateEncodedRecap(@namespace, "request", authParams.Methods);
-                
+
                 authParams.Resources ??= new List<string>();
 
                 if (!ReCap.TryGetRecapFromResources(authParams.Resources, out var existingRecap))
@@ -1003,7 +1007,7 @@ namespace Reown.Sign
                 Requester = participant,
                 ExpiryTimestamp = Clock.CalculateExpiry(long.TryParse(authParams.Expiration, out var exp) ? exp : Clock.ONE_HOUR)
             };
-            
+
             // Build namespaces for fallback session proposal
             var namespaces = new Dictionary<string, ProposedNamespace>
             {
@@ -1104,7 +1108,7 @@ namespace Reown.Sign
                 {
                     await Client.CoreClient.Pairing.UpdateMetadata(pairingData.Topic, session.Peer.Metadata);
                 }
-                
+
                 await PrivateThis.DeleteProposal(fallbackProposalId);
                 approvalTask.SetResult(session);
             }
@@ -1264,9 +1268,6 @@ namespace Reown.Sign
             return session;
         }
 
-        // TODO: remove?
-        public IDictionary<long, AuthPendingRequest> PendingAuthRequests { get; } = new Dictionary<long, AuthPendingRequest>();
-
         public string FormatAuthMessage(AuthPayloadParams payloadParams, string iss)
         {
             var cacaoPayload = CacaoPayload.FromAuthPayloadParams(payloadParams, iss);
@@ -1286,9 +1287,20 @@ namespace Reown.Sign
 
         private void WrapPairingEvents()
         {
-            Client.CoreClient.Pairing.PairingPinged += (sender, @event) => PairingPinged?.Invoke(sender, @event);
-            Client.CoreClient.Pairing.PairingDeleted += (sender, @event) => PairingDeleted?.Invoke(sender, @event);
-            Client.CoreClient.Pairing.PairingExpired += (sender, @event) => PairingExpired?.Invoke(sender, @event);
+            if (_pairingPingedForwarder != null)
+            {
+                Client.CoreClient.Pairing.PairingPinged -= _pairingPingedForwarder;
+                Client.CoreClient.Pairing.PairingDeleted -= _pairingDeletedForwarder;
+                Client.CoreClient.Pairing.PairingExpired -= _pairingExpiredForwarder;
+            }
+
+            _pairingPingedForwarder = (sender, @event) => PairingPinged?.Invoke(sender, @event);
+            _pairingDeletedForwarder = (sender, @event) => PairingDeleted?.Invoke(sender, @event);
+            _pairingExpiredForwarder = (sender, @event) => PairingExpired?.Invoke(sender, @event);
+
+            Client.CoreClient.Pairing.PairingPinged += _pairingPingedForwarder;
+            Client.CoreClient.Pairing.PairingDeleted += _pairingDeletedForwarder;
+            Client.CoreClient.Pairing.PairingExpired += _pairingExpiredForwarder;
         }
 
         private void RegisterExpirerEvents()
@@ -1356,6 +1368,18 @@ namespace Reown.Sign
 
             if (disposing)
             {
+                if (_pairingPingedForwarder != null)
+                {
+                    Client.CoreClient.Pairing.PairingPinged -= _pairingPingedForwarder;
+                    Client.CoreClient.Pairing.PairingDeleted -= _pairingDeletedForwarder;
+                    Client.CoreClient.Pairing.PairingExpired -= _pairingExpiredForwarder;
+                    _pairingPingedForwarder = null;
+                    _pairingDeletedForwarder = null;
+                    _pairingExpiredForwarder = null;
+                }
+
+                Client.CoreClient.Expirer.Expired -= ExpiredCallback;
+
                 foreach (var action in _disposeActions.Values)
                 {
                     action();

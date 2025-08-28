@@ -187,7 +187,7 @@ namespace Reown.Core.Controllers
         }
 
         /// <summary>
-        ///     Unsubscribe to a given topic with optional UnsubscribeOptions
+        ///     Unsubscribe from a given topic with optional UnsubscribeOptions
         /// </summary>
         /// <param name="topic">The topic to unsubscribe from</param>
         /// <param name="opts">The options to specify the subscription id as well as protocol options</param>
@@ -249,9 +249,7 @@ namespace Reown.Core.Controllers
 
             return false;
         }
-
-        private event EventHandler onSubscriberReady;
-
+        
         private async Task Restart()
         {
             _restartTask = new TaskCompletionSource<bool>();
@@ -269,14 +267,12 @@ namespace Reown.Core.Controllers
 
         protected virtual void RegisterEventListeners()
         {
-            _relayer.CoreClient.HeartBeat.OnPulse += (sender, @event) => { CheckPending(); };
+            _relayer.CoreClient.HeartBeat.OnPulse += (_, _) => CheckPending();
 
-            _relayer.OnConnected += (sender, connection) => { OnConnect(); };
-
-            _relayer.OnDisconnected += (sender, args) => { OnDisconnect(); };
+            _relayer.OnConnected += (_, _) => OnConnect();
+            _relayer.OnDisconnected += (_, _) => OnDisconnect();
 
             Created += AsyncPersist;
-
             Deleted += AsyncPersist;
         }
 
@@ -403,9 +399,6 @@ namespace Reown.Core.Controllers
         {
             _cached = Array.Empty<ActiveSubscription>();
             _initialized = true;
-
-            if (onSubscriberReady != null)
-                onSubscriberReady(this, EventArgs.Empty);
         }
 
         protected virtual void OnDisconnect()
@@ -481,8 +474,7 @@ namespace Reown.Core.Controllers
 
         protected virtual void AddSubscription(string id, ActiveSubscription subscription)
         {
-            if (_subscriptions.ContainsKey(id))
-                _subscriptions.Remove(id);
+            _subscriptions.Remove(id);
 
             _subscriptions.Add(id, subscription);
             _topicMap.Set(subscription.Topic, id);
