@@ -151,7 +151,8 @@ namespace Reown.AppKit.Unity
 
         protected override async Task ChangeActiveChainAsyncCore(Chain chain)
         {
-            if (!ActiveSessionIncludesChain(chain.ChainId) &&
+            if (chain.ChainNamespace == ChainConstants.Namespaces.Evm &&
+                !ActiveSessionIncludesChain(chain.ChainId) &&
                 ActiveSessionSupportsMethod("wallet_addEthereumChain") &&
                 ActiveSessionSupportsMethod("wallet_switchEthereumChain"))
             {
