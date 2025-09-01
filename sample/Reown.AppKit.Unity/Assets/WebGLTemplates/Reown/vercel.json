@@ -1,51 +1,22 @@
 {
   "headers": [
     {
-      "source": "/Build/:file.data.br",
-      "headers": [
+      "source": "/Build/(.*).br",
+      "has": [
         {
-          "key": "Content-Encoding",
-          "value": "br"
-        },
-        {
-          "key": "Content-Type",
-          "value": "application/octet-stream"
+          "type": "header",
+          "key": "Accept-Encoding",
+          "value": "^((?!br).)*$"
         }
+      ],
+      "headers": [
+        { "key": "Content-Encoding", "value": "br" }
       ]
     },
     {
-      "source": "/Build/:file.framework.js.br",
+      "source": "/StreamingAssets/(.*)",
       "headers": [
-        {
-          "key": "Content-Encoding",
-          "value": "br"
-        },
-        {
-          "key": "Content-Type",
-          "value": "application/javascript"
-        }
-      ]
-    },
-    {
-      "source": "/Build/:file.loader.js",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/javascript"
-        }
-      ]
-    },
-    {
-      "source": "/Build/:file.wasm.br",
-      "headers": [
-        {
-          "key": "Content-Encoding",
-          "value": "br"
-        },
-        {
-          "key": "Content-Type",
-          "value": "application/wasm"
-        }
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
       ]
     }
   ]

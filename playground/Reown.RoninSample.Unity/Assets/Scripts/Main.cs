@@ -1,9 +1,25 @@
-using System;
 using System.Threading.Tasks;
 using Reown.AppKit.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+///     Sample Unity <see cref="MonoBehaviour"/> demonstrating how to use the Reown AppKit SDK
+///     with the Ronin chain and Ronin Wallet.
+/// </summary>
+/// <remarks>
+///     After <c>Start</c>, the app will try to resume the previous session or subscribe to the
+///     account-connected event. Users can connect their wallets by clicking the "Connect" button,
+///     which opens the AppKit modal UI. After connecting, users can sign a message and verify it
+///     with the connected wallet.
+/// </remarks>
+/// <example>
+///     Alternatively, on mobile native platforms, users can connect directly to the Ronin wallet:
+///     <code language="csharp">
+///         await AppKit.ConnectAsync("541d5dcd4ede02f3afaf75bf8e3e4c4f1fb09edb5fa6c4377ebf31c2785d9adf");
+///     </code>
+///     where the parameter is the Ronin Wallet ID (see https://walletguide.walletconnect.network).
+/// </example>
 public class Main : MonoBehaviour
 {
     [SerializeField] private Button _connectButton;
@@ -25,10 +41,10 @@ public class Main : MonoBehaviour
             // Project ID from https://cloud.reown.com/
             projectId = "610570e13c15bf6e35d12aa2ba945100", // don't use this project id in prod!
             metadata = new Metadata(
-                name: "My Game",
-                description: "Short description",
-                url: "https://example.com",
-                iconUrl: "https://example.com/logo.png"
+                name: "Ronin Sample",
+                description: "Sample Unity project demonstrating how to use Reown AppKit SDK with Ronin chain and Ronin Wallet.",
+                url: "https://reown.com",
+                iconUrl: "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/develop/sample/Reown.AppKit.Unity/Assets/Textures/appkit-icon-unity.png"
             ),
             // Optional. Can be used to show only specific wallets in AppKit UI
             // Wallet IDs can be found at: https://walletguide.walletconnect.network
@@ -50,10 +66,10 @@ public class Main : MonoBehaviour
         // Initialize AppKit with config
         await AppKit.InitializeAsync(config);
         
-        await ResumeSessionOrOpenAppKitModal();
+        await ResumeSessionOrSubscribeToAccountConnectedEvent();
     }
 
-    public async Task ResumeSessionOrOpenAppKitModal()
+    public async Task ResumeSessionOrSubscribeToAccountConnectedEvent()
     {
         // Try to resume account connection from the last session
         var resumed = await AppKit.ConnectorController.TryResumeSessionAsync();
@@ -65,14 +81,8 @@ public class Main : MonoBehaviour
         }
         else
         {
-            // Connect account
+            // Subscribe to account connected event
             AppKit.AccountConnected += (_, e) => MyAccountConnectedHandler();
-            AppKit.OpenModal();
-            return;
-
-            // On mobile and desktop, you can also connect directly to Ronin Wallet
-            // Wallet IDs can be found at: https://walletguide.walletconnect.network
-            await AppKit.ConnectAsync("541d5dcd4ede02f3afaf75bf8e3e4c4f1fb09edb5fa6c4377ebf31c2785d9adf");
         }
     }
     
@@ -99,7 +109,7 @@ public class Main : MonoBehaviour
         _accountButton.interactable = false;
     }
 
-    private async Task SignMessage()
+    private static async Task SignMessage()
     {
         Debug.Log("Signing message...");
 

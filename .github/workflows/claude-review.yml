@@ -1,0 +1,55 @@
+name: Claude Auto Review
+
+on:
+  pull_request:
+    types: [ready_for_review, opened]
+    branches: [develop]
+  issue_comment:
+    types: [created]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'pull_request' && (github.event.action == 'ready_for_review' || github.event.pull_request.draft == false))
+      || (
+        github.event_name == 'issue_comment'
+        && github.event.issue.pull_request
+        && contains(github.event.comment.body, '@claude review')
+      )
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Claude Review
+        uses: WalletConnect/actions/claude/auto-review@1483e05460107d74c575e31af948ce20f9df6387
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          project_context: |
+            This repository is a multi-package .NET + Unity SDK (libraries under src/) with sample Unity projects under playground/ and sample/.
+            Target frameworks: net7.0, net8.0, netstandard2.1 (centralized via src/Directory.Build.props).
+            C# language version: 9.0 (LangVersion set centrally).
+
+            Packages used by both .NET and Unity (must compile for netstandard2.1 and be Unity-compatible):
+            - Reown.Core, Reown.Core.Common, Reown.Core.Crypto, Reown.Core.Network, Reown.Core.Network.WebSocket, Reown.Core.Storage
+            - Reown.Sign, Reown.Sign.Nethereum
+            - Reown.WalletKit
+
+            Unity-only integration packages:
+            - Reown.Sign.Unity, Reown.Sign.Nethereum.Unity, Reown.AppKit.Unity
+            - These may reference UnityEngine and Unity-specific assets; they are not packed as NuGet.
+
+            Dependency management is centralized in Directory.Packages.props (e.g., Newtonsoft.Json, BouncyCastle.Cryptography, Websocket.Client, Nethereum packages, ZXing.Net).
+
+            Key considerations for code review:
+            - All code must be compatible with Unity (Mono/IL2CPP, AOT). Avoid APIs not available in netstandard2.1, reflection emit, dynamic codegen, or platform-incompatible features.
+            - Shared libraries must build across all target frameworks; avoid UnityEngine references outside Unity-only projects.
+            - Keep LangVersion at 9.0; do not introduce language features beyond C# 9.
+            - Ensure public APIs remain stable across .NET and Unity; prefer allocation-conscious code paths for IL2CPP.

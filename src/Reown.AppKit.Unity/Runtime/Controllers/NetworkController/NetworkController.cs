@@ -50,9 +50,9 @@ namespace Reown.AppKit.Unity
             if (chain == null)
                 throw new ArgumentNullException(nameof(chain));
 
-            if (!Chains.Values.Contains(chain))
-                throw new ReownNetworkException("Chain is not supported", ErrorType.DISAPPROVED_CHAINS);
-
+            if (!Chains.ContainsKey(chain.ChainId))
+                throw new ReownNetworkException($"Chain {chain.ChainId} is missing from AppKit config", ErrorType.DISAPPROVED_CHAINS);
+            
             await ChangeActiveChainAsyncCore(chain);
         }
 

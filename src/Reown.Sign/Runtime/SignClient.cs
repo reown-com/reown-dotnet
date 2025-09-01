@@ -87,7 +87,7 @@ namespace Reown.Sign
             options.ConnectionBuilder ??= new Reown.Core.Network.Websocket.WebsocketConnectionBuilder();
 #endif
 
-            CoreClient = options.CoreClient ?? new Core.CoreClient(options);
+            CoreClient = options.CoreClient ?? new CoreClient(options);
 
             PendingRequests = new PendingRequests(CoreClient);
             PairingStore = new PairingStore(CoreClient);
@@ -190,7 +190,7 @@ namespace Reown.Sign
         public event EventHandler<Session> SessionApproved;
         public event EventHandler<PairingEvent> PairingPinged;
         public event EventHandler<PairingEvent> PairingDeleted;
-        public event EventHandler<SessionRequestEvent> SessionRequestSent; 
+        public event EventHandler<SessionRequestEvent> SessionRequestSent;
 
         /// <summary>
         ///     Create a new <see cref="SignClient" /> instance with the given <see cref="SignClientOptions" />
@@ -485,11 +485,6 @@ namespace Reown.Sign
         public Task<Session> ApproveSessionAuthenticate(long requestId, CacaoObject[] auths)
         {
             return Engine.ApproveSessionAuthenticate(requestId, auths);
-        }
-
-        IDictionary<long, AuthPendingRequest> IEngineAPI.PendingAuthRequests
-        {
-            get => Engine.PendingAuthRequests;
         }
 
         public string FormatAuthMessage(AuthPayloadParams payloadParams, string iss)

@@ -225,7 +225,7 @@ namespace Reown.Core.Controllers
         }
 
         /// <summary>
-        ///     Unsubscribe to a given topic optionally specify unsubscribe options
+        ///     Unsubscribe from a given topic optionally specify unsubscribe options
         /// </summary>
         /// <param name="topic">Tbe topic to unsubscribe to</param>
         /// <param name="opts">(Optional) Unsubscribe options specifying protocol options</param>
