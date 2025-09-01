@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Reown.AppKit.Unity.Http;
 using Reown.AppKit.Unity.Model.BlockchainApi;
 using Reown.Sign.Interfaces;
+using UnityEngine;
 
 namespace Reown.AppKit.Unity
 {
@@ -25,7 +26,21 @@ namespace Reown.AppKit.Unity
         public Task InitializeAsync(ISignClient signClient)
         {
             _signClient = signClient;
+            SetOriginHeader();
             return Task.CompletedTask;
+        }
+
+        private void SetOriginHeader()
+        {
+#if UNITY_IOS || UNITY_STANDALONE_OSX || UNITY_WEBGL || UNITY_ANDROID
+            _getBalanceHeaders["origin"] = Application.identifier;
+#elif UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+            _getBalanceHeaders["origin"] = "https://windows.web3modal.com"
+#elif UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+            _getBalanceHeaders["origin"] = "https://linux.web3modal.com"
+#else
+            _getBalanceHeaders["origin"] = "https://unknown-unity.web3modal.com"
+#endif
         }
 
         public static bool IsAccountDataSupported(string chainId)
