@@ -35,11 +35,11 @@ namespace Reown.AppKit.Unity
 #if UNITY_IOS || UNITY_STANDALONE_OSX || UNITY_WEBGL || UNITY_ANDROID
             _getBalanceHeaders["origin"] = Application.identifier;
 #elif UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-            _getBalanceHeaders["origin"] = "https://windows.web3modal.com"
+            _getBalanceHeaders["origin"] = "https://windows.web3modal.com";
 #elif UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
-            _getBalanceHeaders["origin"] = "https://linux.web3modal.com"
+            _getBalanceHeaders["origin"] = "https://linux.web3modal.com";
 #else
-            _getBalanceHeaders["origin"] = "https://unknown-unity.web3modal.com"
+            _getBalanceHeaders["origin"] = "https://unknown-unity.web3modal.com";
 #endif
         }
 
