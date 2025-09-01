@@ -172,6 +172,7 @@ namespace Reown.AppKit.Unity
             if (!BlockchainApiController.IsAccountDataSupported(ChainId))
             {
                 ProfileAvatar = default;
+                ProfileName = Address.Truncate();
                 return;
             }
             
