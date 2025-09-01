@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Reown.AppKit.Unity.Model;
 using Reown.Core.Common.Model.Errors;
@@ -7,6 +8,8 @@ using Reown.Core.Common.Utils;
 using Reown.Sign.Models;
 using Reown.Sign.Unity;
 using UnityEngine;
+
+[assembly: InternalsVisibleTo("Reown.AppKit.Unity.Editor.Tests")]
 
 namespace Reown.AppKit.Unity
 {

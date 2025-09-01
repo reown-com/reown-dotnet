@@ -44,34 +44,6 @@ namespace Reown.AppKit.Unity
         private ConnectionProposal _connectionProposal;
         private SignClientUnity _signClient;
 
-        private static readonly string[] _supportedMethods =
-        {
-            "eth_accounts",
-            "eth_requestAccounts",
-            "eth_sendRawTransaction",
-            "eth_sign",
-            "eth_signTransaction",
-            "eth_signTypedData",
-            "eth_signTypedData_v3",
-            "eth_signTypedData_v4",
-            "eth_sendTransaction",
-            "personal_sign",
-            "wallet_switchEthereumChain",
-            "wallet_addEthereumChain",
-            "wallet_getPermissions",
-            "wallet_requestPermissions",
-            "wallet_registerOnboarding",
-            "wallet_watchAsset",
-            "wallet_scanQRCode"
-        };
-
-        private static readonly string[] _supportedEvents =
-        {
-            "chainChanged",
-            "accountsChanged",
-            "reown_updateEmail"
-        };
-
         protected override Task InitializeAsyncCore(AppKitConfig config, SignClientUnity signClient)
         {
             _signClient = signClient;
@@ -152,24 +124,9 @@ namespace Reown.AppKit.Unity
 
         protected override ConnectionProposal ConnectCore()
         {
-            var activeChain = AppKit.NetworkController.ActiveChain;
-            var sortedChains = activeChain != null
-                ? DappSupportedChains.OrderByDescending(chainEntry => chainEntry.ChainId == activeChain.ChainId)
-                : DappSupportedChains;
-
             var connectOptions = new ConnectOptions
             {
-                OptionalNamespaces = sortedChains
-                    .GroupBy(chainEntry => chainEntry.ChainNamespace)
-                    .ToDictionary(
-                        group => group.Key,
-                        group => new ProposedNamespace
-                        {
-                            Methods = _supportedMethods,
-                            Chains = group.Select(chainEntry => chainEntry.ChainId).ToArray(),
-                            Events = _supportedEvents
-                        }
-                    )
+                OptionalNamespaces = NamespaceFactory.BuildProposedNamespaces(AppKit.NetworkController.ActiveChain, DappSupportedChains)
             };
 
             _connectionProposal = new WalletConnectConnectionProposal(this, _signClient, connectOptions, AppKit.SiweController);
