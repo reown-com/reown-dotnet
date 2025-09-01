@@ -28,6 +28,12 @@ namespace Reown.AppKit.Unity
             return Task.CompletedTask;
         }
 
+        public static bool IsAccountDataSupported(string chainId)
+        {
+            var chainNamespace = Core.Utils.ExtractChainNamespace(chainId);
+            return chainNamespace == "eip155";
+        }
+
         public async Task<GetIdentityResponse> GetIdentityAsync(string address)
         {
             if (string.IsNullOrWhiteSpace(address))

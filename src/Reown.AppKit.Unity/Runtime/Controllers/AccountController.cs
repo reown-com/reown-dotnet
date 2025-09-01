@@ -169,6 +169,12 @@ namespace Reown.AppKit.Unity
             if (string.IsNullOrWhiteSpace(Address))
                 return;
 
+            if (!BlockchainApiController.IsAccountDataSupported(ChainId))
+            {
+                ProfileAvatar = default;
+                return;
+            }
+            
             var identity = await _blockchainApiController.GetIdentityAsync(Address);
             ProfileName = string.IsNullOrWhiteSpace(identity.Name)
                 ? Address.Truncate()
@@ -182,13 +188,12 @@ namespace Reown.AppKit.Unity
                     var avatarFormat = headers["Content-Type"].Split('/').Last();
                     ProfileAvatar = new AccountAvatar(identity.Avatar, avatarFormat);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     ProfileAvatar = default;
                 }
             }
             else
-
             {
                 ProfileAvatar = default;
             }
