@@ -1,5 +1,14 @@
+using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Reown.AppKit.Unity;
+using Reown.Core.Common.Logging;
+using Reown.Core.Common.Utils;
+using Reown.Core.Crypto.Encoder;
+using Reown.Core.Network.Models;
+using Reown.Sign.Unity;
+using Solana.Unity.Wallet.Utilities;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,6 +27,9 @@ public class Main : MonoBehaviour
 
     public async void Start()
     {
+        // Set up Reown logger to collect logs from AppKit
+        ReownLogger.Instance = new UnityLogger();
+        
         // Create AppKit config object
         var config = new AppKitConfig
         {
@@ -27,19 +39,12 @@ public class Main : MonoBehaviour
                 name: "Solana Core",
                 description: "Testing Solana.Unity-Core + Reown AppKit",
                 url: "https://reown.com",
-                iconUrl: "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/develop/sample/Reown.AppKit.Unity/Assets/Textures/appkit-icon-unity.png"
+                iconUrl: "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/develop/sample/Reown.AppKit.Unity/Assets/Textures/appkit-icon-unity.png",
+                new RedirectData
+                {
+                    Native = "com.Reown.SolanaCore"
+                }
             ),
-            // // Optional. Can be used to show only specific wallets in AppKit UI
-            // // Wallet IDs can be found at: https://walletguide.walletconnect.network
-            // includedWalletIds = new[]
-            // {
-            //     // Ronin Wallet
-            //     "541d5dcd4ede02f3afaf75bf8e3e4c4f1fb09edb5fa6c4377ebf31c2785d9adf",
-            //     // MetaMask
-            //     "c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96",
-            //     // Trust
-            //     "4622a2b2d6af1c9844944291e5e7351a6aa24cd7b23099efac1b2fd875da31a0"
-            // },
             supportedChains = new[]
             {
                 ChainConstants.Chains.Solana,
@@ -96,28 +101,27 @@ public class Main : MonoBehaviour
         Debug.Log("Signing message...");
 
         const string message = "Hello, Solana!";
+        var messageBytes = Encoding.UTF8.GetBytes(message);
+        var base58 = Base58Encoding.Encode(messageBytes);
         
-        // Sign a message with connected wallet.
-        // Wallet returns a message signature that we can use to verify user's address
-        var messageSignature = await AppKit.Evm.SignMessageAsync(message);
-
-        var connectedAccount = await AppKit.GetAccountAsync();
+        Debug.Log($"Message: {base58}");
         
-        var verifyMessageParams = new VerifyMessageSignatureParams
+        // const string message = "37u9WtQpcm6ULa3VtWDFAWoQc1hUvybPrA3dtx99tgHvvcE7pKRZjuGmn7VX2tC3JmYDYGG7";
+        var data = new Dictionary<string, string>
         {
-            Address = connectedAccount.Address,
-            Message = message,
-            Signature = messageSignature
+            {
+                "message", base58
+            },
+            {
+                "pubkey", AppKit.Account.Address
+            }
         };
-        var isSignatureValid = await AppKit.Evm.VerifyMessageSignatureAsync(verifyMessageParams);
         
-        if (isSignatureValid)
-        {
-            Debug.Log($"Message signature is valid.");
-        }
-        else
-        {
-            Debug.LogError($"Message signature is invalid.");
-        }
+        var wcConnector = AppKit.ConnectorController.ActiveConnector as WalletConnectConnector;
+        var signClient = wcConnector.SignClient;
+        var sessionTopic = signClient.AddressProvider.DefaultSession.Topic;
+        var result = await signClient.RequestAsync<Dictionary<string, string>, Dictionary<string, string>>(sessionTopic, "solana_signMessage", data);
+        
+        Debug.Log(JsonConvert.SerializeObject(result, Formatting.Indented));
     }
 }
