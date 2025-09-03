@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Reown.Core.Models;
@@ -19,12 +19,14 @@ namespace Reown.Sign.Interfaces
     ///     An interface that represents functions the Sign client Engine can perform. These
     ///     functions exist in both the Engine and in the Sign client.
     /// </summary>
-    public interface IEngineAPI
+    public interface IEngineApi
     {
         /// <summary>
-        ///     Get all pending session requests as an array
+        ///     Get all incoming pending session requests as an array
         /// </summary>
         PendingRequestStruct[] PendingSessionRequests { get; }
+
+        bool HasSessionAuthenticateRequestSubscribers { get; }
 
         /// <summary>
         ///     This event is invoked when the given session has expired
@@ -152,8 +154,24 @@ namespace Reown.Sign.Interfaces
         public bool TryUnsubscribeFromSessionEvent(string eventName, EventHandler<SessionEvent<JToken>> handler);
 
         /// <summary>
+        ///     Find all sessions that have a namespace that match the given <see cref="RequiredNamespaces" />
+        /// </summary>
+        /// <param name="requiredNamespaces">The required namespaces the session must have to be returned</param>
+        /// <returns>All sessions that have a namespace that match the given <see cref="RequiredNamespaces" /></returns>
+        Session[] Find(RequiredNamespaces requiredNamespaces);
+
+        /// <summary>
+        ///     Format a message for the given payloadParams. This is used to generate the message that is sent to the wallet
+        ///     for authentication. The message is formatted according to the CAIP-122 specification.
+        /// </summary>
+        /// <param name="payloadParams">Parameters containing authentication payload data.</param>
+        /// <param name="iss">The issuer string, typically representing the account or entity requesting authentication.</param>
+        /// <returns>CAIP-122 message</returns>
+        string FormatAuthMessage(AuthPayloadParams payloadParams, string iss);
+
+        /// <summary>
         ///     Get static event handlers for requests / responses for the given type T, TR. This is similar to
-        ///     <see cref="IEngine.HandleMessageType{T,TR}" /> but uses EventHandler rather than callback functions
+        ///     <see cref="IEngine.HandleMessageTypeAsync{T,TR}" /> but uses EventHandler rather than callback functions
         /// </summary>
         /// <typeparam name="T">The request type to trigger the requestCallback for</typeparam>
         /// <typeparam name="TR">The response type to trigger the responseCallback for</typeparam>
@@ -163,23 +181,25 @@ namespace Reown.Sign.Interfaces
         /// <summary>
         ///     Connect (a dApp) with the given ConnectOptions. At a minimum, you must specified a RequiredNamespace.
         /// </summary>
-        /// <param name="options"></param>
+        /// <param name="options">Connection options</param>
+        /// <param name="ct">Cancellation token</param>       
         /// <returns>
         ///     Connection data that includes the session proposal URI as well as a
         ///     way to await for a session approval
         /// </returns>
-        Task<ConnectedData> Connect(ConnectOptions options);
+        Task<ConnectedData> ConnectAsync(ConnectOptions options, CancellationToken ct = default);
 
         /// <summary>
         ///     Pair (a wallet) with a peer (dApp) using the given uri. The uri must be in the correct
         ///     format otherwise an exception will be thrown.
         /// </summary>
         /// <param name="uri">The URI to pair with</param>
+        /// <param name="ct">Cancellation token</param>      
         /// <returns>
         ///     The proposal the connecting peer wants to connect using. You must approve or reject
         ///     the proposal
         /// </returns>
-        Task<PairingStruct> Pair(string uri);
+        Task<PairingStruct> PairAsync(string uri, CancellationToken ct = default);
 
         /// <summary>
         ///     Approve a proposal that was recently paired. If the given proposal was not from a recent pairing,
@@ -188,29 +208,30 @@ namespace Reown.Sign.Interfaces
         /// <param name="proposalStruct">The proposal to approve</param>
         /// <param name="approvedAddresses">An array of address strings to connect to the session</param>
         /// <returns>Approval data, includes the topic of the session and a way to wait for approval acknowledgement</returns>
-        Task<IApprovedData> Approve(ProposalStruct proposalStruct, params string[] approvedAddresses);
+        Task<IApprovedData> ApproveAsync(ProposalStruct proposalStruct, params string[] approvedAddresses);
 
         /// <summary>
         ///     Approve a proposal that was recently paired. If the given proposal was not from a recent pairing,
         ///     or the proposal has expired, then an Exception will be thrown.
         ///     Use <see cref="ProposalStruct.ApproveProposal(string, ProtocolOptions)" /> to generate an
-        ///     <see cref="ApproveParams" /> object, or use the alias function <see cref="IEngineAPI.Approve(ProposalStruct, string[])" />
+        ///     <see cref="ApproveParams" /> object, or use the alias function <see cref="IEngineApi.Approve(ProposalStruct, string[])" />
         /// </summary>
         /// <param name="params">
         ///     Parameters for the approval. This usually comes from <see cref="ProposalStruct.ApproveProposal(string, ProtocolOptions)" />
         /// </param>
+        /// <param name="ct">Cancellation token</param>
         /// <returns>Approval data, includes the topic of the session and a way to wait for approval acknowledgement</returns>
-        Task<IApprovedData> Approve(ApproveParams @params);
+        Task<IApprovedData> ApproveAsync(ApproveParams @params, CancellationToken ct = default);
 
         /// <summary>
         ///     Reject a proposal that was recently paired. If the given proposal was not from a recent pairing,
         ///     or the proposal has expired, then an Exception will be thrown.
         ///     Use <see cref="ProposalStruct.RejectProposal(string)" /> or <see cref="ProposalStruct.RejectProposal(Error)" />
-        ///     to generate a <see cref="RejectParams" /> object, or use the alias function <see cref="IEngineAPI.Reject(ProposalStruct, string)" />
+        ///     to generate a <see cref="RejectParams" /> object, or use the alias function <see cref="IEngineApi.Reject(ProposalStruct, string)" />
         /// </summary>
         /// <param name="params">The parameters of the rejection</param>
-        /// <returns></returns>
-        Task Reject(RejectParams @params);
+        /// <param name="ct">Cancellation token</param>
+        Task RejectAsync(RejectParams @params, CancellationToken ct = default);
 
         /// <summary>
         ///     Reject a proposal that was recently paired. If the given proposal was not from a recent pairing,
@@ -218,7 +239,8 @@ namespace Reown.Sign.Interfaces
         /// </summary>
         /// <param name="proposalStruct">The proposal to reject</param>
         /// <param name="message">A message explaining the reason for the rejection</param>
-        Task Reject(ProposalStruct proposalStruct, string message = null);
+        /// <param name="ct">Cancellation token</param>      
+        Task RejectAsync(ProposalStruct proposalStruct, string message = null, CancellationToken ct = default);
 
         /// <summary>
         ///     Reject a proposal that was recently paired. If the given proposal was not from a recent pairing,
@@ -226,7 +248,8 @@ namespace Reown.Sign.Interfaces
         /// </summary>
         /// <param name="proposalStruct">The proposal to reject</param>
         /// <param name="error">An error explaining the reason for the rejection</param>
-        Task Reject(ProposalStruct proposalStruct, Error error);
+        /// <param name="ct">Cancellation token</param>
+        Task RejectAsync(ProposalStruct proposalStruct, Error error, CancellationToken ct = default);
 
         /// <summary>
         ///     Update a session, adding/removing additional namespaces in the given topic.
@@ -234,14 +257,32 @@ namespace Reown.Sign.Interfaces
         /// <param name="topic">The topic to update</param>
         /// <param name="namespaces">The updated namespaces</param>
         /// <returns>A task that returns an interface that can be used to listen for acknowledgement of the updates</returns>
-        Task<IAcknowledgement> UpdateSession(string topic, Namespaces namespaces);
+        /// <param name="ct">Cancellation token</param>
+        Task<IAcknowledgement> UpdateSessionAsync(string topic, Namespaces namespaces, CancellationToken ct = default);
+
+        /// <summary>
+        ///     Update the default session, adding/removing additional namespaces in the given topic. The default session
+        ///     is grabbed from Client.AddressProvider.DefaultSession
+        /// </summary>
+        /// <param name="namespaces">The updated namespaces</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>A task that returns an interface that can be used to listen for acknowledgement of the updates</returns>
+        Task<IAcknowledgement> UpdateSessionAsync(Namespaces namespaces, CancellationToken ct = default);
 
         /// <summary>
         ///     Extend a session in the given topic.
         /// </summary>
         /// <param name="topic">The topic of the session to extend</param>
+        /// <param name="ct">Cancellation token</param>
         /// <returns>A task that returns an interface that can be used to listen for acknowledgement of the extension</returns>
-        Task<IAcknowledgement> Extend(string topic);
+        Task<IAcknowledgement> ExtendAsync(string topic, CancellationToken ct = default);
+
+        /// <summary>
+        ///     Extend the default session.
+        /// </summary>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>A task that returns an interface that can be used to listen for acknowledgement of the extension</returns>
+        Task<IAcknowledgement> ExtendAsync(CancellationToken ct = default);
 
         /// <summary>
         ///     Send a request to the session in the given topic with the request data T. You may (optionally) specify
@@ -253,74 +294,18 @@ namespace Reown.Sign.Interfaces
         ///     what options to use for the Request / Response.
         /// </summary>
         /// <param name="topic">The topic of the session to send the request in</param>
+        /// <param name="method">The RPC method name</param>
         /// <param name="data">The data of the request</param>
         /// <param name="chainId">An (optional) chainId the request should be performed in</param>
         /// <param name="expiry">
         ///     An override to specify how long this request will live for. If null is given, then expiry will be taken from either T or TR
         ///     attributed options
         /// </param>
+        /// <param name="ct">Cancellation token</param>
         /// <typeparam name="T">The type of the request data. MUST define the RpcMethodAttribute</typeparam>
         /// <typeparam name="TR">The type of the response data.</typeparam>
         /// <returns>The response data as type TR</returns>
-        Task<TR> Request<T, TR>(string topic, T data, string chainId = null, long? expiry = null);
-
-        /// <summary>
-        ///     Send a response to a request to the session in the given topic with the response data TR. This function
-        ///     can be called directly, however it may be easier to use <see cref="TypedEventHandler{T, TR}.OnResponse" /> event
-        ///     to handle sending responses to specific requests.
-        /// </summary>
-        /// <param name="topic">The topic of the session to respond in</param>
-        /// <param name="response">The JSON RPC response to send</param>
-        /// <typeparam name="T">The type of the request data</typeparam>
-        /// <typeparam name="TR">The type of the response data</typeparam>
-        Task Respond<T, TR>(string topic, JsonRpcResponse<TR> response);
-
-        /// <summary>
-        ///     Emit an event to the session with the given topic with the given <see cref="EventData{T}" />. You may
-        ///     optionally specify a chainId to specify where the event occured.
-        /// </summary>
-        /// <param name="topic">The topic of the session to emit the event to</param>
-        /// <param name="eventData">The event data for the event emitted</param>
-        /// <param name="chainId">An (optional) chainId to specify where the event occured</param>
-        /// <typeparam name="T">The type of the event data</typeparam>
-        Task Emit<T>(string topic, EventData<T> eventData, string chainId = null);
-
-        /// <summary>
-        ///     Send a ping to the session in the given topic
-        /// </summary>
-        /// <param name="topic">The topic of the session to send a ping to</param>
-        Task Ping(string topic);
-
-        /// <summary>
-        ///     Disconnect a session in the given topic with an (optional) error reason
-        /// </summary>
-        /// <param name="topic">The topic of the session to disconnect</param>
-        /// <param name="reason">An (optional) error reason for the disconnect</param>
-        Task Disconnect(string topic, Error reason = null);
-
-        /// <summary>
-        ///     Find all sessions that have a namespace that match the given <see cref="RequiredNamespaces" />
-        /// </summary>
-        /// <param name="requiredNamespaces">The required namespaces the session must have to be returned</param>
-        /// <returns>All sessions that have a namespace that match the given <see cref="RequiredNamespaces" /></returns>
-        Session[] Find(RequiredNamespaces requiredNamespaces);
-
-        Task<DisposeHandlerToken> HandleEventMessageType<T>(Func<string, JsonRpcRequest<SessionEvent<T>>, Task> requestCallback,
-            Func<string, JsonRpcResponse<bool>, Task> responseCallback);
-
-        /// <summary>
-        ///     Update the default session, adding/removing additional namespaces in the given topic. The default session
-        ///     is grabbed from Client.AddressProvider.DefaultSession
-        /// </summary>
-        /// <param name="namespaces">The updated namespaces</param>
-        /// <returns>A task that returns an interface that can be used to listen for acknowledgement of the updates</returns>
-        Task<IAcknowledgement> UpdateSession(Namespaces namespaces);
-
-        /// <summary>
-        ///     Extend the default session.
-        /// </summary>
-        /// <returns>A task that returns an interface that can be used to listen for acknowledgement of the extension</returns>
-        Task<IAcknowledgement> Extend();
+        Task<TR> RequestAsync<T, TR>(string topic, string method, T data, string chainId = null, long? expiry = null, CancellationToken ct = default);
 
         /// <summary>
         ///     Send a request to the default session with the request data T. You may (optionally) specify
@@ -331,6 +316,7 @@ namespace Reown.Sign.Interfaces
         ///     Either type T or TR MUST define a RpcRequestOptions and RpcResponseOptions attribute to tell the SDK
         ///     what options to use for the Request / Response.
         /// </summary>
+        /// <param name="method">The RPC method name</param>       
         /// <param name="data">The data of the request</param>
         /// <param name="chainId">An (optional) chainId the request should be performed in</param>
         /// <param name="expiry">
@@ -339,8 +325,21 @@ namespace Reown.Sign.Interfaces
         /// </param>
         /// <typeparam name="T">The type of the request data. MUST define the RpcMethodAttribute</typeparam>
         /// <typeparam name="TR">The type of the response data.</typeparam>
+        /// <param name="ct">Cancellation token</param>
         /// <returns>The response data as type TR</returns>
-        Task<TR> Request<T, TR>(T data, string chainId = null, long? expiry = null);
+        Task<TR> RequestAsync<T, TR>(string method, T data, string chainId = null, long? expiry = null, CancellationToken ct = default);
+
+        /// <summary>
+        ///     Send a response to a request to the session in the given topic with the response data TR. This function
+        ///     can be called directly, however it may be easier to use <see cref="TypedEventHandler{T, TR}.OnResponse" /> event
+        ///     to handle sending responses to specific requests.
+        /// </summary>
+        /// <param name="topic">The topic of the session to respond in</param>
+        /// <param name="response">The JSON RPC response to send</param>
+        /// <typeparam name="T">The type of the request data</typeparam>
+        /// <typeparam name="TR">The type of the response data</typeparam>
+        /// <param name="ct">Cancellation token</param>
+        Task RespondAsync<T, TR>(string topic, JsonRpcResponse<TR> response, CancellationToken ct = default);
 
         /// <summary>
         ///     Send a response to a request to the default session with the response data TR. This function
@@ -350,7 +349,19 @@ namespace Reown.Sign.Interfaces
         /// <param name="response">The JSON RPC response to send</param>
         /// <typeparam name="T">The type of the request data</typeparam>
         /// <typeparam name="TR">The type of the response data</typeparam>
-        Task Respond<T, TR>(JsonRpcResponse<TR> response);
+        /// <param name="ct">Cancellation token</param>       
+        Task RespondAsync<T, TR>(JsonRpcResponse<TR> response, CancellationToken ct = default);
+
+        /// <summary>
+        ///     Emit an event to the session with the given topic with the given <see cref="EventData{T}" />. You may
+        ///     optionally specify a chainId to specify where the event occured.
+        /// </summary>
+        /// <param name="topic">The topic of the session to emit the event to</param>
+        /// <param name="eventData">The event data for the event emitted</param>
+        /// <param name="chainId">An (optional) chainId to specify where the event occured</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <typeparam name="T">The type of the event data</typeparam>
+        Task EmitAsync<T>(string topic, EventData<T> eventData, string chainId = null, CancellationToken ct = default);
 
         /// <summary>
         ///     Emit an event to the default session with the given <see cref="EventData{T}" />. You may
@@ -358,29 +369,49 @@ namespace Reown.Sign.Interfaces
         /// </summary>
         /// <param name="eventData">The event data for the event emitted</param>
         /// <param name="chainId">An (optional) chainId to specify where the event occured</param>
+        /// <param name="ct">Cancellation token</param>   
         /// <typeparam name="T">The type of the event data</typeparam>
-        Task Emit<T>(EventData<T> eventData, string chainId = null);
+        Task EmitAsync<T>(EventData<T> eventData, string chainId = null, CancellationToken ct = default);
+
+        /// <summary>
+        ///     Send a ping to the session in the given topic
+        /// </summary>
+        /// <param name="topic">The topic of the session to send a ping to</param>
+        /// <param name="ct">Cancellation token</param>
+        Task PingAsync(string topic, CancellationToken ct = default);
 
         /// <summary>
         ///     Send a ping to the default session
         /// </summary>
-        Task Ping();
+        /// <param name="ct">Cancellation token</param>
+        Task PingAsync(CancellationToken ct = default);
+
+        /// <summary>
+        ///     Disconnect a session in the given topic with an (optional) error reason
+        /// </summary>
+        /// <param name="topic">The topic of the session to disconnect</param>
+        /// <param name="reason">An (optional) error reason for the disconnect</param>
+        /// <param name="ct">Cancellation token</param>
+        Task DisconnectAsync(string topic, Error reason = null, CancellationToken ct = default);
 
         /// <summary>
         ///     Disconnect the default session with an (optional) error reason
         /// </summary>
         /// <param name="reason">An (optional) error reason for the disconnect</param>
-        Task Disconnect(Error reason = null);
+        /// <param name="ct">Cancellation token</param>
+        Task DisconnectAsync(Error reason = null, CancellationToken ct = default);
 
+        // TODO:
+        Task<DisposeHandlerToken> HandleEventMessageTypeAsync<T>(
+            Func<string, JsonRpcRequest<SessionEvent<T>>, Task> requestCallback,
+            Func<string, JsonRpcResponse<bool>, Task> responseCallback,
+            CancellationToken ct = default
+        );
 
-        bool HasSessionAuthenticateRequestSubscribers { get; }
+        Task<AuthenticateData> AuthenticateAsync(AuthParams authParams, CancellationToken ct = default);
 
-        Task<AuthenticateData> Authenticate(AuthParams authParams);
+        Task RejectSessionAuthenticateAsync(RejectParams rejectParams, CancellationToken ct = default);
 
-        Task RejectSessionAuthenticate(RejectParams rejectParams);
-
-        Task<Session> ApproveSessionAuthenticate(long requestId, CacaoObject[] auths);
-
-        string FormatAuthMessage(AuthPayloadParams payloadParams, string iss);
+        Task<Session> ApproveSessionAuthenticateAsync(long requestId, CacaoObject[] auths, CancellationToken ct = default);
     }
 }

@@ -91,7 +91,7 @@ namespace Reown.Sign.Models
         ///     (optional) The protocol option to use. If left null, then the first protocol
         ///     option in this proposal will be chosen
         /// </param>
-        /// <returns>The <see cref="ApproveParams" /> that can be given to <see cref="IEngineAPI.Approve(ApproveParams)" /></returns>
+        /// <returns>The <see cref="ApproveParams" /> that can be given to <see cref="IEngineApi.Approve(ApproveParams)" /></returns>
         public ApproveParams ApproveProposal(string approvedAccount, ProtocolOptions protocolOption = null)
         {
             return ApproveProposal(new[]
@@ -109,7 +109,7 @@ namespace Reown.Sign.Models
         ///     (optional) The protocol option to use. If left null, then the first protocol
         ///     option in this proposal will be chosen.
         /// </param>
-        /// <returns>The <see cref="ApproveParams" /> that can be given to <see cref="IEngineAPI.Approve(ApproveParams)" /></returns>
+        /// <returns>The <see cref="ApproveParams" /> that can be given to <see cref="IEngineApi.Approve(ApproveParams)" /></returns>
         /// <exception cref="InvalidOperationException">If this proposal has no Id</exception>
         /// <exception cref="InvalidOperationException">If the requested protocol option does not exist in this proposal</exception>
         public ApproveParams ApproveProposal(string[] approvedAccounts, ProtocolOptions protocolOption = null)
@@ -173,10 +173,10 @@ namespace Reown.Sign.Models
 
         /// <summary>
         ///     Reject this proposal with the given <see cref="Error" />. This
-        ///     will return a <see cref="RejectParams" /> which must be used in <see cref="IEngineAPI.Reject(RejectParams)" />
+        ///     will return a <see cref="RejectParams" /> which must be used in <see cref="IEngineApi.Reject(RejectParams)" />
         /// </summary>
         /// <param name="error">The error reason this proposal was rejected</param>
-        /// <returns>A new <see cref="RejectParams" /> object which must be used in <see cref="IEngineAPI.Reject(RejectParams)" /></returns>
+        /// <returns>A new <see cref="RejectParams" /> object which must be used in <see cref="IEngineApi.Reject(RejectParams)" /></returns>
         /// <exception cref="InvalidOperationException">If this proposal has no Id</exception>
         public RejectParams RejectProposal(Error error)
         {
@@ -194,10 +194,10 @@ namespace Reown.Sign.Models
 
         /// <summary>
         ///     Reject this proposal with the given message. This
-        ///     will return a <see cref="RejectParams" /> which must be used in <see cref="IEngineAPI.Reject(RejectParams)" />
+        ///     will return a <see cref="RejectParams" /> which must be used in <see cref="IEngineApi.Reject(RejectParams)" />
         /// </summary>
         /// <param name="message">The reason message this proposal was rejected</param>
-        /// <returns>A new <see cref="RejectParams" /> object which must be used in <see cref="IEngineAPI.Reject(RejectParams)" /></returns>
+        /// <returns>A new <see cref="RejectParams" /> object which must be used in <see cref="IEngineApi.Reject(RejectParams)" /></returns>
         /// <exception cref="Exception">If this proposal has no Id</exception>
         public RejectParams RejectProposal(string message = null)
         {
