@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 namespace Reown.Core.Crypto.Encoder
 {
     // Implements https://en.bitcoin.it/wiki/Base58Check_encoding
-    internal static class Base58Encoding
+    public static class Base58Encoding
     {
         public const int CheckSumSizeInBytes = 4;
         private const string DIGITS = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
