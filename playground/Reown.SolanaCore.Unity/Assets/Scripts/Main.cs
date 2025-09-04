@@ -2,7 +2,10 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Signers;
 using Reown.AppKit.Unity;
+using Reown.AppKit.Unity.Model;
 using Reown.Core.Common.Logging;
 using Reown.Core.Common.Utils;
 using Reown.Core.Crypto.Encoder;
@@ -45,6 +48,15 @@ public class Main : MonoBehaviour
                     Native = "com.Reown.SolanaCore"
                 }
             ),
+            customWallets = new []
+            {
+                new Wallet
+                {
+                    Name = "Flutter Sample Wallet",
+                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-flutter.png?raw=true",
+                    MobileLink = "wcflutterwallet://"
+                },
+            },
             supportedChains = new[]
             {
                 ChainConstants.Chains.Solana,
@@ -101,27 +113,10 @@ public class Main : MonoBehaviour
         Debug.Log("Signing message...");
 
         const string message = "Hello, Solana!";
-        var messageBytes = Encoding.UTF8.GetBytes(message);
-        var base58 = Base58Encoding.Encode(messageBytes);
+        var sig = await AppKit.Solana.SignMessageAsync(message);
+        Debug.Log($"Signature: {sig}");
         
-        Debug.Log($"Message: {base58}");
-        
-        // const string message = "37u9WtQpcm6ULa3VtWDFAWoQc1hUvybPrA3dtx99tgHvvcE7pKRZjuGmn7VX2tC3JmYDYGG7";
-        var data = new Dictionary<string, string>
-        {
-            {
-                "message", base58
-            },
-            {
-                "pubkey", AppKit.Account.Address
-            }
-        };
-        
-        var wcConnector = AppKit.ConnectorController.ActiveConnector as WalletConnectConnector;
-        var signClient = wcConnector.SignClient;
-        var sessionTopic = signClient.AddressProvider.DefaultSession.Topic;
-        var result = await signClient.RequestAsync<Dictionary<string, string>, Dictionary<string, string>>(sessionTopic, "solana_signMessage", data);
-        
-        Debug.Log(JsonConvert.SerializeObject(result, Formatting.Indented));
+        var isValid = await AppKit.Solana.VerifyMessageSignatureAsync(message, sig);
+        Debug.Log($"Signature verified: {isValid}");
     }
 }

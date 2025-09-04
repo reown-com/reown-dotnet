@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Reown.AppKit.Unity.Model;
 using Reown.Core.Common.Model.Errors;
 using Reown.AppKit.Unity.Model.Errors;
+using Reown.AppKit.Unity.Solana;
 using Reown.Core.Common.Utils;
 using Reown.Sign.Models;
 using Reown.Sign.Unity;
@@ -36,6 +37,7 @@ namespace Reown.AppKit.Unity
         private EventsController _eventsController;
         private SiweController _siweController;
         private EvmService _evm;
+        private SolanaService _solana;
 
         private AppKitConfig _config;
         private bool _isInitialized;
@@ -103,6 +105,20 @@ namespace Reown.AppKit.Unity
         {
             get => Instance._evm;
             protected set => Instance._evm = value;
+        }
+
+        public static SolanaService Solana
+        {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            get
+            {
+                throw new NotImplementedException("Solana is not supported on WebGL.");
+                return null;
+            }
+#else
+            get => Instance._solana;
+#endif
+            protected set => Instance._solana = value;
         }
 
         public static AppKitConfig Config
