@@ -7,6 +7,7 @@ using Reown.AppKit.Unity.Profile;
 using Reown.AppKit.Unity.Utils;
 using Reown.Core.Common.Model.Errors;
 using Reown.AppKit.Unity.Model.Errors;
+using Reown.AppKit.Unity.Solana;
 using Reown.Sign.Models;
 using Reown.Sign.Unity;
 using UnityEngine;
@@ -49,6 +50,8 @@ namespace Reown.AppKit.Unity
             Evm = new WagmiEvmService();
 #else
             Evm = new NethereumEvmService();
+
+            Solana = new SolanaServiceCore();
 #endif
 
             await Task.WhenAll(
@@ -62,6 +65,10 @@ namespace Reown.AppKit.Unity
 
             await Evm.InitializeAsync(SignClient);
 
+#if !UNITY_WEBGL || UNITY_EDITOR
+            await Solana.InitializeAsync(SignClient);
+#endif
+            
             ConnectorController.AccountConnected += AccountConnectedHandler;
             ConnectorController.AccountDisconnected += AccountDisconnectedHandler;
 

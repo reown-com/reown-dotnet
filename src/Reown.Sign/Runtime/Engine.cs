@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Reown.Core.Common;
 using Reown.Core.Common.Events;
@@ -227,23 +227,12 @@ namespace Reown.Sign
                 _initialized = true;
             }
         }
-
-        /// <summary>
-        ///     Subscribes to a specific session event (wc_sessionEvent). The event is identified by its name and handled by the provided event handler.
-        /// </summary>
-        /// <param name="eventName">The name of the session event to subscribe to.</param>
-        /// <param name="handler">The event handler that will handle the event when it's triggered.</param>
+        
         public void SubscribeToSessionEvent(string eventName, EventHandler<SessionEvent<JToken>> handler)
         {
             _customSessionEventsHandlerMap[eventName] += handler;
         }
 
-        /// <summary>
-        ///     Unsubscribes from a specific session event (wc_sessionEvent). The event is identified by its name and the provided event handler.
-        /// </summary>
-        /// <param name="eventName">The name of the session event to unsubscribe from.</param>
-        /// <param name="handler">The event handler that was handling the event.</param>
-        /// <returns>True if the event handler was successfully removed, false otherwise.</returns>
         public bool TryUnsubscribeFromSessionEvent(string eventName, EventHandler<SessionEvent<JToken>> handler)
         {
             // ReSharper disable once NotAccessedVariable
@@ -256,14 +245,7 @@ namespace Reown.Sign
 
             return false;
         }
-
-        /// <summary>
-        ///     Get static event handlers for requests / responses for the given type T, TR. This is similar to
-        ///     <see cref="IEngine.HandleMessageType{T,TR}" /> but uses EventHandler rather than callback functions
-        /// </summary>
-        /// <typeparam name="T">The request type to trigger the requestCallback for</typeparam>
-        /// <typeparam name="TR">The response type to trigger the responseCallback for</typeparam>
-        /// <returns>The <see cref="TypedEventHandler{T,TR}" /> managing events for the given types T, TR</returns>
+        
         public TypedEventHandler<T, TR> SessionRequestEvents<T, TR>()
         {
             var uniqueKey = typeof(T).FullName + "--" + typeof(TR).FullName;
@@ -272,56 +254,60 @@ namespace Reown.Sign
                 _disposeActions.Add(uniqueKey, () => instance.Dispose());
             return instance;
         }
-
-        /// <summary>
-        ///     An alias for <see cref="HandleMessageType{T,TR}" /> where T is <see cref="SessionEvent{T}" /> and
-        ///     TR is unchanged
-        /// </summary>
-        /// <param name="requestCallback">The callback function to invoke when a request is received with the given request type</param>
-        /// <param name="responseCallback">The callback function to invoke when a response is received with the given response type</param>
-        /// <typeparam name="T">The request type to trigger the requestCallback for. Will be wrapped in <see cref="SessionEvent{T}" /></typeparam>
+        
         public Task<DisposeHandlerToken> HandleEventMessageType<T>(
             Func<string, JsonRpcRequest<SessionEvent<T>>, Task> requestCallback,
             Func<string, JsonRpcResponse<bool>, Task> responseCallback)
         {
-            return Client.CoreClient.MessageHandler.HandleMessageType(requestCallback, responseCallback);
+            return HandleEventMessageTypeAsync(requestCallback, responseCallback);
         }
-
-        public Task<IAcknowledgement> UpdateSession(Namespaces namespaces)
+        
+        public async Task<DisposeHandlerToken> HandleEventMessageTypeAsync<T>(
+            Func<string, JsonRpcRequest<SessionEvent<T>>, Task> requestCallback,
+            Func<string, JsonRpcResponse<bool>, Task> responseCallback,
+            CancellationToken ct = default)
         {
-            return UpdateSession(Client.AddressProvider.DefaultSession.Topic, namespaces);
+            ct.ThrowIfCancellationRequested();
+            return await Client.CoreClient.MessageHandler.HandleMessageType(requestCallback, responseCallback);
         }
-
-        public Task<IAcknowledgement> Extend()
+        
+        public Task<IAcknowledgement> UpdateSessionAsync(Namespaces namespaces, CancellationToken ct = default)
         {
-            return Extend(Client.AddressProvider.DefaultSession.Topic);
+            return UpdateSessionAsync(Client.AddressProvider.DefaultSession.Topic, namespaces, ct);
         }
-
-        public Task<TR> Request<T, TR>(T data, string chainId = null, long? expiry = null)
+        
+        public Task<IAcknowledgement> ExtendAsync(CancellationToken ct = default)
         {
-            return Request<T, TR>(Client.AddressProvider.DefaultSession.Topic, data,
-                chainId ?? Client.AddressProvider.DefaultChainId, expiry);
+            return ExtendAsync(Client.AddressProvider.DefaultSession.Topic, ct);
         }
-
-        public Task Respond<T, TR>(JsonRpcResponse<TR> response)
+        
+        
+        public Task<TR> RequestAsync<T, TR>(string method, T data, string chainId = null, long? expiry = null, CancellationToken ct = default)
         {
-            return Respond<T, TR>(Client.AddressProvider.DefaultSession.Topic, response);
+            return RequestAsync<T, TR>(Client.AddressProvider.DefaultSession.Topic, method, data,
+                chainId ?? Client.AddressProvider.DefaultChainId, expiry, ct);
         }
-
-        public Task Emit<T>(EventData<T> eventData, string chainId = null)
+        
+        
+        public Task RespondAsync<T, TR>(JsonRpcResponse<TR> response, CancellationToken ct = default)
         {
-            return Emit(Client.AddressProvider.DefaultSession.Topic, eventData,
-                chainId ?? Client.AddressProvider.DefaultChainId);
+            return RespondAsync<T, TR>(Client.AddressProvider.DefaultSession.Topic, response, ct);
         }
-
-        public Task Ping()
+        
+        public Task EmitAsync<T>(EventData<T> eventData, string chainId = null, CancellationToken ct = default)
         {
-            return Ping(Client.AddressProvider.DefaultSession.Topic);
+            return EmitAsync(Client.AddressProvider.DefaultSession.Topic, eventData,
+                chainId ?? Client.AddressProvider.DefaultChainId, ct);
         }
-
-        public Task Disconnect(Error reason = null)
+        
+        public Task PingAsync(CancellationToken ct = default)
         {
-            return Disconnect(Client.AddressProvider.DefaultSession.Topic, reason);
+            return PingAsync(Client.AddressProvider.DefaultSession.Topic, ct);
+        }
+        
+        public Task DisconnectAsync(Error reason = null, CancellationToken ct = default)
+        {
+            return DisconnectAsync(Client.AddressProvider.DefaultSession.Topic, reason, ct);
         }
 
         /// <summary>
@@ -376,17 +362,10 @@ namespace Reown.Sign
                 return Client.PendingRequests.Values;
             }
         }
-
-        /// <summary>
-        ///     Connect (a dApp) with the given ConnectOptions. At a minimum, you must specified a RequiredNamespace.
-        /// </summary>
-        /// <param name="options"></param>
-        /// <returns>
-        ///     Connection data that includes the session proposal URI as well as a
-        ///     way to await for a session approval
-        /// </returns>
-        public async Task<ConnectedData> Connect(ConnectOptions options)
+        
+        public async Task<ConnectedData> ConnectAsync(ConnectOptions options, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             IsInitialized();
             await PrivateThis.IsValidConnect(options);
             var requiredNamespaces = options.RequiredNamespaces;
@@ -466,6 +445,8 @@ namespace Reown.Sign
 
             async void OnSessionConnected(object sender, Session session)
             {
+                ct.ThrowIfCancellationRequested();
+                
                 if (session == null)
                     return;
 
@@ -494,6 +475,8 @@ namespace Reown.Sign
 
             void OnSessionConnectionErrored(object sender, Exception exception)
             {
+                ct.ThrowIfCancellationRequested();
+                
                 if (approvalTask.Task.IsCompleted)
                 {
                     return;
@@ -510,34 +493,17 @@ namespace Reown.Sign
                 approvalTask.SetException(exception);
             }
         }
-
-        /// <summary>
-        ///     Pair (a wallet) with a peer (dApp) using the given uri. The uri must be in the correct
-        ///     format otherwise an exception will be thrown.
-        /// </summary>
-        /// <param name="uri">The URI to pair with</param>
-        /// <returns>
-        ///     The proposal the connecting peer wants to connect using. You must approve or reject
-        ///     the proposal
-        /// </returns>
-        public async Task<PairingStruct> Pair(string uri)
+        
+        public async Task<PairingStruct> PairAsync(string uri, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             IsInitialized();
             return await Client.CoreClient.Pairing.Pair(uri);
         }
-
-        /// <summary>
-        ///     Approve a proposal that was recently paired. If the given proposal was not from a recent pairing,
-        ///     or the proposal has expired, then an Exception will be thrown.
-        ///     Use <see cref="ProposalStruct.ApproveProposal(string, ProtocolOptions)" /> to generate an
-        ///     <see cref="ApproveParams" /> object, or use the alias function <see cref="IEngineAPI.Approve(ProposalStruct, string[])" />
-        /// </summary>
-        /// <param name="@params">
-        ///     Parameters for the approval. This usually comes from <see cref="ProposalStruct.ApproveProposal(string, ProtocolOptions)" />
-        /// </param>
-        /// <returns>Approval data, includes the topic of the session and a way to wait for approval acknowledgement</returns>
-        public async Task<IApprovedData> Approve(ApproveParams @params)
+        
+        public async Task<IApprovedData> ApproveAsync(ApproveParams @params, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             IsInitialized();
             await PrivateThis.IsValidApprove(@params);
             var id = @params.Id;
@@ -619,17 +585,10 @@ namespace Reown.Sign
 
             return IApprovedData.FromTask(sessionTopic, acknowledgedTask.Task);
         }
-
-        /// <summary>
-        ///     Reject a proposal that was recently paired. If the given proposal was not from a recent pairing,
-        ///     or the proposal has expired, then an Exception will be thrown.
-        ///     Use <see cref="ProposalStruct.RejectProposal(string)" /> or <see cref="ProposalStruct.RejectProposal(Error)" />
-        ///     to generate a <see cref="RejectParams" /> object, or use the alias function <see cref="IEngineAPI.Reject(ProposalStruct, string)" />
-        /// </summary>
-        /// <param name="params">The parameters of the rejection</param>
-        /// <returns></returns>
-        public async Task Reject(RejectParams @params)
+        
+        public async Task RejectAsync(RejectParams @params, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             IsInitialized();
             await PrivateThis.IsValidReject(@params);
             var id = @params.Id;
@@ -644,14 +603,14 @@ namespace Reown.Sign
             }
         }
 
-        /// <summary>
-        ///     Update a session, adding/removing additional namespaces in the given topic.
-        /// </summary>
-        /// <param name="topic">The topic to update</param>
-        /// <param name="namespaces">The updated namespaces</param>
-        /// <returns>A task that returns an interface that can be used to listen for acknowledgement of the updates</returns>
-        public async Task<IAcknowledgement> UpdateSession(string topic, Namespaces namespaces)
+        public Task<IAcknowledgement> UpdateSession(string topic, Namespaces namespaces)
         {
+            return UpdateSessionAsync(topic, namespaces);
+        }
+        
+        public async Task<IAcknowledgement> UpdateSessionAsync(string topic, Namespaces namespaces, CancellationToken ct = default)
+        {
+            ct.ThrowIfCancellationRequested();
             IsInitialized();
             await PrivateThis.IsValidUpdate(topic, namespaces);
             var id = await MessageHandler.SendRequest<SessionUpdate, bool>(topic,
@@ -663,6 +622,9 @@ namespace Reown.Sign
             var acknowledgedTask = new TaskCompletionSource<bool>();
             _sessionEventsHandlerMap.ListenOnce($"session_update{id}", (sender, args) =>
             {
+                if (ct.IsCancellationRequested)
+                    acknowledgedTask.TrySetCanceled();
+                
                 if (args.IsError)
                     acknowledgedTask.SetException(args.Error.ToException());
                 else
@@ -676,14 +638,10 @@ namespace Reown.Sign
 
             return IAcknowledgement.FromTask(acknowledgedTask.Task);
         }
-
-        /// <summary>
-        ///     Extend a session in the given topic.
-        /// </summary>
-        /// <param name="topic">The topic of the session to extend</param>
-        /// <returns>A task that returns an interface that can be used to listen for acknowledgement of the extension</returns>
-        public async Task<IAcknowledgement> Extend(string topic)
+        
+        public async Task<IAcknowledgement> ExtendAsync(string topic, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             IsInitialized();
             await PrivateThis.IsValidExtend(topic);
             var id = await MessageHandler.SendRequest<SessionExtend, bool>(topic, new SessionExtend());
@@ -692,6 +650,9 @@ namespace Reown.Sign
 
             _sessionEventsHandlerMap.ListenOnce($"session_extend{id}", (sender, args) =>
             {
+                if (ct.IsCancellationRequested)
+                    acknowledgedTask.TrySetCanceled();
+                
                 if (args.IsError)
                     acknowledgedTask.SetException(args.Error.ToException());
                 else
@@ -702,27 +663,12 @@ namespace Reown.Sign
 
             return IAcknowledgement.FromTask(acknowledgedTask.Task);
         }
-
-        /// <summary>
-        ///     Send a request to the session in the given topic with the request data T. You may (optionally) specify
-        ///     a chainId the request should be performed in. This function will await a response of type TR from the session.
-        ///     If no response is ever received, then a Timeout exception may be thrown.
-        ///     The type T MUST define the RpcMethodAttribute to tell the SDK what JSON RPC method to use for the given
-        ///     type T.
-        ///     Either type T or TR MUST define a RpcRequestOptions and RpcResponseOptions attribute to tell the SDK
-        ///     what options to use for the Request / Response.
-        /// </summary>
-        /// <param name="topic">The topic of the session to send the request in</param>
-        /// <param name="data">The data of the request</param>
-        /// <param name="chainId">An (optional) chainId the request should be performed in</param>
-        /// <typeparam name="T">The type of the request data. MUST define the RpcMethodAttribute</typeparam>
-        /// <typeparam name="TR">The type of the response data.</typeparam>
-        /// <returns>The response data as type TR</returns>
-        public async Task<TR> Request<T, TR>(string topic, T data, string chainId = null, long? expiry = null)
+        
+        public async Task<TR> RequestAsync<T, TR>(string topic, string method, T data, string chainId = null, long? expiry = null, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+            IsInitialized();
             await IsValidSessionTopic(topic);
-
-            var method = RpcMethodAttribute.MethodForType<T>();
 
             string requestChainId;
             if (string.IsNullOrWhiteSpace(chainId))
@@ -739,8 +685,7 @@ namespace Reown.Sign
             }
 
             var request = new JsonRpcRequest<T>(method, data);
-
-            IsInitialized();
+            
             await PrivateThis.IsValidRequest(topic, request, requestChainId);
             var taskSource = new TaskCompletionSource<TR>();
 
@@ -772,18 +717,10 @@ namespace Reown.Sign
 
             return await taskSource.Task;
         }
-
-        /// <summary>
-        ///     Send a response to a request to the session in the given topic with the response data TR. This function
-        ///     can be called directly, however it may be easier to use <see cref="TypedEventHandler{T, TR}.OnResponse" /> event
-        ///     to handle sending responses to specific requests.
-        /// </summary>
-        /// <param name="topic">The topic of the session to respond in</param>
-        /// <param name="response">The JSON RPC response to send</param>
-        /// <typeparam name="T">The type of the request data</typeparam>
-        /// <typeparam name="TR">The type of the response data</typeparam>
-        public async Task Respond<T, TR>(string topic, JsonRpcResponse<TR> response)
+        
+        public async Task RespondAsync<T, TR>(string topic, JsonRpcResponse<TR> response, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             IsInitialized();
             await PrivateThis.IsValidRespond(topic, response);
             var id = response.Id;
@@ -802,17 +739,10 @@ namespace Reown.Sign
                 Message = "fulfilled"
             });
         }
-
-        /// <summary>
-        ///     Emit an event to the session with the given topic with the given <see cref="EventData{T}" />. You may
-        ///     optionally specify a chainId to specify where the event occured.
-        /// </summary>
-        /// <param name="topic">The topic of the session to emit the event to</param>
-        /// <param name="eventData">The event data for the event emitted</param>
-        /// <param name="chainId">An (optional) chainId to specify where the event occured</param>
-        /// <typeparam name="T">The type of the event data</typeparam>
-        public async Task Emit<T>(string topic, EventData<T> eventData, string chainId = null)
+        
+        public async Task EmitAsync<T>(string topic, EventData<T> eventData, string chainId = null, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             IsInitialized();
             await PrivateThis.IsValidEmit(topic, eventData, chainId);
             await MessageHandler.SendRequest<SessionEvent<T>, object>(topic,
@@ -823,13 +753,10 @@ namespace Reown.Sign
                     Topic = topic
                 });
         }
-
-        /// <summary>
-        ///     Send a ping to the session in the given topic
-        /// </summary>
-        /// <param name="topic">The topic of the session to send a ping to</param>
-        public async Task Ping(string topic)
+        
+        public async Task PingAsync(string topic, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             IsInitialized();
             await PrivateThis.IsValidPing(topic);
 
@@ -852,13 +779,14 @@ namespace Reown.Sign
             }
         }
 
-        /// <summary>
-        ///     Disconnect a session in the given topic with an (optional) error reason
-        /// </summary>
-        /// <param name="topic">The topic of the session to disconnect</param>
-        /// <param name="reason">An (optional) error reason for the disconnect</param>
-        public async Task Disconnect(string topic, Error reason = null)
+        public Task Disconnect(string topic, Error reason = null)
         {
+            return DisconnectAsync(topic, reason);
+        }
+        
+        public async Task DisconnectAsync(string topic, Error reason = null, CancellationToken ct = default)
+        {
+            ct.ThrowIfCancellationRequested();
             IsInitialized();
             var error = reason ?? Error.FromErrorType(ErrorType.USER_DISCONNECTED);
             await PrivateThis.IsValidDisconnect(topic, error);
@@ -884,54 +812,31 @@ namespace Reown.Sign
                 await Client.CoreClient.Pairing.Disconnect(topic);
             }
         }
-
-        /// <summary>
-        ///     Find all sessions that have a namespace that match the given <see cref="RequiredNamespaces" />
-        /// </summary>
-        /// <param name="requiredNamespaces">The required namespaces the session must have to be returned</param>
-        /// <returns>All sessions that have a namespace that match the given <see cref="RequiredNamespaces" /></returns>
+        
         public Session[] Find(RequiredNamespaces requiredNamespaces)
         {
             IsInitialized();
             return Client.Session.Values.Where(s => IsSessionCompatible(s, requiredNamespaces)).ToArray();
         }
-
-        /// <summary>
-        ///     Approve a proposal that was recently paired. If the given proposal was not from a recent pairing,
-        ///     or the proposal has expired, then an Exception will be thrown.
-        /// </summary>
-        /// <param name="proposalStruct">The proposal to approve</param>
-        /// <param name="approvedAddresses">An array of address strings to connect to the session</param>
-        /// <returns>Approval data, includes the topic of the session and a way to wait for approval acknowledgement</returns>
-        public Task<IApprovedData> Approve(ProposalStruct proposalStruct, params string[] approvedAddresses)
+        
+        public Task<IApprovedData> ApproveAsync(ProposalStruct proposalStruct, params string[] approvedAddresses)
         {
-            return Approve(proposalStruct.ApproveProposal(approvedAddresses));
+            return ApproveAsync(proposalStruct.ApproveProposal(approvedAddresses));
         }
-
-        /// <summary>
-        ///     Reject a proposal that was recently paired. If the given proposal was not from a recent pairing,
-        ///     or the proposal has expired, then an Exception will be thrown.
-        /// </summary>
-        /// <param name="proposalStruct">The proposal to reject</param>
-        /// <param name="message">A message explaining the reason for the rejection</param>
-        public Task Reject(ProposalStruct proposalStruct, string message = null)
+        
+        public Task RejectAsync(ProposalStruct proposalStruct, string message = null, CancellationToken ct = default)
         {
-            return Reject(proposalStruct.RejectProposal(message));
+            return RejectAsync(proposalStruct.RejectProposal(message), ct);
         }
-
-        /// <summary>
-        ///     Reject a proposal that was recently paired. If the given proposal was not from a recent pairing,
-        ///     or the proposal has expired, then an Exception will be thrown.
-        /// </summary>
-        /// <param name="proposalStruct">The proposal to reject</param>
-        /// <param name="error">An error explaining the reason for the rejection</param>
-        public Task Reject(ProposalStruct proposalStruct, Error error)
+        
+        public Task RejectAsync(ProposalStruct proposalStruct, Error error, CancellationToken ct = default)
         {
-            return Reject(proposalStruct.RejectProposal(error));
+            return RejectAsync(proposalStruct.RejectProposal(error), ct);
         }
-
-        public async Task<AuthenticateData> Authenticate(AuthParams authParams)
+        
+        public async Task<AuthenticateData> AuthenticateAsync(AuthParams authParams, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             IsInitialized();
             PrivateThis.ValidateAuthParams(authParams);
 
@@ -1138,9 +1043,10 @@ namespace Reown.Sign
                 SessionAuthenticated -= sessionAuthHandler;
             }
         }
-
-        public async Task RejectSessionAuthenticate(RejectParams rejectParams)
+        
+        public async Task RejectSessionAuthenticateAsync(RejectParams rejectParams, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             IsInitialized();
 
             var pendingRequest = Client.Auth.PendingRequests.Get(rejectParams.Id);
@@ -1156,9 +1062,10 @@ namespace Reown.Sign
             await Client.Auth.PendingRequests.Delete(rejectParams.Id, Error.FromErrorType(ErrorType.USER_DISCONNECTED));
             await Client.Proposal.Delete(rejectParams.Id, Error.FromErrorType(ErrorType.USER_DISCONNECTED));
         }
-
-        public async Task<Session> ApproveSessionAuthenticate(long requestId, CacaoObject[] auths)
+        
+        public async Task<Session> ApproveSessionAuthenticateAsync(long requestId, CacaoObject[] auths, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             IsInitialized();
 
             var pendingRequest = Client.Auth.PendingRequests.Get(requestId);

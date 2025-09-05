@@ -1,0 +1,109 @@
+using System;
+using System.Threading.Tasks;
+using Reown.AppKit.Unity;
+using Reown.Core.Crypto.Encoder;
+using Solana.Unity.Rpc.Models;
+using Solana.Unity.SDK;
+using Solana.Unity.Wallet;
+using UnityEngine;
+using ReownAccount = Reown.Sign.Models.Account;
+
+public class AppKitWalletBase : WalletBase, IDisposable
+{
+    private TaskCompletionSource<Account> _loginTaskCompletionSource;
+    
+    public AppKitWalletBase()
+    {
+        AppKit.AccountConnected += AccountConnectedHandler;
+        AppKit.AccountChanged += AccountChangedHandler;
+        AppKit.ModalController.OpenStateChanged += ModalOpenStateChangedHandler;
+    }
+
+    private void ModalOpenStateChangedHandler(object sender, ModalOpenStateChangedEventArgs e)
+    {
+        // If modal is closed while waiting for login, cancel login task
+        // if (!e.IsOpen && _loginTaskCompletionSource != null && Account == null)
+        //     _loginTaskCompletionSource.SetCanceled();
+    }
+
+    private void AccountConnectedHandler(object sender, Connector.AccountConnectedEventArgs e)
+    {
+        TryUpdateWalletAccount(e.Account);
+        
+        // If there's a login task waiting for an account, complete it
+        if (_loginTaskCompletionSource != null)
+        {
+            _loginTaskCompletionSource.SetResult(Account);
+            _loginTaskCompletionSource = null;
+        }
+    }
+    
+    private void AccountChangedHandler(object sender, Connector.AccountChangedEventArgs e)
+    {
+        TryUpdateWalletAccount(e.Account);
+    }
+
+    private void TryUpdateWalletAccount(ReownAccount reownAccount)
+    {
+        if (reownAccount.ChainId.StartsWith("solana"))
+        {
+            Account = new Account(string.Empty, reownAccount.Address);
+        }
+    }
+
+    public override async void Logout()
+    {
+        base.Logout();
+        await AppKit.DisconnectAsync();
+    }
+
+    protected override async Task<Account> _Login(string password = null)
+    {
+        Debug.Log($"[AppKitWalletBase] Login");
+        var resumed = await AppKit.ConnectorController.TryResumeSessionAsync();
+
+        if (resumed)
+        {
+            Debug.Log($"[AppKitWalletBase] Login resumed");
+            var account = new Account(string.Empty, AppKit.Account.Address);
+            Account = account;
+            return account;
+        }
+        
+        _loginTaskCompletionSource ??= new TaskCompletionSource<Account>();
+            
+        Debug.Log($"[AppKitWalletBase] Login start");
+        AppKit.OpenModal();
+        
+        return await _loginTaskCompletionSource.Task;
+    }
+
+    protected override Task<Account> _CreateAccount(string mnemonic = null, string password = null)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    protected override Task<Transaction> _SignTransaction(Transaction transaction)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    protected override Task<Transaction[]> _SignAllTransactions(Transaction[] transactions)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override async Task<byte[]> SignMessage(byte[] message)
+    {
+        Debug.Log($"[AppKitWalletBase] Sign message");
+        var signature = await AppKit.Solana.SignMessageAsync(message, Account.PublicKey); 
+        return Base58Encoding.Decode(signature);
+    }
+
+    public void Dispose()
+    {
+        AppKit.AccountConnected -= AccountConnectedHandler;
+        AppKit.AccountChanged -= AccountChangedHandler;
+        AppKit.ModalController.OpenStateChanged -= ModalOpenStateChangedHandler;
+    }
+}

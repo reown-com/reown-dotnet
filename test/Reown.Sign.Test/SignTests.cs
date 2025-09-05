@@ -117,10 +117,10 @@ public class SignTests : IAsyncLifetime
 
         await InitializeDappClient(_dappStorage);
         await InitializeWallet(_walletStorage);
-        
+
         ReownLogger.Instance = new TestOutputHelperLogger(_testOutputHelper);
     }
-    
+
     private async Task InitializeDappClient(IKeyValueStorage storage)
     {
         _dapp = await SignClient.Init(new SignClientOptions
@@ -143,7 +143,7 @@ public class SignTests : IAsyncLifetime
 
     private async Task InitializeWallet(IKeyValueStorage storage)
     {
-        _wallet = await SignClient.Init(new SignClientOptions()
+        _wallet = await SignClient.Init(new SignClientOptions
         {
             ProjectId = TestValues.TestProjectId,
             RelayUrl = TestValues.TestRelayUrl,
@@ -164,7 +164,7 @@ public class SignTests : IAsyncLifetime
     public async Task DisposeAsync()
     {
         ReownLogger.Instance = null;
-        
+
         if (_dapp?.CoreClient != null)
         {
             await WaitForNoPendingRequests(_dapp);
@@ -195,12 +195,12 @@ public class SignTests : IAsyncLifetime
     private static async Task TestConnectMethod(ISignClient clientA, ISignClient clientB)
     {
         var testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
-        var dappConnectOptions = new ConnectOptions()
+        var dappConnectOptions = new ConnectOptions
         {
-            RequiredNamespaces = new RequiredNamespaces()
+            RequiredNamespaces = new RequiredNamespaces
             {
                 {
-                    "eip155", new ProposedNamespace()
+                    "eip155", new ProposedNamespace
                     {
                         Methods = new[]
                         {
@@ -224,10 +224,10 @@ public class SignTests : IAsyncLifetime
                 }
             }
         };
-    
+
         var dappClient = clientA;
         var connectData = await dappClient.Connect(dappConnectOptions);
-    
+
         var walletClient = clientB;
 
         var tcs = new TaskCompletionSource();
@@ -235,7 +235,7 @@ public class SignTests : IAsyncLifetime
         {
             var id = @event.Id;
             var proposal = @event.Proposal;
-            
+
             Assert.NotNull(proposal.RequiredNamespaces);
             Assert.NotNull(proposal.OptionalNamespaces);
             Assert.True(proposal.SessionProperties == null || proposal.SessionProperties.Count > 0);
@@ -257,35 +257,35 @@ public class SignTests : IAsyncLifetime
 
             var approveData = await walletClient.Approve(approveParams);
             await approveData.Acknowledged();
-            
+
             await Task.Delay(500);
 
             tcs.SetResult();
         };
-        
+
         _ = await walletClient.Pair(connectData.Uri);
-    
+
         await tcs.Task;
-        
+
         _ = await connectData.Approval;
     }
-    
+
     [Fact] [Trait("Category", "integration")]
     public async Task TestApproveSession()
     {
         await TestConnectMethod(_dapp, _wallet);
     }
-    
+
     [Fact] [Trait("Category", "integration")]
     public async Task TestRejectSession()
     {
         var testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
-        var dappConnectOptions = new ConnectOptions()
+        var dappConnectOptions = new ConnectOptions
         {
-            RequiredNamespaces = new RequiredNamespaces()
+            RequiredNamespaces = new RequiredNamespaces
             {
                 {
-                    "eip155", new ProposedNamespace()
+                    "eip155", new ProposedNamespace
                     {
                         Methods = new[]
                         {
@@ -315,7 +315,7 @@ public class SignTests : IAsyncLifetime
         _wallet.SessionProposed += async (sender, @event) =>
         {
             var id = @event.Id;
-            
+
             var approvedNamespaces = new Namespaces(@event.Proposal.RequiredNamespaces);
             approvedNamespaces["eip155"]
                 .WithAccount($"eip155:1:{testAddress}")
@@ -326,27 +326,27 @@ public class SignTests : IAsyncLifetime
                 Id = id,
                 Reason = Error.FromErrorType(ErrorType.GENERIC)
             });
-            
+
             await Task.Delay(500);
         };
-        
+
         _ = await _wallet.Pair(connectData.Uri);
-    
+
         await Assert.ThrowsAsync<ReownNetworkException>(() => connectData.Approval);
     }
-    
+
     [Fact] [Trait("Category", "integration")]
     public async Task TestSessionRequestResponse()
     {
         var testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
         var testMethod = "test_method";
-    
-        var dappConnectOptions = new ConnectOptions()
+
+        var dappConnectOptions = new ConnectOptions
         {
-            RequiredNamespaces = new RequiredNamespaces()
+            RequiredNamespaces = new RequiredNamespaces
             {
                 {
-                    "eip155", new ProposedNamespace()
+                    "eip155", new ProposedNamespace
                     {
                         Methods = new[]
                         {
@@ -366,9 +366,9 @@ public class SignTests : IAsyncLifetime
                 }
             }
         };
-    
+
         var connectData = await _dapp.Connect(dappConnectOptions);
-    
+
         var walletClient = _wallet;
         walletClient.SessionProposed += async (sender, @event) =>
         {
@@ -391,77 +391,77 @@ public class SignTests : IAsyncLifetime
 
         _ = await _wallet.Pair(connectData.Uri);
         var sessionData = await connectData.Approval;
-    
+
         var rnd = new Random();
         var a = rnd.Next(100);
         var b = rnd.Next(100);
-    
-        var testData = new TestRequest()
+
+        var testData = new TestRequest
         {
             a = a,
             b = b
         };
-    
+
         var pending = new TaskCompletionSource<int>();
-    
+
         // Step 1. Setup event listener for request
-    
+
         // The wallet client will listen for the request with the "test_method" rpc method
         _wallet.Engine.SessionRequestEvents<TestRequest, TestResponse>()
             .OnRequest += (requestData) =>
         {
             var request = requestData.Request;
             var data = request.Params;
-    
-            requestData.Response = new TestResponse()
+
+            requestData.Response = new TestResponse
             {
                 result = data.a * data.b
             };
-    
+
             return Task.CompletedTask;
         };
-    
+
         // The dapp client will listen for the response
         // Normally, we wouldn't do this and just rely on the return value
         // from the dappClient.Engine.Request function call (the response Result or throws an Exception)
         // We do it here for the sake of testing
-        _dapp.Engine.SessionRequestEvents<TestRequest, TestResponse>()
+        _dapp.SessionRequestEvents<TestRequest, TestResponse>()
             .FilterResponses((r) => r.Topic == sessionData.Topic)
             .OnResponse += (responseData) =>
         {
             var response = responseData.Response;
-    
+
             var data = response.Result;
-    
+
             pending.SetResult(data.result);
-    
+
             return Task.CompletedTask;
         };
 
-        _dapp.Engine.SessionRequestSent += (sender, @event) => Assert.Equal(@event.Topic, sessionData.Topic);
-    
+        _dapp.SessionRequestSent += (sender, @event) => Assert.Equal(@event.Topic, sessionData.Topic);
+
         // 2. Send the request from the dapp client
-        var responseReturned = await _dapp.Engine.Request<TestRequest, TestResponse>(sessionData.Topic, testData);
-    
+        var responseReturned = await _dapp.Request<TestRequest, TestResponse>(sessionData.Topic, testData);
+
         // 3. Wait for the response from the event listener
         var eventResult = await pending.Task.WithTimeout(TimeSpan.FromSeconds(5));
-    
+
         Assert.Equal(eventResult, a * b);
         Assert.Equal(eventResult, testData.a * testData.b);
         Assert.Equal(eventResult, responseReturned.result);
     }
-    
+
     [Fact] [Trait("Category", "integration")]
     public async Task TestSessionRequestInvalidMethod()
     {
         var validMethod = "test_method";
-    
-        var dappConnectOptions = new ConnectOptions()
+
+        var dappConnectOptions = new ConnectOptions
         {
-            RequiredNamespaces = new RequiredNamespaces()
+            RequiredNamespaces = new RequiredNamespaces
             {
                 {
-                    "eip155", new ProposedNamespace()
+                    "eip155", new ProposedNamespace
                     {
                         Methods = new[]
                         {
@@ -481,14 +481,14 @@ public class SignTests : IAsyncLifetime
                 }
             }
         };
-    
+
         var connectData = await _dapp.Connect(dappConnectOptions);
-    
+
         var walletClient = _wallet;
         walletClient.SessionProposed += async (sender, @event) =>
         {
             var id = @event.Id;
-            
+
             var approvedNamespaces = new Namespaces(@event.Proposal.RequiredNamespaces);
             approvedNamespaces["eip155"]
                 .WithAccount($"eip155:1:0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045")
@@ -504,20 +504,20 @@ public class SignTests : IAsyncLifetime
             await approveData.Acknowledged();
         };
         _ = await _wallet.Pair(connectData.Uri);
-    
+
         // var approveData = await walletClient.Approve(proposal, "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045");
-    
+
         var sessionData = await connectData.Approval;
         // await approveData.Acknowledged();
-    
+
         var testData = new TestRequest2
         {
             x = "test",
             y = 4
         };
-    
+
         // Use TestRequest2 which isn't included in the required namespaces
-        await Assert.ThrowsAsync<NamespacesException>(() => _dapp.Engine.Request<TestRequest2, TestResponse>(sessionData.Topic, testData));
+        await Assert.ThrowsAsync<NamespacesException>(() => _dapp.Request<TestRequest2, TestResponse>(sessionData.Topic, testData));
     }
 
     [Fact] [Trait("Category", "integration")]
@@ -539,13 +539,13 @@ public class SignTests : IAsyncLifetime
         var testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
         var testMethod = "test_method";
         var testMethod2 = "test_method_2";
-    
-        var dappConnectOptions = new ConnectOptions()
+
+        var dappConnectOptions = new ConnectOptions
         {
-            RequiredNamespaces = new RequiredNamespaces()
+            RequiredNamespaces = new RequiredNamespaces
             {
                 {
-                    "eip155", new ProposedNamespace()
+                    "eip155", new ProposedNamespace
                     {
                         Methods = new[]
                         {
@@ -566,14 +566,14 @@ public class SignTests : IAsyncLifetime
                 }
             }
         };
-    
+
         var connectData = await _dapp.Connect(dappConnectOptions);
-    
+
         var walletClient = _wallet;
         walletClient.SessionProposed += async (sender, @event) =>
         {
             var id = @event.Id;
-            
+
             var approvedNamespaces = new Namespaces(@event.Proposal.RequiredNamespaces);
             approvedNamespaces["eip155"]
                 .WithAccount($"eip155:1:{testAddress}")
@@ -588,104 +588,104 @@ public class SignTests : IAsyncLifetime
             var approveData = await walletClient.Approve(approveParams);
             await approveData.Acknowledged();
         };
-        
+
         _ = await _wallet.Pair(connectData.Uri);
-        
+
         var sessionData = await connectData.Approval;
-    
+
         var rnd = new Random();
         var a = rnd.Next(100);
         var b = rnd.Next(100);
         var x = rnd.NextStrings(AllowedChars, (Math.Min(a, b), Math.Max(a, b)), 1).First();
         var y = x.Length;
-    
-        var testData = new TestRequest()
+
+        var testData = new TestRequest
         {
             a = a,
             b = b
         };
-        var testData2 = new TestRequest2()
+        var testData2 = new TestRequest2
         {
             x = x,
             y = y
         };
-    
+
         var pending = new TaskCompletionSource<int>();
         var pending2 = new TaskCompletionSource<bool>();
-    
+
         // Step 1. Setup event listener for request
-    
+
         // The wallet client will listen for the request with the "test_method" rpc method
         _wallet.Engine.SessionRequestEvents<TestRequest, TestResponse>()
             .OnRequest += (requestData) =>
         {
             var request = requestData.Request;
             var data = request.Params;
-    
-            requestData.Response = new TestResponse()
+
+            requestData.Response = new TestResponse
             {
                 result = data.a * data.b
             };
-    
+
             return Task.CompletedTask;
         };
-    
+
         // The wallet client will listen for the request with the "test_method" rpc method
         _wallet.Engine.SessionRequestEvents<TestRequest2, bool>()
             .OnRequest += (requestData) =>
         {
             var request = requestData.Request;
             var data = request.Params;
-    
+
             requestData.Response = data.x.Length == data.y;
-    
+
             return Task.CompletedTask;
         };
-    
+
         // The dapp client will listen for the response
         // Normally, we wouldn't do this and just rely on the return value
         // from the dappClient.Engine.Request function call (the response Result or throws an Exception)
         // We do it here for the sake of testing
-        _dapp.Engine.SessionRequestEvents<TestRequest, TestResponse>()
+        _dapp.SessionRequestEvents<TestRequest, TestResponse>()
             .FilterResponses((r) => r.Topic == sessionData.Topic)
             .OnResponse += (responseData) =>
         {
             var response = responseData.Response;
-    
+
             var data = response.Result;
-    
+
             pending.TrySetResult(data.result);
-    
+
             return Task.CompletedTask;
         };
-    
+
         // 2. Send the request from the dapp client
-        var responseReturned = await _dapp.Engine.Request<TestRequest, TestResponse>(sessionData.Topic, testData);
-        var responseReturned2 = await _dapp.Engine.Request<TestRequest2, bool>(sessionData.Topic, testData2);
-    
+        var responseReturned = await _dapp.Request<TestRequest, TestResponse>(sessionData.Topic, testData);
+        var responseReturned2 = await _dapp.Request<TestRequest2, bool>(sessionData.Topic, testData2);
+
         // 3. Wait for the response from the event listener
         var eventResult = await pending.Task.WithTimeout(TimeSpan.FromSeconds(5));
-    
+
         Assert.Equal(eventResult, a * b);
         Assert.Equal(eventResult, testData.a * testData.b);
         Assert.Equal(eventResult, responseReturned.result);
-    
+
         Assert.True(responseReturned2);
     }
-    
+
     [Fact] [Trait("Category", "integration")]
     public async Task TestTwoUniqueComplexSessionRequestResponse()
     {
         var testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
         var testMethod = "complex_test_method";
         var testMethod2 = "complex_test_method_2";
-    
-        var dappConnectOptions = new ConnectOptions()
+
+        var dappConnectOptions = new ConnectOptions
         {
-            RequiredNamespaces = new RequiredNamespaces()
+            RequiredNamespaces = new RequiredNamespaces
             {
                 {
-                    "eip155", new ProposedNamespace()
+                    "eip155", new ProposedNamespace
                     {
                         Methods = new[]
                         {
@@ -706,14 +706,14 @@ public class SignTests : IAsyncLifetime
                 }
             }
         };
-    
+
         var connectData = await _dapp.Connect(dappConnectOptions);
-    
+
         var walletClient = _wallet;
         walletClient.SessionProposed += async (sender, @event) =>
         {
             var id = @event.Id;
-            
+
             var approvedNamespaces = new Namespaces(@event.Proposal.RequiredNamespaces);
             approvedNamespaces["eip155"]
                 .WithAccount($"eip155:1:{testAddress}")
@@ -729,107 +729,107 @@ public class SignTests : IAsyncLifetime
             await approveData.Acknowledged();
         };
         _ = await _wallet.Pair(connectData.Uri);
-        
+
         var sessionData = await connectData.Approval;
-        
+
         var rnd = new Random();
         var a = rnd.Next(100);
         var b = rnd.Next(100);
         var x = rnd.NextStrings(AllowedChars, (Math.Min(a, b), Math.Max(a, b)), 1).First();
         var y = x.Length;
-    
+
         var testData = new ComplexTestRequest(a.ToString(), b.ToString());
-        var testData2 = new ComplexTestRequest2(new TestRequest2()
+        var testData2 = new ComplexTestRequest2(new TestRequest2
         {
             x = x,
             y = y
         });
-    
+
         var pending = new TaskCompletionSource<int>();
-    
+
         // Step 1. Setup event listener for request
-    
+
         // The wallet client will listen for the request with the "test_method" rpc method
         _wallet.Engine.SessionRequestEvents<ComplexTestRequest, TestResponse>()
             .OnRequest += (requestData) =>
         {
             var request = requestData.Request;
             var data = request.Params;
-    
-            requestData.Response = new TestResponse()
+
+            requestData.Response = new TestResponse
             {
                 result = data.A * data.B
             };
-    
+
             return Task.CompletedTask;
         };
-    
+
         // The wallet client will listen for the request with the "test_method" rpc method
         _wallet.Engine.SessionRequestEvents<ComplexTestRequest2, bool>()
             .OnRequest += (requestData) =>
         {
             var request = requestData.Request;
             var data = request.Params;
-    
+
             requestData.Response = data.X.Length == data.Y;
-    
+
             return Task.CompletedTask;
         };
-    
+
         // The dapp client will listen for the response
         // Normally, we wouldn't do this and just rely on the return value
         // from the dappClient.Engine.Request function call (the response Result or throws an Exception)
         // We do it here for the sake of testing
-        _dapp.Engine.SessionRequestEvents<ComplexTestRequest, TestResponse>()
+        _dapp.SessionRequestEvents<ComplexTestRequest, TestResponse>()
             .FilterResponses((r) => r.Topic == sessionData.Topic)
             .OnResponse += (responseData) =>
         {
             var response = responseData.Response;
-    
+
             var data = response.Result;
-    
+
             pending.TrySetResult(data.result);
-    
+
             return Task.CompletedTask;
         };
-    
+
         // 2. Send the request from the dapp client
-        var responseReturned = await _dapp.Engine.Request<ComplexTestRequest, TestResponse>(sessionData.Topic, testData);
-        var responseReturned2 = await _dapp.Engine.Request<ComplexTestRequest2, bool>(sessionData.Topic, testData2);
-    
+        var responseReturned = await _dapp.Request<ComplexTestRequest, TestResponse>(sessionData.Topic, testData);
+        var responseReturned2 = await _dapp.Request<ComplexTestRequest2, bool>(sessionData.Topic, testData2);
+
         // 3. Wait for the response from the event listener
         var eventResult = await pending.Task.WithTimeout(TimeSpan.FromSeconds(5));
-    
+
         Assert.Equal(eventResult, a * b);
         Assert.Equal(eventResult, testData.A * testData.B);
         Assert.Equal(eventResult, responseReturned.result);
-    
+
         Assert.True(responseReturned2);
     }
-    
+
     [Fact] [Trait("Category", "integration")]
     public async Task TestTwoUniqueSessionRequestUsingAddressProviderDefaults()
     {
         await TwoUniqueSessionRequestUsingAddressProviderDefaults();
     }
-    
+
     private async Task TwoUniqueSessionRequestUsingAddressProviderDefaults()
     {
         await _wallet.AddressProvider.LoadDefaultsAsync();
         await _dapp.AddressProvider.LoadDefaultsAsync();
-    
+
         if (!_dapp.AddressProvider.HasDefaultSession && !_wallet.AddressProvider.HasDefaultSession)
         {
             var testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
             var testMethod = "test_method";
             var testMethod2 = "test_method_2";
-    
-            var dappConnectOptions = new ConnectOptions()
+
+            var dappConnectOptions = new ConnectOptions
             {
-                RequiredNamespaces = new RequiredNamespaces()
+                RequiredNamespaces = new RequiredNamespaces
                 {
                     {
-                        "eip155", new ProposedNamespace()
+                        "eip155", new ProposedNamespace
                         {
                             Methods = new[]
                             {
@@ -849,33 +849,33 @@ public class SignTests : IAsyncLifetime
                     }
                 }
             };
-            
+
             var tcs = new TaskCompletionSource();
             _wallet.SessionProposed += async (sender, @event) =>
             {
                 var id = @event.Id;
-                
+
                 var approvedNamespaces = new Namespaces(@event.Proposal.RequiredNamespaces);
                 approvedNamespaces["eip155"].WithAccount($"eip155:1:{testAddress}");
-    
+
                 var approveParams = new ApproveParams
                 {
                     Id = id,
                     Namespaces = approvedNamespaces
                 };
-    
+
                 var approveData = await _wallet.Approve(approveParams);
                 await approveData.Acknowledged();
-                
+
                 tcs.SetResult();
             };
-    
+
             var connectData = await _dapp.Connect(dappConnectOptions);
-    
+
             _ = await _wallet.Pair(connectData.Uri);
-            
+
             await tcs.Task;
-            
+
             _ = await connectData.Approval;
         }
         else
@@ -890,96 +890,96 @@ public class SignTests : IAsyncLifetime
         var b = rnd.Next(100);
         var x = rnd.NextStrings(AllowedChars, (Math.Min(a, b), Math.Max(a, b)), 1).First();
         var y = x.Length;
-    
-        var testData = new TestRequest()
+
+        var testData = new TestRequest
         {
             a = a,
             b = b
         };
-        var testData2 = new TestRequest2()
+        var testData2 = new TestRequest2
         {
             x = x,
             y = y
         };
-    
+
         var pending = new TaskCompletionSource<int>();
         var pending2 = new TaskCompletionSource<bool>();
-    
+
         // Step 1. Setup event listener for request
-    
+
         // The wallet client will listen for the request with the "test_method" rpc method
         _wallet.Engine.SessionRequestEvents<TestRequest, TestResponse>()
             .OnRequest += (requestData) =>
         {
             var request = requestData.Request;
             var data = request.Params;
-    
-            requestData.Response = new TestResponse()
+
+            requestData.Response = new TestResponse
             {
                 result = data.a * data.b
             };
-    
+
             return Task.CompletedTask;
         };
-    
+
         // The wallet client will listen for the request with the "test_method" rpc method
         _wallet.Engine.SessionRequestEvents<TestRequest2, bool>()
             .OnRequest += (requestData) =>
         {
             var request = requestData.Request;
             var data = request.Params;
-    
+
             requestData.Response = data.x.Length == data.y;
-    
+
             return Task.CompletedTask;
         };
-    
+
         // The dapp client will listen for the response
         // Normally, we wouldn't do this and just rely on the return value
         // from the dappClient.Engine.Request function call (the response Result or throws an Exception)
         // We do it here for the sake of testing
-        _dapp.Engine.SessionRequestEvents<TestRequest, TestResponse>()
+        _dapp.SessionRequestEvents<TestRequest, TestResponse>()
             .FilterResponses((r) => r.Topic == defaultSessionTopic)
             .OnResponse += (responseData) =>
         {
             Assert.True(responseData.Topic == defaultSessionTopic);
-    
+
             var response = responseData.Response;
-    
+
             var data = response.Result;
-    
+
             pending.TrySetResult(data.result);
-    
+
             return Task.CompletedTask;
         };
-        
+
         // 2. Send the request from the dapp client
-        var responseReturned = await _dapp.Engine.Request<TestRequest, TestResponse>(testData);
-        var responseReturned2 = await _dapp.Engine.Request<TestRequest2, bool>(testData2);
-    
+        var responseReturned = await _dapp.Request<TestRequest, TestResponse>(testData);
+        var responseReturned2 = await _dapp.Request<TestRequest2, bool>(testData2);
+
         // 3. Wait for the response from the event listener
         var eventResult = await pending.Task.WithTimeout(TimeSpan.FromSeconds(5));
-    
+
         Assert.Equal(eventResult, a * b);
         Assert.Equal(eventResult, testData.a * testData.b);
         Assert.Equal(eventResult, responseReturned.result);
-    
+
         Assert.True(responseReturned2);
     }
-    
+
     [Fact] [Trait("Category", "integration")]
     public async Task TestAddressProviderDefaults()
     {
         var testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
         var testMethod = "test_method";
         var testMethod2 = "test_method_2";
-    
-        var dappConnectOptions = new ConnectOptions()
+
+        var dappConnectOptions = new ConnectOptions
         {
-            RequiredNamespaces = new RequiredNamespaces()
+            RequiredNamespaces = new RequiredNamespaces
             {
                 {
-                    "eip155", new ProposedNamespace()
+                    "eip155", new ProposedNamespace
                     {
                         Methods = new[]
                         {
@@ -999,104 +999,104 @@ public class SignTests : IAsyncLifetime
                 }
             }
         };
-    
+
         var connectData = await _dapp.Connect(dappConnectOptions);
-    
+
         var tcs = new TaskCompletionSource();
         _wallet.SessionProposed += async (sender, @event) =>
         {
             var id = @event.Id;
-            
+
             var approvedNamespaces = new Namespaces(@event.Proposal.RequiredNamespaces);
             approvedNamespaces["eip155"].WithAccount($"eip155:1:{testAddress}");
-    
+
             var approveParams = new ApproveParams
             {
                 Id = id,
                 Namespaces = approvedNamespaces
             };
-    
+
             var approveData = await _wallet.Approve(approveParams);
             await approveData.Acknowledged();
-            
+
             tcs.SetResult();
         };
-        
+
         _ = await _wallet.Pair(connectData.Uri);
 
         await tcs.Task;
-        
+
         _ = await connectData.Approval;
-        
+
         var address = _dapp.AddressProvider.CurrentAccount();
         Assert.Equal(testAddress, address.Address);
         Assert.Equal("eip155:1", address.ChainId);
         Assert.Equal("eip155:1", _dapp.AddressProvider.DefaultChainId);
         Assert.Equal("eip155", _dapp.AddressProvider.DefaultNamespace);
-    
+
         address = _wallet.AddressProvider.CurrentAccount();
         Assert.Equal(testAddress, address.Address);
         Assert.Equal("eip155:1", address.ChainId);
         Assert.Equal("eip155:1", _dapp.AddressProvider.DefaultChainId);
         Assert.Equal("eip155", _dapp.AddressProvider.DefaultNamespace);
-    
+
         var allAddresses = _dapp.AddressProvider.AllAccounts("eip155").ToArray();
         Assert.Single(allAddresses);
         Assert.Equal(testAddress, allAddresses[0].Address);
         Assert.Equal("eip155:1", allAddresses[0].ChainId);
     }
-    
+
     [Fact] [Trait("Category", "integration")]
     public async Task TestAddressProviderDefaultsSaving()
     {
         await TwoUniqueSessionRequestUsingAddressProviderDefaults();
-    
+
         var defaultSessionTopic = _dapp.AddressProvider.DefaultSession.Topic;
-    
+
         Assert.NotNull(defaultSessionTopic);
         await Task.Delay(500);
-    
+
         _dapp.Dispose();
         _wallet.Dispose();
 
         await Task.Delay(500);
-        
+
         await InitializeDappClient(_dappStorage);
         await InitializeWallet(_walletStorage);
 
         await Task.Delay(500);
-    
+
         await _dapp.AddressProvider.LoadDefaultsAsync();
         var reloadedDefaultSessionTopic = _dapp.AddressProvider.DefaultSession.Topic;
-    
+
         Assert.Equal(defaultSessionTopic, reloadedDefaultSessionTopic);
-    
+
         await TwoUniqueSessionRequestUsingAddressProviderDefaults();
     }
-    
+
     [Fact] [Trait("Category", "integration")]
     public async Task TestAddressProviderChainIdChange()
     {
         await TestConnectMethod(_dapp, _wallet);
-        
+
         const string badChainId = "badChainId";
         await Assert.ThrowsAsync<ArgumentException>(() => _dapp.AddressProvider.SetDefaultChainIdAsync(badChainId));
-    
+
         // Change the default chain id
         const string newChainId = "eip155:10";
         await _dapp.AddressProvider.SetDefaultChainIdAsync(newChainId);
         Assert.Equal(newChainId, _dapp.AddressProvider.DefaultChainId);
     }
-    
+
     [Fact] [Trait("Category", "integration")]
     public async Task TestAddressProviderDisconnect()
     {
         await TestConnectMethod(_dapp, _wallet);
-        
+
         Assert.True(_dapp.AddressProvider.HasDefaultSession);
-    
+
         await _dapp.Disconnect();
-    
+
         Assert.False(_dapp.AddressProvider.HasDefaultSession);
     }
 
@@ -1107,12 +1107,12 @@ public class SignTests : IAsyncLifetime
         const string testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
         const string testMethod = "test_method";
 
-        var dappConnectOptions = new ConnectOptions()
+        var dappConnectOptions = new ConnectOptions
         {
-            RequiredNamespaces = new RequiredNamespaces()
+            RequiredNamespaces = new RequiredNamespaces
             {
                 {
-                    "eip155", new ProposedNamespace()
+                    "eip155", new ProposedNamespace
                     {
                         Methods = new[]
                         {
@@ -1163,7 +1163,7 @@ public class SignTests : IAsyncLifetime
 
         var sessionData = await connectData.Approval;
 
-        var testData = new TestRequest()
+        var testData = new TestRequest
         {
             a = -1, // Invalid input that should trigger an error
             b = -1
@@ -1182,7 +1182,7 @@ public class SignTests : IAsyncLifetime
                 return Task.CompletedTask;
             }
 
-            requestData.Response = new TestResponse()
+            requestData.Response = new TestResponse
             {
                 result = data.a * data.b
             };
@@ -1191,8 +1191,7 @@ public class SignTests : IAsyncLifetime
         };
 
         // Verify that the request throws an exception with the expected error
-        var exception = await Assert.ThrowsAsync<ReownNetworkException>(
-            () => _dapp.Engine.Request<TestRequest, TestResponse>(sessionData.Topic, testData)
+        var exception = await Assert.ThrowsAsync<ReownNetworkException>(() => _dapp.Request<TestRequest, TestResponse>(sessionData.Topic, testData)
         );
 
         Assert.Equal(ErrorType.GENERIC, exception.CodeType);

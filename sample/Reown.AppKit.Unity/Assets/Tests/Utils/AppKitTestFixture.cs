@@ -31,6 +31,7 @@ namespace Reown.AppKit.Unity.Tests
         [SetUp]
         public virtual void Setup()
         {
+            PlayerPrefs.DeleteKey("WC_SELECTED_CHAIN_ID");
             SceneManager.LoadScene(0, LoadSceneMode.Single);
         }
 
