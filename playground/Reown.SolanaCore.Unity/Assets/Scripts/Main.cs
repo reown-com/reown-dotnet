@@ -1,17 +1,7 @@
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Crypto.Signers;
 using Reown.AppKit.Unity;
-using Reown.AppKit.Unity.Model;
 using Reown.Core.Common.Logging;
-using Reown.Core.Common.Utils;
-using Reown.Core.Crypto.Encoder;
-using Reown.Core.Network.Models;
 using Reown.Sign.Unity;
-using Solana.Unity.Wallet.Utilities;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -45,18 +35,9 @@ public class Main : MonoBehaviour
                 iconUrl: "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/develop/sample/Reown.AppKit.Unity/Assets/Textures/appkit-icon-unity.png",
                 new RedirectData
                 {
-                    Native = "com.Reown.SolanaCore"
+                    Native = "solanatest://"
                 }
             ),
-            customWallets = new []
-            {
-                new Wallet
-                {
-                    Name = "Flutter Sample Wallet",
-                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-flutter.png?raw=true",
-                    MobileLink = "wcflutterwallet://"
-                },
-            },
             supportedChains = new[]
             {
                 ChainConstants.Chains.Solana,
@@ -64,6 +45,11 @@ public class Main : MonoBehaviour
         };
         // Initialize AppKit with config
         await AppKit.InitializeAsync(config);
+        
+        // Enable all buttons
+        _connectButton.interactable = true;
+        _signButton.interactable = false;
+        _accountButton.interactable = false;
         
         await ResumeSessionOrSubscribeToAccountConnectedEvent();
     }
@@ -106,6 +92,18 @@ public class Main : MonoBehaviour
         _connectButton.interactable = true;
         _signButton.interactable = false;
         _accountButton.interactable = false;
+    }
+
+    private static async Task PrintSolBalance()
+    {
+        // Cached SOL balance from Reown's Blockchain API
+        // It's a float, so it's not precise, but good enough for UI
+        // The balance is updated when an account is connected and when user changes active chain
+        // You can also manually update the balance by calling AppKit.AccountController.UpdateBalance()
+        var formattedTokenBalance = AppKit.AccountController.NativeTokenBalance;
+        Debug.Log($"Formatted SOL balance: {formattedTokenBalance}");
+        
+        
     }
 
     private static async Task SignMessage()

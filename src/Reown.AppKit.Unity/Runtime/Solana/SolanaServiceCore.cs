@@ -1,10 +1,11 @@
+using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Reown.Core.Crypto.Encoder;
 using Reown.Sign.Unity;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
-using Reown.Core.Common.Logging;
 
 namespace Reown.AppKit.Unity.Solana
 {
@@ -18,10 +19,14 @@ namespace Reown.AppKit.Unity.Solana
             return default;
         }
 
+        protected override ValueTask<BigInteger> GetBalanceAsyncCore(string pubkey)
+        {
+            throw new System.NotImplementedException();
+            return new ValueTask<BigInteger>(new BigInteger(0));
+        }
+
         protected override async ValueTask<string> SignMessageAsyncCore(string message, string pubkey = null)
         {
-            pubkey ??= AppKit.Account.Address;
-
             var messageBytes = Encoding.UTF8.GetBytes(message);
             var messageBase58 = Base58Encoding.Encode(messageBytes);
 
@@ -37,8 +42,6 @@ namespace Reown.AppKit.Unity.Solana
 
         protected override ValueTask<bool> VerifyMessageSignatureAsyncCore(string message, string signature, string pubkey)
         {
-            pubkey ??= AppKit.Account.Address;
-
             var messageBytes = Encoding.UTF8.GetBytes(message);
             var signatureBytes = Base58Encoding.Decode(signature);
             var pubkeyBytes = Base58Encoding.Decode(pubkey);
@@ -50,6 +53,21 @@ namespace Reown.AppKit.Unity.Solana
             verifier.Init(false, new Ed25519PublicKeyParameters(pubkeyBytes, 0));
             verifier.BlockUpdate(messageBytes, 0, messageBytes.Length);
             return new ValueTask<bool>(verifier.VerifySignature(signatureBytes));
+        }
+
+        protected override Task<TResult> RpcRequestAsyncCore<TResult>(string method, params object[] parameters)
+        {
+            var defaultSessionNamespaces = _signClient.AddressProvider.DefaultSession.Namespaces;
+            if (defaultSessionNamespaces.TryGetValue("solana", out var solanaNamespace) && solanaNamespace.Methods.Contains(method))
+            {
+                return parameters.Length == 1
+                    ? _signClient.RequestAsync<object, TResult>(method, parameters[0])
+                    : _signClient.RequestAsync<object[], TResult>(method, parameters);
+            }
+            else
+            {
+                throw new System.NotImplementedException();
+            }
         }
     }
 }

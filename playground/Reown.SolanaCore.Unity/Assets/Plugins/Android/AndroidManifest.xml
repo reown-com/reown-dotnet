@@ -15,18 +15,8 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="rewon-solana-core://" />
+                <data android:scheme="solanatest" />
             </intent-filter>
-        </activity>
-        <!--Used when Application Entry is set to GameActivity, otherwise remove this activity block-->
-        <activity android:name="com.unity3d.player.UnityPlayerGameActivity"
-                  android:theme="@style/BaseUnityGameActivityTheme">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <meta-data android:name="unityplayer.UnityActivity" android:value="true" />
-            <meta-data android:name="android.app.lib_name" android:value="game" />
         </activity>
     </application>
 </manifest>
