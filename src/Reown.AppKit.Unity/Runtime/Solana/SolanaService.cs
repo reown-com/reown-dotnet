@@ -53,6 +53,14 @@ namespace Reown.AppKit.Unity.Solana
 
             return SignMessageAsyncCore(message, pubkey);
         }
+        
+        
+        public ValueTask<string> SignMessageAsync(byte[] message, string pubkey = null)
+        {
+            pubkey ??= AppKit.Account.Address;
+
+            return SignMessageAsyncCore(message, pubkey);
+        }
 
         
         // -- Verify Message -------------------------------------------
@@ -84,6 +92,7 @@ namespace Reown.AppKit.Unity.Solana
         protected abstract ValueTask InitializeAsyncCore(SignClientUnity signClient);
         protected abstract ValueTask<BigInteger> GetBalanceAsyncCore(string pubkey);
         protected abstract ValueTask<string> SignMessageAsyncCore(string message, string pubkey);
+        protected abstract ValueTask<string> SignMessageAsyncCore(byte[] message, string pubkey);
         protected abstract ValueTask<bool> VerifyMessageSignatureAsyncCore(string message, string signature, string pubkey);
         protected abstract Task<TResult> RpcRequestAsyncCore<TResult>(string method, params object[] parameters);
     }

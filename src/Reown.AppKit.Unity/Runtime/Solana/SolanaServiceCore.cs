@@ -25,14 +25,19 @@ namespace Reown.AppKit.Unity.Solana
             return new ValueTask<BigInteger>(new BigInteger(0));
         }
 
-        protected override async ValueTask<string> SignMessageAsyncCore(string message, string pubkey = null)
+        protected override async ValueTask<string> SignMessageAsyncCore(string message, string pubkey)
         {
             var messageBytes = Encoding.UTF8.GetBytes(message);
-            var messageBase58 = Base58Encoding.Encode(messageBytes);
+            return await SignMessageAsyncCore(messageBytes, pubkey);
+        }
+        
+        protected override async ValueTask<string> SignMessageAsyncCore(byte[] message, string pubkey)
+        {
+            var messageEncoded = Base58Encoding.Encode(message);
 
             var request = new SignMessageRequest
             {
-                MessageBase58 = messageBase58,
+                MessageBase58 = messageEncoded,
                 Pubkey = pubkey
             };
 
