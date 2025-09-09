@@ -33,9 +33,10 @@ public static class SolanaExtensions
         Account account;
         try
         {
-            // Connect to Jupiter Mobile directly
-            account = await appKitWallet.LoginWithWallet("0ef262ca2a56b88d179c93a21383fee4e135bd7bc6680e5c2356ff8e38301037");   
-            // account = await appKitWallet.Login();
+            if (string.IsNullOrWhiteSpace(walletId))
+                account = await appKitWallet.Login();
+            else
+                account = await appKitWallet.LoginWithWallet(walletId);   
         }
         catch (Exception e)
         {

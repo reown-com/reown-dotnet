@@ -60,6 +60,15 @@ namespace Reown.AppKit.Unity.Solana
             return new ValueTask<bool>(verifier.VerifySignature(signatureBytes));
         }
 
+        protected override async ValueTask<SignTransactionResponse> SignTransactionAsyncCore(string transactionBase64, string pubkey)
+        {
+            var payload = new SignTransactionRequest
+            {
+                TransactionBase64 = transactionBase64
+            };
+            return await _signClient.RequestAsync<SignTransactionRequest, SignTransactionResponse>("solana_signTransaction", payload);
+        }
+
         protected override Task<TResult> RpcRequestAsyncCore<TResult>(string method, params object[] parameters)
         {
             var defaultSessionNamespaces = _signClient.AddressProvider.DefaultSession.Namespaces;

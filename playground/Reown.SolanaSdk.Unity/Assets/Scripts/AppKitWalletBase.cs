@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Reown.AppKit.Unity;
 using Reown.Core.Crypto.Encoder;
 using Solana.Unity.Rpc.Models;
@@ -61,21 +62,17 @@ public class AppKitWalletBase : WalletBase, IDisposable
     {
         _loginTaskCompletionSource ??= new TaskCompletionSource<Account>();
         
-        Debug.Log($"[AppKitWalletBase] Login with wallet");
         await AppKit.ConnectAsync(walletId);
-        Debug.Log($"[AppKitWalletBase] Login with wallet done");
         
         return await _loginTaskCompletionSource.Task;
     }
 
     protected override async Task<Account> _Login(string password = null)
     {
-        Debug.Log($"[AppKitWalletBase] Login");
         var resumed = await AppKit.ConnectorController.TryResumeSessionAsync();
 
         if (resumed)
         {
-            Debug.Log($"[AppKitWalletBase] Login resumed");
             var account = new Account(string.Empty, AppKit.Account.Address);
             Account = account;
             return account;
@@ -83,7 +80,6 @@ public class AppKitWalletBase : WalletBase, IDisposable
         
         _loginTaskCompletionSource ??= new TaskCompletionSource<Account>();
             
-        Debug.Log($"[AppKitWalletBase] Login start");
         AppKit.OpenModal();
         
         return await _loginTaskCompletionSource.Task;
@@ -91,12 +87,18 @@ public class AppKitWalletBase : WalletBase, IDisposable
 
     protected override Task<Account> _CreateAccount(string mnemonic = null, string password = null)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 
-    protected override Task<Transaction> _SignTransaction(Transaction transaction)
+    protected override async Task<Transaction> _SignTransaction(Transaction transaction)
     {
-        throw new System.NotImplementedException();
+        var txBytes = transaction.Serialize();
+        // var txEncoded = Convert.ToBase64String(txBytes);
+        var txEncoded = Base58Encoding.Encode(txBytes);
+        Debug.Log(JsonConvert.SerializeObject(transaction, Formatting.Indented));
+        Debug.Log(txEncoded);
+        var result = await AppKit.Solana.SignTransactionAsync(txEncoded, Account.PublicKey);
+        return Transaction.Deserialize(result.TransactionBase64);
     }
 
     protected override Task<Transaction[]> _SignAllTransactions(Transaction[] transactions)
@@ -106,7 +108,6 @@ public class AppKitWalletBase : WalletBase, IDisposable
 
     public override async Task<byte[]> SignMessage(byte[] message)
     {
-        Debug.Log($"[AppKitWalletBase] Sign message");
         var signature = await AppKit.Solana.SignMessageAsync(message, Account.PublicKey); 
         return Base58Encoding.Decode(signature);
     }
