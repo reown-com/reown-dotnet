@@ -223,8 +223,8 @@ namespace Reown.AppKit.Unity
                 "Ronin Saigon",
                 new Currency("Ronin", "RON", 18),
                 new BlockExplorer("Ronin Explorer", "https://explorer.roninchain.com"),
-                "\thttps://api-gateway.skymavis.com/rpc/testnet",
-                false,
+                "https://api-gateway.skymavis.com/rpc/testnet",
+                true,
                 $"{ChainImageUrl}/{ImageIds[References.Ronin]}"
             );
 
