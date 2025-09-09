@@ -9,7 +9,7 @@ namespace Reown.AppKit.Unity.Solana
 {
     public abstract class SolanaService
     {
-        private readonly HashSet<string> _chainsSupportedByBlockchainApi = new()
+        private static readonly HashSet<string> ChainsSupportedByBlockchainApi = new()
         {
             "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp", // Mainnet
             "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1", // Devnet
@@ -21,9 +21,9 @@ namespace Reown.AppKit.Unity.Solana
             return InitializeAsyncCore(signClient);
         }
         
-        private string CreateRpcUrl(string chainId)
+        public static string CreateRpcUrl(string chainId)
         {
-            if (_chainsSupportedByBlockchainApi.Contains(chainId))
+            if (ChainsSupportedByBlockchainApi.Contains(chainId))
                 return $"https://rpc.walletconnect.org/v1?chainId={chainId}&projectId={AppKit.Config.projectId}";
 
             var chain = AppKit.Config.supportedChains.FirstOrDefault(x => x.ChainId == chainId);

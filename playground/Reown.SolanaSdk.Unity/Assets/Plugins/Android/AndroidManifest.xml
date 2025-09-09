@@ -15,18 +15,27 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="rewon-solana-core://" />
+                <data android:scheme="solanasdktest://" />
             </intent-filter>
         </activity>
-        <!--Used when Application Entry is set to GameActivity, otherwise remove this activity block-->
-        <activity android:name="com.unity3d.player.UnityPlayerGameActivity"
-                  android:theme="@style/BaseUnityGameActivityTheme">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <meta-data android:name="unityplayer.UnityActivity" android:value="true" />
-            <meta-data android:name="android.app.lib_name" android:value="game" />
-        </activity>
+        
+<!--        &lt;!&ndash;Used when Application Entry is set to GameActivity, otherwise remove this activity block&ndash;&gt;-->
+<!--        <activity android:name="com.unity3d.player.UnityPlayerGameActivity"-->
+<!--                  android:theme="@style/BaseUnityGameActivityTheme">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
+<!--            <meta-data android:name="unityplayer.UnityActivity" android:value="true" />-->
+<!--            <meta-data android:name="android.app.lib_name" android:value="game" />-->
+<!--        </activity>-->
     </application>
+    <queries>
+        <package android:name="io.metamask"/>
+        <package android:name="com.wallet.crypto.trustapp"/>
+        <package android:name="io.gnosis.safe"/>
+        <package android:name="me.rainbow"/>
+        <package android:name="ag.jup.jupiter.android"/>
+        <!-- Add other wallet schemes names here -->
+    </queries>
 </manifest>

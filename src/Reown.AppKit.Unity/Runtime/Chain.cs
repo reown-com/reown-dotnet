@@ -378,6 +378,17 @@ namespace Reown.AppKit.Unity
                 $"{ChainImageUrl}/{ImageIds[References.Solana]}"
             );
 
+            public static readonly Chain SolanaDevNet = new(
+                Namespaces.Solana,
+                References.SolanaDev,
+                "Solana DevNet",
+                new Currency("SOL", "SOL", 9),
+                new BlockExplorer("Solscan", "https://devnet.solscan.io"),
+                "https://api.devnet.solana.com",
+                true, 
+                ChainImageUrl
+            );
+
             public static readonly IReadOnlyCollection<Chain> All = new HashSet<Chain>
             {
                 Ethereum,

@@ -12,7 +12,8 @@ public class AppKitWalletBase : WalletBase, IDisposable
 {
     private TaskCompletionSource<Account> _loginTaskCompletionSource;
     
-    public AppKitWalletBase()
+    public AppKitWalletBase(RpcCluster rpcCluster = RpcCluster.DevNet, string customRpcUri = null, string customStreamingRpcUri = null, bool autoConnectOnStartup = false) 
+        : base(rpcCluster, customRpcUri, customStreamingRpcUri, autoConnectOnStartup)
     {
         AppKit.AccountConnected += AccountConnectedHandler;
         AppKit.AccountChanged += AccountChangedHandler;
@@ -31,10 +32,9 @@ public class AppKitWalletBase : WalletBase, IDisposable
         TryUpdateWalletAccount(e.Account);
         
         // If there's a login task waiting for an account, complete it
-        if (_loginTaskCompletionSource != null)
+        if (_loginTaskCompletionSource != null && (_loginTaskCompletionSource != null || !_loginTaskCompletionSource.Task.IsCompleted))
         {
             _loginTaskCompletionSource.SetResult(Account);
-            _loginTaskCompletionSource = null;
         }
     }
     
@@ -55,6 +55,17 @@ public class AppKitWalletBase : WalletBase, IDisposable
     {
         base.Logout();
         await AppKit.DisconnectAsync();
+    }
+
+    public async Task<Account> LoginWithWallet(string walletId)
+    {
+        _loginTaskCompletionSource ??= new TaskCompletionSource<Account>();
+        
+        Debug.Log($"[AppKitWalletBase] Login with wallet");
+        await AppKit.ConnectAsync(walletId);
+        Debug.Log($"[AppKitWalletBase] Login with wallet done");
+        
+        return await _loginTaskCompletionSource.Task;
     }
 
     protected override async Task<Account> _Login(string password = null)
