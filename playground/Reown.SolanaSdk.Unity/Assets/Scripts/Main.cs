@@ -42,6 +42,7 @@ public class Main : MonoBehaviour
             supportedChains = new[]
             {
                 ChainConstants.Chains.Solana,
+                ChainConstants.Chains.SolanaDevNet
             }
         };
         // Initialize AppKit with config

@@ -14,28 +14,30 @@ namespace Reown.AppKit.Unity.Solana
     public class SignTransactionRequest
     {
         [JsonProperty("transaction")]
-        public string TransactionBase64 { get; set; }
+        public string TransactionBase58 { get; set; }
+    }
+    
+    public class SignAllTransactionsRequest
+    {
+        [JsonProperty("transactions")]
+        public string[] TransactionsBase58 { get; set; }
     }
     
     public class SignatureResponse
     {
         [JsonProperty("signature")]
         public string Signature { get; set; }
-        
-        public SignatureResponse(string signature)
-        {
-            Signature = signature;
-        }
     }
     
     public class SignTransactionResponse : SignatureResponse
     {
         [JsonProperty("transaction")]
         public string TransactionBase64 { get; set; }
-        
-        public SignTransactionResponse(string signature, string transactionBase64) : base(signature)
-        {
-            TransactionBase64 = transactionBase64;
-        }
+    }
+    
+    public class SignAllTransactionsResponse
+    {
+        [JsonProperty("transactions")]
+        public string[] TransactionsBase58 { get; set; }
     }
 }

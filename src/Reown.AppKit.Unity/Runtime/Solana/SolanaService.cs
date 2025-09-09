@@ -80,14 +80,23 @@ namespace Reown.AppKit.Unity.Solana
         
         // -- Sign Transaction ----------------------------------------
 
-        public ValueTask<SignTransactionResponse> SignTransactionAsync(string transactionBase64, string pubkey = null)
+        public ValueTask<SignTransactionResponse> SignTransactionAsync(string transactionBase58, string pubkey = null)
         {
-            if (string.IsNullOrWhiteSpace(transactionBase64))
-                throw new ArgumentNullException(nameof(transactionBase64));
+            if (string.IsNullOrWhiteSpace(transactionBase58))
+                throw new ArgumentNullException(nameof(transactionBase58));
             
             pubkey ??= AppKit.Account.Address;
             
-            return SignTransactionAsyncCore(transactionBase64, pubkey);
+            return SignTransactionAsyncCore(transactionBase58, pubkey);
+        }
+        
+        
+        // -- Sign All Transactions ------------------------------------
+
+        public ValueTask<SignAllTransactionsResponse> SignAllTransactionsAsync(string[] transactionsBase58, string pubkey = null)
+        {
+            pubkey ??= AppKit.Account.Address;
+            return SignAllTransactionsAsyncCore(transactionsBase58, pubkey);
         }
         
         
@@ -107,7 +116,8 @@ namespace Reown.AppKit.Unity.Solana
         protected abstract ValueTask<string> SignMessageAsyncCore(string message, string pubkey);
         protected abstract ValueTask<string> SignMessageAsyncCore(byte[] message, string pubkey);
         protected abstract ValueTask<bool> VerifyMessageSignatureAsyncCore(string message, string signature, string pubkey);
-        protected abstract ValueTask<SignTransactionResponse> SignTransactionAsyncCore(string transactionBase64, string pubkey);
+        protected abstract ValueTask<SignTransactionResponse> SignTransactionAsyncCore(string transactionBase58, string pubkey);
+        protected abstract ValueTask<SignAllTransactionsResponse> SignAllTransactionsAsyncCore(string[] transactionsBase58, string pubkey);
         protected abstract Task<TResult> RpcRequestAsyncCore<TResult>(string method, params object[] parameters);
     }
 }

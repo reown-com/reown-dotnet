@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Reown.AppKit.Unity;
@@ -93,17 +94,19 @@ public class AppKitWalletBase : WalletBase, IDisposable
     protected override async Task<Transaction> _SignTransaction(Transaction transaction)
     {
         var txBytes = transaction.Serialize();
-        // var txEncoded = Convert.ToBase64String(txBytes);
         var txEncoded = Base58Encoding.Encode(txBytes);
-        Debug.Log(JsonConvert.SerializeObject(transaction, Formatting.Indented));
-        Debug.Log(txEncoded);
         var result = await AppKit.Solana.SignTransactionAsync(txEncoded, Account.PublicKey);
         return Transaction.Deserialize(result.TransactionBase64);
     }
 
-    protected override Task<Transaction[]> _SignAllTransactions(Transaction[] transactions)
+    protected override async Task<Transaction[]> _SignAllTransactions(Transaction[] transactions)
     {
-        throw new System.NotImplementedException();
+        var txsEncoded = transactions
+            .Select(tx => Base58Encoding.Encode(tx.Serialize()))
+            .ToArray();
+        
+        var response = await AppKit.Solana.SignAllTransactionsAsync(txsEncoded, Account.PublicKey);
+        return response.TransactionsBase58.Select(Transaction.Deserialize).ToArray();
     }
 
     public override async Task<byte[]> SignMessage(byte[] message)
