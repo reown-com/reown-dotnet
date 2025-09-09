@@ -68,6 +68,26 @@ public class AppKitWalletBase : WalletBase, IDisposable
         return await _loginTaskCompletionSource.Task;
     }
 
+    public async Task<(bool resumed, Account account)> TryResumeAppKitSession()
+    {
+        var resumed = await AppKit.ConnectorController.TryResumeSessionAsync();
+        if (!resumed)
+            return (false, null);
+        
+        var appKitAccount = AppKit.Account;
+        if (!appKitAccount.ChainId.StartsWith("solana"))
+        {
+            var solanaAccount = AppKit.ConnectorController.Accounts.FirstOrDefault(a => a.ChainId.StartsWith("solana"));
+            if (solanaAccount == default)
+                return (false, null);
+            
+            appKitAccount = solanaAccount;
+        }
+        
+        Account = new Account(string.Empty, appKitAccount.Address);
+        return (true, Account);
+    }
+
     protected override async Task<Account> _Login(string password = null)
     {
         var resumed = await AppKit.ConnectorController.TryResumeSessionAsync();
