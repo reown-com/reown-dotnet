@@ -94,7 +94,13 @@ namespace Solana.Unity.SDK.Example
             // messageTxt.text = "";
             // CheckAccount(account);
             
+            // Connect with Jupiter wallet
+            // Remove wallet id arg to show wallet selection UI
+            #if UNITY_EDITOR || UNITY_STANDALONE
             var account = await Web3.Instance.LoginAppKit();
+#else 
+            var account = await Web3.Instance.LoginAppKit("0ef262ca2a56b88d179c93a21383fee4e135bd7bc6680e5c2356ff8e38301037");
+#endif
             messageTxt.text = "";
             CheckAccount(account);
         }

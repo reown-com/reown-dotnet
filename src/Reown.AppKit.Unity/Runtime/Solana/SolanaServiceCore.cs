@@ -60,20 +60,20 @@ namespace Reown.AppKit.Unity.Solana
             return new ValueTask<bool>(verifier.VerifySignature(signatureBytes));
         }
 
-        protected override async ValueTask<SignTransactionResponse> SignTransactionAsyncCore(string transactionBase58, string pubkey)
+        protected override async ValueTask<SignTransactionResponse> SignTransactionAsyncCore(string transactionBase64, string pubkey)
         {
             var payload = new SignTransactionRequest
             {
-                TransactionBase58 = transactionBase58
+                TransactionBase58 = transactionBase64
             };
             return await _signClient.RequestAsync<SignTransactionRequest, SignTransactionResponse>("solana_signTransaction", payload);
         }
         
-        protected override async ValueTask<SignAllTransactionsResponse> SignAllTransactionsAsyncCore(string[] transactionsBase58, string pubkey)
+        protected override async ValueTask<SignAllTransactionsResponse> SignAllTransactionsAsyncCore(string[] transactionsBase64, string pubkey)
         {
             var payload = new SignAllTransactionsRequest
             {
-                TransactionsBase58 = transactionsBase58
+                TransactionsBase58 = transactionsBase64
             };
             return await _signClient.RequestAsync<SignAllTransactionsRequest, SignAllTransactionsResponse>("solana_signAllTransactions", payload);
         }

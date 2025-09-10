@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 using Reown.Sign.Unity;
 using System.Linq;
+using Reown.Core.Common.Logging;
 
 namespace Reown.AppKit.Unity.Solana
 {
@@ -80,31 +81,30 @@ namespace Reown.AppKit.Unity.Solana
         
         // -- Sign Transaction ----------------------------------------
 
-        public ValueTask<SignTransactionResponse> SignTransactionAsync(string transactionBase58, string pubkey = null)
+        public ValueTask<SignTransactionResponse> SignTransactionAsync(string transactionBase64, string pubkey = null)
         {
-            if (string.IsNullOrWhiteSpace(transactionBase58))
-                throw new ArgumentNullException(nameof(transactionBase58));
+            if (string.IsNullOrWhiteSpace(transactionBase64))
+                throw new ArgumentNullException(nameof(transactionBase64));
             
             pubkey ??= AppKit.Account.Address;
             
-            return SignTransactionAsyncCore(transactionBase58, pubkey);
+            return SignTransactionAsyncCore(transactionBase64, pubkey);
         }
         
         
         // -- Sign All Transactions ------------------------------------
 
-        public ValueTask<SignAllTransactionsResponse> SignAllTransactionsAsync(string[] transactionsBase58, string pubkey = null)
+        public ValueTask<SignAllTransactionsResponse> SignAllTransactionsAsync(string[] transactionsBase64, string pubkey = null)
         {
             pubkey ??= AppKit.Account.Address;
-            return SignAllTransactionsAsyncCore(transactionsBase58, pubkey);
+            return SignAllTransactionsAsyncCore(transactionsBase64, pubkey);
         }
         
         
         // -- RPC Request ----------------------------------------------
 
         public Task<T> RpcRequestAsync<T>(string method, params object[] parameters)
-        {
-            if (string.IsNullOrWhiteSpace(method))
+        {            if (string.IsNullOrWhiteSpace(method))
                 throw new ArgumentNullException(nameof(method));
 
             return RpcRequestAsyncCore<T>(method, parameters);
@@ -116,8 +116,8 @@ namespace Reown.AppKit.Unity.Solana
         protected abstract ValueTask<string> SignMessageAsyncCore(string message, string pubkey);
         protected abstract ValueTask<string> SignMessageAsyncCore(byte[] message, string pubkey);
         protected abstract ValueTask<bool> VerifyMessageSignatureAsyncCore(string message, string signature, string pubkey);
-        protected abstract ValueTask<SignTransactionResponse> SignTransactionAsyncCore(string transactionBase58, string pubkey);
-        protected abstract ValueTask<SignAllTransactionsResponse> SignAllTransactionsAsyncCore(string[] transactionsBase58, string pubkey);
+        protected abstract ValueTask<SignTransactionResponse> SignTransactionAsyncCore(string transactionBase64, string pubkey);
+        protected abstract ValueTask<SignAllTransactionsResponse> SignAllTransactionsAsyncCore(string[] transactionsBase64, string pubkey);
         protected abstract Task<TResult> RpcRequestAsyncCore<TResult>(string method, params object[] parameters);
     }
 }

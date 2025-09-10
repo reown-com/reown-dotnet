@@ -114,7 +114,7 @@ public class AppKitWalletBase : WalletBase, IDisposable
     protected override async Task<Transaction> _SignTransaction(Transaction transaction)
     {
         var txBytes = transaction.Serialize();
-        var txEncoded = Base58Encoding.Encode(txBytes);
+        var txEncoded = Convert.ToBase64String(txBytes);
         var result = await AppKit.Solana.SignTransactionAsync(txEncoded, Account.PublicKey);
         return Transaction.Deserialize(result.TransactionBase64);
     }
@@ -122,7 +122,7 @@ public class AppKitWalletBase : WalletBase, IDisposable
     protected override async Task<Transaction[]> _SignAllTransactions(Transaction[] transactions)
     {
         var txsEncoded = transactions
-            .Select(tx => Base58Encoding.Encode(tx.Serialize()))
+            .Select(tx => Convert.ToBase64String(tx.Serialize()))
             .ToArray();
         
         var response = await AppKit.Solana.SignAllTransactionsAsync(txsEncoded, Account.PublicKey);
