@@ -2,27 +2,33 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Reown.Core.Crypto.Encoder;
 using Reown.Sign.Unity;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
+using Reown.AppKit.Unity.Http;
+using Reown.Core.Network.Models;
+using UnityEngine;
 
 namespace Reown.AppKit.Unity.Solana
 {
     public class SolanaServiceCore : SolanaService
     {
         private SignClientUnity _signClient;
+        private UnityHttpClient _httpClient;
 
         protected override ValueTask InitializeAsyncCore(SignClientUnity signClient)
         {
             _signClient = signClient;
+            _httpClient = new UnityHttpClient();
             return default;
         }
 
-        protected override ValueTask<BigInteger> GetBalanceAsyncCore(string pubkey)
+        protected override async ValueTask<BigInteger> GetBalanceAsyncCore(string pubkey)
         {
-            throw new System.NotImplementedException();
-            return new ValueTask<BigInteger>(new BigInteger(0));
+            var result = await RpcRequestAsync<GetBalanceResponse>("getBalance", pubkey);
+            return result.Value;
         }
 
         protected override async ValueTask<string> SignMessageAsyncCore(string message, string pubkey)
@@ -78,19 +84,20 @@ namespace Reown.AppKit.Unity.Solana
             return await _signClient.RequestAsync<SignAllTransactionsRequest, SignAllTransactionsResponse>("solana_signAllTransactions", payload);
         }
 
-        protected override Task<TResult> RpcRequestAsyncCore<TResult>(string method, params object[] parameters)
+        protected override async Task<TResult> RpcRequestAsyncCore<TResult>(string method, params object[] parameters)
         {
             var defaultSessionNamespaces = _signClient.AddressProvider.DefaultSession.Namespaces;
             if (defaultSessionNamespaces.TryGetValue("solana", out var solanaNamespace) && solanaNamespace.Methods.Contains(method))
             {
                 return parameters.Length == 1
-                    ? _signClient.RequestAsync<object, TResult>(method, parameters[0])
-                    : _signClient.RequestAsync<object[], TResult>(method, parameters);
+                    ? await _signClient.RequestAsync<object, TResult>(method, parameters[0])
+                    : await _signClient.RequestAsync<object[], TResult>(method, parameters);
             }
-            else
-            {
-                throw new System.NotImplementedException();
-            }
+            
+            var request = new JsonRpcRequest<object[]>(method, parameters);
+            var rpcUrl = CreateRpcUrl(AppKit.Account.ChainId);
+            var response = await _httpClient.PostAsync<JsonRpcResponse<TResult>>(rpcUrl, JsonConvert.SerializeObject(request));
+            return response.Result;
         }
     }
 }

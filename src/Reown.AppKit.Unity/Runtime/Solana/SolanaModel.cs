@@ -1,3 +1,4 @@
+using System.Numerics;
 using Newtonsoft.Json;
 
 namespace Reown.AppKit.Unity.Solana
@@ -39,5 +40,11 @@ namespace Reown.AppKit.Unity.Solana
     {
         [JsonProperty("transactions")]
         public string[] TransactionsBase58 { get; set; }
+    }
+    
+    public class GetBalanceResponse
+    {
+        [JsonProperty("value")]
+        public BigInteger Value { get; set; }
     }
 }
