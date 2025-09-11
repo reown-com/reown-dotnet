@@ -13,6 +13,6 @@
   ],
   "dependencies": {
     "com.reown.appkit.unity": "1.4.5",
-    "com.solana.unity_sdk": "1.2.8"
+    "com.solana.unity_sdk": "1.2.9"
   }
 }

@@ -20,7 +20,7 @@
       "source": "local",
       "dependencies": {
         "com.reown.appkit.unity": "1.4.5",
-        "com.solana.unity_sdk": "1.2.8"
+        "com.solana.unity_sdk": "1.2.9"
       }
     },
     "com.reown.appkit.unity": {
@@ -126,13 +126,14 @@
       }
     },
     "com.solana.unity_sdk": {
-      "version": "file:Solana.Unity-SDK",
+      "version": "https://github.com/magicblock-labs/Solana.Unity-SDK.git",
       "depth": 0,
-      "source": "embedded",
+      "source": "git",
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "3.0.2",
         "com.unity.textmeshpro": "3.0.6"
-      }
+      },
+      "hash": "3d139411ef2b0b0cad451dd97e63c609fad63ea0"
     },
     "com.unity.2d.animation": {
       "version": "9.1.3",

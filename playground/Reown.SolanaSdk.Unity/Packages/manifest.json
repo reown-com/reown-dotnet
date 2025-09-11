@@ -13,6 +13,7 @@
     "com.reown.sign.nethereum.unity": "file:./../../../src/Reown.Sign.Nethereum.Unity",
     "com.reown.sign.unity": "file:./../../../src/Reown.Sign.Unity",
     "com.reown.unity.dependencies": "file:./../../../src/Reown.Unity.Dependencies",
+    "com.solana.unity_sdk": "https://github.com/magicblock-labs/Solana.Unity-SDK.git",
     "com.unity.collab-proxy": "2.8.2",
     "com.unity.feature.2d": "2.0.1",
     "com.unity.ide.rider": "3.0.36",
