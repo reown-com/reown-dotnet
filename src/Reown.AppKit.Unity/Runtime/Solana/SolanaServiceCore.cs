@@ -9,7 +9,6 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Reown.AppKit.Unity.Http;
 using Reown.Core.Network.Models;
-using UnityEngine;
 
 namespace Reown.AppKit.Unity.Solana
 {

@@ -13,33 +13,25 @@ using ReownAccount = Reown.Sign.Models.Account;
 public class AppKitWalletBase : WalletBase, IDisposable
 {
     private TaskCompletionSource<Account> _loginTaskCompletionSource;
-    
-    public AppKitWalletBase(RpcCluster rpcCluster = RpcCluster.DevNet, string customRpcUri = null, string customStreamingRpcUri = null, bool autoConnectOnStartup = false) 
+
+    public AppKitWalletBase(RpcCluster rpcCluster = RpcCluster.DevNet, string customRpcUri = null, string customStreamingRpcUri = null, bool autoConnectOnStartup = false)
         : base(rpcCluster, customRpcUri, customStreamingRpcUri, autoConnectOnStartup)
     {
         AppKit.AccountConnected += AccountConnectedHandler;
         AppKit.AccountChanged += AccountChangedHandler;
-        AppKit.ModalController.OpenStateChanged += ModalOpenStateChangedHandler;
-    }
-
-    private void ModalOpenStateChangedHandler(object sender, ModalOpenStateChangedEventArgs e)
-    {
-        // If modal is closed while waiting for login, cancel login task
-        // if (!e.IsOpen && _loginTaskCompletionSource != null && Account == null)
-        //     _loginTaskCompletionSource.SetCanceled();
     }
 
     private void AccountConnectedHandler(object sender, Connector.AccountConnectedEventArgs e)
     {
         TryUpdateWalletAccount(e.Account);
-        
+
         // If there's a login task waiting for an account, complete it
         if (_loginTaskCompletionSource != null && (_loginTaskCompletionSource != null || !_loginTaskCompletionSource.Task.IsCompleted))
         {
             _loginTaskCompletionSource.SetResult(Account);
         }
     }
-    
+
     private void AccountChangedHandler(object sender, Connector.AccountChangedEventArgs e)
     {
         TryUpdateWalletAccount(e.Account);
@@ -62,9 +54,9 @@ public class AppKitWalletBase : WalletBase, IDisposable
     public async Task<Account> LoginWithWallet(string walletId)
     {
         _loginTaskCompletionSource ??= new TaskCompletionSource<Account>();
-        
+
         await AppKit.ConnectAsync(walletId);
-        
+
         return await _loginTaskCompletionSource.Task;
     }
 
@@ -73,17 +65,17 @@ public class AppKitWalletBase : WalletBase, IDisposable
         var resumed = await AppKit.ConnectorController.TryResumeSessionAsync();
         if (!resumed)
             return (false, null);
-        
+
         var appKitAccount = AppKit.Account;
         if (!appKitAccount.ChainId.StartsWith("solana"))
         {
             var solanaAccount = AppKit.ConnectorController.Accounts.FirstOrDefault(a => a.ChainId.StartsWith("solana"));
             if (solanaAccount == default)
                 return (false, null);
-            
+
             appKitAccount = solanaAccount;
         }
-        
+
         Account = new Account(string.Empty, appKitAccount.Address);
         return (true, Account);
     }
@@ -98,11 +90,12 @@ public class AppKitWalletBase : WalletBase, IDisposable
             Account = account;
             return account;
         }
-        
+
         _loginTaskCompletionSource ??= new TaskCompletionSource<Account>();
-            
+
         AppKit.OpenModal();
-        
+
+
         return await _loginTaskCompletionSource.Task;
     }
 
@@ -113,6 +106,7 @@ public class AppKitWalletBase : WalletBase, IDisposable
 
     protected override async Task<Transaction> _SignTransaction(Transaction transaction)
     {
+        Debug.Log($"Signing transaction: {JsonConvert.SerializeObject(transaction, Formatting.Indented)}");
         var txBytes = transaction.Serialize();
         var txEncoded = Convert.ToBase64String(txBytes);
         var result = await AppKit.Solana.SignTransactionAsync(txEncoded, Account.PublicKey);
@@ -124,14 +118,14 @@ public class AppKitWalletBase : WalletBase, IDisposable
         var txsEncoded = transactions
             .Select(tx => Convert.ToBase64String(tx.Serialize()))
             .ToArray();
-        
+
         var response = await AppKit.Solana.SignAllTransactionsAsync(txsEncoded, Account.PublicKey);
         return response.TransactionsBase58.Select(Transaction.Deserialize).ToArray();
     }
 
     public override async Task<byte[]> SignMessage(byte[] message)
     {
-        var signature = await AppKit.Solana.SignMessageAsync(message, Account.PublicKey); 
+        var signature = await AppKit.Solana.SignMessageAsync(message, Account.PublicKey);
         return Base58Encoding.Decode(signature);
     }
 
@@ -139,6 +133,5 @@ public class AppKitWalletBase : WalletBase, IDisposable
     {
         AppKit.AccountConnected -= AccountConnectedHandler;
         AppKit.AccountChanged -= AccountChangedHandler;
-        AppKit.ModalController.OpenStateChanged -= ModalOpenStateChangedHandler;
     }
 }

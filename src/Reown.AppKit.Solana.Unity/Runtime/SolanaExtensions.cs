@@ -12,19 +12,19 @@ public static class SolanaExtensions
     {
         if (AppKit.Instance == null)
             throw new InvalidOperationException("AppKit instance not found. Make sure you have added AppKit prefab to the scene.");
-        
+
         if (!AppKit.IsInitialized)
             throw new InvalidOperationException("AppKit is not initialized. Make sure you have called AppKit.Initialize() before calling this method.");
-        
+
         var appKitWallet = CreateAppKitWallet(web3);
-        
+
         Account account;
         try
         {
             if (string.IsNullOrWhiteSpace(walletId))
                 account = await appKitWallet.Login();
             else
-                account = await appKitWallet.LoginWithWallet(walletId);   
+                account = await appKitWallet.LoginWithWallet(walletId);
         }
         catch (Exception e)
         {
@@ -64,7 +64,7 @@ public static class SolanaExtensions
                 web3.customRpc,
                 web3.webSocketsRpc,
                 web3.autoConnectOnStartup);
-        
+
         var chainId = web3.rpcCluster.ToCaip2ChainId();
         var url = SolanaService.CreateRpcUrl(chainId);
         web3.customRpc = url;

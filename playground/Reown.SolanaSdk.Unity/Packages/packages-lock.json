@@ -14,6 +14,15 @@
       "dependencies": {},
       "url": "https://package.openupm.com"
     },
+    "com.reown.appkit.solana.unity": {
+      "version": "file:./../../../src/Reown.AppKit.Solana.Unity",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.reown.appkit.unity": "1.4.5",
+        "com.solana.unity_sdk": "1.2.8"
+      }
+    },
     "com.reown.appkit.unity": {
       "version": "file:./../../../src/Reown.AppKit.Unity",
       "depth": 0,

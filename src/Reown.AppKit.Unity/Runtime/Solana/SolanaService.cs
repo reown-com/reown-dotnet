@@ -104,7 +104,8 @@ namespace Reown.AppKit.Unity.Solana
         // -- RPC Request ----------------------------------------------
 
         public Task<T> RpcRequestAsync<T>(string method, params object[] parameters)
-        {            if (string.IsNullOrWhiteSpace(method))
+        {
+            if (string.IsNullOrWhiteSpace(method))
                 throw new ArgumentNullException(nameof(method));
 
             return RpcRequestAsyncCore<T>(method, parameters);

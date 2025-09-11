@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "com.google.external-dependency-manager": "https://github.com/googlesamples/unity-jar-resolver.git?path=upm",
+    "com.reown.appkit.solana.unity": "file:./../../../src/Reown.AppKit.Solana.Unity",
     "com.reown.appkit.unity": "file:./../../../src/Reown.AppKit.Unity",
     "com.reown.core": "file:./../../../src/Reown.Core",
     "com.reown.core.common": "file:./../../../src/Reown.Core.Common",

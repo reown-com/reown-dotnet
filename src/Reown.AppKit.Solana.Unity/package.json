@@ -1,0 +1,18 @@
+{
+  "name": "com.reown.appkit.solana.unity",
+  "version": "1.4.5",
+  "displayName": "Reown.AppKit.Solana.Unity",
+  "description": "Reown AppKit adapter for Solana.Unity-SDK",
+  "unity": "2022.3",
+  "author": "Reown",
+  "keywords": [
+    "reown",
+    "walletconnect",
+    "appkit",
+    "solana"
+  ],
+  "dependencies": {
+    "com.reown.appkit.unity": "1.4.5",
+    "com.solana.unity_sdk": "1.2.8"
+  }
+}
