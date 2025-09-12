@@ -26,9 +26,10 @@ public class AppKitWalletBase : WalletBase, IDisposable
         TryUpdateWalletAccount(e.Account);
 
         // If there's a login task waiting for an account, complete it
-        if (_loginTaskCompletionSource != null && (_loginTaskCompletionSource != null || !_loginTaskCompletionSource.Task.IsCompleted))
+        if (_loginTaskCompletionSource?.Task.IsCompleted == false)
         {
-            _loginTaskCompletionSource.SetResult(Account);
+            _loginTaskCompletionSource.TrySetResult(Account);
+            _loginTaskCompletionSource = null;
         }
     }
 
@@ -49,6 +50,7 @@ public class AppKitWalletBase : WalletBase, IDisposable
     {
         base.Logout();
         await AppKit.DisconnectAsync();
+        UnsubscribeFromAccountEvents();
     }
 
     public async Task<Account> LoginWithWallet(string walletId)
@@ -129,9 +131,14 @@ public class AppKitWalletBase : WalletBase, IDisposable
         return Base58Encoding.Decode(signature);
     }
 
-    public void Dispose()
+    private void UnsubscribeFromAccountEvents()
     {
         AppKit.AccountConnected -= AccountConnectedHandler;
         AppKit.AccountChanged -= AccountChangedHandler;
+    }
+
+    public void Dispose()
+    {
+        UnsubscribeFromAccountEvents();
     }
 }
