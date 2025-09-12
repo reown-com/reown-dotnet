@@ -29,7 +29,6 @@ public class AppKitWalletBase : WalletBase, IDisposable
         if (_loginTaskCompletionSource?.Task.IsCompleted == false)
         {
             _loginTaskCompletionSource.TrySetResult(Account);
-            _loginTaskCompletionSource = null;
         }
     }
 
