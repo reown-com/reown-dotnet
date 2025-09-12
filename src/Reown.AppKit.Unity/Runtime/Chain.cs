@@ -386,7 +386,7 @@ namespace Reown.AppKit.Unity
                 new BlockExplorer("Solscan", "https://devnet.solscan.io"),
                 "https://api.devnet.solana.com",
                 true, 
-                ChainImageUrl
+                $"{ChainImageUrl}/{ImageIds[References.Solana]}"
             );
 
             public static readonly IReadOnlyCollection<Chain> All = new HashSet<Chain>
