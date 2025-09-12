@@ -3,8 +3,8 @@
         <TargetFrameworks>$(DefaultTargetFrameworks)</TargetFrameworks>
         <PackageVersion>$(DefaultVersion)</PackageVersion>
         <AssemblyVersion>$(DefaultVersion)</AssemblyVersion>
-        <PackageId>Reown.Sign.Unity</PackageId>
-        <Title>Reown.Sign.Unity</Title>
+        <PackageId>Reown.AppKit.Solana.Unity</PackageId>
+        <Title>Reown.AppKit.Solana.Unity</Title>
         <Authors>skibitsky</Authors>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
@@ -13,7 +13,8 @@
 
     <ItemGroup>
         <None Include="LICENSE.md" Pack="true" PackagePath=""/>
-        <ProjectReference Include="..\Reown.Sign\Reown.Sign.csproj"/>
+        <ProjectReference Include="..\Reown.AppKit.Unity\Reown.AppKit.Unity.csproj"/>
+        <ProjectReference Include="..\Reown.Sign.Unity\Reown.Sign.Unity.csproj"/>
         <Reference Include="UnityEngine">
             <HintPath>$(UnityDllPath)</HintPath>
         </Reference>
@@ -21,5 +22,6 @@
 
     <ItemGroup>
         <PackageReference Include="NUnit"/>
+        <PackageReference Include="Newtonsoft.Json"/>
     </ItemGroup>
 </Project>
