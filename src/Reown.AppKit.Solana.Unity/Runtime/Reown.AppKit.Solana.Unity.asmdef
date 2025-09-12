@@ -1,0 +1,20 @@
+{
+    "name": "Reown.AppKit.Solana.Unity",
+    "rootNamespace": "",
+    "references": [
+        "GUID:33de4d868b803453e9e80bc244c66263",
+        "GUID:f3be9c85e809b764eab4c14239272b33",
+        "GUID:ef24534b04b0d4a5d94edc102ea97a33",
+        "GUID:3e99d4890953d4e1794cd95f5f8af28c",
+        "GUID:8d7a75f34aa7d40b1b56b32e0090eb04"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

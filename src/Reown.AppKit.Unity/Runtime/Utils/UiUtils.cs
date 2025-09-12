@@ -27,11 +27,39 @@ namespace Reown.AppKit.Unity.Utils
         }
 #endif
 
+        private static Color ComputeDeterministicColor(string address)
+        {
+            unchecked
+            {
+                const uint fnvOffset = 2166136261;
+                const uint fnvPrime = 16777619;
+                uint hash = fnvOffset;
+                if (!string.IsNullOrEmpty(address))
+                {
+                    for (var i = 0; i < address.Length; i++)
+                        hash = (hash ^ address[i]) * fnvPrime;
+                }
+
+                var r = (byte)(hash & 0xFF);
+                var g = (byte)((hash >> 8) & 0xFF);
+                var b = (byte)((hash >> 16) & 0xFF);
+                return new Color32(r, g, b, 255);
+            }
+        }
+
         public static Texture2D GenerateAvatarTexture(string address)
         {
-            var baseColorHex = address.Substring(2, 6);
-            if (!ColorUtility.TryParseHtmlString($"#{baseColorHex}", out var baseColor))
-                return null;
+            Color baseColor;
+            if (!string.IsNullOrEmpty(address) && address.StartsWith("0x", System.StringComparison.OrdinalIgnoreCase) && address.Length >= 8)
+            {
+                var baseColorHex = address.Substring(2, 6);
+                if (!ColorUtility.TryParseHtmlString($"#{baseColorHex}", out baseColor))
+                    baseColor = ComputeDeterministicColor(address);
+            }
+            else
+            {
+                baseColor = ComputeDeterministicColor(address);
+            }
 
 #if UNITY_2022_3_OR_NEWER
             var circleShape = new Shape
