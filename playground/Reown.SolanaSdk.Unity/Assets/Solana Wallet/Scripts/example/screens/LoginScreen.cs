@@ -14,7 +14,7 @@ namespace Solana.Unity.SDK.Example
         [SerializeField]
         private TextMeshProUGUI passwordText;
         [SerializeField]
-        private Button loginBtn; 
+        private Button loginBtn;
         [SerializeField]
         private Button loginBtnGoogle;
         [SerializeField]
@@ -50,12 +50,12 @@ namespace Solana.Unity.SDK.Example
             passwordInputField.onSubmit.AddListener(delegate { LoginChecker(); });
 
             loginBtn.onClick.AddListener(LoginChecker);
-            loginBtnGoogle.onClick.AddListener(delegate{LoginCheckerWeb3Auth(Provider.GOOGLE);});
-            loginBtnTwitter.onClick.AddListener(delegate{LoginCheckerWeb3Auth(Provider.TWITTER);});
+            loginBtnGoogle.onClick.AddListener(delegate { LoginCheckerWeb3Auth(Provider.GOOGLE); });
+            loginBtnTwitter.onClick.AddListener(delegate { LoginCheckerWeb3Auth(Provider.TWITTER); });
             loginBtnWalletAdapter.onClick.AddListener(LoginCheckerWalletAdapter);
             loginBtnSms.onClick.AddListener(LoginCheckerSms);
             loginBtnXNFT.onClick.AddListener(LoginCheckerWalletAdapter);
-            
+
             loginBtnXNFT.gameObject.SetActive(false);
 
             // if (Application.platform is RuntimePlatform.LinuxEditor or RuntimePlatform.WindowsEditor or RuntimePlatform.OSXEditor)
@@ -65,9 +65,10 @@ namespace Solana.Unity.SDK.Example
             //         Debug.LogWarning("Wallet adapter login is not yet supported in the editor"));
             // }
 
-            if(messageTxt != null)
+            if (messageTxt != null)
                 messageTxt.gameObject.SetActive(false);
         }
+
         private async void LoginChecker()
         {
             var password = passwordInputField.text;
@@ -80,7 +81,7 @@ namespace Solana.Unity.SDK.Example
             var account = await Web3.Instance.LoginWalletAdapter();
             CheckAccount(account);
         }
-        
+
         private async void LoginCheckerWeb3Auth(Provider provider)
         {
             var account = await Web3.Instance.LoginWeb3Auth(provider);
@@ -93,12 +94,12 @@ namespace Solana.Unity.SDK.Example
             // var account = await Web3.Instance.LoginWalletAdapter();
             // messageTxt.text = "";
             // CheckAccount(account);
-            
+
             // Connect with Jupiter wallet
             // Remove wallet id arg to show wallet selection UI
-            #if UNITY_EDITOR || UNITY_STANDALONE
+#if UNITY_EDITOR || UNITY_STANDALONE
             var account = await Web3.Instance.LoginAppKit();
-#else 
+#else
             var account = await Web3.Instance.LoginAppKit("0ef262ca2a56b88d179c93a21383fee4e135bd7bc6680e5c2356ff8e38301037");
 #endif
             messageTxt.text = "";

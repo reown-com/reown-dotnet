@@ -33,7 +33,7 @@ namespace Solana.Unity.SDK.Example
         private Button saveMnemonicsBtn;
         [SerializeField]
         private Button savePrivateKeyBtn;
-        
+
         [SerializeField]
         private GameObject tokenItem;
         [SerializeField]
@@ -54,7 +54,7 @@ namespace Solana.Unity.SDK.Example
             {
                 TransitionToTransfer();
             });
-            
+
             signBtn.onClick.AddListener(() =>
             {
                 manager.ShowScreen(this, "sign_screen");
@@ -64,36 +64,38 @@ namespace Solana.Unity.SDK.Example
             {
                 manager.ShowScreen(this, "receive_screen");
             });
-            
+
             swapBtn.onClick.AddListener(() =>
             {
                 manager.ShowScreen(this, "swap_screen_ag");
             });
 
-            logoutBtn.onClick.AddListener(() =>
+            logoutBtn.onClick.AddListener(async () =>
             {
                 Web3.Instance.Logout();
+
+                await UniTask.Delay(500);
+
                 manager.ShowScreen(this, "login_screen");
-                if(parentManager != null)
+                if (parentManager != null)
                     parentManager.ShowScreen(this, "[Connect_Wallet_Screen]");
             });
-            
+
             savePrivateKeyBtn.onClick.AddListener(SavePrivateKeyOnClick);
             saveMnemonicsBtn.onClick.AddListener(SaveMnemonicsOnClick);
 
             _stopTask = new CancellationTokenSource();
-            
+
             Web3.OnWalletChangeState += OnWalletChangeState;
         }
 
         private void OnWalletChangeState()
         {
-            if(Web3.Wallet == null) return;
-            swapBtn.transition = Web3.Wallet.RpcCluster == RpcCluster.MainNet ?
-                Selectable.Transition.Animation
+            if (Web3.Wallet == null) return;
+            swapBtn.transition = Web3.Wallet.RpcCluster == RpcCluster.MainNet
+                ? Selectable.Transition.Animation
                 : Selectable.Transition.ColorTint;
             swapBtn.interactable = Web3.Wallet.RpcCluster == RpcCluster.MainNet;
-
         }
 
         private void RefreshWallet()
@@ -133,7 +135,7 @@ namespace Solana.Unity.SDK.Example
             Clipboard.Copy(Web3.Instance.WalletBase.Account.PrivateKey.ToString());
             gameObject.GetComponent<Toast>()?.ShowToast("Private Key copied to clipboard", 3);
         }
-        
+
         private void SaveMnemonicsOnClick()
         {
             if (!gameObject.activeSelf) return;
@@ -149,10 +151,10 @@ namespace Solana.Unity.SDK.Example
 
         private async UniTask GetOwnedTokenAccounts()
         {
-            if(_isLoadingTokens) return;
+            if (_isLoadingTokens) return;
             _isLoadingTokens = true;
             var tokens = await Web3.Wallet.GetTokenAccounts(Commitment.Processed);
-            if(tokens == null) return;
+            if (tokens == null) return;
             // Remove tokens not owned anymore and update amounts
             var tkToRemove = new List<TokenItem>();
             _instantiatedTokens.ForEach(tk =>
@@ -179,11 +181,10 @@ namespace Solana.Unity.SDK.Example
                 });
             });
             // Add new tokens
-            List<UniTask> loadingTasks = new List<UniTask>();
-            if (tokens is {Length: > 0})
+            var loadingTasks = new List<UniTask>();
+            if (tokens is { Length: > 0 })
             {
-                var tokenAccounts = tokens.OrderByDescending(
-                    tk => tk.Account.Data.Parsed.Info.TokenAmount.AmountUlong);
+                var tokenAccounts = tokens.OrderByDescending(tk => tk.Account.Data.Parsed.Info.TokenAmount.AmountUlong);
                 foreach (var item in tokenAccounts)
                 {
                     if (!(item.Account.Data.Parsed.Info.TokenAmount.AmountUlong > 0)) break;
@@ -199,7 +200,7 @@ namespace Solana.Unity.SDK.Example
                             loadingTasks.Add(loadTask);
                             loadTask.ContinueWith(nft =>
                             {
-                                TokenItem tkInstance = tk.GetComponent<TokenItem>();
+                                var tkInstance = tk.GetComponent<TokenItem>();
                                 _instantiatedTokens.Add(tkInstance);
                                 tk.SetActive(true);
                                 if (tkInstance)
@@ -214,12 +215,12 @@ namespace Solana.Unity.SDK.Example
             await UniTask.WhenAll(loadingTasks);
             _isLoadingTokens = false;
         }
-        
+
         public static async UniTask<TokenMintResolver> GetTokenMintResolver()
         {
-            if(_tokenResolver != null) return _tokenResolver;
+            if (_tokenResolver != null) return _tokenResolver;
             var tokenResolver = await TokenMintResolver.LoadAsync();
-            if(tokenResolver != null) _tokenResolver = tokenResolver;
+            if (tokenResolver != null) _tokenResolver = tokenResolver;
             return _tokenResolver;
         }
 
@@ -235,7 +236,7 @@ namespace Solana.Unity.SDK.Example
             base.HideScreen();
             gameObject.SetActive(false);
         }
-        
+
         public void OnClose()
         {
             var wallet = GameObject.Find("wallet");
