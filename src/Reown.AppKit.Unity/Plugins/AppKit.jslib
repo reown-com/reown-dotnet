@@ -108,7 +108,7 @@ mergeInto(LibraryManager.library, {
         const includeWalletIds = parameters.includeWalletIds;
 
         // Load the scripts and initialize the configuration
-        import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.8.3/dist/appkit.js").then(async (AppKit) => {
+        import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.8.5/dist/appkit.js").then(async (AppKit) => {
             const WagmiCore = AppKit['WagmiCore'];
             const WagmiAdapter = AppKit['WagmiAdapter'];
             const Viem = AppKit['Viem'];
