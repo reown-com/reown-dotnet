@@ -107,12 +107,30 @@ public class AppKitWalletBase : WalletBase, IDisposable
 
     protected override async Task<Transaction> _SignTransaction(Transaction transaction)
     {
-        Debug.Log($"Signing transaction: {JsonConvert.SerializeObject(transaction, Formatting.Indented)}");
         var txBytes = transaction.Serialize();
         var txEncoded = Convert.ToBase64String(txBytes);
         var result = await AppKit.Solana.SignTransactionAsync(txEncoded, Account.PublicKey);
-        return Transaction.Deserialize(result.TransactionBase64);
+
+        if (!string.IsNullOrEmpty(result.TransactionBase64))
+            return Transaction.Deserialize(result.TransactionBase64);
+
+        if (!string.IsNullOrWhiteSpace(result.Signature))
+        {
+            var sigBytes = Base58Encoding.Decode(result.Signature);
+
+            transaction.Signatures.Clear();
+            transaction.Signatures.Add(new SignaturePubKeyPair
+            {
+                PublicKey = Account.PublicKey,
+                Signature = sigBytes
+            });
+
+            return transaction;
+        }
+
+        throw new InvalidOperationException("Wallet did not return a transaction or signature.");
     }
+
 
     protected override async Task<Transaction[]> _SignAllTransactions(Transaction[] transactions)
     {
