@@ -1088,6 +1088,100 @@ public class SignTests : IAsyncLifetime
         Assert.Equal(newChainId, _dapp.AddressProvider.DefaultChainId);
     }
 
+    [Fact]
+    [Trait("Category", "integration")]
+    public async Task TestSessionRequestCancellation()
+    {
+        const string testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
+        var testMethod = "test_method";
+
+        var dappConnectOptions = new ConnectOptions
+        {
+            RequiredNamespaces = new RequiredNamespaces
+            {
+                {
+                    "eip155", new ProposedNamespace
+                    {
+                        Methods = new[]
+                        {
+                            testMethod
+                        },
+                        Chains = new[]
+                        {
+                            "eip155:1",
+                            "eip155:10"
+                        },
+                        Events = new[]
+                        {
+                            "chainChanged",
+                            "accountsChanged"
+                        }
+                    }
+                }
+            }
+        };
+
+        var connectData = await _dapp.Connect(dappConnectOptions);
+
+        var tcs = new TaskCompletionSource();
+        _wallet.SessionProposed += async (sender, @event) =>
+        {
+            var id = @event.Id;
+
+            var approvedNamespaces = new Namespaces(@event.Proposal.RequiredNamespaces);
+            approvedNamespaces["eip155"]
+                .WithAccount($"eip155:1:{testAddress}")
+                .WithAccount($"eip155:10:{testAddress}");
+
+            var approveParams = new ApproveParams
+            {
+                Id = id,
+                Namespaces = approvedNamespaces
+            };
+
+            var approveData = await _wallet.Approve(approveParams);
+            await approveData.Acknowledged();
+
+            tcs.SetResult();
+        };
+
+        _ = await _wallet.Pair(connectData.Uri);
+        await tcs.Task;
+
+        var sessionData = await connectData.Approval;
+
+        // Wallet delays responding to allow cancellation to occur first
+        _wallet.Engine.SessionRequestEvents<TestRequest, TestResponse>()
+            .OnRequest += async requestData =>
+        {
+            await Task.Delay(2000);
+
+            var data = requestData.Request.Params;
+            requestData.Response = new TestResponse
+            {
+                result = data.a * data.b
+            };
+        };
+
+        var testData = new TestRequest
+        {
+            a = 3,
+            b = 5
+        };
+
+        using var cts = new CancellationTokenSource();
+        var requestTask = _dapp.Engine.RequestAsync<TestRequest, TestResponse>(sessionData.Topic, testMethod, testData, ct: cts.Token);
+
+        // Give the request a moment to propagate, then cancel
+        await Task.Delay(200);
+        await cts.CancelAsync();
+
+        await Assert.ThrowsAsync<TaskCanceledException>(() => requestTask);
+
+        // Allow wallet to finish its delayed response without affecting the canceled request
+        await Task.Delay(500);
+    }
+
     [Fact] [Trait("Category", "integration")]
     public async Task TestAddressProviderDisconnect()
     {

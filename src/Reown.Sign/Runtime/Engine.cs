@@ -227,7 +227,7 @@ namespace Reown.Sign
                 _initialized = true;
             }
         }
-        
+
         public void SubscribeToSessionEvent(string eventName, EventHandler<SessionEvent<JToken>> handler)
         {
             _customSessionEventsHandlerMap[eventName] += handler;
@@ -245,7 +245,7 @@ namespace Reown.Sign
 
             return false;
         }
-        
+
         public TypedEventHandler<T, TR> SessionRequestEvents<T, TR>()
         {
             var uniqueKey = typeof(T).FullName + "--" + typeof(TR).FullName;
@@ -254,14 +254,14 @@ namespace Reown.Sign
                 _disposeActions.Add(uniqueKey, () => instance.Dispose());
             return instance;
         }
-        
+
         public Task<DisposeHandlerToken> HandleEventMessageType<T>(
             Func<string, JsonRpcRequest<SessionEvent<T>>, Task> requestCallback,
             Func<string, JsonRpcResponse<bool>, Task> responseCallback)
         {
             return HandleEventMessageTypeAsync(requestCallback, responseCallback);
         }
-        
+
         public async Task<DisposeHandlerToken> HandleEventMessageTypeAsync<T>(
             Func<string, JsonRpcRequest<SessionEvent<T>>, Task> requestCallback,
             Func<string, JsonRpcResponse<bool>, Task> responseCallback,
@@ -270,41 +270,39 @@ namespace Reown.Sign
             ct.ThrowIfCancellationRequested();
             return await Client.CoreClient.MessageHandler.HandleMessageType(requestCallback, responseCallback);
         }
-        
+
         public Task<IAcknowledgement> UpdateSessionAsync(Namespaces namespaces, CancellationToken ct = default)
         {
             return UpdateSessionAsync(Client.AddressProvider.DefaultSession.Topic, namespaces, ct);
         }
-        
+
         public Task<IAcknowledgement> ExtendAsync(CancellationToken ct = default)
         {
             return ExtendAsync(Client.AddressProvider.DefaultSession.Topic, ct);
         }
-        
-        
+
         public Task<TR> RequestAsync<T, TR>(string method, T data, string chainId = null, long? expiry = null, CancellationToken ct = default)
         {
             return RequestAsync<T, TR>(Client.AddressProvider.DefaultSession.Topic, method, data,
                 chainId ?? Client.AddressProvider.DefaultChainId, expiry, ct);
         }
-        
-        
+
         public Task RespondAsync<T, TR>(JsonRpcResponse<TR> response, CancellationToken ct = default)
         {
             return RespondAsync<T, TR>(Client.AddressProvider.DefaultSession.Topic, response, ct);
         }
-        
+
         public Task EmitAsync<T>(EventData<T> eventData, string chainId = null, CancellationToken ct = default)
         {
             return EmitAsync(Client.AddressProvider.DefaultSession.Topic, eventData,
                 chainId ?? Client.AddressProvider.DefaultChainId, ct);
         }
-        
+
         public Task PingAsync(CancellationToken ct = default)
         {
             return PingAsync(Client.AddressProvider.DefaultSession.Topic, ct);
         }
-        
+
         public Task DisconnectAsync(Error reason = null, CancellationToken ct = default)
         {
             return DisconnectAsync(Client.AddressProvider.DefaultSession.Topic, reason, ct);
@@ -362,7 +360,7 @@ namespace Reown.Sign
                 return Client.PendingRequests.Values;
             }
         }
-        
+
         public async Task<ConnectedData> ConnectAsync(ConnectOptions options, CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
@@ -446,7 +444,7 @@ namespace Reown.Sign
             async void OnSessionConnected(object sender, Session session)
             {
                 ct.ThrowIfCancellationRequested();
-                
+
                 if (session == null)
                     return;
 
@@ -476,7 +474,7 @@ namespace Reown.Sign
             void OnSessionConnectionErrored(object sender, Exception exception)
             {
                 ct.ThrowIfCancellationRequested();
-                
+
                 if (approvalTask.Task.IsCompleted)
                 {
                     return;
@@ -493,14 +491,14 @@ namespace Reown.Sign
                 approvalTask.SetException(exception);
             }
         }
-        
+
         public async Task<PairingStruct> PairAsync(string uri, CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
             IsInitialized();
             return await Client.CoreClient.Pairing.Pair(uri);
         }
-        
+
         public async Task<IApprovedData> ApproveAsync(ApproveParams @params, CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
@@ -585,7 +583,7 @@ namespace Reown.Sign
 
             return IApprovedData.FromTask(sessionTopic, acknowledgedTask.Task);
         }
-        
+
         public async Task RejectAsync(RejectParams @params, CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
@@ -607,7 +605,7 @@ namespace Reown.Sign
         {
             return UpdateSessionAsync(topic, namespaces);
         }
-        
+
         public async Task<IAcknowledgement> UpdateSessionAsync(string topic, Namespaces namespaces, CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
@@ -624,7 +622,7 @@ namespace Reown.Sign
             {
                 if (ct.IsCancellationRequested)
                     acknowledgedTask.TrySetCanceled();
-                
+
                 if (args.IsError)
                     acknowledgedTask.SetException(args.Error.ToException());
                 else
@@ -638,7 +636,7 @@ namespace Reown.Sign
 
             return IAcknowledgement.FromTask(acknowledgedTask.Task);
         }
-        
+
         public async Task<IAcknowledgement> ExtendAsync(string topic, CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
@@ -652,7 +650,7 @@ namespace Reown.Sign
             {
                 if (ct.IsCancellationRequested)
                     acknowledgedTask.TrySetCanceled();
-                
+
                 if (args.IsError)
                     acknowledgedTask.SetException(args.Error.ToException());
                 else
@@ -663,7 +661,7 @@ namespace Reown.Sign
 
             return IAcknowledgement.FromTask(acknowledgedTask.Task);
         }
-        
+
         public async Task<TR> RequestAsync<T, TR>(string topic, string method, T data, string chainId = null, long? expiry = null, CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
@@ -685,7 +683,7 @@ namespace Reown.Sign
             }
 
             var request = new JsonRpcRequest<T>(method, data);
-            
+
             await PrivateThis.IsValidRequest(topic, request, requestChainId);
             var taskSource = new TaskCompletionSource<TR>();
 
@@ -696,10 +694,17 @@ namespace Reown.Sign
                     Request = request
                 });
 
-            SessionRequestEvents<T, TR>()
-                .FilterResponses(e => e.Topic == topic && e.Response.Id == id)
-                .OnResponse += args =>
+            var responseHandlerInstance = SessionRequestEvents<T, TR>()
+                .FilterResponses(e => e.Topic == topic && e.Response.Id == id);
+
+            TypedEventHandler<T, TR>.ResponseMethod<TR> onResponseHandler = null;
+            CancellationTokenRegistration ctr = default;
+
+            onResponseHandler = args =>
             {
+                responseHandlerInstance.OnResponse -= onResponseHandler;
+                ctr.Dispose();
+
                 if (args.Response.IsError)
                     taskSource.TrySetException(args.Response.Error.ToException());
                 else
@@ -707,6 +712,14 @@ namespace Reown.Sign
 
                 return Task.CompletedTask;
             };
+
+            responseHandlerInstance.OnResponse += onResponseHandler;
+
+            ctr = ct.Register(() =>
+            {
+                responseHandlerInstance.OnResponse -= onResponseHandler;
+                taskSource.TrySetCanceled();
+            });
 
             SessionRequestSent?.Invoke(this, new SessionRequestEvent
             {
@@ -717,7 +730,7 @@ namespace Reown.Sign
 
             return await taskSource.Task;
         }
-        
+
         public async Task RespondAsync<T, TR>(string topic, JsonRpcResponse<TR> response, CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
@@ -739,7 +752,7 @@ namespace Reown.Sign
                 Message = "fulfilled"
             });
         }
-        
+
         public async Task EmitAsync<T>(string topic, EventData<T> eventData, string chainId = null, CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
@@ -753,7 +766,7 @@ namespace Reown.Sign
                     Topic = topic
                 });
         }
-        
+
         public async Task PingAsync(string topic, CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
@@ -783,7 +796,7 @@ namespace Reown.Sign
         {
             return DisconnectAsync(topic, reason);
         }
-        
+
         public async Task DisconnectAsync(string topic, Error reason = null, CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
@@ -812,28 +825,28 @@ namespace Reown.Sign
                 await Client.CoreClient.Pairing.Disconnect(topic);
             }
         }
-        
+
         public Session[] Find(RequiredNamespaces requiredNamespaces)
         {
             IsInitialized();
             return Client.Session.Values.Where(s => IsSessionCompatible(s, requiredNamespaces)).ToArray();
         }
-        
+
         public Task<IApprovedData> ApproveAsync(ProposalStruct proposalStruct, params string[] approvedAddresses)
         {
             return ApproveAsync(proposalStruct.ApproveProposal(approvedAddresses));
         }
-        
+
         public Task RejectAsync(ProposalStruct proposalStruct, string message = null, CancellationToken ct = default)
         {
             return RejectAsync(proposalStruct.RejectProposal(message), ct);
         }
-        
+
         public Task RejectAsync(ProposalStruct proposalStruct, Error error, CancellationToken ct = default)
         {
             return RejectAsync(proposalStruct.RejectProposal(error), ct);
         }
-        
+
         public async Task<AuthenticateData> AuthenticateAsync(AuthParams authParams, CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
@@ -1043,7 +1056,7 @@ namespace Reown.Sign
                 SessionAuthenticated -= sessionAuthHandler;
             }
         }
-        
+
         public async Task RejectSessionAuthenticateAsync(RejectParams rejectParams, CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
@@ -1062,7 +1075,7 @@ namespace Reown.Sign
             await Client.Auth.PendingRequests.Delete(rejectParams.Id, Error.FromErrorType(ErrorType.USER_DISCONNECTED));
             await Client.Proposal.Delete(rejectParams.Id, Error.FromErrorType(ErrorType.USER_DISCONNECTED));
         }
-        
+
         public async Task<Session> ApproveSessionAuthenticateAsync(long requestId, CacaoObject[] auths, CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
