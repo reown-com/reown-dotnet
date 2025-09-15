@@ -441,7 +441,7 @@ public class SignTests : IAsyncLifetime
         _dapp.SessionRequestSent += (sender, @event) => Assert.Equal(@event.Topic, sessionData.Topic);
 
         // 2. Send the request from the dapp client
-        var responseReturned = await _dapp.Request<TestRequest, TestResponse>(sessionData.Topic, testData);
+        var responseReturned = await _dapp.RequestAsync<TestRequest, TestResponse>(sessionData.Topic, RpcMethodAttribute.MethodForType<TestRequest>(), testData);
 
         // 3. Wait for the response from the event listener
         var eventResult = await pending.Task.WithTimeout(TimeSpan.FromSeconds(5));
@@ -517,7 +517,7 @@ public class SignTests : IAsyncLifetime
         };
 
         // Use TestRequest2 which isn't included in the required namespaces
-        await Assert.ThrowsAsync<NamespacesException>(() => _dapp.Request<TestRequest2, TestResponse>(sessionData.Topic, testData));
+        await Assert.ThrowsAsync<NamespacesException>(() => _dapp.RequestAsync<TestRequest2, TestResponse>(sessionData.Topic, RpcMethodAttribute.MethodForType<TestRequest2>(), testData));
     }
 
     [Fact] [Trait("Category", "integration")]
@@ -660,8 +660,8 @@ public class SignTests : IAsyncLifetime
         };
 
         // 2. Send the request from the dapp client
-        var responseReturned = await _dapp.Request<TestRequest, TestResponse>(sessionData.Topic, testData);
-        var responseReturned2 = await _dapp.Request<TestRequest2, bool>(sessionData.Topic, testData2);
+        var responseReturned = await _dapp.RequestAsync<TestRequest, TestResponse>(sessionData.Topic, RpcMethodAttribute.MethodForType<TestRequest>(), testData);
+        var responseReturned2 = await _dapp.RequestAsync<TestRequest2, bool>(sessionData.Topic, RpcMethodAttribute.MethodForType<TestRequest2>(), testData2);
 
         // 3. Wait for the response from the event listener
         var eventResult = await pending.Task.WithTimeout(TimeSpan.FromSeconds(5));
@@ -794,8 +794,8 @@ public class SignTests : IAsyncLifetime
         };
 
         // 2. Send the request from the dapp client
-        var responseReturned = await _dapp.Request<ComplexTestRequest, TestResponse>(sessionData.Topic, testData);
-        var responseReturned2 = await _dapp.Request<ComplexTestRequest2, bool>(sessionData.Topic, testData2);
+        var responseReturned = await _dapp.RequestAsync<ComplexTestRequest, TestResponse>(sessionData.Topic, RpcMethodAttribute.MethodForType<ComplexTestRequest>(), testData);
+        var responseReturned2 = await _dapp.RequestAsync<ComplexTestRequest2, bool>(sessionData.Topic, RpcMethodAttribute.MethodForType<ComplexTestRequest2>(), testData2);
 
         // 3. Wait for the response from the event listener
         var eventResult = await pending.Task.WithTimeout(TimeSpan.FromSeconds(5));
@@ -954,8 +954,8 @@ public class SignTests : IAsyncLifetime
         };
 
         // 2. Send the request from the dapp client
-        var responseReturned = await _dapp.Request<TestRequest, TestResponse>(testData);
-        var responseReturned2 = await _dapp.Request<TestRequest2, bool>(testData2);
+        var responseReturned = await _dapp.RequestAsync<TestRequest, TestResponse>(RpcMethodAttribute.MethodForType<TestRequest>(), testData);
+        var responseReturned2 = await _dapp.RequestAsync<TestRequest2, bool>(RpcMethodAttribute.MethodForType<TestRequest2>(), testData2);
 
         // 3. Wait for the response from the event listener
         var eventResult = await pending.Task.WithTimeout(TimeSpan.FromSeconds(5));
@@ -1170,7 +1170,7 @@ public class SignTests : IAsyncLifetime
         };
 
         using var cts = new CancellationTokenSource();
-        var requestTask = _dapp.Engine.RequestAsync<TestRequest, TestResponse>(sessionData.Topic, testMethod, testData, ct: cts.Token);
+        var requestTask = _dapp.RequestAsync<TestRequest, TestResponse>(sessionData.Topic, testMethod, testData, ct: cts.Token);
 
         // Give the request a moment to propagate, then cancel
         await Task.Delay(200);
@@ -1285,7 +1285,7 @@ public class SignTests : IAsyncLifetime
         };
 
         // Verify that the request throws an exception with the expected error
-        var exception = await Assert.ThrowsAsync<ReownNetworkException>(() => _dapp.Request<TestRequest, TestResponse>(sessionData.Topic, testData)
+        var exception = await Assert.ThrowsAsync<ReownNetworkException>(() => _dapp.RequestAsync<TestRequest, TestResponse>(sessionData.Topic, RpcMethodAttribute.MethodForType<TestRequest>(), testData)
         );
 
         Assert.Equal(ErrorType.GENERIC, exception.CodeType);
