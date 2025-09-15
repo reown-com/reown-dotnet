@@ -77,8 +77,8 @@ namespace Reown.Core.Crypto.Interfaces
         ///     Encrypt a message with the given topic's Sym key.
         /// </summary>
         /// <param name="@params">The encryption parameters to use</param>
-        /// <returns>The encrypted message from an async task</returns>
-        Task<string> Encrypt(EncryptParams @params);
+        /// <returns>The encrypted message</returns>
+        string Encrypt(EncryptParams @params);
 
         /// <summary>
         ///     Decrypt an encrypted message using the given topic's Sym key.
