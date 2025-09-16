@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Reown.AppKit.Unity.Http;
 using Reown.AppKit.Unity.Model.BlockchainApi;
+using Reown.AppKit.Unity.Model.Errors;
 using Reown.Sign.Interfaces;
 using UnityEngine;
 
@@ -81,7 +82,15 @@ namespace Reown.AppKit.Unity
             var projectId = AppKit.Config.projectId;
             var chainId = AppKit.NetworkController.ActiveChain.ChainId;
             var path = $"account/{address}/balance?projectId={projectId}&currency=usd&chainId={chainId}";
-            var result = await _httpClient.GetAsync<GetBalanceResponse>(path, headers: _getBalanceHeaders);
+            GetBalanceResponse result;
+            try
+            {
+                result = await _httpClient.GetAsync<GetBalanceResponse>(path, headers: _getBalanceHeaders);
+            }
+            catch (ReownHttpException e) when (e.StatusCode == 503) // unsupported chain
+            {
+                result = new GetBalanceResponse(Array.Empty<Balance>());
+            }
             return result;
         }
     }
