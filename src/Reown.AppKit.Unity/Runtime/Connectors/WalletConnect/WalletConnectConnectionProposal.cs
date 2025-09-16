@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Reown.Core.Common.Logging;
 using Reown.Core.Common.Model.Errors;
+using Reown.Core.Network.Models;
 using Reown.Sign.Interfaces;
 using Reown.Sign.Models;
 using Reown.Sign.Models.Engine;
@@ -85,11 +87,28 @@ namespace Reown.AppKit.Unity
             IsConnected = true;
 
             var activeChain = AppKit.NetworkController.ActiveChain;
+
             if (activeChain != null)
-                await _client.AddressProvider.SetDefaultChainIdAsync(activeChain.ChainId);
+            {
+                var hasNamespaceForActiveChain = e.Namespaces.TryGetValue(activeChain.ChainNamespace, out var namespaceForActiveChain);
+                var selectedChain = activeChain;
+
+                // If the active chain is not supported by the wallet, choose the first wallet-supported chain
+                if (hasNamespaceForActiveChain && !namespaceForActiveChain.Chains.Contains(activeChain.ChainId))
+                    selectedChain = AppKit.Config.supportedChains.FirstOrDefault(supportedChain => namespaceForActiveChain.Chains.Contains(supportedChain.ChainId));
+
+                if (selectedChain == null)
+                {
+                    ReownLogger.LogError($"Disconnection: The chain {activeChain.ChainId} is not supported by the wallet. Failed to find a fallback chain.");
+                    await _client.Disconnect(Error.FromErrorType(ErrorType.UNSUPPORTED_CHAINS));
+                    return;
+                }
+
+                await _client.AddressProvider.SetDefaultChainIdAsync(selectedChain.ChainId);
+            }
 
             await System.Threading.Tasks.Task.Delay(500);
-            
+
             connected?.Invoke(this);
         }
 
@@ -117,7 +136,7 @@ namespace Reown.AppKit.Unity
 #pragma warning disable S2589
                 if (!_disposed)
                     RefreshConnection();
-#pragma warning enable S2589
+#pragma warning restore S2589
             }
         }
 
