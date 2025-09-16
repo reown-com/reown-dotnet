@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Reown.Core.Common.Logging;
@@ -356,8 +357,9 @@ namespace Reown.Core.Controllers
         /// <typeparam name="TR">The response type</typeparam>
         /// <returns>The id of the request sent</returns>
         public async Task<long> SendRequest<T, TR>(string topic, T parameters, long? expiry = null,
-            EncodeOptions options = null)
+            EncodeOptions options = null, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             EnsureTypeIsSerializerSafe(parameters);
 
             var method = RpcMethodAttribute.MethodForType<T>();
@@ -365,7 +367,7 @@ namespace Reown.Core.Controllers
             var messageId = RpcPayloadId.GenerateFromDataHash(parameters);
 
             var payload = new JsonRpcRequest<T>(method, parameters, messageId);
-            
+
             var message = await CoreClient.Crypto.Encode(topic, payload, options);
 
             var opts = RpcRequestOptionsFromType<T, TR>();

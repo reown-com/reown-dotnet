@@ -197,7 +197,7 @@ namespace Reown.AppKit.Unity.Http
             {
                 if (uwr.result != UnityWebRequest.Result.Success)
                 {
-                    tcs.SetException(new ReownHttpException($"Failed to send web request: {uwr.error}. Url: {url.ToString()}"));
+                    tcs.SetException(new ReownHttpException($"Failed to send web request: {uwr.error}. Url: {url}", uwr.responseCode));
                     uwr.Dispose();
                     return;
                 }
