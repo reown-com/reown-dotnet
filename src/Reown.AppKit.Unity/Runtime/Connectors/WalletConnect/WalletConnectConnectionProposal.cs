@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Reown.Core.Common.Logging;
 using Reown.Core.Common.Model.Errors;
 using Reown.Core.Network.Models;
 using Reown.Sign.Interfaces;
@@ -98,6 +99,7 @@ namespace Reown.AppKit.Unity
 
                 if (selectedChain == null)
                 {
+                    ReownLogger.LogError($"Disconnection: The chain {activeChain.ChainId} is not supported by the wallet. Failed to find a fallback chain.");
                     await _client.Disconnect(Error.FromErrorType(ErrorType.UNSUPPORTED_CHAINS));
                     return;
                 }
