@@ -54,7 +54,8 @@ public class AppKitWalletBase : WalletBase, IDisposable
 
     public async Task<Account> LoginWithWallet(string walletId)
     {
-        _loginTaskCompletionSource ??= new TaskCompletionSource<Account>();
+        if (_loginTaskCompletionSource == null || _loginTaskCompletionSource.Task.IsCompleted)
+            _loginTaskCompletionSource = new TaskCompletionSource<Account>();
 
         await AppKit.ConnectAsync(walletId);
 
