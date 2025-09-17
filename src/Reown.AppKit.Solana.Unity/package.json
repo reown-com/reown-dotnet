@@ -1,6 +1,6 @@
 {
   "name": "com.reown.appkit.solana.unity",
-  "version": "1.4.5",
+  "version": "1.5.0",
   "displayName": "Reown.AppKit.Solana.Unity",
   "description": "Reown AppKit adapter for Solana.Unity-SDK",
   "unity": "2022.3",
@@ -12,7 +12,7 @@
     "solana"
   ],
   "dependencies": {
-    "com.reown.appkit.unity": "1.4.5",
+    "com.reown.appkit.unity": "1.5.0",
     "com.solana.unity_sdk": "1.2.9"
   }
 }
