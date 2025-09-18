@@ -1,19 +1,23 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Reown.AppKit.Unity.Model;
 using Reown.Core.Common.Model.Errors;
 using Reown.AppKit.Unity.Model.Errors;
+using Reown.AppKit.Unity.Solana;
 using Reown.Core.Common.Utils;
 using Reown.Sign.Models;
 using Reown.Sign.Unity;
 using UnityEngine;
+
+[assembly: InternalsVisibleTo("Reown.AppKit.Unity.Editor.Tests")]
 
 namespace Reown.AppKit.Unity
 {
     public abstract class AppKit : MonoBehaviour
     {
         [VersionMarker]
-        public const string Version = "unity-appkit-v1.4.6";
+        public const string Version = "unity-appkit-v1.5.0";
 
         // ---------------------------------------------------------------------
         // Singleton
@@ -33,6 +37,7 @@ namespace Reown.AppKit.Unity
         private EventsController _eventsController;
         private SiweController _siweController;
         private EvmService _evm;
+        private SolanaService _solana;
 
         private AppKitConfig _config;
         private bool _isInitialized;
@@ -100,6 +105,20 @@ namespace Reown.AppKit.Unity
         {
             get => Instance._evm;
             protected set => Instance._evm = value;
+        }
+
+        public static SolanaService Solana
+        {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            get
+            {
+                throw new NotImplementedException("Solana is not supported on WebGL.");
+                return null;
+            }
+#else
+            get => Instance._solana;
+#endif
+            protected set => Instance._solana = value;
         }
 
         public static AppKitConfig Config

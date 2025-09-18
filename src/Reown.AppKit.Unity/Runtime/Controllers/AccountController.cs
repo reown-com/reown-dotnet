@@ -23,49 +23,49 @@ namespace Reown.AppKit.Unity
         public string Address
         {
             get => _address;
-            set => SetField(ref _address, value);
+            internal set => SetField(ref _address, value);
         }
 
         public string AccountId
         {
             get => _accountId;
-            set => SetField(ref _accountId, value);
+            internal set => SetField(ref _accountId, value);
         }
 
         public string ChainId
         {
             get => _chainId;
-            set => SetField(ref _chainId, value);
+            internal set => SetField(ref _chainId, value);
         }
 
         public string ProfileName
         {
             get => _profileName;
-            set => SetField(ref _profileName, value);
+            internal set => SetField(ref _profileName, value);
         }
 
         public AccountAvatar ProfileAvatar
         {
             get => _profileAvatar;
-            set => SetField(ref _profileAvatar, value);
+            internal set => SetField(ref _profileAvatar, value);
         }
 
         public float NativeTokenBalance
         {
             get => _nativeTokenBalance;
-            set => SetField(ref _nativeTokenBalance, value);
+            internal set => SetField(ref _nativeTokenBalance, value);
         }
 
         public string NativeTokenSymbol
         {
             get => _nativeTokenSymbol;
-            set => SetField(ref _nativeTokenSymbol, value);
+            internal set => SetField(ref _nativeTokenSymbol, value);
         }
 
         public float TotalBalanceUsd
         {
             get => _totalBalanceUsd;
-            set => SetField(ref _totalBalanceUsd, value);
+            internal set => SetField(ref _totalBalanceUsd, value);
         }
 
         private ConnectorController _connectorController;
@@ -169,6 +169,13 @@ namespace Reown.AppKit.Unity
             if (string.IsNullOrWhiteSpace(Address))
                 return;
 
+            if (!BlockchainApiController.IsAccountDataSupported(ChainId))
+            {
+                ProfileAvatar = default;
+                ProfileName = Address.Truncate();
+                return;
+            }
+            
             var identity = await _blockchainApiController.GetIdentityAsync(Address);
             ProfileName = string.IsNullOrWhiteSpace(identity.Name)
                 ? Address.Truncate()
@@ -182,13 +189,12 @@ namespace Reown.AppKit.Unity
                     var avatarFormat = headers["Content-Type"].Split('/').Last();
                     ProfileAvatar = new AccountAvatar(identity.Avatar, avatarFormat);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     ProfileAvatar = default;
                 }
             }
             else
-
             {
                 ProfileAvatar = default;
             }

@@ -53,7 +53,7 @@ namespace Reown.AppKit.Unity
                 throw new ReownInitializationException("Connector is not initialized");
 
             if (IsAccountConnected)
-                throw new ReownConnectorException("Account is already connected");
+                return true;
 
             var isResumed = await TryResumeSessionAsyncCore();
 

@@ -17,7 +17,11 @@ namespace Reown.Sign.Test;
 [RpcResponseOptionsAttribute(Clock.ONE_MINUTE, 99998)]
 public class PersonalSign : List<string>
 {
-    public PersonalSign(string hexUtf8, string account) : base(new[] { hexUtf8, account })
+    public PersonalSign(string hexUtf8, string account) : base(new[]
+    {
+        hexUtf8,
+        account
+    })
     {
     }
 
@@ -76,12 +80,12 @@ public class AuthenticateTests : IClassFixture<SignClientFixture>, IClassFixture
         var wallet = _signClientFixture.ClientB;
 
         var authParams = GetTestAuthParams();
-        
+
         var tcs = new TaskCompletionSource();
         wallet.SessionAuthenticateRequest += async (sender, args) =>
         {
             Assert.NotNull(args.Payload.RequestId);
-            
+
             // Validate that the dapp has both `session_authenticate` & `session_proposal` stored
             // And expirer configured
             var pendingProposals = dapp.Proposal.Values;
@@ -123,14 +127,14 @@ public class AuthenticateTests : IClassFixture<SignClientFixture>, IClassFixture
         _ = await wallet.Pair(authData.Uri);
 
         await tcs.Task;
-        
+
         var dappSession = await authData.Approval;
         var walletSession = wallet.Session.Values.First();
-        
+
         var walletNamespacesJson = JsonConvert.SerializeObject(walletSession.Namespaces);
         var dappSessionNamespacesJson = JsonConvert.SerializeObject(dappSession.Namespaces);
         Assert.Equal(walletNamespacesJson, dappSessionNamespacesJson);
-        
+
         var message = "Hello, .NET!";
         wallet.SessionRequestEvents<PersonalSign, string>().OnRequest += async args =>
         {
@@ -138,11 +142,11 @@ public class AuthenticateTests : IClassFixture<SignClientFixture>, IClassFixture
             var signature = await _cryptoWalletFixture.SignMessage(personalSignMessage);
             args.Response = signature;
         };
-        
-        var signature = await dapp.Request<PersonalSign, string>(dappSession.Topic, [message, _cryptoWalletFixture.WalletAddress], "eip155:1");
+
+        var signature = await dapp.RequestAsync<PersonalSign, string>(dappSession.Topic, RpcMethodAttribute.MethodForType<PersonalSign>(), [message, _cryptoWalletFixture.WalletAddress], "eip155:1");
         var recoveredAddress = new EthereumMessageSigner().EncodeUTF8AndEcRecover(message, signature);
         Assert.True(recoveredAddress.IsTheSameAddress(_cryptoWalletFixture.WalletAddress));
-        
+
         // Confirm that all pending proposals and auth requests have been cleared
         Assert.Empty(wallet.Proposal.Values);
         Assert.Empty(wallet.Auth.PendingRequests.Values);
@@ -232,7 +236,7 @@ public class AuthenticateTests : IClassFixture<SignClientFixture>, IClassFixture
             args.Response = signature;
         };
 
-        var signature = await dapp.Request<PersonalSign, string>(dappSession.Topic, [message, _cryptoWalletFixture.WalletAddress], supportedChains.First());
+        var signature = await dapp.RequestAsync<PersonalSign, string>(dappSession.Topic, RpcMethodAttribute.MethodForType<PersonalSign>(), [message, _cryptoWalletFixture.WalletAddress], supportedChains.First());
         var recoveredAddress = new EthereumMessageSigner().EncodeUTF8AndEcRecover(message, signature);
         Assert.True(recoveredAddress.IsTheSameAddress(_cryptoWalletFixture.WalletAddress));
 
@@ -332,7 +336,7 @@ public class AuthenticateTests : IClassFixture<SignClientFixture>, IClassFixture
             args.Response = signature;
         };
 
-        var signature = await dapp.Request<PersonalSign, string>(dappSession.Topic, [message, _cryptoWalletFixture.WalletAddress], supportedChains.First());
+        var signature = await dapp.RequestAsync<PersonalSign, string>(dappSession.Topic, RpcMethodAttribute.MethodForType<PersonalSign>(), [message, _cryptoWalletFixture.WalletAddress], supportedChains.First());
         var recoveredAddress = new EthereumMessageSigner().EncodeUTF8AndEcRecover(message, signature);
         Assert.True(recoveredAddress.IsTheSameAddress(_cryptoWalletFixture.WalletAddress));
 
@@ -405,7 +409,7 @@ public class AuthenticateTests : IClassFixture<SignClientFixture>, IClassFixture
             args.Response = signature;
         };
 
-        var signature = await dapp.Request<PersonalSign, string>(dappSession.Topic, [message, _cryptoWalletFixture.WalletAddress], "eip155:1");
+        var signature = await dapp.RequestAsync<PersonalSign, string>(dappSession.Topic, RpcMethodAttribute.MethodForType<PersonalSign>(), [message, _cryptoWalletFixture.WalletAddress], "eip155:1");
         var recoveredAddress = new EthereumMessageSigner().EncodeUTF8AndEcRecover(message, signature);
         Assert.True(recoveredAddress.IsTheSameAddress(_cryptoWalletFixture.WalletAddress));
 
@@ -486,7 +490,7 @@ public class AuthenticateTests : IClassFixture<SignClientFixture>, IClassFixture
             args.Response = signature;
         };
 
-        var signature = await dapp.Request<PersonalSign, string>(dappSession.Topic, [message, _cryptoWalletFixture.WalletAddress], "eip155:1");
+        var signature = await dapp.RequestAsync<PersonalSign, string>(dappSession.Topic, RpcMethodAttribute.MethodForType<PersonalSign>(), [message, _cryptoWalletFixture.WalletAddress], "eip155:1");
         var recoveredAddress = new EthereumMessageSigner().EncodeUTF8AndEcRecover(message, signature);
         Assert.True(recoveredAddress.IsTheSameAddress(_cryptoWalletFixture.WalletAddress));
 
@@ -575,7 +579,7 @@ public class AuthenticateTests : IClassFixture<SignClientFixture>, IClassFixture
             args.Response = signature;
         };
 
-        var signature = await dapp.Request<PersonalSign, string>(dappSession.Topic, [message, _cryptoWalletFixture.WalletAddress], "eip155:1");
+        var signature = await dapp.RequestAsync<PersonalSign, string>(dappSession.Topic, RpcMethodAttribute.MethodForType<PersonalSign>(), [message, _cryptoWalletFixture.WalletAddress], "eip155:1");
         var recoveredAddress = new EthereumMessageSigner().EncodeUTF8AndEcRecover(message, signature);
         Assert.True(recoveredAddress.IsTheSameAddress(_cryptoWalletFixture.WalletAddress));
 
@@ -640,7 +644,7 @@ public class AuthenticateTests : IClassFixture<SignClientFixture>, IClassFixture
             args.Response = signature;
         };
 
-        var signature = await dapp.Request<PersonalSign, string>(dappSession.Topic, [message, _cryptoWalletFixture.WalletAddress], "eip155:1");
+        var signature = await dapp.RequestAsync<PersonalSign, string>(dappSession.Topic, RpcMethodAttribute.MethodForType<PersonalSign>(), [message, _cryptoWalletFixture.WalletAddress], "eip155:1");
         var recoveredAddress = new EthereumMessageSigner().EncodeUTF8AndEcRecover(message, signature);
         Assert.True(recoveredAddress.IsTheSameAddress(_cryptoWalletFixture.WalletAddress));
 

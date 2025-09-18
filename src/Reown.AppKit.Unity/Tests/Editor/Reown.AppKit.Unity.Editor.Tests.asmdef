@@ -1,0 +1,23 @@
+{
+  "name": "Reown.AppKit.Unity.Editor.Tests",
+  "rootNamespace": "",
+  "references": [
+    "Reown.AppKit.Unity",
+    "Reown.Sign.Unity",
+    "Reown.Core",
+    "Reown.Core.Crypto",
+    "Reown.Core.Common",
+    "Reown.Sign"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

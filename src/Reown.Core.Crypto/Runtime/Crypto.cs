@@ -253,8 +253,8 @@ namespace Reown.Core.Crypto
         ///     Encrypt a message with the given topic's Sym key.
         /// </summary>
         /// <param name="@params">The parameters that define what to encrypt and how</param>
-        /// <returns>The encrypted message from an async task</returns>
-        public Task<string> Encrypt(EncryptParams @params)
+        /// <returns>The encrypted message</returns>
+        public string Encrypt(EncryptParams @params)
         {
             IsInitialized();
 
@@ -307,14 +307,14 @@ namespace Reown.Core.Crypto
                 if (senderPublicKey == null)
                     throw new ArgumentException("Missing sender public key for type1 envelope");
 
-                return Task.FromResult(Convert.ToBase64String(
+                return Convert.ToBase64String(
                     typeRaw.Concat(senderPublicKey).Concat(rawIv).Concat(encrypted).ToArray()
-                ));
+                );
             }
 
-            return Task.FromResult(Convert.ToBase64String(
+            return Convert.ToBase64String(
                 typeRaw.Concat(rawIv).Concat(encrypted).ToArray()
-            ));
+            );
         }
 
         /// <summary>
@@ -357,7 +357,7 @@ namespace Reown.Core.Crypto
             var type = validatedOptions.Type;
             var senderPublicKey = validatedOptions.SenderPublicKey;
             var message = JsonConvert.SerializeObject(payload);
-            var results = await Encrypt(new EncryptParams
+            var results = Encrypt(new EncryptParams
             {
                 Message = message,
                 Type = type,

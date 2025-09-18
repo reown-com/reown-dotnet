@@ -5,6 +5,6 @@ namespace Reown.Sign.Unity
     public class SignMetadata
     {
         [VersionMarker]
-        public const string Version = "v1.4.6";
+        public const string Version = "v1.5.0";
     }
 }

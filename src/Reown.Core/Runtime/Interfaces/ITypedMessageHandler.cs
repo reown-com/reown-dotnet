@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Reown.Core.Common;
 using Reown.Core.Crypto.Models;
@@ -121,7 +122,7 @@ namespace Reown.Core.Interfaces
         /// <typeparam name="T">The request type</typeparam>
         /// <typeparam name="TR">The response type</typeparam>
         /// <returns>The id of the request sent</returns>
-        Task<long> SendRequest<T, TR>(string topic, T parameters, long? expiry = null, EncodeOptions options = null);
+        Task<long> SendRequest<T, TR>(string topic, T parameters, long? expiry = null, EncodeOptions options = null, CancellationToken ct = default);
 
         /// <summary>
         ///     Send a typed response message with the given request / response type pair T, TR to the given topic

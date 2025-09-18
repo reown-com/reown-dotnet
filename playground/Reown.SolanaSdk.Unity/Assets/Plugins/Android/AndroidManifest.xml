@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools">
+    <application>
+        <!--Used when Application Entry is set to Activity, otherwise remove this activity block-->
+        <activity android:name="com.unity3d.player.UnityPlayerActivity"
+                  android:theme="@style/UnityThemeSelector">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <meta-data android:name="unityplayer.UnityActivity" android:value="true"/>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="solanasdktest"/>
+            </intent-filter>
+        </activity>
+
+        <!--        &lt;!&ndash;Used when Application Entry is set to GameActivity, otherwise remove this activity block&ndash;&gt;-->
+        <!--        <activity android:name="com.unity3d.player.UnityPlayerGameActivity"-->
+        <!--                  android:theme="@style/BaseUnityGameActivityTheme">-->
+        <!--            <intent-filter>-->
+        <!--                <action android:name="android.intent.action.MAIN" />-->
+        <!--                <category android:name="android.intent.category.LAUNCHER" />-->
+        <!--            </intent-filter>-->
+        <!--            <meta-data android:name="unityplayer.UnityActivity" android:value="true" />-->
+        <!--            <meta-data android:name="android.app.lib_name" android:value="game" />-->
+        <!--        </activity>-->
+    </application>
+    <queries>
+        <package android:name="io.metamask"/>
+        <package android:name="com.wallet.crypto.trustapp"/>
+        <package android:name="io.gnosis.safe"/>
+        <package android:name="me.rainbow"/>
+        <package android:name="ag.jup.jupiter.android"/>
+        <!-- Add other wallet schemes names here -->
+    </queries>
+</manifest>

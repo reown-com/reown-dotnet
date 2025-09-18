@@ -1,11 +1,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Nethereum.RPC.Eth.DTOs;
-using Nethereum.RPC.HostWallet;
 using Reown.Sign.Interfaces;
 using Reown.Sign.Nethereum.Model;
-using EthSignTypedDataV4 = Reown.Sign.Nethereum.Model.EthSignTypedDataV4;
-using Transaction = Reown.Sign.Nethereum.Model.Transaction;
 using WalletAddEthereumChain = Reown.Sign.Nethereum.Model.WalletAddEthereumChain;
 using WalletSwitchEthereumChain = Reown.Sign.Nethereum.Model.WalletSwitchEthereumChain;
 
@@ -42,43 +39,43 @@ namespace Reown.Sign.Nethereum
         protected override async Task<object> SendTransactionAsyncCore(TransactionInput transaction)
         {
             var fromAddress = GetDefaultAddress();
-            var txData = new Transaction
+            transaction.From = fromAddress;
+            return await _signClient.RequestAsync<TransactionInput[], string>("eth_sendTransaction", new[]
             {
-                from = fromAddress,
-                to = transaction.To,
-                value = transaction.Value?.HexValue,
-                gas = transaction.Gas?.HexValue,
-                gasPrice = transaction.GasPrice?.HexValue,
-                data = transaction.Data
-            };
-            var sendTransactionRequest = new EthSendTransaction(txData);
-            return await _signClient.Request<EthSendTransaction, string>(sendTransactionRequest);
+                transaction
+            });
         }
 
         protected override async Task<object> PersonalSignAsyncCore(string message, string address = null)
         {
             address ??= GetDefaultAddress();
-            var signDataRequest = new PersonalSign(message, address);
-            return await _signClient.Request<PersonalSign, string>(signDataRequest);
+            return await _signClient.RequestAsync<string[], string>("personal_sign", new[]
+            {
+                message,
+                address
+            });
         }
 
         protected override async Task<object> EthSignTypedDataV4AsyncCore(string data, string address = null)
         {
             address ??= GetDefaultAddress();
-            var signDataRequest = new EthSignTypedDataV4(address, data);
-            return await _signClient.Request<EthSignTypedDataV4, string>(signDataRequest);
+            return await _signClient.RequestAsync<string[], string>("eth_signTypedData_v4", new[]
+            {
+                address,
+                data
+            });
         }
 
         protected override async Task<object> WalletSwitchEthereumChainAsyncCore(SwitchEthereumChain arg)
         {
             var switchChainRequest = new WalletSwitchEthereumChain(arg.chainId);
-            return await _signClient.Request<WalletSwitchEthereumChain, string>(switchChainRequest);
+            return await _signClient.RequestAsync<WalletSwitchEthereumChain, string>("wallet_switchEthereumChain", switchChainRequest);
         }
 
         protected override async Task<object> WalletAddEthereumChainAsyncCore(EthereumChain chain)
         {
             var addEthereumChainRequest = new WalletAddEthereumChain(chain);
-            return await _signClient.Request<WalletAddEthereumChain, string>(addEthereumChainRequest);
+            return await _signClient.RequestAsync<WalletAddEthereumChain, string>("wallet_addEthereumChain", addEthereumChainRequest);
         }
     }
 }

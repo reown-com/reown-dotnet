@@ -89,8 +89,7 @@ namespace Reown.AppKit.Unity
         public static class Namespaces
         {
             public const string Evm = "eip155";
-            public const string Algorand = "algorand";
-            public const string Solana = "sol";
+            public const string Solana = "solana";
         }
 
         public static class References
@@ -112,6 +111,9 @@ namespace Reown.AppKit.Unity
             public const string AbstractTestnet = "11124";
             public const string Sei = "1329";
             public const string SeiTestnet = "1328";
+            public const string Solana = "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp";
+            public const string SolanaDev = "EtWTRABZaYq6iMfeYKouRu166VU2xqa1";
+            public const string SolanaTest = "4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z";
         }
 
         // https://specs.walletconnect.com/2.0/specs/meta-clients/web3modal/api#known-static-asset-ids
@@ -168,6 +170,10 @@ namespace Reown.AppKit.Unity
             // Abstract
             {
                 References.Abstract, "fc2427d1-5af9-4a9c-8da5-6f94627cd900"
+            },
+            // Solana
+            {
+                References.Solana, "a1b58899-f671-4276-6a5e-56ca5bd59700"
             }
         };   
 
@@ -223,7 +229,7 @@ namespace Reown.AppKit.Unity
                 "Ronin Saigon",
                 new Currency("Ronin", "RON", 18),
                 new BlockExplorer("Ronin Explorer", "https://explorer.roninchain.com"),
-                "\thttps://api-gateway.skymavis.com/rpc/testnet",
+                "https://saigon-testnet.roninchain.com/rpc",
                 false,
                 $"{ChainImageUrl}/{ImageIds[References.Ronin]}"
             );
@@ -359,6 +365,28 @@ namespace Reown.AppKit.Unity
                 "https://api.avax.network/ext/bc/C/rpc",
                 false,
                 $"{ChainImageUrl}/{ImageIds[References.Avalanche]}"
+            );
+
+            public static readonly Chain Solana = new(
+                Namespaces.Solana,
+                References.Solana,
+                "Solana",
+                new Currency("SOL", "SOL", 9),
+                new BlockExplorer("Solscan", "https://solscan.io"),
+                "https://api.mainnet-beta.solana.com",
+                false,
+                $"{ChainImageUrl}/{ImageIds[References.Solana]}"
+            );
+
+            public static readonly Chain SolanaDevNet = new(
+                Namespaces.Solana,
+                References.SolanaDev,
+                "Solana DevNet",
+                new Currency("SOL", "SOL", 9),
+                new BlockExplorer("Solscan", "https://devnet.solscan.io"),
+                "https://api.devnet.solana.com",
+                true, 
+                $"{ChainImageUrl}/{ImageIds[References.Solana]}"
             );
 
             public static readonly IReadOnlyCollection<Chain> All = new HashSet<Chain>

@@ -6,10 +6,10 @@ namespace Reown.Sign.Interfaces
 {
     /// <summary>
     ///     An interface that represents the Engine for running the Sign client. This interface
-    ///     is an sub-type of <see cref="IEngineAPI" /> and represents the actual Engine. This is
+    ///     is an sub-type of <see cref="IEngineApi" /> and represents the actual Engine. This is
     ///     different than the Sign client.
     /// </summary>
-    public interface IEngine : IEngineAPI, IDisposable
+    public interface IEngine : IEngineApi, IDisposable
     {
         /// <summary>
         ///     The <see cref="ISignClient" /> this Engine is using

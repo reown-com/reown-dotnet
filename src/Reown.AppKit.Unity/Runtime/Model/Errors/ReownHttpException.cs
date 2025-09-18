@@ -11,6 +11,11 @@ namespace Reown.AppKit.Unity.Model.Errors
     public class ReownHttpException : ReownException
     {
         /// <summary>
+        ///     The numeric HTTP response code returned by the server, such as 404 or 500. (Read Only)
+        /// </summary>
+        public long StatusCode { get; private set; }
+        
+        /// <summary>
         ///     Initializes a new instance of the <see cref="ReownHttpException"/> class.
         /// </summary>
         public ReownHttpException()
@@ -24,6 +29,17 @@ namespace Reown.AppKit.Unity.Model.Errors
         public ReownHttpException(string message) : base(message)
         {
         }
+        
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="ReownHttpException"/> class with a specified error message.
+        /// </summary>
+        /// <param name="message">The message that describes the HTTP error.</param>
+        /// <param name="statusCode">The numeric HTTP response code returned by the server, such as 404 or 500.</param>
+        public ReownHttpException(string message, long statusCode) : base(message)
+        {
+            StatusCode = statusCode;
+        }
+
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="ReownHttpException"/> class with a specified error message and a reference to the inner exception that is the cause of this exception.
