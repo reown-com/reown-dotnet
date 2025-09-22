@@ -21,6 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Newtonsoft.Json" VersionOverride="13.0.4" />
         <PackageReference Include="ZXing.Net"/>
         <PackageReference Include="BouncyCastle.Cryptography"/>
     </ItemGroup>
