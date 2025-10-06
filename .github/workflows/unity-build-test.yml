@@ -33,7 +33,7 @@ jobs:
           path: ${{ matrix.projectPath }}/Library
           key: Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}
           restore-keys: Library-
-      - uses: game-ci/unity-builder@3b26780ddfe24a0ee2aebb0a65297ab69fc5bb4c # v4.5
+      - uses: game-ci/unity-builder@88a89c94a0b21d3b330b66798614fe6de38b96c2 # v4.5
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
