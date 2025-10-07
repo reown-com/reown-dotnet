@@ -39,7 +39,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          unityVersion: "6000.1.5f1"
+          unityVersion: "6000.2.6f2"
           buildsPath: Builds
           projectPath: ${{ matrix.projectPath }}
           targetPlatform: ${{ matrix.targetPlatform }}
@@ -63,7 +63,7 @@ jobs:
           - "sample/Reown.AppKit.Unity"
           # - 'src/Reown.Sign.Unity'
         unityVersion:
-          - "6000.1.14f1" # some version must be included for package testing
+          - "6000.2.6f2" # some version must be included for package testing
         testMode:
           - playmode
           - editmode
