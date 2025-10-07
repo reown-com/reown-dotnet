@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Web;
+using System.Net;
 
 namespace Reown.Core.Common.Utils
 {
@@ -57,8 +57,8 @@ namespace Reown.Core.Common.Utils
                 delim = "&";
             }
 
-            return source + delim + HttpUtility.UrlEncode(key)
-                   + "=" + HttpUtility.UrlEncode(value);
+            return source + delim + WebUtility.UrlEncode(key)
+                   + "=" + WebUtility.UrlEncode(value);
         }
 
         public static async Task<T> WithTimeout<T>(this Task<T> task, int timeout = 1000,
