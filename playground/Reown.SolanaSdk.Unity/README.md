@@ -8,3 +8,49 @@ Reown AppKit has been integrated into the `wallet_scene`, with [updated external
 
 - Connects to Jupiter mobile wallet on mobile platforms
 - Shows the AppKit wallet selection modal on desktop platforms
+
+## Direct Jupiter Wallet Connection
+
+For direct Jupiter wallet connection to work, you'll need to enable the [detection of installaed wallets](https://docs.reown.com/appkit/unity/core/options#enable-installed-wallet-detection) for Jupiter:
+
+### Android
+
+AndroidManifest.xml should include the following:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <queries>
+        <package android:name="ag.jup.jupiter.android"/>
+        <!-- Add other wallet package names here -->
+    </queries>
+
+    <application>
+        ...
+    </application>
+</manifest>
+```
+
+### iOS
+
+iOS Info.plist should include the following:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        ...
+
+        <key>LSApplicationQueriesSchemes</key>
+        <array>
+            <string>jupiter</string>
+            <!-- Add other wallet schemes here -->
+        </array>
+
+        ...
+    </dict>
+</plist>
+
+```
