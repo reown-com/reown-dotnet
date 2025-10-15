@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Reown.AppKit.Unity.Components;
 using Reown.AppKit.Unity.Model;
@@ -112,10 +113,10 @@ namespace Reown.AppKit.Unity
             if (_loadNextPageTask is { IsCompleted: false })
                 return;
 
-            _loadNextPageTask = LoadNextPageCoroutine();
+            _loadNextPageTask = LoadNextPageAsync();
         }
 
-        private async Task LoadNextPageCoroutine()
+        private async Task LoadNextPageAsync()
         {
             _isPageLoading = true;
 
@@ -131,33 +132,103 @@ namespace Reown.AppKit.Unity
                 return;
             }
 
-            var getWalletsResponse = await AppKit.ApiController.GetWallets(_nextPageToLoad, _countPerPageRealtime, _searchQuery);
+            var items = new List<VisualElement>();
+            var featuredWalletIds = AppKit.Config.featuredWalletIds;
 
-            // _noWalletFound.SetActive(response.Count == 0);
-
-            if (_maxWalletsCount == -1)
+            // On first page, show featured wallets first
+            if (_nextPageToLoad == 1 && featuredWalletIds is { Length: > 0 })
             {
-                _maxWalletsCount = getWalletsResponse.Count;
+                // Fetch _only_ featured wallets
+                var featuredResponse = await AppKit.ApiController.GetWallets(1, featuredWalletIds.Length, _searchQuery, 
+                    includedWalletIds: featuredWalletIds, 
+                    excludedWalletIds: AppKit.Config.excludedWalletIds);
 
-                if (_nextPageToLoad * _countPerPageRealtime > _maxWalletsCount)
+                // Build a lookup for ordering
+                var featuredWalletsById = featuredResponse.Data.ToDictionary(w => w.Id);
+
+                // Add featured wallets in the order specified in config
+                foreach (var featuredId in featuredWalletIds)
                 {
-                    _countPerPageRealtime = _maxWalletsCount - _walletsShown;
-                    _reachedMaxWalletsCount = true;
+                    if (!featuredWalletsById.TryGetValue(featuredId, out var wallet))
+                        continue;
+
+                    var item = MakeItem(wallet);
+                    items.Add(item);
+                    View.scrollView.Add(item);
+                }
+
+                _walletsShown += items.Count;
+
+                // Fetch remaining non-featured wallets for the first page
+                var remaining = WalletsPerPage - items.Count;
+                if (remaining > 0)
+                {
+                    var excludedWalletIds = featuredWalletIds;
+                    
+                    // Also exclude any wallets excluded via config
+                    if (AppKit.Config.excludedWalletIds is { Length: > 0 })
+                    {
+                        excludedWalletIds = excludedWalletIds.Concat(AppKit.Config.excludedWalletIds).ToArray();
+                    }
+                    
+                    var remainingResponse = await AppKit.ApiController.GetWallets(1, remaining, _searchQuery, excludedWalletIds: excludedWalletIds);
+
+                    foreach (var wallet in remainingResponse.Data)
+                    {
+                        var item = MakeItem(wallet);
+                        items.Add(item);
+                        View.scrollView.Add(item);
+                    }
+
+                    _walletsShown += remainingResponse.Data.Length;
+                    _maxWalletsCount = featuredResponse.Count + remainingResponse.Count;
+                }
+                else
+                {
+                    _maxWalletsCount = featuredResponse.Count;
                 }
             }
-
-            var walletsCount = getWalletsResponse.Data.Length;
-
-            var items = new List<VisualElement>(walletsCount);
-            for (var i = 0; i < walletsCount; i++)
+            else
             {
-                var wallet = getWalletsResponse.Data[i];
-                var item = MakeItem(wallet);
-                items.Add(item);
-                View.scrollView.Add(item);
+                // Subsequent pages or no featured wallets: exclude featured to avoid duplicates
+                var excludedWalletIds = _nextPageToLoad > 1 && featuredWalletIds is { Length: > 0 }
+                    ? featuredWalletIds
+                    : null;
+
+                // Also exclude any wallets excluded via config
+                if (AppKit.Config.excludedWalletIds is { Length: > 0 })
+                {
+                    excludedWalletIds = excludedWalletIds is { Length: > 0 }
+                        ? excludedWalletIds.Concat(AppKit.Config.excludedWalletIds).ToArray()
+                        : AppKit.Config.excludedWalletIds;
+                }
+
+                var getWalletsResponse = await AppKit.ApiController.GetWallets(_nextPageToLoad, _countPerPageRealtime, _searchQuery, excludedWalletIds: excludedWalletIds);
+
+                if (_maxWalletsCount == -1)
+                {
+                    _maxWalletsCount = getWalletsResponse.Count;
+
+                    if (_nextPageToLoad * _countPerPageRealtime > _maxWalletsCount)
+                    {
+                        _countPerPageRealtime = _maxWalletsCount - _walletsShown;
+                        _reachedMaxWalletsCount = true;
+                    }
+                }
+
+                var walletsCount = getWalletsResponse.Data.Length;
+
+                for (var i = 0; i < walletsCount; i++)
+                {
+                    var wallet = getWalletsResponse.Data[i];
+                    var item = MakeItem(wallet);
+                    items.Add(item);
+                    View.scrollView.Add(item);
+                }
+
+                _walletsShown += walletsCount;
             }
 
-            _walletsShown += walletsCount;
             _nextPageToLoad++;
 
             ConfigureItemPaddings(items);

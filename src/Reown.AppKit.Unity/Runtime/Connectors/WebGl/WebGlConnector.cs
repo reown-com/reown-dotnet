@@ -60,6 +60,7 @@ namespace Reown.AppKit.Unity
                 supportedChains = supportedChains,
                 includeWalletIds = config.includedWalletIds,
                 excludeWalletIds = config.excludedWalletIds,
+                featuredWalletIds = config.featuredWalletIds,
 
                 enableEmail = config.enableEmail,
                 enableOnramp = config.enableOnramp,

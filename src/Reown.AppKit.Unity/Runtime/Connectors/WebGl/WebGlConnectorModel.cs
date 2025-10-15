@@ -12,6 +12,7 @@ namespace Reown.AppKit.Unity
         public WebGlChain[] supportedChains;
         public string[] includeWalletIds;
         public string[] excludeWalletIds;
+        public string[] featuredWalletIds;
 
         public bool enableEmail;
         public bool enableOnramp;
