@@ -87,21 +87,85 @@ namespace Reown.AppKit.Unity
 
             if (count <= 0)
                 return;
-            
-            var response = await AppKit.ApiController.GetWallets(1, count);
 
-            foreach (var wallet in response.Data)
+            int totalWalletsCount;
+
+            // Handle featured wallets
+            var featuredWalletIds = AppKit.Config.featuredWalletIds;
+            if (featuredWalletIds is { Length: > 0 })
             {
-                // Skip recent wallet to avoid duplicates
-                if (recentWalletExists && recentWallet.Id == wallet.Id)
-                    continue;
+                // Fetch _only_ featured wallets
+                var featuredResponse = await AppKit.ApiController.GetWallets(1, featuredWalletIds.Length, includedWalletIds: featuredWalletIds);
 
-                var walletListItem = BuildWalletListItem(wallet);
-                View.Add(walletListItem);
+                // Build a lookup for ordering
+                var featuredWalletsById = featuredResponse.Data.ToDictionary(w => w.Id);
+
+                // Add featured wallets in the order specified in config
+                foreach (var featuredId in featuredWalletIds)
+                {
+                    if (count <= 0)
+                        break;
+
+                    if (!featuredWalletsById.TryGetValue(featuredId, out var wallet))
+                        continue;
+
+                    // Skip recent wallet to avoid duplicates
+                    if (recentWalletExists && recentWallet.Id == wallet.Id)
+                        continue;
+
+                    var walletListItem = BuildWalletListItem(wallet);
+                    View.Add(walletListItem);
+                    count--;
+                }
+
+                // Fetch remaining non-featured wallets if we still have room
+                if (count > 0)
+                {
+                    var excludedWalletIds = featuredWalletIds;
+
+                    // Also exclude any wallets excluded via config
+                    if (AppKit.Config.excludedWalletIds is { Length: > 0 })
+                    {
+                        excludedWalletIds = excludedWalletIds.Concat(AppKit.Config.excludedWalletIds).ToArray();
+                    }
+
+                    var remainingResponse = await AppKit.ApiController.GetWallets(1, count, excludedWalletIds: excludedWalletIds);
+
+                    foreach (var wallet in remainingResponse.Data)
+                    {
+                        // Skip recent wallet to avoid duplicates
+                        if (recentWalletExists && recentWallet.Id == wallet.Id)
+                            continue;
+
+                        var walletListItem = BuildWalletListItem(wallet);
+                        View.Add(walletListItem);
+                    }
+
+                    totalWalletsCount = featuredResponse.Count + remainingResponse.Count;
+                }
+                else
+                {
+                    totalWalletsCount = featuredResponse.Count;
+                }
+            }
+            else
+            {
+                var response = await AppKit.ApiController.GetWallets(1, count);
+
+                foreach (var wallet in response.Data)
+                {
+                    // Skip recent wallet to avoid duplicates
+                    if (recentWalletExists && recentWallet.Id == wallet.Id)
+                        continue;
+
+                    var walletListItem = BuildWalletListItem(wallet);
+                    View.Add(walletListItem);
+                }
+
+                totalWalletsCount = response.Count;
             }
 
-            var responseCount = response.Count;
-            CreateAllWalletsListItem(responseCount);
+            CreateAllWalletsListItem(totalWalletsCount);
         }
 
         private void CreateProfileLoginButtons()

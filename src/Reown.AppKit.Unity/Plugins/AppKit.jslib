@@ -106,6 +106,7 @@ mergeInto(LibraryManager.library, {
         
         const excludeWalletIds = parameters.excludeWalletIds;
         const includeWalletIds = parameters.includeWalletIds;
+        const featuredWalletIds = parameters.featuredWalletIds;
 
         // Load the scripts and initialize the configuration
         import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.8.9/dist/appkit.js").then(async (AppKit) => {
@@ -131,6 +132,7 @@ mergeInto(LibraryManager.library, {
                 isUnity: true,
                 excludeWalletIds: excludeWalletIds,
                 includeWalletIds: includeWalletIds,
+                featuredWalletIds: featuredWalletIds,
                 features: {
                     email: enableEmail,
                     analytics: enableAnalytics,

@@ -8,7 +8,10 @@ namespace Reown.AppKit.Unity
     {
         public string[] includedWalletIds;
         public string[] excludedWalletIds;
+        public string[] featuredWalletIds;
 
+        // Number of wallets to show in the connect view before showing "Show more" button
+        // Doesn't affect the number of featured wallets
         public ushort connectViewWalletsCountMobile = 3;
         public ushort connectViewWalletsCountDesktop = 2;
 
