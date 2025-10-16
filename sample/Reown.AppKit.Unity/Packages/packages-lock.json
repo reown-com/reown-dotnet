@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "com.bgtools.playerprefseditor": {
-      "version": "1.2.3",
+      "version": "1.2.4",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
@@ -40,10 +40,10 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.reown.sign.nethereum.unity": "1.5.0",
-        "com.reown.sign.unity": "1.5.0",
-        "com.reown.core": "1.5.0",
-        "com.reown.unity.dependencies": "1.5.0",
+        "com.reown.sign.nethereum.unity": "1.5.1",
+        "com.reown.sign.unity": "1.5.1",
+        "com.reown.core": "1.5.1",
+        "com.reown.unity.dependencies": "1.5.1",
         "com.unity.vectorgraphics": "2.0.0-preview.24"
       }
     },
@@ -52,11 +52,11 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.reown.core.common": "1.5.0",
-        "com.reown.core.network": "1.5.0",
-        "com.reown.core.storage": "1.5.0",
-        "com.reown.core.crypto": "1.5.0",
-        "com.reown.unity.dependencies": "1.5.0"
+        "com.reown.core.common": "1.5.1",
+        "com.reown.core.network": "1.5.1",
+        "com.reown.core.storage": "1.5.1",
+        "com.reown.core.crypto": "1.5.1",
+        "com.reown.unity.dependencies": "1.5.1"
       }
     },
     "com.reown.core.common": {
@@ -72,10 +72,10 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.reown.core.common": "1.5.0",
-        "com.reown.core.network": "1.5.0",
-        "com.reown.core.storage": "1.5.0",
-        "com.reown.unity.dependencies": "1.5.0"
+        "com.reown.core.common": "1.5.1",
+        "com.reown.core.network": "1.5.1",
+        "com.reown.core.storage": "1.5.1",
+        "com.reown.unity.dependencies": "1.5.1"
       }
     },
     "com.reown.core.network": {
@@ -83,7 +83,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.reown.core.common": "1.5.0"
+        "com.reown.core.common": "1.5.1"
       }
     },
     "com.reown.core.storage": {
@@ -91,7 +91,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.reown.core.common": "1.5.0"
+        "com.reown.core.common": "1.5.1"
       }
     },
     "com.reown.sign": {
@@ -99,7 +99,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.reown.core": "1.5.0"
+        "com.reown.core": "1.5.1"
       }
     },
     "com.reown.sign.nethereum": {
@@ -107,7 +107,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.reown.sign": "1.5.0",
+        "com.reown.sign": "1.5.1",
         "com.nethereum.unity": "5.0.0"
       }
     },
@@ -116,8 +116,8 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.reown.sign.nethereum": "1.5.0",
-        "com.reown.sign.unity": "1.5.0"
+        "com.reown.sign.nethereum": "1.5.1",
+        "com.reown.sign.unity": "1.5.1"
       }
     },
     "com.reown.sign.unity": {
@@ -126,7 +126,7 @@
       "source": "local",
       "dependencies": {
         "com.unity.modules.androidjni": "1.0.0",
-        "com.reown.sign": "1.5.0"
+        "com.reown.sign": "1.5.1"
       }
     },
     "com.reown.unity.dependencies": {
@@ -142,7 +142,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.reown.sign": "1.5.0"
+        "com.reown.sign": "1.5.1"
       }
     },
     "com.skibitsky.scene-reference": {
@@ -165,7 +165,7 @@
       "dependencies": {}
     },
     "com.unity.ide.rider": {
-      "version": "3.0.36",
+      "version": "3.0.38",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -183,7 +183,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.inputsystem": {
-      "version": "1.14.0",
+      "version": "1.14.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -192,7 +192,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.mobile.android-logcat": {
-      "version": "1.4.5",
+      "version": "1.4.6",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
@@ -213,7 +213,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.test-framework": {
-      "version": "1.5.1",
+      "version": "1.6.0",
       "depth": 0,
       "source": "builtin",
       "dependencies": {
@@ -223,7 +223,7 @@
       }
     },
     "com.unity.testtools.codecoverage": {
-      "version": "1.2.6",
+      "version": "1.2.7",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -339,7 +339,7 @@
     },
     "com.unity.modules.physics": {
       "version": "1.0.0",
-      "depth": 2,
+      "depth": 1,
       "source": "builtin",
       "dependencies": {}
     },
@@ -371,7 +371,8 @@
         "com.unity.modules.ui": "1.0.0",
         "com.unity.modules.imgui": "1.0.0",
         "com.unity.modules.jsonserialize": "1.0.0",
-        "com.unity.modules.hierarchycore": "1.0.0"
+        "com.unity.modules.hierarchycore": "1.0.0",
+        "com.unity.modules.physics": "1.0.0"
       }
     },
     "com.unity.modules.unitywebrequest": {
