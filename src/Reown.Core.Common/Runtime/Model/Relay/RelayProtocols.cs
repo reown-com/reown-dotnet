@@ -16,11 +16,6 @@ namespace Reown.Core.Common.Model.Relay
         public static readonly string Default = "irn";
 
         /// <summary>
-        ///     The Waku protocol definitions
-        /// </summary>
-        public static RelayProtocols Waku = new WakuRelayProtocol();
-
-        /// <summary>
         ///     The Irn protocol definitions
         /// </summary>
         public static RelayProtocols Irn = new IrnRelayProtocol();
@@ -32,7 +27,6 @@ namespace Reown.Core.Common.Model.Relay
 
         private static readonly Dictionary<string, RelayProtocols> _protocols = new()
         {
-            { "waku", Waku },
             { "irn", Irn },
             { "iridium", Iridium }
         };
@@ -92,48 +86,6 @@ namespace Reown.Core.Common.Model.Relay
                 return Protocols[protocol];
 
             throw new ArgumentException("Relay Protocol not supported: " + protocol);
-        }
-
-        /// <summary>
-        ///     A class that defines all RelayProtocol definitions for the
-        ///     Waku protocol
-        /// </summary>
-        public class WakuRelayProtocol : RelayProtocols
-        {
-            public override string Publish
-            {
-                get => "waku_publish";
-            }
-
-            public override string BatchPublish
-            {
-                get => "waku_batchPublish";
-            }
-
-            public override string Subscribe
-            {
-                get => "waku_subscribe";
-            }
-
-            public override string BatchSubscribe
-            {
-                get => "waku_batchSubscribe";
-            }
-
-            public override string Subscription
-            {
-                get => "waku_subscription";
-            }
-
-            public override string Unsubscribe
-            {
-                get => "waku_unsubscribe";
-            }
-
-            public override string BatchUnsubscribe
-            {
-                get => "waku_batchUnsubscribe";
-            }
         }
 
         /// <summary>
