@@ -17,6 +17,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageVersion>
     <PackageVersion Include="Nethereum.Signer" Version="5.0.0" />
-    <PackageVersion Include="ZXing.Net" Version="0.16.10" />
+    <PackageVersion Include="ZXing.Net" Version="0.16.11" />
   </ItemGroup>
 </Project>
