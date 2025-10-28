@@ -30,7 +30,7 @@ namespace Reown.AppKit.Unity.Model
 
         public RemoteSprite<Image> Image
         {
-            get => RemoteSpriteFactory.GetRemoteSprite<Image>(ImageUrl ?? $"https://api.web3modal.com/getWalletImage/{ImageId}");
+            get => RemoteSpriteFactory.GetRemoteSprite<Image>(ImageUrl ?? $"https://api.reown.com/getWalletImage/{ImageId}");
         }
     }
 }

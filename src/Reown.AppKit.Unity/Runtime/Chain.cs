@@ -84,7 +84,7 @@ namespace Reown.AppKit.Unity
 
     public static class ChainConstants
     {
-        internal const string ChainImageUrl = "https://api.web3modal.com/public/getAssetImage";
+        internal const string ChainImageUrl = "https://api.reown.com/public/getAssetImage";
 
         public static class Namespaces
         {
