@@ -117,7 +117,9 @@ namespace Reown.AppKit.Unity.Utils
         {
             const int size = 128;
             var tex = new Texture2D(size, size, TextureFormat.RGBA32, false, true);
-            var focus = new Vector2(0.65f, 0.3f);
+            // Focus point derived from GPU path's RadialFocus (0.3, -0.2):
+            // UV = (value + 1) / 2 → x: 0.65, y: 0.4
+            var focus = new Vector2(0.65f, 0.4f);
             for (var y = 0; y < size; y++)
             {
                 for (var x = 0; x < size; x++)
