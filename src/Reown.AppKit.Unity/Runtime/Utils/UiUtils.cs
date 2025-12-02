@@ -94,28 +94,43 @@ namespace Reown.AppKit.Unity.Utils
 
             var geoms = VectorUtils.TessellateScene(scene, tessOptions);
             var sprite = VectorUtils.BuildSprite(geoms, 10.0f, VectorUtils.Alignment.Center, Vector2.zero, 16, true);
-
-#if UNITY_6000_3_OR_NEWER
-            var mat = new Material(Shader.Find("Hidden/VectorGraphics/VectorGradient"));
-#else
             var mat = Resources.Load<Material>("Fonts & Materials/AvatarGradientMaterial");
-#endif
-            var texture = VectorUtils.RenderSpriteToTexture2D(sprite, 128, 128, mat);
 
-            return texture;
-#else
-            const int size = 128;
-            var texture = new Texture2D(size, size);
-
-            for (var x = 0; x < size; x++)
+            Texture2D texture;
+            try
             {
-                for (var y = 0; y < size; y++)
-                    texture.SetPixel(x, y, baseColor);
+                texture = VectorUtils.RenderSpriteToTexture2D(sprite, 128, 128, mat);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"Failed to generate avatar texture: {ex.Message}. Falling back to CPU-based generation.");
+                texture = GenerateRadialGradientTextureCPU(baseColor);
             }
 
-            texture.Apply();
             return texture;
+#else
+            return GenerateRadialGradientTextureCPU(baseColor);
 #endif
+        }
+
+        private static Texture2D GenerateRadialGradientTextureCPU(Color baseColor)
+        {
+            const int size = 128;
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false, true);
+            var focus = new Vector2(0.65f, 0.3f);
+            for (var y = 0; y < size; y++)
+            {
+                for (var x = 0; x < size; x++)
+                {
+                    var uv = new Vector2((x + 0.5f) / size, (y + 0.5f) / size);
+                    var t = Mathf.Clamp01(Vector2.Distance(uv, focus) / 0.9f);
+                    var c = Color.Lerp(Color.white, baseColor, t);
+                    tex.SetPixel(x, y, c);
+                }
+            }
+
+            tex.Apply(false, false);
+            return tex;
         }
     }
 }
