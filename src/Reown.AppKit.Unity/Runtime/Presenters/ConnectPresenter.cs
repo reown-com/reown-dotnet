@@ -215,7 +215,7 @@ namespace Reown.AppKit.Unity
         {
             var wcLogo =
                 RemoteSpriteFactory.GetRemoteSprite<Image>(
-                    $"https://api.web3modal.com/public/getAssetImage/ef1a1fcf-7fe8-4d69-bd6d-fda1345b4400");
+                    $"https://api.reown.com/public/getAssetImage/ef1a1fcf-7fe8-4d69-bd6d-fda1345b4400");
             var listItem = new ListItem("WalletConnect", wcLogo, () =>
             {
                 WalletUtils.RemoveLastViewedWallet();

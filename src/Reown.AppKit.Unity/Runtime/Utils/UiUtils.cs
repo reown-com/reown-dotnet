@@ -94,24 +94,45 @@ namespace Reown.AppKit.Unity.Utils
 
             var geoms = VectorUtils.TessellateScene(scene, tessOptions);
             var sprite = VectorUtils.BuildSprite(geoms, 10.0f, VectorUtils.Alignment.Center, Vector2.zero, 16, true);
-
             var mat = Resources.Load<Material>("Fonts & Materials/AvatarGradientMaterial");
-            var texture = VectorUtils.RenderSpriteToTexture2D(sprite, 128, 128, mat);
+
+            Texture2D texture;
+            try
+            {
+                texture = VectorUtils.RenderSpriteToTexture2D(sprite, 128, 128, mat);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"Failed to generate avatar texture: {ex.Message}. Falling back to CPU-based generation.");
+                texture = GenerateRadialGradientTextureCPU(baseColor);
+            }
 
             return texture;
 #else
-            const int size = 128;
-            var texture = new Texture2D(size, size);
+            return GenerateRadialGradientTextureCPU(baseColor);
+#endif
+        }
 
-            for (var x = 0; x < size; x++)
+        private static Texture2D GenerateRadialGradientTextureCPU(Color baseColor)
+        {
+            const int size = 128;
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false, true);
+            // Focus point derived from GPU path's RadialFocus (0.3, -0.2):
+            // UV = (value + 1) / 2 → x: 0.65, y: 0.4
+            var focus = new Vector2(0.65f, 0.4f);
+            for (var y = 0; y < size; y++)
             {
-                for (var y = 0; y < size; y++)
-                    texture.SetPixel(x, y, baseColor);
+                for (var x = 0; x < size; x++)
+                {
+                    var uv = new Vector2((x + 0.5f) / size, (y + 0.5f) / size);
+                    var t = Mathf.Clamp01(Vector2.Distance(uv, focus) / 0.9f);
+                    var c = Color.Lerp(Color.white, baseColor, t);
+                    tex.SetPixel(x, y, c);
+                }
             }
 
-            texture.Apply();
-            return texture;
-#endif
+            tex.Apply(false, false);
+            return tex;
         }
     }
 }
