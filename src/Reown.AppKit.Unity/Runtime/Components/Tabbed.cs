@@ -69,9 +69,8 @@ namespace Reown.AppKit.Unity.Components
             };
             _dynamicTabBg.AddToClassList(ClassNameTabDynamicBg);
 
-            this.Q(className: ClassNameTabsContainer).Add(_dynamicTabBg);
-
-            _dynamicTabBg.SendToBack();
+            var tabsContainer = this.Q(className: ClassNameTabsContainer);
+            tabsContainer.Insert(0, _dynamicTabBg);
         }
 
         public static bool IsTabActive(Label tab)
