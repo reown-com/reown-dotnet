@@ -58,7 +58,7 @@ namespace Sample
                 ),
                 customWallets = GetCustomWallets(),
                 // On mobile show 5 wallets on the Connect view (the first AppKit modal screen)
-                connectViewWalletsCountMobile = 5,
+                connectViewWalletsCountMobile = 3,
                 supportedChains = new[]
                 {
                     ChainConstants.Chains.Ethereum,
