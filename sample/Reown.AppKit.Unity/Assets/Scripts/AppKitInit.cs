@@ -91,13 +91,13 @@ namespace Sample
             var clientId = await AppKit.Instance.SignClient.CoreClient.Crypto.GetClientId();
             Mixpanel.Identify(clientId);
 
-            SentrySdk.ConfigureScope(scope =>
+            SentrySdk.ConfigureScope((scope, clientIdArg) =>
             {
                 scope.User = new SentryUser
                 {
-                    Id = clientId
+                    Id = clientIdArg
                 };
-            });
+            }, clientId);
 #endif
 
             Debug.Log("[AppKit Init] AppKit initialized. Loading menu scene...");

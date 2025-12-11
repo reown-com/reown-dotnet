@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -29,7 +30,8 @@ namespace Reown.AppKit.Unity.Components
 
         private void OnGeometryChangedEvent(GeometryChangedEvent e)
         {
-            if (e.newRect.height == 0) return;
+            if (Mathf.Approximately(e.newRect.height, 0))
+                return;
             FitToParent();
         }
 
