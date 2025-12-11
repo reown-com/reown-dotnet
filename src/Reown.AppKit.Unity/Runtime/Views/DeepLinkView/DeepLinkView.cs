@@ -5,7 +5,8 @@ using Reown.AppKit.Unity.Utils;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class DeepLinkView : VisualElement
+    [UxmlElement]
+    public partial class DeepLinkView : VisualElement
     {
         public const string Name = "deep-link-view";
         public static readonly string NameWalletIcon = $"{Name}__wallet-icon";
@@ -36,10 +37,6 @@ namespace Reown.AppKit.Unity.Components
         {
             add => TryAgainLink.Clicked += value;
             remove => TryAgainLink.Clicked -= value;
-        }
-
-        public new class UxmlFactory : UxmlFactory<DeepLinkView>
-        {
         }
 
         public DeepLinkView() : this(null)

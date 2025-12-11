@@ -4,13 +4,10 @@ using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class AspectRatio : VisualElement
+    [UxmlElement]
+    public partial class AspectRatio : VisualElement
     {
         private float _lastParentWidth;
-
-        public new class UxmlFactory : UxmlFactory<AspectRatio>
-        {
-        }
 
         public AspectRatio()
         {

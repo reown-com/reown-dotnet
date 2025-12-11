@@ -3,7 +3,8 @@ using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Views.WebWalletView
 {
-    public class SocialLoginView : VisualElement
+    [UxmlElement]
+    public partial class SocialLoginView : VisualElement
     {
         public const string Name = "social-login-view";
         public readonly string NameProviderIcon = $"{Name}__provider-icon";
@@ -13,10 +14,6 @@ namespace Reown.AppKit.Unity.Views.WebWalletView
         public readonly Image ProviderIcon;
         public readonly Label MainLabel;
         public readonly Label MessageLabel;
-
-        public new class UxmlFactory : UxmlFactory<SocialLoginView>
-        {
-        }
 
         public SocialLoginView() : this(null)
         {

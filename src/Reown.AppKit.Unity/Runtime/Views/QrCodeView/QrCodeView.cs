@@ -4,7 +4,8 @@ using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class QrCodeView : VisualElement
+    [UxmlElement]
+    public partial class QrCodeView : VisualElement
     {
         public const string Name = "qrcode-view";
         public static readonly string NameSubtitle = $"{Name}__subtitle";
@@ -23,10 +24,6 @@ namespace Reown.AppKit.Unity.Components
         public readonly Image walletIcon;
 
         private RemoteSprite<Image> _walletIconRemoteSprite;
-
-        public new class UxmlFactory : UxmlFactory<QrCodeView>
-        {
-        }
 
         public QrCodeView() : this(null)
         {

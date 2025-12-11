@@ -3,7 +3,8 @@ using UnityEngine;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class ModalHeader : VisualElement
+    [UxmlElement]
+    public partial class ModalHeader : VisualElement
     {
         public const string Name = "modal-header";
         public static readonly string NameContainer = $"{Name}__container";
@@ -18,10 +19,6 @@ namespace Reown.AppKit.Unity.Components
         public readonly VisualElement leftSlot;
         public readonly VisualElement rightSlot;
         public readonly Snackbar snackbar;
-
-        public new class UxmlFactory : UxmlFactory<ModalHeader>
-        {
-        }
 
         public ModalHeader()
         {

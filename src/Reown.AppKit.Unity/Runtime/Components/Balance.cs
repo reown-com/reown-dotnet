@@ -3,7 +3,8 @@ using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class Balance : VisualElement
+    [UxmlElement]
+    public partial class Balance : VisualElement
     {
         public const string Name = "balance";
         public static readonly string NameSymbol = $"{Name}__symbol";
@@ -13,10 +14,6 @@ namespace Reown.AppKit.Unity.Components
         public Label Symbol { get; }
         public Label Integer { get; }
         public Label Decimal { get; }
-
-        public new class UxmlFactory : UxmlFactory<Balance>
-        {
-        }
 
         public Balance() : this(null)
         {

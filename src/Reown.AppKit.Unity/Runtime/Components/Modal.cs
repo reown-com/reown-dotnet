@@ -3,7 +3,8 @@ using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class Modal : VisualElement
+    [UxmlElement]
+    public partial class Modal : VisualElement
     {
         public const string Name = "modal";
         public static readonly string NameBody = $"{Name}__body";
@@ -14,10 +15,6 @@ namespace Reown.AppKit.Unity.Components
 
         public readonly ModalHeader header;
         public readonly VisualElement body;
-
-        public new class UxmlFactory : UxmlFactory<Modal>
-        {
-        }
 
         public Modal()
         {

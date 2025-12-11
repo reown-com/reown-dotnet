@@ -4,7 +4,8 @@ using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class Snackbar : VisualElement
+    [UxmlElement]
+    public partial class Snackbar : VisualElement
     {
         public const string ClassName = "snackbar";
         public static readonly string ClassNameIconContainer = $"{ClassName}__icon-container";
@@ -56,10 +57,6 @@ namespace Reown.AppKit.Unity.Components
 
         private IconColor _currentIconColor;
         private string _currentColorClass;
-
-        public new class UxmlFactory : UxmlFactory<Snackbar>
-        {
-        }
 
         public Snackbar() : this(IconColor.Success, "")
         {

@@ -3,7 +3,8 @@ using Reown.AppKit.Unity.Utils;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class WalletImage : VisualElement
+    [UxmlElement]
+    public partial class WalletImage : VisualElement
     {
         public const string Name = "wallet-image";
         public static readonly string ClassNameSmall = $"{Name}--size-small";
@@ -16,29 +17,8 @@ namespace Reown.AppKit.Unity.Components
         {
             AddToClassList(Name);
         }
-        
-        public new class UxmlFactory : UxmlFactory<WalletImage, UxmlTraits>
-        {
-        }
 
-        public new class UxmlTraits : VisualElement.UxmlTraits
-        {
-            private readonly UxmlEnumAttributeDescription<VisualElementSize> _tSize = new()
-            {
-                name = "size"
-            };
-
-            public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
-            {
-                base.Init(ve, bag, cc);
-
-                var image = ve as WalletImage;
-                image.Size = _tSize.GetValueFromBag(bag, cc);
-
-                image.AddToClassList(Name);
-            }
-        }
-
+        [UxmlAttribute]
         public VisualElementSize Size
         {
             get => _size;

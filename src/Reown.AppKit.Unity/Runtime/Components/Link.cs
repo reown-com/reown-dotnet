@@ -5,7 +5,8 @@ using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class Link : VisualElement
+    [UxmlElement]
+    public partial class Link : VisualElement
     {
         public const string Name = "link";
         public static readonly string NameIcon = $"{Name}__icon";
@@ -15,12 +16,14 @@ namespace Reown.AppKit.Unity.Components
         public static readonly string ClassNameVariantGray = $"{Name}--variant-gray";
         public static readonly string ClassNameVariantIcon = $"{Name}--variant-icon";
 
+        [UxmlAttribute]
         public string Text
         {
             get => _label.text ?? string.Empty;
             set => _label.text = value;
         }
 
+        [UxmlAttribute]
         public LinkSize Size
         {
             get => _size;
@@ -41,6 +44,7 @@ namespace Reown.AppKit.Unity.Components
             }
         }
 
+        [UxmlAttribute]
         public LinkVariant Variant
         {
             get => _variant;
@@ -79,52 +83,6 @@ namespace Reown.AppKit.Unity.Components
         private LinkSize _size = LinkSize.Small;
         private LinkVariant _variant = LinkVariant.Main;
         private Clickable _clickable;
-
-        public new class UxmlFactory : UxmlFactory<Link, UxmlTraits>
-        {
-        }
-
-        public new class UxmlTraits : VisualElement.UxmlTraits
-        {
-            private UxmlStringAttributeDescription tText = new()
-            {
-                name = "text"
-            };
-
-            private UxmlEnumAttributeDescription<LinkSize> tSize = new()
-            {
-                name = "size"
-            };
-
-            private UxmlEnumAttributeDescription<LinkVariant> tVariant = new()
-            {
-                name = "variant"
-            };
-
-            private UxmlStringAttributeDescription tIcon = new()
-            {
-                name = "icon"
-            };
-
-            public override IEnumerable<UxmlChildElementDescription> uxmlChildElementsDescription
-            {
-                get { yield break; }
-            }
-
-            public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
-            {
-                base.Init(ve, bag, cc);
-
-                var link = ve as Link;
-                link.Text = tText.GetValueFromBag(bag, cc);
-                link.Size = tSize.GetValueFromBag(bag, cc);
-                link.Variant = tVariant.GetValueFromBag(bag, cc);
-
-                var iconUrl = tIcon.GetValueFromBag(bag, cc);
-                if (!string.IsNullOrEmpty(iconUrl))
-                    link.icon.vectorImage = Resources.Load<VectorImage>(iconUrl);
-            }
-        }
 
         public event Action Clicked
         {

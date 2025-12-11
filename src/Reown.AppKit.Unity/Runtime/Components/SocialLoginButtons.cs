@@ -3,15 +3,12 @@ using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class SocialLoginButtons : VisualElement
+    [UxmlElement]
+    public partial class SocialLoginButtons : VisualElement
     {
         public const string Name = "social-login-buttons";
 
         private VisualElement _smallButtonsContainer;
-
-        public new class UxmlFactory : UxmlFactory<SocialLoginButtons>
-        {
-        }
 
         public SocialLoginButtons()
         {

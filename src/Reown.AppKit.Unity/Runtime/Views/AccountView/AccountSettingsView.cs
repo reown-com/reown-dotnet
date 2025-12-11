@@ -4,7 +4,8 @@ using Reown.AppKit.Unity.Utils;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class AccountSettingsView : VisualElement
+    [UxmlElement]
+    public partial class AccountSettingsView : VisualElement
     {
         public const string Name = "account-settings-view";
         public static readonly string NameProfile = $"{Name}__profile";
@@ -24,11 +25,6 @@ namespace Reown.AppKit.Unity.Components
         public Button ExplorerButton { get; }
         public IconLink CopyLink { get; }
         public VisualElement Buttons { get; }
-
-
-        public new class UxmlFactory : UxmlFactory<AccountSettingsView>
-        {
-        }
 
         public AccountSettingsView() : this(null)
         {

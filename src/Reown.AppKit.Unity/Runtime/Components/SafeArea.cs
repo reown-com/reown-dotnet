@@ -7,7 +7,8 @@ namespace Reown.AppKit.Unity.Components
     /// <summary>
     /// SafeArea Container for UI Toolkit.
     /// </summary>
-    public class SafeArea : VisualElement
+    [UxmlElement]
+    public partial class SafeArea : VisualElement
     {
         private struct Offset
         {
@@ -19,44 +20,18 @@ namespace Reown.AppKit.Unity.Components
             }
         }
 
-        public new class UxmlFactory : UxmlFactory<SafeArea, UxmlTraits>
-        {
-        }
-
+        [UxmlAttribute]
         public bool CollapseMargins { get; set; }
+        [UxmlAttribute]
         public bool ExcludeLeft { get; set; }
+        [UxmlAttribute]
         public bool ExcludeRight { get; set; }
+        [UxmlAttribute]
         public bool ExcludeTop { get; set; }
+        [UxmlAttribute]
         public bool ExcludeBottom { get; set; }
+        [UxmlAttribute]
         public bool ExcludeTvos { get; set; }
-
-        public new class UxmlTraits : VisualElement.UxmlTraits
-        {
-            private UxmlBoolAttributeDescription _collapseMarginsAttr = new() { name = "collapse-margins", defaultValue = true };
-            private UxmlBoolAttributeDescription _excludeLeftAttr = new() { name = "exclude-left", defaultValue = false };
-            private UxmlBoolAttributeDescription _excludeRightAttr = new() { name = "exclude-right", defaultValue = false };
-            private UxmlBoolAttributeDescription _excludeTopAttr = new() { name = "exclude-top", defaultValue = false };
-            private UxmlBoolAttributeDescription _excludeBottomAttr = new() { name = "exclude-bottom", defaultValue = false };
-            private UxmlBoolAttributeDescription _excludeTvosAttr = new() { name = "exclude-tvos", defaultValue = false };
-
-            public override IEnumerable<UxmlChildElementDescription> uxmlChildElementsDescription
-            {
-                get { yield break; }
-            }
-
-            public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
-            {
-                base.Init(ve, bag, cc);
-                var ate = ve as SafeArea;
-
-                ate.CollapseMargins = _collapseMarginsAttr.GetValueFromBag(bag, cc);
-                ate.ExcludeLeft = _excludeLeftAttr.GetValueFromBag(bag, cc);
-                ate.ExcludeRight = _excludeRightAttr.GetValueFromBag(bag, cc);
-                ate.ExcludeTop = _excludeTopAttr.GetValueFromBag(bag, cc);
-                ate.ExcludeBottom = _excludeBottomAttr.GetValueFromBag(bag, cc);
-                ate.ExcludeTvos = _excludeTvosAttr.GetValueFromBag(bag, cc);
-            }
-        }
 
         private VisualElement _contentContainer;
         public override VisualElement contentContainer => _contentContainer;
