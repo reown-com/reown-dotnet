@@ -18,10 +18,6 @@ namespace Reown.AppKit.Unity
 
         private readonly ModalOpenStateChangedEventArgs _openStateChangedEventArgsTrueOnOpen = new(true);
 
-#if ENABLE_INPUT_SYSTEM
-        private UnityEngine.InputSystem.Keyboard _keyboard;
-#endif
-
         public UIDocument UIDocument { get; private set; }
 
         public Modal Modal { get; private set; }
@@ -34,10 +30,6 @@ namespace Reown.AppKit.Unity
 
         protected override Task InitializeAsyncCore()
         {
-#if ENABLE_INPUT_SYSTEM
-            _keyboard = UnityEngine.InputSystem.Keyboard.current;
-#endif
-
             UIDocument = AppKit.Instance.GetComponentInChildren<UIDocument>(true);
 
             AppKitModalElement = UIDocument.rootVisualElement.Children().First();
@@ -102,13 +94,8 @@ namespace Reown.AppKit.Unity
 
         private void TickHandler()
         {
-#if ENABLE_INPUT_SYSTEM
-            if (_keyboard != null && _keyboard.escapeKey.wasPressedThisFrame)
+            if (UnityVersionCompat.IsEscapeKeyPressed())
                 RouterController.GoBack();
-#elif ENABLE_LEGACY_INPUT_MANAGER
-            if (Input.GetKeyDown(KeyCode.Escape))
-                RouterController.GoBack();
-#endif
         }
     }
 }

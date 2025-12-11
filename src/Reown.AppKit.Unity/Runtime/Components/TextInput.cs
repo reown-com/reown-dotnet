@@ -1,3 +1,4 @@
+using Reown.AppKit.Unity.Utils;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -42,9 +43,7 @@ namespace Reown.AppKit.Unity.Components
         
         public void SetPlaceholder(string placeholder)
         {
-#if UNITY_6000_0_OR_NEWER
-            _textField.textEdition.placeholder = placeholder;
-#endif
+            _textField.SetPlaceholder(placeholder);
         }
     }
 }
