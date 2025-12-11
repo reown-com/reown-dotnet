@@ -88,7 +88,6 @@ namespace Reown.AppKit.Unity.Components
             // Update network data when button becomes visible
             UnityVersionCompat.RegisterCallbackOnce<GeometryChangedEvent>(this, _ => UpdateNetworkButton(AppKit.NetworkController.ActiveChain));
             
-
             Clickable = new Clickable(() => AppKit.OpenModal(ViewType.NetworkSearch));
         }
 

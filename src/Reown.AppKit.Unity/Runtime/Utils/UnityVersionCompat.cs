@@ -1,5 +1,9 @@
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 namespace Reown.AppKit.Unity.Utils
 {
@@ -28,8 +32,14 @@ namespace Reown.AppKit.Unity.Utils
             EventCallback<TEventType> onceCallback = null;
             onceCallback = evt =>
             {
-                callback(evt);
-                element.UnregisterCallback(onceCallback);
+                try
+                {
+                    callback(evt);
+                }
+                finally
+                {
+                    element.UnregisterCallback(onceCallback);
+                }
             };
             element.RegisterCallback(onceCallback);
 #endif

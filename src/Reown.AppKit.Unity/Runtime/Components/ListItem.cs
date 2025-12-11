@@ -2,7 +2,6 @@ using System;
 using Reown.AppKit.Unity.Utils;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Reown.AppKit.Unity.Utils;
 
 namespace Reown.AppKit.Unity.Components
 {
