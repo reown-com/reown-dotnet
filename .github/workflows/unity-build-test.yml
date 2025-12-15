@@ -45,7 +45,7 @@ jobs:
           targetPlatform: ${{ matrix.targetPlatform }}
           customParameters: ${{ matrix.targetPlatform != 'WebGL' && '-Development' || '' }} -mixpanelToken ${{ secrets.MIXPANEL_TOKEN }} -sentryToken ${{ secrets.SENTRY_TOKEN }}
           buildMethod: UnityBuilderAction.Builder.BuildProject
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: Build-${{ matrix.targetPlatform }}
           path: Builds/${{ matrix.targetPlatform }}
@@ -92,7 +92,7 @@ jobs:
           artifactsPath: ${{ matrix.testMode }}-artifacts
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           checkName: ${{ matrix.testMode }} Test Results
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: Test results for ${{ matrix.testMode }}
