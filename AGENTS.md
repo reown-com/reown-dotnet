@@ -4,15 +4,25 @@ This document provides guidance for AI agents working on the Reown .NET reposito
 
 ## Project Overview
 
-Reown .NET is a monorepo containing Unity and NuGet packages for integrating Web3 functionality into applications. The SDK enables developers to connect to blockchain wallets, execute transactions, sign messages, and interact with smart contracts across multiple blockchain networks.
+Reown .NET is a monorepo containing Unity and NuGet packages for integrating Web3 functionality into applications. The SDK enables developers to connect to blockchain wallets, execute transactions, sign messages, and interact with smart contracts across multiple EVM and Solana blockchain networks.
 
 The repository contains two main product lines:
 
-**AppKit for Unity** - A comprehensive Unity SDK that provides wallet connection UI, blockchain interactions, and cross-platform support (iOS, Android, Windows, macOS, WebGL). It supports 300+ cryptocurrency wallets via the WalletConnect protocol.
+**AppKit for Unity** - A comprehensive Unity SDK that provides wallet connection UI, blockchain interactions, and cross-platform support (iOS, Android, Windows, macOS, WebGL). It supports 300+ cryptocurrency wallets via the WalletConnect protocol, social logins (Google, X/Twitter, Discord, Apple, GitHub), and both EVM chains (Ethereum, Optimism, Arbitrum, Polygon, Avalanche, Base, Ronin) and Solana.
 
 **WalletKit** - A pure .NET library for building wallet applications that can receive and respond to WalletConnect requests. Published to NuGet for use in non-Unity .NET applications.
 
 The SDK employs a dual-platform strategy: native platforms (iOS, Android, desktop) use Nethereum for full .NET blockchain capabilities, while WebGL builds use a JavaScript bridge to Wagmi/Viem libraries.
+
+### Combined NuGet + UPM Distribution
+
+This repository uses a combined distribution approach:
+
+**NuGet Packages** - Core .NET packages (`Reown.Sign`, `Reown.WalletKit`, `Reown.Core.*`) are published to nuget.org for use in standard .NET applications. These are built from the `Reown.NoUnity.slnf` solution filter.
+
+**Unity Package Manager (UPM)** - Unity packages (`com.reown.appkit.unity`, `com.reown.sign.unity`, etc.) are distributed via OpenUPM and can be installed using the OpenUPM CLI or Unity Package Manager. Git tags in the format `package-name/version` enable direct UPM installation from the repository.
+
+Both distribution channels share the same source code in the `src/` directory. Unity packages include additional Unity-specific code (MonoBehaviours, ScriptableObjects, Editor scripts) alongside the core .NET logic.
 
 ## Repository Structure
 
@@ -36,7 +46,7 @@ reown-dotnet/
 │   └── Directory.Build.props         # Central version and build config
 │
 ├── sample/                           # Example Unity application
-│   └── Reown.AppKit.Unity/           # Demo project with integration examples
+│   └── Reown.AppKit.Unity/           # Main sample app used for testing and demos
 │
 ├── test/                             # Test projects
 │   ├── Reown.Core.Common.Test/
@@ -96,7 +106,31 @@ dotnet pack Reown.NoUnity.slnf -c Release --no-build --output .
 
 ### Unity Development
 
-Unity packages cannot be built or tested locally without a Unity installation. The CI pipeline handles Unity builds for Windows, Android, and WebGL platforms, as well as playmode and editmode tests.
+Unity packages can be built and tested locally if you have Unity installed. To build Unity packages from the command line or IDE, set the `UnityDllPath` MSBuild property to point to your Unity installation's `UnityEngine.dll`:
+
+```bash
+dotnet build Reown.sln -p:UnityDllPath="/path/to/Unity/Editor/Data/Managed/UnityEngine.dll"
+```
+
+The CI pipeline handles Unity builds for Windows, Android, and WebGL platforms, as well as playmode and editmode tests using Unity 6000.2.6f2.
+
+### Sample Application
+
+The main sample application at `sample/Reown.AppKit.Unity/` is used for testing and demonstrating SDK features. It references all packages via local file paths in its `Packages/manifest.json`, making it ideal for development and testing changes.
+
+The sample demonstrates wallet connection via WalletConnect, social logins (Google, X, Discord, Apple, GitHub), multi-chain support, session management, message signing, transactions, balance queries, contract reading, and network switching.
+
+Key scripts in the sample:
+- `AppInit.cs` - App setup, debug console, analytics configuration
+- `AppKitInit.cs` - AppKit initialization with project ID, chains, social providers
+- `Dapp.cs` - Main UI and interaction logic demonstrating SDK features
+
+To test locally:
+1. Open `sample/Reown.AppKit.Unity` in Unity 2022.3+
+2. Open the Init scene
+3. Press Play to test in the editor
+
+The sample is also deployed to Vercel on each PR for WebGL testing, and test builds are available on Firebase (Android) and TestFlight (iOS).
 
 ## Architecture Overview
 
@@ -165,10 +199,12 @@ C# language version is set to 9.0 for Unity IL2CPP compatibility.
 
 ### Unity Considerations
 
-- Unity packages use Unity Package Manager (UPM) format
+- Unity packages use Unity Package Manager (UPM) format with `package.json` files
 - Check Unity `package.json` files to understand the dependency tree before moving code between packages
-- Unity CI checks validate that packages build correctly - CI failures indicate real issues
-- WebGL builds use JavaScript interop via `AppKit.jslib`
+- Unity CI checks validate that packages build correctly - CI failures indicate real dependency violations, compile errors, or failing tests
+- WebGL builds use JavaScript interop via `AppKit.jslib` which bridges to Wagmi/Viem
+- Unity 2022.3+ is required; IL2CPP code stripping level should be set to Minimal
+- Gamma color space is recommended for best visual results
 
 ### CI/CD Pipeline
 
