@@ -45,8 +45,14 @@ reown-dotnet/
 │   ├── Reown.Unity.Dependencies/     # External dependency aggregator
 │   └── Directory.Build.props         # Central version and build config
 │
-├── sample/                           # Example Unity application
-│   └── Reown.AppKit.Unity/           # Main sample app used for testing and demos
+├── sample/                           # Main sample application
+│   └── Reown.AppKit.Unity/           # Primary sample app used for testing and demos
+│
+├── playground/                       # Additional Unity sample projects
+│   ├── Reown.SolanaCore.Unity/       # Solana integration example
+│   ├── Reown.SolanaSdk.Unity/        # Solana Unity SDK adapter example
+│   ├── Reown.AbstractSample.Unity/   # Abstract wallet sample
+│   └── ...                           # Other experimental samples
 │
 ├── test/                             # Test projects
 │   ├── Reown.Core.Common.Test/
@@ -55,7 +61,7 @@ reown-dotnet/
 │   ├── Reown.Core.Storage.Test/
 │   ├── Reown.Sign.Test/
 │   ├── Reown.WalletKit.Test/
-│   └── Rown.TestUtils/               # Shared test utilities
+│   └── Rown.TestUtils/               # Shared test utilities (note: typo in actual directory name)
 │
 ├── .github/
 │   ├── workflows/                    # CI/CD automation
@@ -219,6 +225,8 @@ C# language version is set to 9.0 for Unity IL2CPP compatibility.
 **Release Process (on merge to main):**
 - Build and publish NuGet packages to nuget.org
 - Create Git tags for Unity packages (format: `package-name/version`)
+
+Note: The repository uses a gitflow-style workflow where `develop` is the integration branch and `main` is the release branch. PRs typically target `develop`, and releases are triggered when `develop` is merged into `main`.
 
 ### PR Guidelines
 
