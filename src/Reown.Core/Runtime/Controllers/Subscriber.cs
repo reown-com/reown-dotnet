@@ -20,6 +20,7 @@ namespace Reown.Core.Controllers
     /// </summary>
     public class Subscriber : ISubscriber
     {
+        private const int BatchSubscribeTopicsLimit = 500;
         private readonly ILogger _logger;
         private readonly Dictionary<string, PendingSubscription> _pending = new();
         private readonly IRelayer _relayer;
@@ -326,7 +327,7 @@ namespace Reown.Core.Controllers
         {
             if (_cached.Length > 0)
             {
-                var batches = _cached.Batch(500);
+                var batches = _cached.Batch(BatchSubscribeTopicsLimit);
                 foreach (var batch in batches)
                 {
                     await BatchSubscribe(batch.ToArray());
@@ -594,28 +595,35 @@ namespace Reown.Core.Controllers
         protected virtual async Task BatchSubscribe(PendingSubscription[] subscriptions)
         {
             if (subscriptions.Length == 0) return;
-            var topics = subscriptions.Select(s => s.Topic).ToArray();
-            var relay = subscriptions[0].Relay;
-
-            string[] result;
-            try
+            var batches = subscriptions.Batch(BatchSubscribeTopicsLimit);
+            foreach (var batch in batches)
             {
-                result = await RpcBatchSubscribe(topics, relay);
-            }
-            catch (TimeoutException)
-            {
-                _relayer.TriggerConnectionStalled();
-                return;
-            }
+                var batchSubscriptions = batch.ToArray();
+                if (batchSubscriptions.Length == 0) continue;
 
-            OnBatchSubscribe(result
-                .Select((r, i) => new ActiveSubscription
+                var topics = batchSubscriptions.Select(s => s.Topic).ToArray();
+                var relay = batchSubscriptions[0].Relay;
+
+                string[] result;
+                try
                 {
-                    Id = r,
-                    Relay = relay,
-                    Topic = topics[i]
-                })
-                .ToArray());
+                    result = await RpcBatchSubscribe(topics, relay);
+                }
+                catch (TimeoutException)
+                {
+                    _relayer.TriggerConnectionStalled();
+                    continue;
+                }
+
+                OnBatchSubscribe(result
+                    .Select((r, i) => new ActiveSubscription
+                    {
+                        Id = r,
+                        Relay = relay,
+                        Topic = topics[i]
+                    })
+                    .ToArray());
+            }
         }
 
         private void OnBatchSubscribe(ActiveSubscription[] subscriptions)

@@ -23,6 +23,7 @@
         <ProjectReference Include="..\..\src\Reown.Core.Crypto\Reown.Core.Crypto.csproj"/>
         <ProjectReference Include="..\..\src\Reown.Core.Network.WebSocket\Reown.Core.Network.WebSocket.csproj"/>
         <ProjectReference Include="..\..\src\Reown.Core.Network\Reown.Core.Network.csproj"/>
+        <ProjectReference Include="..\..\src\Reown.Core\Reown.Core.csproj"/>
         <ProjectReference Include="..\Rown.TestUtils\Rown.TestUtils.csproj"/>
     </ItemGroup>
 
