@@ -327,11 +327,7 @@ namespace Reown.Core.Controllers
         {
             if (_cached.Length > 0)
             {
-                var batches = _cached.Batch(BatchSubscribeTopicsLimit);
-                foreach (var batch in batches)
-                {
-                    await BatchSubscribe(batch.ToArray());
-                }
+                await BatchSubscribe(_cached);
             }
 
             Resubscribed?.Invoke(this, EventArgs.Empty);
