@@ -28,6 +28,13 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            9.0.x
+            ${{ matrix.dotnet-version }}
+
       - name: Run tests
         uses: ./.github/actions/test-dotnet
         with:
