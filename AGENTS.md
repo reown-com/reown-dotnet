@@ -321,12 +321,6 @@ com.reown.appkit.unity
 - **unity job** (parallel): Create Git tags for each UPM package (format: `package-name/version`, e.g., `com.reown.appkit.unity/1.5.2`) and push to origin
 - Both jobs run concurrently with `cancel-in-progress: true`
 
-**Dependency Automation (`dependabot.yml`):**
-- NuGet: Weekly on Mondays at 04:00 UTC, targeting `develop`, max 10 PRs, prefix `deps`
-- GitHub Actions: Same schedule, max 5 PRs, prefix `ci`
-
-**Code Ownership:** Single owner `@skibitsky` (`.github/CODEOWNERS`)
-
 Note: The repository uses a gitflow-style workflow where `develop` is the integration branch and `main` is the release branch. PRs typically target `develop`, and releases are triggered when `develop` is merged into `main`.
 
 ### PR Guidelines
