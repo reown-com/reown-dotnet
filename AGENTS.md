@@ -191,8 +191,8 @@ The packages follow a layered architecture:
 - `ConnectorController` - Itself inherits from `Connector` and acts as a facade/aggregator over all registered connectors, routing calls to the active one
 
 **Platform Abstraction** - Abstract service classes with platform-specific implementations:
-- `EvmService` (`Runtime/Evm/EvmService.cs`) → `NethereumEvmService` (native, uses Nethereum library) or `WagmiEvmService` (WebGL, delegates to JavaScript via P/Invoke)
-- `SolanaService` (`Runtime/Solana/SolanaService.cs`) → Native-only, uses `ValueTask` for async operations
+- `EvmService` (`src/Reown.AppKit.Unity/Runtime/Evm/EvmService.cs`) → `NethereumEvmService` (native, uses Nethereum library) or `WagmiEvmService` (WebGL, delegates to JavaScript via P/Invoke)
+- `SolanaService` (`src/Reown.AppKit.Unity/Runtime/Solana/SolanaService.cs`) → Native-only, uses `ValueTask` for async operations
 
 **Controller Pattern** - Controllers live in `src/Reown.AppKit.Unity/Runtime/Controllers/` and manage specific concerns:
 - `AccountController` - Connected accounts, balance, profile data; implements `INotifyPropertyChanged` for UI binding
@@ -222,7 +222,7 @@ The single source of truth for version is `src/Directory.Build.props`:
 
 The `.github/scripts/sync-unity-version.csx` script propagates this version to:
 - All Unity `package.json` files (version field and `com.reown.*` dependency versions)
-- C# fields marked with `[VersionMarker]` attribute (defined in `Reown.Core.Common/Runtime/Utils/VersionMarkerAttribute.cs`)
+- C# fields marked with `[VersionMarker]` attribute (defined in `src/Reown.Core.Common/Runtime/Utils/VersionMarkerAttribute.cs`)
 - `packages-lock.json` files
 - `ProjectSettings.asset` (bundleVersion)
 
