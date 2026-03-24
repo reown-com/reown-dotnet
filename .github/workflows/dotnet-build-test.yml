@@ -14,13 +14,8 @@ on:
       - '.github/ISSUE_TEMPLATE/**'
   workflow_dispatch:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
   test:
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     strategy:
       matrix:
         # os: [ubuntu-latest, windows-latest]
@@ -39,13 +34,6 @@ jobs:
           dotnet-version: |
             9.0.x
             ${{ matrix.dotnet-version }}
-
-      - name: Cache NuGet packages
-        uses: actions/cache@v5
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props', '**/*.csproj') }}
-          restore-keys: ${{ runner.os }}-nuget-
 
       - name: Run tests
         uses: ./.github/actions/test-dotnet
