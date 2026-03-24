@@ -132,7 +132,7 @@ Unity packages can be built and tested locally if you have Unity installed. To b
 dotnet build Reown.slnx -p:UnityDllPath="/path/to/Unity/Editor/Data/Managed/UnityEngine.dll"
 ```
 
-The CI pipeline handles Unity builds for Windows, Android, and WebGL platforms, as well as playmode and editmode tests using Unity 6000.2.6f2.
+The CI pipeline handles Unity builds for Windows, Android, and WebGL platforms, as well as playmode and editmode tests using Unity 6000.4.0f1.
 
 ### Sample Application
 
@@ -146,7 +146,7 @@ Key scripts in the sample:
 - `Dapp.cs` - Main UI and interaction logic demonstrating SDK features
 
 To test locally:
-1. Open `sample/Reown.AppKit.Unity` in Unity 2022.3+
+1. Open `sample/Reown.AppKit.Unity` in Unity 2023.1+
 2. Open the Init scene
 3. Press Play to test in the editor
 
@@ -291,6 +291,7 @@ com.reown.appkit.unity
 - `Rown.TestUtils` provides shared fixtures: `TwoClientsFixture<T>` (two-client dapp↔wallet scenarios), `CryptoWalletFixture` (Nethereum HD wallet), `TestOutputHelperLogger` (xUnit→Reown logger bridge), `TempFolder` (auto-cleanup temp dirs)
 - `Reown.Core.Common.Test` exists in `Reown.slnx` but is excluded from `Reown.NoUnity.slnf` — it won't run with the standard `dotnet test Reown.NoUnity.slnf` command
 - When modifying code, check if corresponding tests exist and add tests for new functionality
+- Unity playmode tests require a desktop target platform (Windows/macOS/Linux) to be selected, as they depend on the desktop AppKit UI layout
 
 ### Unity Considerations
 
@@ -301,7 +302,7 @@ com.reown.appkit.unity
 - Unity CI checks validate that packages build correctly - CI failures indicate real dependency violations, compile errors, or failing tests
 - WebGL builds use two JavaScript interop files: `AppKit.jslib` (Wagmi/Viem bridge) and `ReownWebSocket.jslib` (browser WebSocket)
 - Platform-specific code uses `#if UNITY_WEBGL` conditional compilation throughout connectors and services
-- Unity 2022.3+ is required; CI uses Unity 6000.2.6f2; IL2CPP code stripping level should be set to Minimal
+- Unity 2023.1+ is required; CI uses Unity 6000.4.0f1; IL2CPP code stripping level should be set to Minimal
 - Gamma color space is recommended for best visual results
 - The sample app at `sample/Reown.AppKit.Unity/` references all packages via local `file:` paths in `Packages/manifest.json`
 
