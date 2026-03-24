@@ -3,7 +3,17 @@ name: Build Unity Sample
 on:
   pull_request:
     types: [opened, reopened, synchronize]
+    paths:
+      - 'src/**'
+      - 'sample/**'
+      - 'playground/**'
+      - 'Reown.slnx'
+      - 'Directory.Packages.props'
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   buildForAllSupportedPlatforms:
@@ -50,6 +60,7 @@ jobs:
           name: Build-${{ matrix.targetPlatform }}
           path: Builds/${{ matrix.targetPlatform }}
   testAllModes:
+    if: github.event.pull_request.draft == false
     name: Test in ${{ matrix.testMode }}
     runs-on: ubuntu-latest
     permissions:
