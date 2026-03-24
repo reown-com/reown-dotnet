@@ -5,7 +5,8 @@ using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class CardSelect : VisualElement
+    [UxmlElement]
+    public partial class CardSelect : VisualElement
     {
         public const string Name = "card-select";
         public static readonly string NameLabel = $"{Name}__label";
@@ -15,10 +16,6 @@ namespace Reown.AppKit.Unity.Components
         public static readonly string NameIconImage = $"{Name}__icon-image";
         public static readonly string NameStatusIconContainer = $"{Name}__status-icon-container";
         public static readonly string ClassNameActivated = $"{Name}--activated";
-
-        public new class UxmlFactory : UxmlFactory<CardSelect, UxmlTraits>
-        {
-        }
 
         public event Action Clicked
         {

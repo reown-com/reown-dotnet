@@ -5,7 +5,8 @@ using Reown.AppKit.Unity.Utils;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class Tag : VisualElement
+    [UxmlElement]
+    public partial class Tag : VisualElement
     {
         public const string Name = "tag";
         public static readonly string NameLabel = $"{Name}__label";
@@ -14,10 +15,6 @@ namespace Reown.AppKit.Unity.Components
         public static readonly string ClassNameTypeAccent = $"{Name}--accent";
 
         public readonly Label label;
-
-        public new class UxmlFactory : UxmlFactory<Tag>
-        {
-        }
 
         public Tag() : this("---", TagType.Info)
         {

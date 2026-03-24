@@ -37,14 +37,11 @@ namespace UnityBuilderAction
                 }
             }
 
-#if UNITY_2021_2_OR_NEWER
-            // Determine subtarget
             StandaloneBuildSubtarget buildSubtarget;
             if (!options.TryGetValue("standaloneBuildSubtarget", out var subtargetValue) || !Enum.TryParse(subtargetValue, out buildSubtarget))
             {
                 buildSubtarget = default;
             }
-#endif
 
             // Define BuildPlayer Options
             var buildPlayerOptions = new BuildPlayerOptions
@@ -53,9 +50,7 @@ namespace UnityBuilderAction
                 locationPathName = options["customBuildPath"],
                 target = (BuildTarget)Enum.Parse(typeof(BuildTarget), options["buildTarget"]),
                 options = buildOptions,
-#if UNITY_2021_2_OR_NEWER
                 subtarget = (int)buildSubtarget
-#endif
             };
 
             // Set version for this build
@@ -69,8 +64,6 @@ namespace UnityBuilderAction
             }
 
             // Execute default AddressableAsset content build, if the package is installed.
-            // Version defines would be the best solution here, but Unity 2018 doesn't support that,
-            // so we fall back to using reflection instead.
             var addressableAssetSettingsType = Type.GetType(
                 "UnityEditor.AddressableAssets.Settings.AddressableAssetSettings,Unity.Addressables.Editor");
             if (addressableAssetSettingsType != null)

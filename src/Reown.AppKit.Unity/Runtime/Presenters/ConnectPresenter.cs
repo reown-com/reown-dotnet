@@ -86,7 +86,11 @@ namespace Reown.AppKit.Unity
             }
 
             if (count <= 0)
+            {
+                var countResponse = await AppKit.ApiController.GetWallets(1, 1);
+                CreateAllWalletsListItem(countResponse.Count);
                 return;
+            }
 
             int totalWalletsCount;
 

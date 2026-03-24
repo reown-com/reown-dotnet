@@ -4,7 +4,8 @@ using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class StatusIcon : VisualElement
+    [UxmlElement]
+    public partial class StatusIcon : VisualElement
     {
         public const string ClassName = "status-icon";
         public static readonly string ClassNameIcon = $"{ClassName}__icon";
@@ -17,10 +18,6 @@ namespace Reown.AppKit.Unity.Components
 
         public readonly Image icon;
         public readonly VisualElement iconContainer;
-
-        public new class UxmlFactory : UxmlFactory<StatusIcon>
-        {
-        }
 
         public StatusIcon() : this(IconType.Success, IconColor.Success)
         {

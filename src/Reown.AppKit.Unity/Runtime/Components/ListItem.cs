@@ -2,11 +2,11 @@ using System;
 using Reown.AppKit.Unity.Utils;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Reown.AppKit.Unity.Utils;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class ListItem : VisualElement
+    [UxmlElement]
+    public partial class ListItem : VisualElement
     {
         public const string Name = "list-item";
         public static readonly string NameLabel = $"{Name}__label";
@@ -21,10 +21,6 @@ namespace Reown.AppKit.Unity.Components
         public static readonly string ClassIconStyleError = $"{Name}--icon-style-error";
         public static readonly string ClassIconStyleDefault = $"{Name}--icon-style-default";
         public static readonly string ClassCenteredIcon = $"{Name}--centered-icon";
-
-        public new class UxmlFactory : UxmlFactory<ListItem>
-        {
-        }
 
         public Clickable Clickable
         {

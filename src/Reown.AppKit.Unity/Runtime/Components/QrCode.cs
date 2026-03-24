@@ -4,7 +4,8 @@ using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class QrCode : VisualElement
+    [UxmlElement]
+    public partial class QrCode : VisualElement
     {
         public const string Name = "qrcode";
 
@@ -67,10 +68,6 @@ namespace Reown.AppKit.Unity.Components
         {
             _ = evt.customStyle.TryGetValue(BgColorProperty, out _bgColor);
             _ = evt.customStyle.TryGetValue(FgColorProperty, out _fgColor);
-        }
-
-        public new class UxmlFactory : UxmlFactory<QrCode>
-        {
         }
     }
 }

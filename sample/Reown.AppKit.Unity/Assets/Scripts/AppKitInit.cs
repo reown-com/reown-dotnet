@@ -58,7 +58,7 @@ namespace Sample
                 ),
                 customWallets = GetCustomWallets(),
                 // On mobile show 5 wallets on the Connect view (the first AppKit modal screen)
-                connectViewWalletsCountMobile = 5,
+                connectViewWalletsCountMobile = 3,
                 supportedChains = new[]
                 {
                     ChainConstants.Chains.Ethereum,
@@ -91,13 +91,13 @@ namespace Sample
             var clientId = await AppKit.Instance.SignClient.CoreClient.Crypto.GetClientId();
             Mixpanel.Identify(clientId);
 
-            SentrySdk.ConfigureScope(scope =>
+            SentrySdk.ConfigureScope((scope, clientIdArg) =>
             {
                 scope.User = new SentryUser
                 {
-                    Id = clientId
+                    Id = clientIdArg
                 };
-            });
+            }, clientId);
 #endif
 
             Debug.Log("[AppKit Init] AppKit initialized. Loading menu scene...");
@@ -118,25 +118,25 @@ namespace Sample
                 new Wallet
                 {
                     Name = "Swift Wallet",
-                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-swift.png?raw=true",
+                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/develop/media/wallet-swift.png",
                     MobileLink = "walletapp://"
                 },
                 new Wallet
                 {
                     Name = "React Native Wallet",
-                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-rn.png?raw=true",
+                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/develop/media/wallet-rn.png",
                     MobileLink = "rn-web3wallet://"
                 },
                 new Wallet
                 {
                     Name = "Flutter Wallet Prod",
-                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-flutter.png?raw=true",
+                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/develop/media/wallet-flutter.png",
                     MobileLink = "wcflutterwallet://"
                 },
                 new Wallet
                 {
                     Name = "React Web Wallet",
-                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-react.png?raw=true",
+                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/develop/media/wallet-react.png",
                     WebappLink = "https://react-wallet.walletconnect.com"
                 }
             };
@@ -148,25 +148,25 @@ namespace Sample
                 new Wallet
                 {
                     Name = "Kotlin Wallet",
-                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-kotlin.png?raw=true",
+                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/develop/media/wallet-kotlin.png",
                     MobileLink = "kotlin-web3wallet://"
                 },
                 new Wallet
                 {
                     Name = "React Native Wallet",
-                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-rn.png?raw=true",
+                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/develop/media/wallet-rn.png",
                     MobileLink = "rn-web3wallet://"
                 },
                 new Wallet
                 {
                     Name = "Flutter Wallet Prod",
-                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-flutter.png?raw=true",
+                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/develop/media/wallet-flutter.png",
                     MobileLink = "wcflutterwallet://"
                 },
                 new Wallet
                 {
                     Name = "React Web Wallet",
-                    ImageUrl = "https://github.com/reown-com/reown-dotnet/blob/develop/media/wallet-react.png?raw=true",
+                    ImageUrl = "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/develop/media/wallet-react.png",
                     WebappLink = "https://react-wallet.walletconnect.com"
                 }
             };

@@ -7,30 +7,13 @@ using UnityEngine.UIElements;
 
 namespace Sample.UI
 {
-    public class SettingsInfoItem : VisualElement
+    [UxmlElement]
+    public partial class SettingsInfoItem : VisualElement
     {
-        public new class UxmlFactory : UxmlFactory<SettingsInfoItem, UxmlTraits> { }
-
-        public new class UxmlTraits : VisualElement.UxmlTraits
-        {
-            UxmlStringAttributeDescription label =
-                new()
-                    { name = "label", defaultValue = "Label" };
-            UxmlStringAttributeDescription value =
-                new()
-                    { name = "value", defaultValue = "Value" };
-            
-            public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
-            {
-                base.Init(ve, bag, cc);
-                var item = ve as SettingsInfoItem;
-                
-                item.Label = label.GetValueFromBag(bag, cc);
-                item.Value = value.GetValueFromBag(bag, cc);
-            }
-        }
-        
+        [UxmlAttribute]
         public string Label { get => _labelLabel.text ?? ""; set => _labelLabel.text = value; }
+
+        [UxmlAttribute]
         public string Value { get => _valueLabel.text ?? ""; set => _valueLabel.text = value; }
         
         public Clickable Clickable

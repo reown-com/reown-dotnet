@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEditor;
-using System.Reflection;
 
 namespace UnityBuilderAction.Input
 {
@@ -9,28 +8,22 @@ namespace UnityBuilderAction.Input
   {
     public static void Apply(Dictionary<string, string> options)
     {
-#if UNITY_2019_1_OR_NEWER
-      if (options.TryGetValue("androidKeystoreName", out string keystoreName) && !string.IsNullOrEmpty(keystoreName))
+      if (options.TryGetValue("androidKeystoreName", out var keystoreName) && !string.IsNullOrEmpty(keystoreName))
       {
         PlayerSettings.Android.useCustomKeystore = true;
         PlayerSettings.Android.keystoreName = keystoreName;
       }
-#endif
-      // Can't use out variable declaration as Unity 2018 doesn't support it
-      string keystorePass;
-      if (options.TryGetValue("androidKeystorePass", out keystorePass) && !string.IsNullOrEmpty(keystorePass))
+
+      if (options.TryGetValue("androidKeystorePass", out var keystorePass) && !string.IsNullOrEmpty(keystorePass))
         PlayerSettings.Android.keystorePass = keystorePass;
-      
-      string keyaliasName;
-      if (options.TryGetValue("androidKeyaliasName", out keyaliasName) && !string.IsNullOrEmpty(keyaliasName))
+
+      if (options.TryGetValue("androidKeyaliasName", out var keyaliasName) && !string.IsNullOrEmpty(keyaliasName))
         PlayerSettings.Android.keyaliasName = keyaliasName;
 
-      string keyaliasPass;
-      if (options.TryGetValue("androidKeyaliasPass", out keyaliasPass) && !string.IsNullOrEmpty(keyaliasPass))
+      if (options.TryGetValue("androidKeyaliasPass", out var keyaliasPass) && !string.IsNullOrEmpty(keyaliasPass))
         PlayerSettings.Android.keyaliasPass = keyaliasPass;
       
-      string androidTargetSdkVersion;
-      if (options.TryGetValue("androidTargetSdkVersion", out androidTargetSdkVersion) && !string.IsNullOrEmpty(androidTargetSdkVersion))
+      if (options.TryGetValue("androidTargetSdkVersion", out var androidTargetSdkVersion) && !string.IsNullOrEmpty(androidTargetSdkVersion))
       {
           var targetSdkVersion = AndroidSdkVersions.AndroidApiLevelAuto;
           try
@@ -45,36 +38,27 @@ namespace UnityBuilderAction.Input
           PlayerSettings.Android.targetSdkVersion = targetSdkVersion;
       }
 
-      string androidExportType;
-      if (options.TryGetValue("androidExportType", out androidExportType) && !string.IsNullOrEmpty(androidExportType))
+      if (options.TryGetValue("androidExportType", out var androidExportType) && !string.IsNullOrEmpty(androidExportType))
       {
-        // Only exists in 2018.3 and above
-        PropertyInfo buildAppBundle = typeof(EditorUserBuildSettings)
-              .GetProperty("buildAppBundle", BindingFlags.Public | BindingFlags.Static);
         switch (androidExportType)
         {
           case "androidStudioProject":
             EditorUserBuildSettings.exportAsGoogleAndroidProject = true;
-            if (buildAppBundle != null)
-              buildAppBundle.SetValue(null, false);
+            EditorUserBuildSettings.buildAppBundle = false;
             break;
           case "androidAppBundle":
             EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
-            if (buildAppBundle != null)
-              buildAppBundle.SetValue(null, true);
+            EditorUserBuildSettings.buildAppBundle = true;
             break;
           case "androidPackage":
             EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
-            if (buildAppBundle != null)
-              buildAppBundle.SetValue(null, false);
+            EditorUserBuildSettings.buildAppBundle = false;
             break;
         }
       }
 
-      string symbolType;
-      if (options.TryGetValue("androidSymbolType", out symbolType) && !string.IsNullOrEmpty(symbolType))
+      if (options.TryGetValue("androidSymbolType", out var symbolType) && !string.IsNullOrEmpty(symbolType))
       {
-#if UNITY_2021_1_OR_NEWER
         switch (symbolType)
         {
           case "public":
@@ -87,18 +71,6 @@ namespace UnityBuilderAction.Input
             EditorUserBuildSettings.androidCreateSymbols = AndroidCreateSymbols.Disabled;
             break;
         }
-#elif UNITY_2019_2_OR_NEWER
-        switch (symbolType)
-        {
-          case "public":
-          case "debugging":
-            EditorUserBuildSettings.androidCreateSymbolsZip = true;
-            break;
-          case "none":
-            EditorUserBuildSettings.androidCreateSymbolsZip = false;
-            break;
-        }
-#endif
       }
     }
   }

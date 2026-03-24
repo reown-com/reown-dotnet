@@ -4,7 +4,8 @@ using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class WalletView : VisualElement
+    [UxmlElement]
+    public partial class WalletView : VisualElement
     {
         public const string Name = "wallet-view";
         public static readonly string NameGetWalletContainer = $"{Name}__get-wallet-container";
@@ -32,10 +33,6 @@ namespace Reown.AppKit.Unity.Components
         public Label LandscapeContinueInLabel { get; }
         public Link LandscapeTryAgainLink { get; }
 
-        public new class UxmlFactory : UxmlFactory<WalletView>
-        {
-        }
-        
         public WalletView() : this(null)
         {
         }
