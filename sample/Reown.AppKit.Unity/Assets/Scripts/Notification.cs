@@ -17,7 +17,7 @@ namespace Sample
             get
             {
                 if (_instance == null)
-                    _instance = FindObjectOfType<Notification>(true);
+                    _instance = FindAnyObjectByType<Notification>(FindObjectsInactive.Include);
 
                 return _instance;
             }
