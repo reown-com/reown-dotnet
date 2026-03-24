@@ -147,6 +147,8 @@ namespace Reown.AppKit.Unity.Test
                 Debug.Log($"[{nameof(ShouldReject)}] Waiting for connection rejection...");
                 await walletConnectionTaskCompletionSource.Task;
 
+                await UniTask.Delay(TimeSpan.FromSeconds(1));
+
                 Debug.Log($"[{nameof(ShouldReject)}] Validating error message...");
                 await AppKitUi.ValidateSnackbarAsync(true, SdkErrors.MessageFromType(rejectErrorType));
             });
