@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -41,6 +40,16 @@ namespace Reown.AppKit.Unity.Components
                     default:
                         throw new ArgumentOutOfRangeException(nameof(value), value, null);
                 }
+            }
+        }
+
+        [UxmlAttribute]
+        public string Icon
+        {
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
+                    icon.vectorImage = Resources.Load<VectorImage>(value);
             }
         }
 
