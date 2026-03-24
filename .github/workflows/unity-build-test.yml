@@ -28,7 +28,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: ${{ matrix.projectPath }}/Library
           key: Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}
@@ -45,7 +45,7 @@ jobs:
           targetPlatform: ${{ matrix.targetPlatform }}
           customParameters: ${{ matrix.targetPlatform != 'WebGL' && '-Development' || '' }} -mixpanelToken ${{ secrets.MIXPANEL_TOKEN }} -sentryToken ${{ secrets.SENTRY_TOKEN }}
           buildMethod: UnityBuilderAction.Builder.BuildProject
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: Build-${{ matrix.targetPlatform }}
           path: Builds/${{ matrix.targetPlatform }}
@@ -71,7 +71,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           lfs: true
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: ${{ matrix.projectPath }}/Library
           key: Library-${{ matrix.projectPath }}-${{ matrix.testMode }}
@@ -92,7 +92,7 @@ jobs:
           artifactsPath: ${{ matrix.testMode }}-artifacts
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           checkName: ${{ matrix.testMode }} Test Results
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: Test results for ${{ matrix.testMode }}
@@ -109,7 +109,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Download WebGL Build Artifact
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: Build-WebGL
           path: Builds/WebGL

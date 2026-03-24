@@ -1,0 +1,22 @@
+<Solution>
+  <Project Path="src/Reown.AppKit.Solana.Unity/Reown.AppKit.Solana.Unity.csproj" />
+  <Project Path="src/Reown.AppKit.Unity/Reown.AppKit.Unity.csproj" />
+  <Project Path="src/Reown.Core.Common/Reown.Core.Common.csproj" />
+  <Project Path="src/Reown.Core.Crypto/Reown.Core.Crypto.csproj" />
+  <Project Path="src/Reown.Core.Network.WebSocket/Reown.Core.Network.WebSocket.csproj" />
+  <Project Path="src/Reown.Core.Network/Reown.Core.Network.csproj" />
+  <Project Path="src/Reown.Core.Storage/Reown.Core.Storage.csproj" />
+  <Project Path="src/Reown.Core/Reown.Core.csproj" />
+  <Project Path="src/Reown.Sign.Nethereum.Unity/Reown.Sign.Nethereum.Unity.csproj" />
+  <Project Path="src/Reown.Sign.Nethereum/Reown.Sign.Nethereum.csproj" />
+  <Project Path="src/Reown.Sign.Unity/Reown.Sign.Unity.csproj" />
+  <Project Path="src/Reown.Sign/Reown.Sign.csproj" />
+  <Project Path="src/Reown.WalletKit/Reown.WalletKit.csproj" />
+  <Project Path="test/Reown.Core.Common.Test/Reown.Core.Common.Test.csproj" />
+  <Project Path="test/Reown.Core.Crypto.Test/Reown.Core.Crypto.Test.csproj" />
+  <Project Path="test/Reown.Core.Network.Test/Reown.Core.Network.Test.csproj" />
+  <Project Path="test/Reown.Core.Storage.Test/Reown.Core.Storage.Test.csproj" />
+  <Project Path="test/Reown.Sign.Test/Reown.Sign.Test.csproj" />
+  <Project Path="test/Reown.WalletKit.Test/Reown.WalletKit.Test.csproj" />
+  <Project Path="test/Rown.TestUtils/Rown.TestUtils.csproj" />
+</Solution>
