@@ -8,7 +8,7 @@
       "hash": "6eee66190fb6d7182518cc3b41e3919e054699b6"
     },
     "com.nethereum.unity": {
-      "version": "5.0.0",
+      "version": "6.1.0",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
@@ -96,7 +96,7 @@
       "source": "local",
       "dependencies": {
         "com.reown.sign": "1.5.0",
-        "com.nethereum.unity": "5.0.0"
+        "com.nethereum.unity": "6.1.0"
       }
     },
     "com.reown.sign.nethereum.unity": {

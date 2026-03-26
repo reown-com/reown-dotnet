@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "com.nethereum.unity": {
-      "version": "4.26.0",
+      "version": "6.1.0",
       "depth": 3,
       "source": "registry",
       "dependencies": {},
@@ -86,7 +86,7 @@
       "source": "registry",
       "dependencies": {
         "com.reown.sign": "1.4.0",
-        "com.nethereum.unity": "4.26.0"
+        "com.nethereum.unity": "6.1.0"
       },
       "url": "https://package.openupm.com"
     },
