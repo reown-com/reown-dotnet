@@ -41,11 +41,13 @@ Edit `src/Directory.Build.props`, replacing the old `<DefaultVersion>` value wit
 
 Run these steps:
 
-1. Create and switch to a new branch named `chore/version-bump` from the current `develop` branch:
+1. Check for uncommitted changes first. If `git diff --quiet && git diff --cached --quiet` fails (dirty working tree), warn the user and stop — do not switch branches with uncommitted changes.
+
+   Then create and switch to a new branch named `chore/version-bump` from the current `develop` branch:
    ```
    git checkout develop && git pull origin develop && git checkout -b chore/version-bump
    ```
-   If the branch already exists, delete it first with `git branch -D chore/version-bump`.
+   If the branch already exists locally, check if it has commits not on any remote branch (`git log chore/version-bump --not --remotes`). If it has unpushed work, warn the user and stop. Otherwise, delete it with `git branch -D chore/version-bump` and recreate.
 
 2. Stage only `src/Directory.Build.props`:
    ```
