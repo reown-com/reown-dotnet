@@ -1,6 +1,6 @@
 {
   "name": "com.reown.sign.nethereum",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "displayName": "Reown.Sign.Nethereum",
   "unity": "2023.1",
   "author": "Reown",
@@ -9,7 +9,7 @@
     "walletconnect"
   ],
   "dependencies": {
-    "com.reown.sign": "1.5.2",
+    "com.reown.sign": "1.6.0",
     "com.nethereum.unity": "6.1.0"
   }
 }
