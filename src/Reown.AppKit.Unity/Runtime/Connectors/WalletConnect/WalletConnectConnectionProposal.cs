@@ -56,7 +56,7 @@ namespace Reown.AppKit.Unity
 
                 if (!isSignatureValid)
                 {
-                    await _client.Disconnect();
+                    await _client.DisconnectAsync();
                     return;
                 }
 
@@ -76,7 +76,7 @@ namespace Reown.AppKit.Unity
             }
             catch (Exception ex)
             {
-                await _client.Disconnect();
+                await _client.DisconnectAsync();
                 Debug.LogException(ex);
             }
         }
@@ -93,14 +93,22 @@ namespace Reown.AppKit.Unity
                 var hasNamespaceForActiveChain = e.Namespaces.TryGetValue(activeChain.ChainNamespace, out var namespaceForActiveChain);
                 var selectedChain = activeChain;
 
-                // If the active chain is not supported by the wallet, choose the first wallet-supported chain
-                if (hasNamespaceForActiveChain && !namespaceForActiveChain.Chains.Contains(activeChain.ChainId))
-                    selectedChain = AppKit.Config.supportedChains.FirstOrDefault(supportedChain => namespaceForActiveChain.Chains.Contains(supportedChain.ChainId));
+                if (hasNamespaceForActiveChain && namespaceForActiveChain.Accounts is { Length: > 0 })
+                {
+                    var walletChainIds = namespaceForActiveChain.Accounts
+                        .Select(account => Core.Utils.DeconstructAccountId(account).chainId)
+                        .Distinct()
+                        .ToArray();
+
+                    if (!walletChainIds.Contains(activeChain.ChainId))
+                        selectedChain = AppKit.Config.supportedChains.FirstOrDefault(
+                            supportedChain => walletChainIds.Contains(supportedChain.ChainId));
+                }
 
                 if (selectedChain == null)
                 {
                     ReownLogger.LogError($"Disconnection: The chain {activeChain.ChainId} is not supported by the wallet. Failed to find a fallback chain.");
-                    await _client.Disconnect(Error.FromErrorType(ErrorType.UNSUPPORTED_CHAINS));
+                    await _client.DisconnectAsync(Error.FromErrorType(ErrorType.UNSUPPORTED_CHAINS));
                     return;
                 }
 
@@ -169,7 +177,7 @@ namespace Reown.AppKit.Unity
                         methods
                     );
 
-                    var authData = await _client.Authenticate(authParams);
+                    var authData = await _client.AuthenticateAsync(authParams);
                     Uri = authData.Uri;
 
                     connectionUpdated?.Invoke(this);
@@ -178,7 +186,7 @@ namespace Reown.AppKit.Unity
                 }
                 else
                 {
-                    var connectedData = await _client.Connect(_connectOptions);
+                    var connectedData = await _client.ConnectAsync(_connectOptions);
                     Uri = connectedData.Uri;
 
                     connectionUpdated?.Invoke(this);

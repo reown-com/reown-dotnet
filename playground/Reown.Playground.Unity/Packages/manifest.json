@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.nethereum.unity": "4.19.2",
+    "com.nethereum.unity": "6.1.0",
     "com.reown.appkit.unity": "file:./../../../src/Reown.AppKit.Unity",
     "com.reown.core": "file:./../../../src/Reown.Core",
     "com.reown.core.common": "file:./../../../src/Reown.Core.Common",

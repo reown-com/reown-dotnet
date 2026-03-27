@@ -5,7 +5,8 @@ using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class Button : VisualElement
+    [UxmlElement]
+    public partial class Button : VisualElement
     {
         public const string Name = "button";
 
@@ -16,6 +17,7 @@ namespace Reown.AppKit.Unity.Components
         public static readonly string ClassNameSizeSmall = $"{Name}--size-small";
         public static readonly string ClassNameSizeMedium = $"{Name}--size-medium";
 
+        [UxmlAttribute]
         public ButtonVariant Variant
         {
             get => _variant;
@@ -39,6 +41,7 @@ namespace Reown.AppKit.Unity.Components
             }
         }
 
+        [UxmlAttribute]
         public ButtonSize Size
         {
             get => _size;
@@ -89,37 +92,6 @@ namespace Reown.AppKit.Unity.Components
         private ButtonVariant _variant;
         private ButtonSize _size;
         private Clickable _clickable;
-
-        public new class UxmlFactory : UxmlFactory<Button, UxmlTraits>
-        {
-        }
-
-        public new class UxmlTraits : VisualElement.UxmlTraits
-        {
-            private UxmlEnumAttributeDescription<ButtonSize> tSize = new()
-            {
-                name = "size"
-            };
-
-            private UxmlEnumAttributeDescription<ButtonVariant> tVariant = new()
-            {
-                name = "variant"
-            };
-
-            public override IEnumerable<UxmlChildElementDescription> uxmlChildElementsDescription
-            {
-                get { yield break; }
-            }
-
-            public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
-            {
-                base.Init(ve, bag, cc);
-
-                var button = ve as Button;
-                button.Size = tSize.GetValueFromBag(bag, cc);
-                button.Variant = tVariant.GetValueFromBag(bag, cc);
-            }
-        }
 
         public Button()
         {

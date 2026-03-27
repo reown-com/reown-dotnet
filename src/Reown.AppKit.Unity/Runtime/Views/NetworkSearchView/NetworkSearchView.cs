@@ -4,7 +4,8 @@ using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class NetworkSearchView : VisualElement
+    [UxmlElement]
+    public partial class NetworkSearchView : VisualElement
     {
         public const string Name = "network-search-view";
         public static readonly string NameList = $"{Name}__list";
@@ -13,10 +14,6 @@ namespace Reown.AppKit.Unity.Components
         public readonly ScrollView scrollView;
         public readonly TextInput searchInput;
 
-        public new class UxmlFactory : UxmlFactory<NetworkSearchView>
-        {
-        }
-        
         public NetworkSearchView() : this(null)
         {
         }

@@ -59,7 +59,7 @@ Each button handler shows best practices for error handling and user feedback.
 
 ### Prerequisites
 
-- Unity 2022.3 or above
+- Unity 6.4 (can be backported to Unity 2023+ with minimal effort by manually downgrading some third-party packages)
 - IL2CPP code stripping level: **Minimal** (or lower)
 - Gamma color space for the best look
 

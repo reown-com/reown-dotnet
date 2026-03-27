@@ -4,7 +4,8 @@ using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class Tabbed : VisualElement
+    [UxmlElement]
+    public partial class Tabbed : VisualElement
     {
         public const string Name = "tabbed";
 
@@ -25,10 +26,6 @@ namespace Reown.AppKit.Unity.Components
 
         public event Action<VisualElement> ContentShown;
         public event Action<VisualElement> ContentHidden;
-
-        public new class UxmlFactory : UxmlFactory<Tabbed>
-        {
-        }
 
         public Tabbed()
         {
@@ -72,9 +69,8 @@ namespace Reown.AppKit.Unity.Components
             };
             _dynamicTabBg.AddToClassList(ClassNameTabDynamicBg);
 
-            this.Q(className: ClassNameTabsContainer).Add(_dynamicTabBg);
-
-            _dynamicTabBg.SendToBack();
+            var tabsContainer = this.Q(className: ClassNameTabsContainer);
+            tabsContainer.Insert(0, _dynamicTabBg);
         }
 
         public static bool IsTabActive(Label tab)

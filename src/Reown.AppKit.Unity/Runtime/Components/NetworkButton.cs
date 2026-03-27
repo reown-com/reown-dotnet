@@ -5,7 +5,8 @@ using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class NetworkButton : VisualElement, IDisposable
+    [UxmlElement]
+    public partial class NetworkButton : VisualElement, IDisposable
     {
         public const string Name = "network-button";
         public static readonly string NameIcon = $"{Name}__icon";
@@ -20,6 +21,7 @@ namespace Reown.AppKit.Unity.Components
         private RemoteSprite<Image> _networkIcon;
         private Clickable _clickable;
 
+        [UxmlAttribute]
         public bool ShowName
         {
             get => _showName;
@@ -30,6 +32,7 @@ namespace Reown.AppKit.Unity.Components
             }
         }
 
+        [UxmlAttribute]
         public bool ShowChevron
         {
             get => _showChevron;
@@ -40,6 +43,7 @@ namespace Reown.AppKit.Unity.Components
             }
         }
 
+        [UxmlAttribute]
         public bool ShowBorder
         {
             get => _showBorder;
@@ -64,41 +68,6 @@ namespace Reown.AppKit.Unity.Components
         public readonly Label NetworkName;
         public readonly Image NetworkChevron;
 
-        public new class UxmlFactory : UxmlFactory<NetworkButton, UxmlTraits>
-        {
-        }
-
-        public new class UxmlTraits : VisualElement.UxmlTraits
-        {
-            private readonly UxmlBoolAttributeDescription _showName = new()
-            {
-                name = "show-name",
-                defaultValue = true
-            };
-
-            private readonly UxmlBoolAttributeDescription _showChevron = new()
-            {
-                name = "show-chevron",
-                defaultValue = true
-            };
-
-            private readonly UxmlBoolAttributeDescription _showBorder = new()
-            {
-                name = "show-border",
-                defaultValue = true
-            };
-
-            public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
-            {
-                base.Init(ve, bag, cc);
-                var networkButton = (NetworkButton)ve;
-
-                networkButton.ShowName = _showName.GetValueFromBag(bag, cc);
-                networkButton.ShowChevron = _showChevron.GetValueFromBag(bag, cc);
-                networkButton.ShowBorder = _showBorder.GetValueFromBag(bag, cc);
-            }
-        }
-
         public NetworkButton()
         {
             var asset = Resources.Load<VisualTreeAsset>("Reown/AppKit/Components/NetworkButton/NetworkButton");
@@ -117,14 +86,8 @@ namespace Reown.AppKit.Unity.Components
             AppKit.NetworkController.ChainChanged += ChainChangedHandler;
 
             // Update network data when button becomes visible
-            // ReSharper disable once HeapView.CanAvoidClosure
-#if UNITY_6000_0_OR_NEWER
-            RegisterCallbackOnce<GeometryChangedEvent>(_ => UpdateNetworkButton(AppKit.NetworkController.ActiveChain));
-#else
-            RegisterCallback<GeometryChangedEvent>(_ => UpdateNetworkButton(AppKit.NetworkController.ActiveChain));
-#endif
+            UnityVersionCompat.RegisterCallbackOnce<GeometryChangedEvent>(this, _ => UpdateNetworkButton(AppKit.NetworkController.ActiveChain));
             
-
             Clickable = new Clickable(() => AppKit.OpenModal(ViewType.NetworkSearch));
         }
 

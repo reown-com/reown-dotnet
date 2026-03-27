@@ -4,7 +4,8 @@ using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class NetworkLoadingView : VisualElement
+    [UxmlElement]
+    public partial class NetworkLoadingView : VisualElement
     {
         public const string Name = "network-loading-view";
         public static readonly string NameIconContainer = $"{Name}__icon-container";
@@ -15,10 +16,6 @@ namespace Reown.AppKit.Unity.Components
         public readonly Image icon;
 
         private RemoteSprite<Image> _networkIconRemoteSprite;
-
-        public new class UxmlFactory : UxmlFactory<NetworkLoadingView>
-        {
-        }
 
         public NetworkLoadingView() : this(null)
         {

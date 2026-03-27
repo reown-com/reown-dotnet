@@ -6,7 +6,8 @@ using DeviceType = Reown.AppKit.Unity.Utils.DeviceType;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class WalletSearchView : VisualElement
+    [UxmlElement]
+    public partial class WalletSearchView : VisualElement
     {
         public const string Name = "wallet-search-view";
         public static readonly string ClassNameList = $"{Name}__list";
@@ -33,10 +34,6 @@ namespace Reown.AppKit.Unity.Components
         public readonly IconLink qrCodeLink;
         public readonly VisualElement leftSlot;
         public readonly VisualElement rightSlot;
-
-        public new class UxmlFactory : UxmlFactory<WalletSearchView>
-        {
-        }
 
         public WalletSearchView() : this(null)
         {

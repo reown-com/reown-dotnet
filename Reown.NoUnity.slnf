@@ -1,6 +1,6 @@
 ﻿{
   "solution": {
-    "path": "Reown.sln",
+    "path": "Reown.slnx",
     "projects": [
       "src\\Reown.Core.Common\\Reown.Core.Common.csproj",
       "src\\Reown.Core.Crypto\\Reown.Core.Crypto.csproj",

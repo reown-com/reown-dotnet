@@ -1,9 +1,11 @@
+using Reown.AppKit.Unity.Utils;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class TextInput : VisualElement
+    [UxmlElement]
+    public partial class TextInput : VisualElement
     {
         public static string ClassName = "text-input";
         public readonly string ClassNameContainer = $"{ClassName}__container";
@@ -15,10 +17,6 @@ namespace Reown.AppKit.Unity.Components
         public readonly VisualElement rightSlot;
 
         private readonly TextField _textField;
-
-        public new class UxmlFactory : UxmlFactory<TextInput>
-        {
-        }
 
         public TextInput()
         {
@@ -45,9 +43,7 @@ namespace Reown.AppKit.Unity.Components
         
         public void SetPlaceholder(string placeholder)
         {
-#if UNITY_6000_0_OR_NEWER
-            _textField.textEdition.placeholder = placeholder;
-#endif
+            _textField.SetPlaceholder(placeholder);
         }
     }
 }

@@ -5,7 +5,8 @@ using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class AccountPortfolioView : VisualElement
+    [UxmlElement]
+    public partial class AccountPortfolioView : VisualElement
     {
         public const string Name = "account-portfolio-view";
         public static readonly string NameBalanceUsd = $"{Name}__balance";
@@ -13,7 +14,7 @@ namespace Reown.AppKit.Unity.Components
         public static readonly string NameAccountChip = $"{Name}__account-chip";
         public static readonly string NameAccountChipAvatarImage = $"{Name}__account-chip-avatar-image";
         public static readonly string NameAccountChipContentName = $"{Name}__account-chip-content-name";
-        
+
         public Balance Balance { get; }
 
         public Image AvatarImage { get; }
@@ -50,11 +51,6 @@ namespace Reown.AppKit.Unity.Components
         }
 
         private Clickable _accountChipClickable;
-        
-
-        public new class UxmlFactory : UxmlFactory<AccountPortfolioView>
-        {
-        }
 
         public AccountPortfolioView() : this(null)
         {

@@ -3,13 +3,10 @@ using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Views.ConnectView
 {
-    public class ConnectView : ScrollView
+    [UxmlElement]
+    public partial class ConnectView : ScrollView
     {
         public const string Name = "connect-view";
-
-        public new class UxmlFactory : UxmlFactory<ConnectView>
-        {
-        }
 
         public ConnectView()
         {

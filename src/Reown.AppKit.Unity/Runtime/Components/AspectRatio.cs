@@ -1,15 +1,13 @@
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class AspectRatio : VisualElement
+    [UxmlElement]
+    public partial class AspectRatio : VisualElement
     {
         private float _lastParentWidth;
-
-        public new class UxmlFactory : UxmlFactory<AspectRatio>
-        {
-        }
 
         public AspectRatio()
         {
@@ -29,7 +27,8 @@ namespace Reown.AppKit.Unity.Components
 
         private void OnGeometryChangedEvent(GeometryChangedEvent e)
         {
-            if (e.newRect.height == 0) return;
+            if (Mathf.Approximately(e.newRect.height, 0))
+                return;
             FitToParent();
         }
 

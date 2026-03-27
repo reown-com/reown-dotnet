@@ -5,7 +5,8 @@ using Button = Reown.AppKit.Unity.Components.Button;
 
 namespace Reown.AppKit.Unity.Views.SiweView
 {
-    public class SiweView : VisualElement
+    [UxmlElement]
+    public partial class SiweView : VisualElement
     {
         public const string Name = "siwe-view";
         public static readonly string NameLogoAppImage = $"{Name}__logo-app-image";
@@ -53,10 +54,6 @@ namespace Reown.AppKit.Unity.Views.SiweView
         private readonly Label _titleLabel;
         private readonly Button _cancelButton;
         private readonly Button _approveButton;
-
-        public new class UxmlFactory : UxmlFactory<SiweView>
-        {
-        }
 
         public SiweView() : this(null)
         {

@@ -5,7 +5,8 @@ using UnityEngine.UIElements;
 
 namespace Reown.AppKit.Unity.Components
 {
-    public class IconLink : VisualElement
+    [UxmlElement]
+    public partial class IconLink : VisualElement
     {
         public const string Name = "icon-link";
         public static readonly string NameImage = $"{Name}__image";
@@ -13,6 +14,7 @@ namespace Reown.AppKit.Unity.Components
         public static readonly string ClassNameVariantShade = $"{Name}--variant-shade";
         public static readonly string ClassNameVariantMain = $"{Name}--variant-main";
 
+        [UxmlAttribute]
         public IconLinkVariant Variant
         {
             get => _variant;
@@ -67,40 +69,6 @@ namespace Reown.AppKit.Unity.Components
 
         private Clickable _clickable;
         private IconLinkVariant _variant;
-
-        public new class UxmlFactory : UxmlFactory<IconLink, UxmlTraits>
-        {
-        }
-
-        public new class UxmlTraits : VisualElement.UxmlTraits
-        {
-            private UxmlEnumAttributeDescription<IconLinkVariant> tVariant = new()
-            {
-                name = "variant"
-            };
-
-            private UxmlStringAttributeDescription tIcon = new()
-            {
-                name = "icon"
-            };
-
-            public override IEnumerable<UxmlChildElementDescription> uxmlChildElementsDescription
-            {
-                get { yield break; }
-            }
-
-            public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
-            {
-                base.Init(ve, bag, cc);
-
-                var link = ve as IconLink;
-                link.Variant = tVariant.GetValueFromBag(bag, cc);
-
-                var iconUrl = tIcon.GetValueFromBag(bag, cc);
-                if (!string.IsNullOrEmpty(iconUrl))
-                    link.image.vectorImage = Resources.Load<VectorImage>(iconUrl);
-            }
-        }
 
         public IconLink() : this(null, (Action)null)
         {
