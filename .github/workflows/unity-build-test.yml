@@ -129,7 +129,7 @@ jobs:
           name: Build-WebGL
           path: Builds/WebGL
       - name: Deploy to Vercel
-        uses: amondnet/vercel-action@c71810f8732de6b8656e41155e63b6303ca3e4bf
+        uses: amondnet/vercel-action@4b810e26f7bb2a331c698af186f890cbf20d5f72
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
