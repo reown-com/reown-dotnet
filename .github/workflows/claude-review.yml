@@ -37,7 +37,7 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           project_context: |
             This repository is a multi-package .NET + Unity SDK (libraries under src/) with sample Unity projects under playground/ and sample/.
-            Target frameworks: net7.0, net8.0, netstandard2.1 (centralized via src/Directory.Build.props).
+            Target frameworks: net7.0, net8.0, net9.0, net10.0, netstandard2.1 (centralized via src/Directory.Build.props).
             C# language version: 9.0 (LangVersion set centrally).
 
             Packages used by both .NET and Unity (must compile for netstandard2.1 and be Unity-compatible):
