@@ -60,7 +60,7 @@ reown-dotnet/
 │   ├── Reown.UniTask.Unity/          # UniTask/async patterns demo
 │   └── Reown.ZKCandySample.Unity/    # Zero-knowledge proofs demo
 │
-├── test/                             # Test projects (target net8.0 only)
+├── test/                             # Test projects (target net8.0;net9.0;net10.0)
 │   ├── Reown.Core.Common.Test/       # Note: excluded from Reown.NoUnity.slnf
 │   ├── Reown.Core.Crypto.Test/
 │   ├── Reown.Core.Network.Test/
@@ -232,9 +232,9 @@ Current `[VersionMarker]` usage:
 
 ### Target Frameworks
 
-.NET packages target: `net7.0`, `net8.0`, `netstandard2.1`
+.NET packages target: `net7.0`, `net8.0`, `net9.0`, `net10.0`, `netstandard2.1`
 
-Test projects target: `net8.0` only (with `ImplicitUsings` and `Nullable` enabled)
+Test projects target: `net8.0`, `net9.0`, `net10.0` (with `ImplicitUsings` and `Nullable` enabled)
 
 C# language version is set to 9.0 for Unity IL2CPP compatibility.
 
@@ -283,7 +283,7 @@ com.reown.appkit.unity
 
 ### Testing Requirements
 
-- Tests use xUnit framework with Microsoft.NET.Test.Sdk, targeting `net8.0` only
+- Tests use xUnit framework with Microsoft.NET.Test.Sdk, targeting `net8.0`, `net9.0`, and `net10.0`
 - Unit tests are marked with `[Trait("Category", "unit")]`
 - Integration tests are marked with `[Trait("Category", "integration")]` and require `PROJECT_ID` environment variable
 - Integration tests run single-threaded (`-m:1`) to coordinate relay communication
@@ -309,7 +309,7 @@ com.reown.appkit.unity
 ### CI/CD Pipeline
 
 **Pull Request Validation:**
-- .NET unit and integration tests on Windows (`dotnet-build-test.yml`) — requires .NET 9.0.x and 8.0.x SDKs
+- .NET unit and integration tests on Windows (`dotnet-build-test.yml`) — requires .NET 8.0.x, 9.0.x, and 10.0.x SDKs; runs across all three target frameworks
 - Unity builds for Windows, Android, WebGL using `game-ci/unity-builder` v4.5 (`unity-build-test.yml`)
 - Unity playmode and editmode tests using `game-ci/unity-test-runner` v4.3.1
 - WebGL deployment to Vercel with PR comment (runs after Unity build job)
