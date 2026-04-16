@@ -57,15 +57,12 @@ namespace Reown.Core.Controllers
 
             ConnectionTimeout = opts.ConnectionTimeout;
             RelayUrlBuilder = opts.RelayUrlBuilder;
-            MessageFetchInterval = opts.MessageFetchInterval;
         }
 
         /// <summary>
         ///     The IRelayUrlBuilder module that this Relayer module is using during Provider creation
         /// </summary>
         public IRelayUrlBuilder RelayUrlBuilder { get; }
-
-        public TimeSpan? MessageFetchInterval { get; set; }
 
         /// <summary>
         ///     The IJsonRpcProvider module that this Relayer module is using
