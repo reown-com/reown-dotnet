@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Reown.Core.Common;
 using Reown.Core.Common.Logging;
-using Reown.Core.Common.Utils;
 using Reown.Core.Network.Models;
 using Reown.Core.Network.Websocket.Internal;
 
@@ -73,11 +72,7 @@ namespace Reown.Core.Network.Websocket
         /// </summary>
         public bool Connected
         {
-            get
-            {
-                var transport = _transport;
-                return transport != null && transport.State == WebSocketState.Open;
-            }
+            get => _transport is { State: WebSocketState.Open };
         }
 
         /// <summary>
@@ -100,9 +95,10 @@ namespace Reown.Core.Network.Websocket
         /// <typeparam name="T">The type of the options. Should always be string</typeparam>
         public async Task Open<T>(T options)
         {
-            if (typeof(string).IsAssignableFrom(typeof(T)))
+            if (options is string url)
             {
-                await Register(options as string);
+                await Register(url);
+                return;
             }
 
             await Open();
@@ -199,9 +195,7 @@ namespace Reown.Core.Network.Websocket
 
         private void DetachAndClearTransport(ClientWebSocketTransport transport)
         {
-            transport.PayloadReceived -= OnTransportPayload;
-            transport.ErrorReceived -= OnTransportError;
-            transport.Closed -= OnTransportClosed;
+            DetachTransport(transport);
 
             lock (_registerGate)
             {
@@ -217,11 +211,26 @@ namespace Reown.Core.Network.Websocket
 
         private void DetachAndDisposeTransportFireAndForget(ClientWebSocketTransport transport)
         {
+            DetachTransport(transport);
+
+            DisposeTransportFireAndForget(transport);
+        }
+
+        private void DetachTransport(ClientWebSocketTransport transport)
+        {
             transport.PayloadReceived -= OnTransportPayload;
             transport.ErrorReceived -= OnTransportError;
             transport.Closed -= OnTransportClosed;
+        }
 
-            Task.Run(() =>
+        /// <summary>
+        ///     Schedules transport disposal away from the current callback path.
+        /// </summary>
+        private static void DisposeTransportFireAndForget(ClientWebSocketTransport transport)
+        {
+            // transport.Dispose() waits on the transport loops. When called from a loop-raised
+            // event, disposing synchronously would wait on the current loop until its timeout.
+            _ = Task.Run(() =>
             {
                 try { transport.Dispose(); } catch { /* best effort */ }
             });
@@ -324,8 +333,10 @@ namespace Reown.Core.Network.Websocket
             }
             catch (Exception e)
             {
+                bool disposed;
                 lock (_registerGate)
                 {
+                    disposed = _disposed;
                     Connecting = false;
                     _pendingRegister = null;
                     if (ReferenceEquals(_pendingTransport, transport))
@@ -339,6 +350,13 @@ namespace Reown.Core.Network.Websocket
                 transport.ErrorReceived -= OnTransportError;
                 transport.Closed -= OnTransportClosed;
                 transport.Dispose();
+
+                if (disposed)
+                {
+                    var disposedException = new ObjectDisposedException(nameof(WebsocketConnection));
+                    tcs.TrySetException(disposedException);
+                    throw disposedException;
+                }
 
                 var mapped = MapOpenException(e);
                 RegisterErrored?.Invoke(this, mapped);
@@ -378,14 +396,21 @@ namespace Reown.Core.Network.Websocket
                 transport.Dispose();
 
                 Exception abortException = abortedByDispose
-                    ? (Exception)new ObjectDisposedException(nameof(WebsocketConnection))
+                    ? new ObjectDisposedException(nameof(WebsocketConnection))
                     : new IOException("WebSocket connection closed before registration completed.");
                 tcs.TrySetException(abortException);
                 throw abortException;
             }
 
-            Opened?.Invoke(this, transport);
             tcs.TrySetResult(transport);
+            try
+            {
+                Opened?.Invoke(this, transport);
+            }
+            catch (Exception ex)
+            {
+                _logger.Log("Opened event handler error: " + ex.Message);
+            }
             return transport;
         }
 
@@ -411,7 +436,7 @@ namespace Reown.Core.Network.Websocket
             //      auto-reopens.
             //   3. Transport faulted: leave _transport pointing at it so the next SendRequest's
             //      SendAsync throws and routes through OnError<T> as a JSON-RPC error envelope.
-            if (transport != null && !transport.Faulted && !transport.ShutdownRequested)
+            if (transport is { Faulted: false, ShutdownRequested: false })
             {
                 transport.PayloadReceived -= OnTransportPayload;
                 transport.ErrorReceived -= OnTransportError;
@@ -430,15 +455,9 @@ namespace Reown.Core.Network.Websocket
                     }
                 }
 
-                // We're currently on the transport's receive-loop continuation, and
-                // transport.Dispose() waits on _receiveLoop. Calling Dispose synchronously
-                // here would self-deadlock for 1s, so schedule it off-thread. Without this
-                // call the rented receive buffer and underlying ClientWebSocket would leak
-                // on every server-initiated close.
-                Task.Run(() =>
-                {
-                    try { transport.Dispose(); } catch { /* best effort */ }
-                });
+                // Without this cleanup, the rented receive buffer and underlying ClientWebSocket
+                // would leak on every server-initiated close.
+                DisposeTransportFireAndForget(transport);
             }
 
             _logger.Log("Connection closed");
@@ -474,23 +493,37 @@ namespace Reown.Core.Network.Websocket
             if (disposing)
             {
                 ClientWebSocketTransport transport;
+                ClientWebSocketTransport pendingTransport;
+                TaskCompletionSource<ClientWebSocketTransport> pendingRegister;
                 lock (_registerGate)
                 {
                     if (_disposed)
                         return;
                     _disposed = true;
                     transport = _transport;
+                    pendingTransport = _pendingTransport;
+                    pendingRegister = _pendingRegister;
                     _transport = null;
+                    _pendingTransport = null;
+                    _pendingRegister = null;
+                    _pendingTransportClosedEarly = false;
+                    Connecting = false;
                     _registered = false;
                 }
 
                 if (transport != null)
                 {
-                    transport.PayloadReceived -= OnTransportPayload;
-                    transport.ErrorReceived -= OnTransportError;
-                    transport.Closed -= OnTransportClosed;
+                    DetachTransport(transport);
                     transport.Dispose();
                 }
+
+                if (pendingTransport != null && !ReferenceEquals(pendingTransport, transport))
+                {
+                    DetachTransport(pendingTransport);
+                    pendingTransport.Dispose();
+                }
+
+                pendingRegister?.TrySetException(new ObjectDisposedException(nameof(WebsocketConnection)));
 
                 return;
             }

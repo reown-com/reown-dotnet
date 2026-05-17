@@ -115,6 +115,49 @@ public class WebSocketConnectionTests
         connection.Dispose();
     }
 
+    [Fact]
+    public async Task Open_with_string_options_registers_once()
+    {
+        await using var server = InProcessWebSocketServer.Start();
+
+        var connectedCount = 0;
+        server.ClientConnected += _ => Interlocked.Increment(ref connectedCount);
+
+        var connection = new WebsocketConnection("ws://127.0.0.1:1/");
+
+        var openedCount = 0;
+        connection.Opened += (_, _) => Interlocked.Increment(ref openedCount);
+
+        await connection.Open(server.WebSocketUri.ToString());
+
+        // Allow the server-side connection accept to settle.
+        await Task.Delay(150);
+
+        Assert.True(connection.Connected);
+        Assert.Equal(1, openedCount);
+        Assert.Equal(1, connectedCount);
+
+        connection.Dispose();
+    }
+
+    [Fact]
+    public async Task Opened_handler_exception_does_not_block_concurrent_open_callers()
+    {
+        await using var server = InProcessWebSocketServer.Start();
+        var connection = new WebsocketConnection(server.WebSocketUri.ToString());
+
+        connection.Opened += (_, _) => throw new InvalidOperationException("opened handler failed");
+
+        var firstOpen = connection.Open();
+        var secondOpen = connection.Open();
+
+        await Task.WhenAll(firstOpen, secondOpen).WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.True(connection.Connected);
+
+        connection.Dispose();
+    }
+
     // ----- Send ---------------------------------------------------------------
 
     [Fact]
@@ -553,6 +596,21 @@ public class WebSocketConnectionTests
         Assert.True(connection.Connected);
 
         connection.Dispose();
+        Assert.False(connection.Connected);
+    }
+
+    [Fact]
+    public async Task Dispose_during_pending_open_cancels_connect()
+    {
+        using var bogusServer = new UnresponsiveTcpServer();
+        var connection = new WebsocketConnection(bogusServer.WebSocketUri.ToString());
+
+        var openTask = connection.Open();
+        await Task.Delay(100);
+
+        connection.Dispose();
+
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => openTask.WaitAsync(TimeSpan.FromSeconds(5)));
         Assert.False(connection.Connected);
     }
 

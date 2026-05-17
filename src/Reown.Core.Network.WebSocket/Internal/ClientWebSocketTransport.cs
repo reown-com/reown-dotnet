@@ -12,10 +12,10 @@ using Reown.Core.Common.Logging;
 namespace Reown.Core.Network.Websocket.Internal
 {
     /// <summary>
-    ///     Hand-rolled <see cref="ClientWebSocket"/> wrapper exposing the same observable behaviour
-    ///     the <see cref="WebsocketConnection"/> class needs: <c>Opened</c>, <c>PayloadReceived</c>,
-    ///     <c>ErrorReceived</c>, and <c>Closed</c> events plus a thread-safe <see cref="SendAsync"/>
-    ///     entry point and graceful <see cref="StopAsync"/> shutdown.
+    ///     Hand-rolled <see cref="ClientWebSocket" /> wrapper exposing the same observable behaviour
+    ///     the <see cref="WebsocketConnection" /> class needs: <c>Opened</c>, <c>PayloadReceived</c>,
+    ///     <c>ErrorReceived</c>, and <c>Closed</c> events plus a thread-safe <see cref="SendAsync" />
+    ///     entry point and graceful <see cref="StopAsync" /> shutdown.
     /// </summary>
     internal sealed class ClientWebSocketTransport : IDisposable
     {
@@ -25,10 +25,11 @@ namespace Reown.Core.Network.Websocket.Internal
         private const int CloseOutputTimeoutMs = 1500;
         private const int ServerCloseReplyTimeoutMs = 3000;
 
-        private readonly Uri _uri;
-        private readonly TimeSpan _openTimeout;
+        private readonly CancellationTokenSource _cts = new();
+        private readonly object _gate = new();
         private readonly TimeSpan _keepAlive;
         private readonly ILogger _logger;
+        private readonly TimeSpan _openTimeout;
 
         private readonly Channel<PooledSendBuffer> _outbox = Channel.CreateBounded<PooledSendBuffer>(
             new BoundedChannelOptions(SendQueueCapacity)
@@ -38,23 +39,17 @@ namespace Reown.Core.Network.Websocket.Internal
                 SingleWriter = false
             });
 
-        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
-        private readonly object _gate = new object();
+        private readonly Uri _uri;
 
         private ClientWebSocket _client;
-        private Task _receiveLoop;
-        private Task _sendLoop;
-        private PooledByteBufferWriter _reassembly;
-        private volatile bool _shutdownRequested;
-        private volatile bool _serverInitiatedClose;
-        private volatile bool _faulted;
         private int _closedRaised;
         private bool _disposed;
-
-        public event EventHandler<string> PayloadReceived;
-        public event EventHandler Opened;
-        public event EventHandler Closed;
-        public event EventHandler<Exception> ErrorReceived;
+        private volatile bool _faulted;
+        private PooledByteBufferWriter _reassembly;
+        private Task _receiveLoop;
+        private Task _sendLoop;
+        private volatile bool _serverInitiatedClose;
+        private volatile bool _shutdownRequested;
 
         public ClientWebSocketTransport(Uri uri, TimeSpan openTimeout, TimeSpan keepAlive, ILogger logger = null)
         {
@@ -64,7 +59,9 @@ namespace Reown.Core.Network.Websocket.Internal
             _logger = logger;
         }
 
-        /// <summary>Current state of the underlying <see cref="ClientWebSocket"/>, or <see cref="WebSocketState.None"/> before <see cref="StartAsync"/>.</summary>
+        /// <summary>
+        ///     Current state of the underlying <see cref="ClientWebSocket" />, or <see cref="WebSocketState.None" /> before <see cref="StartAsync" />.
+        /// </summary>
         public WebSocketState State
         {
             get
@@ -74,7 +71,9 @@ namespace Reown.Core.Network.Websocket.Internal
             }
         }
 
-        /// <summary>The keep-alive interval reported by the underlying client; falls back to the configured value before <see cref="StartAsync"/>.</summary>
+        /// <summary>
+        ///     The keep-alive interval reported by the underlying client; falls back to the configured value before <see cref="StartAsync" />.
+        /// </summary>
         internal TimeSpan KeepAliveInterval
         {
             get
@@ -86,8 +85,8 @@ namespace Reown.Core.Network.Websocket.Internal
 
         /// <summary>
         ///     True once the transport has exited due to a non-shutdown error (server abort,
-        ///     unexpected socket close). Further calls to <see cref="SendAsync"/> will throw
-        ///     <see cref="ChannelClosedException"/> with the original failure as InnerException.
+        ///     unexpected socket close). Further calls to <see cref="SendAsync" /> will throw
+        ///     <see cref="ChannelClosedException" /> with the original failure as InnerException.
         /// </summary>
         public bool Faulted
         {
@@ -95,7 +94,7 @@ namespace Reown.Core.Network.Websocket.Internal
         }
 
         /// <summary>
-        ///     True once <see cref="StopAsync"/> or <see cref="Dispose"/> has been invoked.
+        ///     True once <see cref="StopAsync" /> or <see cref="Dispose" /> has been invoked.
         ///     Used by <c>WebsocketConnection</c> to distinguish client-initiated close from
         ///     server-initiated close so it doesn't double-clear its transport reference.
         /// </summary>
@@ -105,8 +104,94 @@ namespace Reown.Core.Network.Websocket.Internal
         }
 
         /// <summary>
+        ///     Aborts in-flight operations, disposes the underlying socket, and releases
+        ///     pooled resources. Idempotent.
+        /// </summary>
+        public void Dispose()
+        {
+            lock (_gate)
+            {
+                if (_disposed) return;
+                _disposed = true;
+            }
+
+            _shutdownRequested = true;
+
+            try
+            {
+                _outbox.Writer.TryComplete();
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                _cts.Cancel();
+            }
+            catch
+            {
+                // ignored
+            }
+
+            // Disposing the underlying client forces in-flight ReceiveAsync/SendAsync calls to
+            // fault, so capture the loop tasks first then wait for them after the socket dies.
+            var receiveLoop = _receiveLoop;
+            var sendLoop = _sendLoop;
+
+            try
+            {
+                _client?.Dispose();
+            }
+            catch
+            {
+                // ignored
+            }
+
+            // Now that the socket is dead, the loops will exit promptly. Wait so neither of
+            // them touches _cts after we dispose it below.
+            try
+            {
+                receiveLoop?.Wait(1000);
+            }
+            catch
+            {
+                // ignored
+            }
+
+            try
+            {
+                sendLoop?.Wait(1000);
+            }
+            catch
+            {
+                // ignored
+            }
+
+            try
+            {
+                _cts.Dispose();
+            }
+            catch
+            {
+                // ignored
+            }
+
+            _reassembly?.Dispose();
+            _reassembly = null;
+
+            DrainOutbox();
+            RaiseClosed();
+        }
+
+        public event EventHandler<string> PayloadReceived;
+        public event EventHandler Opened;
+        public event EventHandler Closed;
+        public event EventHandler<Exception> ErrorReceived;
+
+        /// <summary>
         ///     Connects to the configured URI and starts the receive/send loops. Raises
-        ///     <see cref="Opened"/> on success; throws <see cref="TimeoutException"/> if
+        ///     <see cref="Opened" /> on success; throws <see cref="TimeoutException" /> if
         ///     the connect exceeds the configured open timeout.
         /// </summary>
         public async Task StartAsync(CancellationToken externalToken)
@@ -119,38 +204,51 @@ namespace Reown.Core.Network.Websocket.Internal
             client.Options.HttpVersion = System.Net.HttpVersion.Version11;
 #endif
 
-            using (var connectCts = CancellationTokenSource.CreateLinkedTokenSource(externalToken))
+            using (var connectCts = CancellationTokenSource.CreateLinkedTokenSource(externalToken, _cts.Token))
             {
                 connectCts.CancelAfter(_openTimeout);
                 try
                 {
                     await client.ConnectAsync(_uri, connectCts.Token).ConfigureAwait(false);
                 }
+                catch (OperationCanceledException) when (_cts.IsCancellationRequested || _disposed)
+                {
+                    AbortAndDispose(client);
+                    throw new ObjectDisposedException(nameof(ClientWebSocketTransport));
+                }
                 catch (OperationCanceledException) when (!externalToken.IsCancellationRequested
                                                          && connectCts.IsCancellationRequested)
                 {
-                    try { client.Abort(); } catch { /* best effort */ }
-                    client.Dispose();
+                    AbortAndDispose(client);
                     throw new TimeoutException("WebSocket connect to " + _uri + " exceeded " + _openTimeout + ".");
                 }
                 catch
                 {
-                    try { client.Abort(); } catch { /* best effort */ }
-                    client.Dispose();
+                    AbortAndDispose(client);
                     throw;
                 }
             }
 
-            _client = client;
+            lock (_gate)
+            {
+                if (_disposed)
+                {
+                    AbortAndDispose(client);
+                    throw new ObjectDisposedException(nameof(ClientWebSocketTransport));
+                }
 
-            _receiveLoop = Task.Run(ReceiveLoopAsync);
-            _sendLoop = Task.Run(SendLoopAsync);
+                _client = client;
+
+                var loopToken = _cts.Token;
+                _receiveLoop = ReceiveLoopAsync(loopToken);
+                _sendLoop = SendLoopAsync(loopToken);
+            }
 
             Opened?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>
-        ///     Serializes <paramref name="json"/> as UTF-8 and enqueues it for the send loop.
+        ///     Serializes <paramref name="json" /> as UTF-8 and enqueues it for the send loop.
         ///     Buffers are pooled; ownership transfers to the send loop once accepted by the channel.
         /// </summary>
         public async ValueTask SendAsync(string json, CancellationToken cancellationToken)
@@ -158,28 +256,35 @@ namespace Reown.Core.Network.Websocket.Internal
             ThrowIfDisposed();
             if (json == null) throw new ArgumentNullException(nameof(json));
 
-            var maxBytes = Encoding.UTF8.GetMaxByteCount(json.Length);
-            var buffer = ArrayPool<byte>.Shared.Rent(maxBytes);
-            var transferred = false;
-            try
+            while (await _outbox.Writer.WaitToWriteAsync(cancellationToken).ConfigureAwait(false))
             {
-                var written = Encoding.UTF8.GetBytes(json, 0, json.Length, buffer, 0);
-                await _outbox.Writer.WriteAsync(new PooledSendBuffer(buffer, written), cancellationToken)
-                    .ConfigureAwait(false);
-                transferred = true;
+                var maxBytes = Encoding.UTF8.GetMaxByteCount(json.Length);
+                var buffer = ArrayPool<byte>.Shared.Rent(maxBytes);
+                var transferred = false;
+                try
+                {
+                    var written = Encoding.UTF8.GetBytes(json, 0, json.Length, buffer, 0);
+                    if (_outbox.Writer.TryWrite(new PooledSendBuffer(buffer, written)))
+                    {
+                        transferred = true;
+                        return;
+                    }
+                }
+                finally
+                {
+                    if (!transferred) ArrayPool<byte>.Shared.Return(buffer);
+                }
             }
-            finally
-            {
-                if (!transferred) ArrayPool<byte>.Shared.Return(buffer);
-            }
+
+            throw new ChannelClosedException();
         }
 
         /// <summary>
         ///     Gracefully shuts down the transport: drains queued sends, emits a Close frame with
-        ///     <paramref name="closeStatus"/>/<paramref name="statusDescription"/>, then waits for
-        ///     the server's close reply. Always raises <see cref="Closed"/> on completion.
+        ///     <paramref name="closeStatus" />/<paramref name="statusDescription" />, then waits for
+        ///     the server's close reply. Always raises <see cref="Closed" /> on completion.
         /// </summary>
-        public async Task StopAsync(WebSocketCloseStatus closeStatus, string statusDescription)
+        public async Task StopAsync(WebSocketCloseStatus closeStatus, string statusDescription, CancellationToken cancellationToken = default)
         {
             if (_shutdownRequested)
             {
@@ -194,41 +299,64 @@ namespace Reown.Core.Network.Websocket.Internal
 
             // Wait for the send loop to finish flushing queued items (bounded).
             var sendLoop = _sendLoop;
+            var sendLoopDrained = sendLoop == null;
             if (sendLoop != null)
             {
-                await Task.WhenAny(sendLoop, Task.Delay(SendDrainTimeoutMs)).ConfigureAwait(false);
+                var completed = await Task.WhenAny(sendLoop, Task.Delay(SendDrainTimeoutMs, cancellationToken)).ConfigureAwait(false);
+                sendLoopDrained = ReferenceEquals(completed, sendLoop);
             }
 
             // Send the close frame on a still-clean send side.
             try
             {
                 var client = _client;
-                if (client != null && (client.State == WebSocketState.Open || client.State == WebSocketState.CloseReceived))
+                if (sendLoopDrained && client is { State: WebSocketState.Open or WebSocketState.CloseReceived })
                 {
-                    using (var closeCts = new CancellationTokenSource(CloseOutputTimeoutMs))
+                    using var closeCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    closeCts.CancelAfter(CloseOutputTimeoutMs);
+                    try
                     {
-                        try
-                        {
-                            await client.CloseOutputAsync(closeStatus, statusDescription, closeCts.Token).ConfigureAwait(false);
-                        }
-                        catch (OperationCanceledException) { /* timeout - proceed */ }
+                        await client.CloseOutputAsync(closeStatus, statusDescription, closeCts.Token).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // timeout or caller-cancelled - proceed
+                    }
+                }
+                else if (!sendLoopDrained)
+                {
+                    try
+                    {
+                        await _cts.CancelAsync();
+                        client?.Abort();
+                    }
+                    catch
+                    {
+                        // best effort
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger?.Log("CloseOutputAsync error: " + ex.Message);
+                _logger?.Log($"CloseOutputAsync error: {ex.Message}");
             }
 
             // Give the receive loop a chance to observe the server's close reply.
             var receiveLoop = _receiveLoop;
             if (receiveLoop != null)
             {
-                await Task.WhenAny(receiveLoop, Task.Delay(ServerCloseReplyTimeoutMs)).ConfigureAwait(false);
+                await Task.WhenAny(receiveLoop, Task.Delay(ServerCloseReplyTimeoutMs, cancellationToken)).ConfigureAwait(false);
             }
 
             // Force any remaining awaits to unblock.
-            try { _cts.Cancel(); } catch { /* already cancelled */ }
+            try
+            {
+                await _cts.CancelAsync();
+            }
+            catch
+            {
+                // already cancelled
+            }
 
             try
             {
@@ -245,7 +373,7 @@ namespace Reown.Core.Network.Websocket.Internal
             RaiseClosed();
         }
 
-        private async Task ReceiveLoopAsync()
+        private async Task ReceiveLoopAsync(CancellationToken cancellationToken)
         {
             var recvBuffer = ArrayPool<byte>.Shared.Rent(ReceiveBufferSize);
             try
@@ -259,53 +387,52 @@ namespace Reown.Core.Network.Websocket.Internal
 #if NETSTANDARD2_1
                     var result = await _client.ReceiveAsync(
                         new ArraySegment<byte>(recvBuffer, 0, recvBuffer.Length),
-                        _cts.Token).ConfigureAwait(false);
+                        cancellationToken).ConfigureAwait(false);
                     count = result.Count;
                     endOfMessage = result.EndOfMessage;
                     messageType = result.MessageType;
 #else
                     var result = await _client.ReceiveAsync(
                         recvBuffer.AsMemory(),
-                        _cts.Token).ConfigureAwait(false);
+                        cancellationToken).ConfigureAwait(false);
                     count = result.Count;
                     endOfMessage = result.EndOfMessage;
                     messageType = result.MessageType;
 #endif
 
-                    if (messageType == WebSocketMessageType.Close)
+                    switch (messageType)
                     {
-                        await HandleServerInitiatedCloseAsync().ConfigureAwait(false);
-                        return;
-                    }
-
-                    if (messageType == WebSocketMessageType.Binary)
-                    {
-                        // Reown only handles text frames - discard binary entirely, including continuation frames.
-                        while (!endOfMessage)
+                        case WebSocketMessageType.Close:
+                            await HandleServerInitiatedCloseAsync(cancellationToken).ConfigureAwait(false);
+                            return;
+                        case WebSocketMessageType.Binary:
                         {
+                            // Reown only handles text frames - discard binary entirely, including continuation frames.
+                            while (!endOfMessage)
+                            {
 #if NETSTANDARD2_1
-                            var more = await _client.ReceiveAsync(
-                                new ArraySegment<byte>(recvBuffer, 0, recvBuffer.Length),
-                                _cts.Token).ConfigureAwait(false);
-                            endOfMessage = more.EndOfMessage;
-                            if (more.MessageType == WebSocketMessageType.Close)
-                            {
-                                await HandleServerInitiatedCloseAsync().ConfigureAwait(false);
+                                var more = await _client.ReceiveAsync(
+                                    new ArraySegment<byte>(recvBuffer, 0, recvBuffer.Length),
+                                    cancellationToken).ConfigureAwait(false);
+                                endOfMessage = more.EndOfMessage;
+                                if (more.MessageType != WebSocketMessageType.Close)
+                                    continue;
+                                await HandleServerInitiatedCloseAsync(cancellationToken).ConfigureAwait(false);
                                 return;
-                            }
 #else
-                            var more = await _client.ReceiveAsync(
-                                recvBuffer.AsMemory(),
-                                _cts.Token).ConfigureAwait(false);
-                            endOfMessage = more.EndOfMessage;
-                            if (more.MessageType == WebSocketMessageType.Close)
-                            {
-                                await HandleServerInitiatedCloseAsync().ConfigureAwait(false);
+                                var more = await _client.ReceiveAsync(
+                                    recvBuffer.AsMemory(),
+                                    cancellationToken).ConfigureAwait(false);
+                                endOfMessage = more.EndOfMessage;
+                                if (more.MessageType != WebSocketMessageType.Close)
+                                    continue;
+                                await HandleServerInitiatedCloseAsync(cancellationToken).ConfigureAwait(false);
                                 return;
-                            }
 #endif
+                            }
+
+                            continue;
                         }
-                        continue;
                     }
 
                     if (endOfMessage && _reassembly == null)
@@ -329,7 +456,7 @@ namespace Reown.Core.Network.Websocket.Internal
                     }
                 }
             }
-            catch (OperationCanceledException) when (_shutdownRequested || _cts.IsCancellationRequested)
+            catch (OperationCanceledException) when (_shutdownRequested || cancellationToken.IsCancellationRequested)
             {
                 // Intentional shutdown - swallow.
             }
@@ -339,7 +466,14 @@ namespace Reown.Core.Network.Websocket.Internal
                 {
                     _faulted = true;
                     _outbox.Writer.TryComplete(ex);
-                    try { ErrorReceived?.Invoke(this, ex); } catch { /* user code */ }
+                    try
+                    {
+                        ErrorReceived?.Invoke(this, ex);
+                    }
+                    catch
+                    {
+                        // user code
+                    }
                 }
                 else
                 {
@@ -355,7 +489,7 @@ namespace Reown.Core.Network.Websocket.Internal
             }
         }
 
-        private async Task HandleServerInitiatedCloseAsync()
+        private async Task HandleServerInitiatedCloseAsync(CancellationToken cancellationToken)
         {
             // RFC 6455 5.5.1: respond with a Close frame. Defer the actual send to the send
             // loop so we don't race the single-outstanding-send invariant of ClientWebSocket.
@@ -370,18 +504,21 @@ namespace Reown.Core.Network.Websocket.Internal
             {
                 try
                 {
-                    await Task.WhenAny(sendLoop, Task.Delay(CloseOutputTimeoutMs * 2))
+                    await Task.WhenAny(sendLoop, Task.Delay(CloseOutputTimeoutMs * 2, cancellationToken))
                         .ConfigureAwait(false);
                 }
-                catch { /* best effort */ }
+                catch
+                {
+                    // best effort
+                }
             }
         }
 
-        private async Task SendLoopAsync()
+        private async Task SendLoopAsync(CancellationToken cancellationToken)
         {
             try
             {
-                while (await _outbox.Reader.WaitToReadAsync(_cts.Token).ConfigureAwait(false))
+                while (await _outbox.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
                 {
                     while (_outbox.Reader.TryRead(out var item))
                     {
@@ -392,13 +529,13 @@ namespace Reown.Core.Network.Websocket.Internal
                                 new ArraySegment<byte>(item.Buffer, 0, item.Length),
                                 WebSocketMessageType.Text,
                                 endOfMessage: true,
-                                _cts.Token).ConfigureAwait(false);
+                                cancellationToken).ConfigureAwait(false);
 #else
                             await _client.SendAsync(
                                 item.Buffer.AsMemory(0, item.Length),
                                 WebSocketMessageType.Text,
-                                endOfMessage: true,
-                                _cts.Token).ConfigureAwait(false);
+                                true,
+                                cancellationToken).ConfigureAwait(false);
 #endif
                         }
                         finally
@@ -418,7 +555,8 @@ namespace Reown.Core.Network.Websocket.Internal
                         var client = _client;
                         if (client != null && client.State == WebSocketState.CloseReceived)
                         {
-                            using var closeCts = new CancellationTokenSource(CloseOutputTimeoutMs);
+                            using var closeCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                            closeCts.CancelAfter(CloseOutputTimeoutMs);
                             await client.CloseOutputAsync(
                                 client.CloseStatus ?? WebSocketCloseStatus.NormalClosure,
                                 client.CloseStatusDescription ?? string.Empty,
@@ -431,7 +569,7 @@ namespace Reown.Core.Network.Websocket.Internal
                     }
                 }
             }
-            catch (OperationCanceledException) when (_shutdownRequested || _cts.IsCancellationRequested)
+            catch (OperationCanceledException) when (_shutdownRequested || cancellationToken.IsCancellationRequested)
             {
                 // Intentional shutdown.
             }
@@ -445,7 +583,14 @@ namespace Reown.Core.Network.Websocket.Internal
                 {
                     _faulted = true;
                     _outbox.Writer.TryComplete(ex);
-                    try { ErrorReceived?.Invoke(this, ex); } catch { /* user code */ }
+                    try
+                    {
+                        ErrorReceived?.Invoke(this, ex);
+                    }
+                    catch
+                    {
+                        // user code
+                    }
                 }
                 else
                 {
@@ -462,14 +607,28 @@ namespace Reown.Core.Network.Websocket.Internal
         {
             if (string.IsNullOrWhiteSpace(payload))
                 return;
-            try { PayloadReceived?.Invoke(this, payload); } catch { /* user code */ }
+            try
+            {
+                PayloadReceived?.Invoke(this, payload);
+            }
+            catch
+            {
+                // user code
+            }
         }
 
         private void RaiseClosed()
         {
             if (Interlocked.Exchange(ref _closedRaised, 1) != 0)
                 return;
-            try { Closed?.Invoke(this, EventArgs.Empty); } catch { /* user code */ }
+            try
+            {
+                Closed?.Invoke(this, EventArgs.Empty);
+            }
+            catch
+            {
+                // user code
+            }
         }
 
         private void DrainOutbox()
@@ -480,6 +639,20 @@ namespace Reown.Core.Network.Websocket.Internal
             }
         }
 
+        private static void AbortAndDispose(ClientWebSocket client)
+        {
+            try
+            {
+                client.Abort();
+            }
+            catch
+            {
+                // best effort
+            }
+
+            client.Dispose();
+        }
+
         private void ThrowIfDisposed()
         {
             if (_disposed)
@@ -487,56 +660,18 @@ namespace Reown.Core.Network.Websocket.Internal
         }
 
         /// <summary>
-        ///     Aborts in-flight operations, disposes the underlying socket, and releases
-        ///     pooled resources. Idempotent.
-        /// </summary>
-        public void Dispose()
-        {
-            lock (_gate)
-            {
-                if (_disposed) return;
-                _disposed = true;
-            }
-
-            _shutdownRequested = true;
-
-            try { _outbox.Writer.TryComplete(); } catch { }
-            try { _cts.Cancel(); } catch { }
-
-            // Disposing the underlying client forces in-flight ReceiveAsync/SendAsync calls to
-            // fault, so capture the loop tasks first then wait for them after the socket dies.
-            var receiveLoop = _receiveLoop;
-            var sendLoop = _sendLoop;
-
-            try { _client?.Dispose(); } catch { }
-
-            // Now that the socket is dead, the loops will exit promptly. Wait so neither of
-            // them touches _cts after we dispose it below.
-            try { receiveLoop?.Wait(1000); } catch { }
-            try { sendLoop?.Wait(1000); } catch { }
-
-            try { _cts.Dispose(); } catch { }
-
-            _reassembly?.Dispose();
-            _reassembly = null;
-
-            DrainOutbox();
-            RaiseClosed();
-        }
-
-        /// <summary>
         ///     Pairs a pooled byte buffer with the number of valid bytes it holds. Ownership of the
         ///     buffer transfers to the channel consumer once an instance is enqueued.
         /// </summary>
-        internal readonly struct PooledSendBuffer
+        private readonly struct PooledSendBuffer
         {
             /// <summary>The pooled byte array containing the serialized payload.</summary>
             public readonly byte[] Buffer;
 
-            /// <summary>The number of valid bytes in <see cref="Buffer"/>.</summary>
+            /// <summary>The number of valid bytes in <see cref="Buffer" />.</summary>
             public readonly int Length;
 
-            /// <summary>Wraps a rented <paramref name="buffer"/> with its valid <paramref name="length"/>.</summary>
+            /// <summary>Wraps a rented <paramref name="buffer" /> with its valid <paramref name="length" />.</summary>
             public PooledSendBuffer(byte[] buffer, int length)
             {
                 Buffer = buffer;
@@ -545,7 +680,7 @@ namespace Reown.Core.Network.Websocket.Internal
         }
 
         /// <summary>
-        ///     Minimal append-only byte writer backed by <see cref="ArrayPool{T}.Shared"/>. Used to
+        ///     Minimal append-only byte writer backed by <see cref="ArrayPool{T}.Shared" />. Used to
         ///     accumulate fragmented WebSocket frames before a single UTF-8 decode at <c>EndOfMessage</c>.
         /// </summary>
         internal sealed class PooledByteBufferWriter : IDisposable
@@ -553,34 +688,47 @@ namespace Reown.Core.Network.Websocket.Internal
             private const int MaxReassemblyBytes = 16 * 1024 * 1024;
 
             private byte[] _buffer;
-            private int _length;
 
-            /// <summary>Rents a pooled buffer of at least <paramref name="initialCapacity"/> bytes.</summary>
+            /// <summary>
+            ///     Rents a pooled buffer of at least <paramref name="initialCapacity" /> bytes.
+            /// </summary>
             public PooledByteBufferWriter(int initialCapacity)
             {
                 _buffer = ArrayPool<byte>.Shared.Rent(initialCapacity);
-                _length = 0;
+                Length = 0;
             }
 
-            /// <summary>Total bytes written so far.</summary>
-            public int Length
+            /// <summary>
+            ///     Total bytes written so far.
+            /// </summary>
+            public int Length { get; private set; }
+
+            /// <summary>
+            ///     Returns the pooled buffer atomically; safe to call multiple times.
+            /// </summary>
+            public void Dispose()
             {
-                get => _length;
+                var buf = Interlocked.Exchange(ref _buffer, null);
+                if (buf != null) ArrayPool<byte>.Shared.Return(buf);
             }
 
-            /// <summary>Appends <paramref name="count"/> bytes from <paramref name="source"/> starting at <paramref name="offset"/>.</summary>
+            /// <summary>
+            ///     Appends <paramref name="count" /> bytes from <paramref name="source" /> starting at <paramref name="offset" />.
+            /// </summary>
             public void Write(byte[] source, int offset, int count)
             {
                 if (count == 0) return;
-                EnsureCapacity(_length + count);
-                Buffer.BlockCopy(source, offset, _buffer, _length, count);
-                _length += count;
+                EnsureCapacity(Length + count);
+                Buffer.BlockCopy(source, offset, _buffer, Length, count);
+                Length += count;
             }
 
-            /// <summary>Decodes the accumulated bytes as UTF-8.</summary>
+            /// <summary>
+            ///     Decodes the accumulated bytes as UTF-8.
+            /// </summary>
             public string GetString()
             {
-                return Encoding.UTF8.GetString(_buffer, 0, _length);
+                return Encoding.UTF8.GetString(_buffer, 0, Length);
             }
 
             private void EnsureCapacity(int needed)
@@ -590,17 +738,10 @@ namespace Reown.Core.Network.Websocket.Internal
                     throw new InvalidDataException("WebSocket message exceeds " + MaxReassemblyBytes + " bytes.");
                 var newSize = Math.Max(_buffer.Length * 2, needed);
                 var newBuf = ArrayPool<byte>.Shared.Rent(newSize);
-                Buffer.BlockCopy(_buffer, 0, newBuf, 0, _length);
+                Buffer.BlockCopy(_buffer, 0, newBuf, 0, Length);
                 var old = _buffer;
                 _buffer = newBuf;
                 ArrayPool<byte>.Shared.Return(old);
-            }
-
-            /// <summary>Returns the pooled buffer atomically; safe to call multiple times.</summary>
-            public void Dispose()
-            {
-                var buf = Interlocked.Exchange(ref _buffer, null);
-                if (buf != null) ArrayPool<byte>.Shared.Return(buf);
             }
         }
     }
