@@ -327,7 +327,7 @@ namespace Reown.Core.Network.Websocket.Internal
                 {
                     try
                     {
-                        await _cts.CancelAsync();
+                        _cts.Cancel();
                         client?.Abort();
                     }
                     catch
@@ -351,7 +351,7 @@ namespace Reown.Core.Network.Websocket.Internal
             // Force any remaining awaits to unblock.
             try
             {
-                await _cts.CancelAsync();
+                _cts.Cancel();
             }
             catch
             {
