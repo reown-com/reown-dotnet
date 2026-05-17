@@ -226,13 +226,20 @@ namespace Reown.Core.Network.Websocket
         /// <summary>
         ///     Schedules transport disposal away from the current callback path.
         /// </summary>
-        private static void DisposeTransportFireAndForget(ClientWebSocketTransport transport)
+        private void DisposeTransportFireAndForget(ClientWebSocketTransport transport)
         {
             // transport.Dispose() waits on the transport loops. When called from a loop-raised
             // event, disposing synchronously would wait on the current loop until its timeout.
             _ = Task.Run(() =>
             {
-                try { transport.Dispose(); } catch { /* best effort */ }
+                try
+                {
+                    transport.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    _logger.Log("Transport disposal failed: " + ex.Message);
+                }
             });
         }
 

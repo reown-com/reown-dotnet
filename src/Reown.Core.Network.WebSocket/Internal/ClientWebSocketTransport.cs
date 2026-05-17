@@ -200,9 +200,6 @@ namespace Reown.Core.Network.Websocket.Internal
 
             var client = new ClientWebSocket();
             client.Options.KeepAliveInterval = _keepAlive;
-#if !NETSTANDARD2_1
-            client.Options.HttpVersion = System.Net.HttpVersion.Version11;
-#endif
 
             using (var connectCts = CancellationTokenSource.CreateLinkedTokenSource(externalToken, _cts.Token))
             {
@@ -256,27 +253,20 @@ namespace Reown.Core.Network.Websocket.Internal
             ThrowIfDisposed();
             if (json == null) throw new ArgumentNullException(nameof(json));
 
-            while (await _outbox.Writer.WaitToWriteAsync(cancellationToken).ConfigureAwait(false))
+            var maxBytes = Encoding.UTF8.GetMaxByteCount(json.Length);
+            var buffer = ArrayPool<byte>.Shared.Rent(maxBytes);
+            var transferred = false;
+            try
             {
-                var maxBytes = Encoding.UTF8.GetMaxByteCount(json.Length);
-                var buffer = ArrayPool<byte>.Shared.Rent(maxBytes);
-                var transferred = false;
-                try
-                {
-                    var written = Encoding.UTF8.GetBytes(json, 0, json.Length, buffer, 0);
-                    if (_outbox.Writer.TryWrite(new PooledSendBuffer(buffer, written)))
-                    {
-                        transferred = true;
-                        return;
-                    }
-                }
-                finally
-                {
-                    if (!transferred) ArrayPool<byte>.Shared.Return(buffer);
-                }
+                var written = Encoding.UTF8.GetBytes(json, 0, json.Length, buffer, 0);
+                await _outbox.Writer.WriteAsync(new PooledSendBuffer(buffer, written), cancellationToken)
+                    .ConfigureAwait(false);
+                transferred = true;
             }
-
-            throw new ChannelClosedException();
+            finally
+            {
+                if (!transferred) ArrayPool<byte>.Shared.Return(buffer);
+            }
         }
 
         /// <summary>
