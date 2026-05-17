@@ -287,58 +287,101 @@ namespace Reown.Core.Network.Websocket.Internal
             // Stop accepting new sends so the consumer can drain naturally.
             _outbox.Writer.TryComplete();
 
-            // Wait for the send loop to finish flushing queued items (bounded).
             var sendLoop = _sendLoop;
-            var sendLoopDrained = sendLoop == null;
-            if (sendLoop != null)
-            {
-                var completed = await Task.WhenAny(sendLoop, Task.Delay(SendDrainTimeoutMs, cancellationToken)).ConfigureAwait(false);
-                sendLoopDrained = ReferenceEquals(completed, sendLoop);
-            }
+            var sendLoopDrained = await WaitForSendLoopDrainAsync(sendLoop, cancellationToken).ConfigureAwait(false);
 
-            // Send the close frame on a still-clean send side.
+            await CloseOutputOrAbortAsync(sendLoopDrained, closeStatus, statusDescription, cancellationToken)
+                .ConfigureAwait(false);
+
+            var receiveLoop = _receiveLoop;
+            await WaitForServerCloseReplyAsync(receiveLoop, cancellationToken).ConfigureAwait(false);
+
+            CancelTransportOperations();
+            await AwaitLoopsQuietlyAsync(receiveLoop, sendLoop).ConfigureAwait(false);
+
+            RaiseClosed();
+        }
+
+        /// <summary>
+        ///     Waits briefly for the send loop to flush queued messages before close output is attempted.
+        /// </summary>
+        private static async Task<bool> WaitForSendLoopDrainAsync(Task sendLoop, CancellationToken cancellationToken)
+        {
+            if (sendLoop == null)
+                return true;
+
+            var completed = await Task.WhenAny(sendLoop, Task.Delay(SendDrainTimeoutMs, cancellationToken))
+                .ConfigureAwait(false);
+            return ReferenceEquals(completed, sendLoop);
+        }
+
+        /// <summary>
+        ///     Emits a close frame when the send side drained, otherwise aborts to unblock pending operations.
+        /// </summary>
+        private async Task CloseOutputOrAbortAsync(
+            bool sendLoopDrained,
+            WebSocketCloseStatus closeStatus,
+            string statusDescription,
+            CancellationToken cancellationToken)
+        {
             try
             {
                 var client = _client;
-                if (sendLoopDrained && client is { State: WebSocketState.Open or WebSocketState.CloseReceived })
+                if (!sendLoopDrained)
                 {
-                    using var closeCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    closeCts.CancelAfter(CloseOutputTimeoutMs);
-                    try
-                    {
-                        await client.CloseOutputAsync(closeStatus, statusDescription, closeCts.Token).ConfigureAwait(false);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        // timeout or caller-cancelled - proceed
-                    }
+                    CancelTransportOperations();
+                    AbortClient(client);
+                    return;
                 }
-                else if (!sendLoopDrained)
-                {
-                    try
-                    {
-                        _cts.Cancel();
-                        client?.Abort();
-                    }
-                    catch
-                    {
-                        // best effort
-                    }
-                }
+
+                if (client is { State: WebSocketState.Open or WebSocketState.CloseReceived })
+                    await TryCloseOutputAsync(client, closeStatus, statusDescription, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 _logger?.Log($"CloseOutputAsync error: {ex.Message}");
             }
+        }
 
-            // Give the receive loop a chance to observe the server's close reply.
-            var receiveLoop = _receiveLoop;
-            if (receiveLoop != null)
+        /// <summary>
+        ///     Sends the WebSocket close output frame using a short timeout.
+        /// </summary>
+        private static async Task TryCloseOutputAsync(
+            ClientWebSocket client,
+            WebSocketCloseStatus closeStatus,
+            string statusDescription,
+            CancellationToken cancellationToken)
+        {
+            using var closeCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            closeCts.CancelAfter(CloseOutputTimeoutMs);
+
+            try
             {
-                await Task.WhenAny(receiveLoop, Task.Delay(ServerCloseReplyTimeoutMs, cancellationToken)).ConfigureAwait(false);
+                await client.CloseOutputAsync(closeStatus, statusDescription, closeCts.Token).ConfigureAwait(false);
             }
+            catch (OperationCanceledException)
+            {
+                // timeout or caller-cancelled - proceed
+            }
+        }
 
-            // Force any remaining awaits to unblock.
+        /// <summary>
+        ///     Gives the receive loop a bounded window to observe the server's close reply.
+        /// </summary>
+        private static async Task WaitForServerCloseReplyAsync(Task receiveLoop, CancellationToken cancellationToken)
+        {
+            if (receiveLoop == null)
+                return;
+
+            await Task.WhenAny(receiveLoop, Task.Delay(ServerCloseReplyTimeoutMs, cancellationToken))
+                .ConfigureAwait(false);
+        }
+
+        /// <summary>
+        ///     Cancels the shared transport token source while tolerating concurrent disposal.
+        /// </summary>
+        private void CancelTransportOperations()
+        {
             try
             {
                 _cts.Cancel();
@@ -347,20 +390,24 @@ namespace Reown.Core.Network.Websocket.Internal
             {
                 // already cancelled
             }
+        }
+
+        /// <summary>
+        ///     Waits for both loops after cancellation while swallowing expected shutdown faults.
+        /// </summary>
+        private static async Task AwaitLoopsQuietlyAsync(Task receiveLoop, Task sendLoop)
+        {
+            if (receiveLoop == null || sendLoop == null)
+                return;
 
             try
             {
-                if (receiveLoop != null && sendLoop != null)
-                {
-                    await Task.WhenAll(receiveLoop, sendLoop).ConfigureAwait(false);
-                }
+                await Task.WhenAll(receiveLoop, sendLoop).ConfigureAwait(false);
             }
             catch
             {
                 // Expected - both loops fault on cancellation.
             }
-
-            RaiseClosed();
         }
 
         private async Task ReceiveLoopAsync(CancellationToken cancellationToken)
@@ -368,83 +415,7 @@ namespace Reown.Core.Network.Websocket.Internal
             var recvBuffer = ArrayPool<byte>.Shared.Rent(ReceiveBufferSize);
             try
             {
-                while (true)
-                {
-                    int count;
-                    bool endOfMessage;
-                    WebSocketMessageType messageType;
-
-#if NETSTANDARD2_1
-                    var result = await _client.ReceiveAsync(
-                        new ArraySegment<byte>(recvBuffer, 0, recvBuffer.Length),
-                        cancellationToken).ConfigureAwait(false);
-                    count = result.Count;
-                    endOfMessage = result.EndOfMessage;
-                    messageType = result.MessageType;
-#else
-                    var result = await _client.ReceiveAsync(
-                        recvBuffer.AsMemory(),
-                        cancellationToken).ConfigureAwait(false);
-                    count = result.Count;
-                    endOfMessage = result.EndOfMessage;
-                    messageType = result.MessageType;
-#endif
-
-                    switch (messageType)
-                    {
-                        case WebSocketMessageType.Close:
-                            await HandleServerInitiatedCloseAsync(cancellationToken).ConfigureAwait(false);
-                            return;
-                        case WebSocketMessageType.Binary:
-                        {
-                            // Reown only handles text frames - discard binary entirely, including continuation frames.
-                            while (!endOfMessage)
-                            {
-#if NETSTANDARD2_1
-                                var more = await _client.ReceiveAsync(
-                                    new ArraySegment<byte>(recvBuffer, 0, recvBuffer.Length),
-                                    cancellationToken).ConfigureAwait(false);
-                                endOfMessage = more.EndOfMessage;
-                                if (more.MessageType != WebSocketMessageType.Close)
-                                    continue;
-                                await HandleServerInitiatedCloseAsync(cancellationToken).ConfigureAwait(false);
-                                return;
-#else
-                                var more = await _client.ReceiveAsync(
-                                    recvBuffer.AsMemory(),
-                                    cancellationToken).ConfigureAwait(false);
-                                endOfMessage = more.EndOfMessage;
-                                if (more.MessageType != WebSocketMessageType.Close)
-                                    continue;
-                                await HandleServerInitiatedCloseAsync(cancellationToken).ConfigureAwait(false);
-                                return;
-#endif
-                            }
-
-                            continue;
-                        }
-                    }
-
-                    if (endOfMessage && _reassembly == null)
-                    {
-                        RaiseIfNotEmpty(Encoding.UTF8.GetString(recvBuffer, 0, count));
-                    }
-                    else
-                    {
-                        if (_reassembly == null)
-                            _reassembly = new PooledByteBufferWriter(ReceiveBufferSize);
-
-                        _reassembly.Write(recvBuffer, 0, count);
-
-                        if (endOfMessage)
-                        {
-                            var payload = _reassembly.GetString();
-                            _reassembly.Dispose();
-                            _reassembly = null;
-                            RaiseIfNotEmpty(payload);
-                        }
-                    }
-                }
+                await ReceiveMessagesAsync(recvBuffer, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (_shutdownRequested || cancellationToken.IsCancellationRequested)
             {
@@ -452,31 +423,137 @@ namespace Reown.Core.Network.Websocket.Internal
             }
             catch (Exception ex)
             {
-                if (!_shutdownRequested)
-                {
-                    _faulted = true;
-                    _outbox.Writer.TryComplete(ex);
-                    try
-                    {
-                        ErrorReceived?.Invoke(this, ex);
-                    }
-                    catch
-                    {
-                        // user code
-                    }
-                }
-                else
-                {
-                    _logger?.Log("Receive loop terminated during shutdown: " + ex.Message);
-                }
+                HandleLoopError(ex, "Receive");
             }
             finally
             {
-                ArrayPool<byte>.Shared.Return(recvBuffer);
-                _reassembly?.Dispose();
-                _reassembly = null;
+                ReturnReceiveBuffer(recvBuffer);
                 RaiseClosed();
             }
+        }
+
+        /// <summary>
+        ///     Receives frames until the WebSocket is closed or cancellation stops the loop.
+        /// </summary>
+        private async Task ReceiveMessagesAsync(byte[] recvBuffer, CancellationToken cancellationToken)
+        {
+            while (true)
+            {
+                var frame = await ReceiveFrameAsync(recvBuffer, cancellationToken).ConfigureAwait(false);
+                if (await ReceiveFrameOrCloseAsync(recvBuffer, frame, cancellationToken).ConfigureAwait(false))
+                    return;
+            }
+        }
+
+        /// <summary>
+        ///     Handles a received frame and returns true when the receive loop should stop.
+        /// </summary>
+        private async Task<bool> ReceiveFrameOrCloseAsync(
+            byte[] recvBuffer,
+            ReceiveFrame frame,
+            CancellationToken cancellationToken)
+        {
+            if (frame.MessageType == WebSocketMessageType.Close)
+            {
+                await HandleServerInitiatedCloseAsync(cancellationToken).ConfigureAwait(false);
+                return true;
+            }
+
+            if (frame.MessageType == WebSocketMessageType.Binary)
+                return await DiscardBinaryMessageAsync(recvBuffer, frame.EndOfMessage, cancellationToken)
+                    .ConfigureAwait(false);
+
+            HandleTextFrame(recvBuffer, frame);
+            return false;
+        }
+
+        /// <summary>
+        ///     Reads a WebSocket frame into the supplied pooled buffer.
+        /// </summary>
+        private async Task<ReceiveFrame> ReceiveFrameAsync(byte[] recvBuffer, CancellationToken cancellationToken)
+        {
+#if NETSTANDARD2_1
+            var result = await _client.ReceiveAsync(
+                new ArraySegment<byte>(recvBuffer, 0, recvBuffer.Length),
+                cancellationToken).ConfigureAwait(false);
+#else
+            var result = await _client.ReceiveAsync(
+                recvBuffer.AsMemory(),
+                cancellationToken).ConfigureAwait(false);
+#endif
+            return new ReceiveFrame(result.Count, result.EndOfMessage, result.MessageType);
+        }
+
+        /// <summary>
+        ///     Discards a binary message, returning true if a close frame interrupts the discard.
+        /// </summary>
+        private async Task<bool> DiscardBinaryMessageAsync(
+            byte[] recvBuffer,
+            bool endOfMessage,
+            CancellationToken cancellationToken)
+        {
+            while (!endOfMessage)
+            {
+                var frame = await ReceiveFrameAsync(recvBuffer, cancellationToken).ConfigureAwait(false);
+                if (frame.MessageType == WebSocketMessageType.Close)
+                {
+                    await HandleServerInitiatedCloseAsync(cancellationToken).ConfigureAwait(false);
+                    return true;
+                }
+
+                endOfMessage = frame.EndOfMessage;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Dispatches a complete text frame or appends a text fragment for later reassembly.
+        /// </summary>
+        private void HandleTextFrame(byte[] recvBuffer, ReceiveFrame frame)
+        {
+            if (frame.EndOfMessage && _reassembly == null)
+            {
+                RaiseIfNotEmpty(Encoding.UTF8.GetString(recvBuffer, 0, frame.Count));
+                return;
+            }
+
+            AppendTextFragment(recvBuffer, frame.Count);
+
+            if (frame.EndOfMessage)
+                RaiseReassembledPayload();
+        }
+
+        /// <summary>
+        ///     Appends bytes from the current frame to the active reassembly buffer.
+        /// </summary>
+        private void AppendTextFragment(byte[] recvBuffer, int count)
+        {
+            if (_reassembly == null)
+                _reassembly = new PooledByteBufferWriter(ReceiveBufferSize);
+
+            _reassembly.Write(recvBuffer, 0, count);
+        }
+
+        /// <summary>
+        ///     Emits and releases the active reassembled text payload.
+        /// </summary>
+        private void RaiseReassembledPayload()
+        {
+            var payload = _reassembly.GetString();
+            _reassembly.Dispose();
+            _reassembly = null;
+            RaiseIfNotEmpty(payload);
+        }
+
+        /// <summary>
+        ///     Returns the receive buffer and releases any partial message reassembly.
+        /// </summary>
+        private void ReturnReceiveBuffer(byte[] recvBuffer)
+        {
+            ArrayPool<byte>.Shared.Return(recvBuffer);
+            _reassembly?.Dispose();
+            _reassembly = null;
         }
 
         private async Task HandleServerInitiatedCloseAsync(CancellationToken cancellationToken)
@@ -508,56 +585,8 @@ namespace Reown.Core.Network.Websocket.Internal
         {
             try
             {
-                while (await _outbox.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    while (_outbox.Reader.TryRead(out var item))
-                    {
-                        try
-                        {
-#if NETSTANDARD2_1
-                            await _client.SendAsync(
-                                new ArraySegment<byte>(item.Buffer, 0, item.Length),
-                                WebSocketMessageType.Text,
-                                endOfMessage: true,
-                                cancellationToken).ConfigureAwait(false);
-#else
-                            await _client.SendAsync(
-                                item.Buffer.AsMemory(0, item.Length),
-                                WebSocketMessageType.Text,
-                                true,
-                                cancellationToken).ConfigureAwait(false);
-#endif
-                        }
-                        finally
-                        {
-                            ArrayPool<byte>.Shared.Return(item.Buffer);
-                        }
-                    }
-                }
-
-                // Writer completed. If the server initiated a close handshake, reply with our
-                // own Close frame here - this is the only safe place because we hold the
-                // exclusive send side.
-                if (_serverInitiatedClose && !_shutdownRequested)
-                {
-                    try
-                    {
-                        var client = _client;
-                        if (client != null && client.State == WebSocketState.CloseReceived)
-                        {
-                            using var closeCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                            closeCts.CancelAfter(CloseOutputTimeoutMs);
-                            await client.CloseOutputAsync(
-                                client.CloseStatus ?? WebSocketCloseStatus.NormalClosure,
-                                client.CloseStatusDescription ?? string.Empty,
-                                closeCts.Token).ConfigureAwait(false);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger?.Log("Close-back failed: " + ex.Message);
-                    }
-                }
+                await SendQueuedItemsAsync(cancellationToken).ConfigureAwait(false);
+                await SendCloseReplyIfNeededAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (_shutdownRequested || cancellationToken.IsCancellationRequested)
             {
@@ -569,27 +598,126 @@ namespace Reown.Core.Network.Websocket.Internal
             }
             catch (Exception ex)
             {
-                if (!_shutdownRequested)
-                {
-                    _faulted = true;
-                    _outbox.Writer.TryComplete(ex);
-                    try
-                    {
-                        ErrorReceived?.Invoke(this, ex);
-                    }
-                    catch
-                    {
-                        // user code
-                    }
-                }
-                else
-                {
-                    _logger?.Log("Send loop terminated during shutdown: " + ex.Message);
-                }
+                HandleLoopError(ex, "Send");
             }
             finally
             {
                 DrainOutbox();
+            }
+        }
+
+        /// <summary>
+        ///     Drains queued payloads and sends them sequentially on the single WebSocket send side.
+        /// </summary>
+        private async Task SendQueuedItemsAsync(CancellationToken cancellationToken)
+        {
+            while (await _outbox.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                while (_outbox.Reader.TryRead(out var item))
+                {
+                    await SendItemAsync(item, cancellationToken).ConfigureAwait(false);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Sends a pooled payload and returns its buffer to the shared pool.
+        /// </summary>
+        private async Task SendItemAsync(PooledSendBuffer item, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await SendBufferAsync(item, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(item.Buffer);
+            }
+        }
+
+        /// <summary>
+        ///     Sends a text payload from a pooled buffer.
+        /// </summary>
+        private async Task SendBufferAsync(PooledSendBuffer item, CancellationToken cancellationToken)
+        {
+#if NETSTANDARD2_1
+            await _client.SendAsync(
+                new ArraySegment<byte>(item.Buffer, 0, item.Length),
+                WebSocketMessageType.Text,
+                endOfMessage: true,
+                cancellationToken).ConfigureAwait(false);
+#else
+            await _client.SendAsync(
+                item.Buffer.AsMemory(0, item.Length),
+                WebSocketMessageType.Text,
+                true,
+                cancellationToken).ConfigureAwait(false);
+#endif
+        }
+
+        /// <summary>
+        ///     Replies to a server-initiated close after all queued sends have drained.
+        /// </summary>
+        private async Task SendCloseReplyIfNeededAsync(CancellationToken cancellationToken)
+        {
+            if (!_serverInitiatedClose || _shutdownRequested)
+                return;
+
+            try
+            {
+                await SendCloseReplyAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger?.Log("Close-back failed: " + ex.Message);
+            }
+        }
+
+        /// <summary>
+        ///     Sends the close reply while this loop owns the exclusive send side.
+        /// </summary>
+        private async Task SendCloseReplyAsync(CancellationToken cancellationToken)
+        {
+            var client = _client;
+            if (client == null || client.State != WebSocketState.CloseReceived)
+                return;
+
+            using var closeCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            closeCts.CancelAfter(CloseOutputTimeoutMs);
+            await client.CloseOutputAsync(
+                client.CloseStatus ?? WebSocketCloseStatus.NormalClosure,
+                client.CloseStatusDescription ?? string.Empty,
+                closeCts.Token).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        ///     Reports loop failures unless they are part of an intentional shutdown.
+        /// </summary>
+        private void HandleLoopError(Exception ex, string loopName)
+        {
+            if (!_shutdownRequested)
+            {
+                _faulted = true;
+                _outbox.Writer.TryComplete(ex);
+                RaiseErrorReceived(ex);
+                return;
+            }
+
+            _logger?.Log(loopName + " loop terminated during shutdown: " + ex.Message);
+        }
+
+        /// <summary>
+        ///     Raises <see cref="ErrorReceived" /> while isolating subscriber exceptions.
+        /// </summary>
+        private void RaiseErrorReceived(Exception ex)
+        {
+            try
+            {
+                ErrorReceived?.Invoke(this, ex);
+            }
+            catch
+            {
+                // user code
             }
         }
 
@@ -643,6 +771,21 @@ namespace Reown.Core.Network.Websocket.Internal
             client.Dispose();
         }
 
+        /// <summary>
+        ///     Aborts a WebSocket client while tolerating concurrent shutdown races.
+        /// </summary>
+        private static void AbortClient(ClientWebSocket client)
+        {
+            try
+            {
+                client?.Abort();
+            }
+            catch
+            {
+                // best effort
+            }
+        }
+
         private void ThrowIfDisposed()
         {
             if (_disposed)
@@ -666,6 +809,29 @@ namespace Reown.Core.Network.Websocket.Internal
             {
                 Buffer = buffer;
                 Length = length;
+            }
+        }
+
+        /// <summary>
+        ///     Captures the frame metadata returned by <see cref="ClientWebSocket.ReceiveAsync" />.
+        /// </summary>
+        private readonly struct ReceiveFrame
+        {
+            /// <summary>The number of bytes written into the receive buffer.</summary>
+            public readonly int Count;
+
+            /// <summary>Whether this frame ends the current message.</summary>
+            public readonly bool EndOfMessage;
+
+            /// <summary>The WebSocket message type for the received frame.</summary>
+            public readonly WebSocketMessageType MessageType;
+
+            /// <summary>Wraps received frame metadata.</summary>
+            public ReceiveFrame(int count, bool endOfMessage, WebSocketMessageType messageType)
+            {
+                Count = count;
+                EndOfMessage = endOfMessage;
+                MessageType = messageType;
             }
         }
 
