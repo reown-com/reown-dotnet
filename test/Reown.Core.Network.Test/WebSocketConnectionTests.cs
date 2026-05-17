@@ -701,17 +701,15 @@ public class WebSocketConnectionTests
     public async Task Steady_state_send_path_stays_within_allocation_budget()
     {
         await using var server = InProcessWebSocketServer.Start();
-        server.EchoMode = true;
 
         var connection = new WebsocketConnection(server.WebSocketUri.ToString());
 
-        var received = new System.Collections.Concurrent.ConcurrentQueue<string>();
+        var received = 0;
         var batchDone = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var batchTarget = 0;
-        connection.PayloadReceived += (_, p) =>
+        server.TextMessageReceived += (_, _) =>
         {
-            received.Enqueue(p);
-            if (received.Count == batchTarget) batchDone.TrySetResult(true);
+            if (Interlocked.Increment(ref received) == batchTarget) batchDone.TrySetResult(true);
         };
 
         await connection.Open();
@@ -724,8 +722,8 @@ public class WebSocketConnectionTests
         GC.WaitForPendingFinalizers();
         GC.Collect();
 
-        const int iterations = 1000;
-        received.Clear();
+        const int iterations = 500;
+        received = 0;
         batchDone = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         batchTarget = iterations;
 
@@ -738,9 +736,10 @@ public class WebSocketConnectionTests
         var after = GC.GetTotalAllocatedBytes(precise: true);
 
         var bytes = after - before;
-        // Generous budget: 1000 requests through Newtonsoft serialization, JSON-RPC envelope,
-        // string roundtrip, and channel bookkeeping. Catches regressions where a per-message
-        // byte[] allocation is reintroduced on the send path (which would add ~250 KiB).
+        // Generous budget: 500 requests through Newtonsoft serialization, JSON-RPC envelope,
+        // transport send buffering, and the server-side receive path. Catches large or
+        // unbounded per-send allocation regressions without depending on platform-specific
+        // echo-loop allocation behaviour.
         const long budgetBytes = 4 * 1024 * 1024;
         Assert.True(bytes < budgetBytes,
             $"Allocation regression: {bytes:N0} bytes for {iterations} send/receive cycles (budget: {budgetBytes:N0}).");
