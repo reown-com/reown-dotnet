@@ -1,28 +1,33 @@
 using System;
 using System.IO;
+using System.Net.Sockets;
 using System.Net.WebSockets;
+using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Reown.Core.Common;
 using Reown.Core.Common.Logging;
-using Reown.Core.Common.Utils;
 using Reown.Core.Network.Models;
-using Websocket.Client;
+using Reown.Core.Network.Websocket.Internal;
 
 namespace Reown.Core.Network.Websocket
 {
     /// <summary>
-    ///     A JSON RPC connection using Websocket.Client library + EventDelegator
+    ///     A JSON RPC connection backed by <see cref="System.Net.WebSockets.ClientWebSocket"/>.
     /// </summary>
     public class WebsocketConnection : IJsonRpcConnection, IModule
     {
-        private const string AddressNotFoundError = "getaddrinfo ENOTFOUND";
-        private const string ConnectionRefusedError = "connect ECONNREFUSED";
+        private static readonly TimeSpan DefaultKeepAliveInterval = TimeSpan.FromSeconds(30);
+
         private readonly string _context;
         private readonly ILogger _logger;
-        private WebsocketClient _socket;
-        private IDisposable _messageSubscription;
-        private IDisposable _disconnectionSubscription;
+        private readonly object _registerGate = new object();
+        private ClientWebSocketTransport _transport;
+        private ClientWebSocketTransport _pendingTransport;
+        private bool _pendingTransportClosedEarly;
+        private TaskCompletionSource<ClientWebSocketTransport> _pendingRegister;
+        private bool _registered;
         private bool _disposed;
 
         /// <summary>
@@ -67,7 +72,7 @@ namespace Reown.Core.Network.Websocket
         /// </summary>
         public bool Connected
         {
-            get => _socket is { NativeClient: { State: WebSocketState.Open } };
+            get => _transport is { State: WebSocketState.Open };
         }
 
         /// <summary>
@@ -90,9 +95,10 @@ namespace Reown.Core.Network.Websocket
         /// <typeparam name="T">The type of the options. Should always be string</typeparam>
         public async Task Open<T>(T options)
         {
-            if (typeof(string).IsAssignableFrom(typeof(T)))
+            if (options is string url)
             {
-                await Register(options as string);
+                await Register(url);
+                return;
             }
 
             await Open();
@@ -104,13 +110,21 @@ namespace Reown.Core.Network.Websocket
         /// <exception cref="IOException">If this connection was already closed</exception>
         public async Task Close()
         {
-            if (_socket == null)
+            var transport = _transport;
+            if (transport == null)
                 throw new IOException("Connection already closed");
 
-            await _socket.Stop(WebSocketCloseStatus.NormalClosure, "Close Invoked");
-
-            OnClose(new DisconnectionInfo(DisconnectionType.Exit, WebSocketCloseStatus.Empty, "Close Invoked", null,
-                null));
+            // Authoritative cleanup path for client-initiated close. OnTransportClosed skips
+            // clearing _transport while ShutdownRequested == true, so this finally is solely
+            // responsible.
+            try
+            {
+                await transport.StopAsync(WebSocketCloseStatus.NormalClosure, "Close Invoked");
+            }
+            finally
+            {
+                DetachAndClearTransport(transport);
+            }
         }
 
         /// <summary>
@@ -121,17 +135,18 @@ namespace Reown.Core.Network.Websocket
         /// <typeparam name="T">The type of the Json RPC request parameter</typeparam>
         public async Task SendRequest<T>(IJsonRpcRequest<T> requestPayload, object context)
         {
-            _socket ??= await Register(Url);
+            var transport = _transport ?? await Register(Url);
 
             try
             {
                 _logger.Log("Sending request over websocket");
-                _socket.Send(JsonConvert.SerializeObject(requestPayload));
+                await transport.SendAsync(JsonConvert.SerializeObject(requestPayload), CancellationToken.None);
             }
             catch (Exception e)
             {
-                _logger.Log($"Error sending request: {e.Message}");
+                _logger.Log("Error sending request: " + e.Message);
                 OnError<T>(requestPayload, e);
+                if (transport.Faulted) DetachAndClearTransport(transport);
             }
         }
 
@@ -143,15 +158,16 @@ namespace Reown.Core.Network.Websocket
         /// <typeparam name="T">The type of the Json RPC response result</typeparam>
         public async Task SendResult<T>(IJsonRpcResult<T> responsePayload, object context)
         {
-            _socket ??= await Register(Url);
+            var transport = _transport ?? await Register(Url);
 
             try
             {
-                _socket.Send(JsonConvert.SerializeObject(responsePayload));
+                await transport.SendAsync(JsonConvert.SerializeObject(responsePayload), CancellationToken.None);
             }
             catch (Exception e)
             {
                 OnError<T>(responsePayload, e);
+                if (transport.Faulted) DetachAndClearTransport(transport);
             }
         }
 
@@ -164,16 +180,67 @@ namespace Reown.Core.Network.Websocket
         /// <returns>A task that is performing the send</returns>
         public async Task SendError(IJsonRpcError errorPayload, object context)
         {
-            _socket ??= await Register(Url);
+            var transport = _transport ?? await Register(Url);
 
             try
             {
-                _socket.Send(JsonConvert.SerializeObject(errorPayload));
+                await transport.SendAsync(JsonConvert.SerializeObject(errorPayload), CancellationToken.None);
             }
             catch (Exception e)
             {
                 OnError<object>(errorPayload, e);
+                if (transport.Faulted) DetachAndClearTransport(transport);
             }
+        }
+
+        private void DetachAndClearTransport(ClientWebSocketTransport transport)
+        {
+            DetachTransport(transport);
+
+            lock (_registerGate)
+            {
+                if (ReferenceEquals(_transport, transport))
+                {
+                    _transport = null;
+                    _registered = false;
+                }
+            }
+
+            transport.Dispose();
+        }
+
+        private void DetachAndDisposeTransportFireAndForget(ClientWebSocketTransport transport)
+        {
+            DetachTransport(transport);
+
+            DisposeTransportFireAndForget(transport);
+        }
+
+        private void DetachTransport(ClientWebSocketTransport transport)
+        {
+            transport.PayloadReceived -= OnTransportPayload;
+            transport.ErrorReceived -= OnTransportError;
+            transport.Closed -= OnTransportClosed;
+        }
+
+        /// <summary>
+        ///     Schedules transport disposal away from the current callback path.
+        /// </summary>
+        private void DisposeTransportFireAndForget(ClientWebSocketTransport transport)
+        {
+            // transport.Dispose() waits on the transport loops. When called from a loop-raised
+            // event, disposing synchronously would wait on the current loop until its timeout.
+            _ = Task.Run(() =>
+            {
+                try
+                {
+                    transport.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    _logger.Log("Transport disposal failed: " + ex.Message);
+                }
+            });
         }
 
         public void Dispose()
@@ -198,7 +265,7 @@ namespace Reown.Core.Network.Websocket
             get => $"{_context}-{Name}";
         }
 
-        private async Task<WebsocketClient> Register(string url)
+        private Task<ClientWebSocketTransport> Register(string url)
         {
             if (!Validation.IsWsUrl(url))
             {
@@ -207,90 +274,222 @@ namespace Reown.Core.Network.Websocket
 
             _logger.Log($"Register new WS connection. Is already connecting: {Connecting}");
 
-            if (Connecting)
+            TaskCompletionSource<ClientWebSocketTransport> tcs;
+            bool isFirst;
+            ClientWebSocketTransport previousTransport = null;
+
+            lock (_registerGate)
             {
-                var registeringTask = new TaskCompletionSource<WebsocketClient>(TaskCreationOptions.None);
+                if (_disposed)
+                {
+                    throw new ObjectDisposedException(nameof(WebsocketConnection));
+                }
 
-                RegisterErrored.ListenOnce((sender, args) => registeringTask.SetException(args));
-                Opened.ListenOnce((sender, args) => registeringTask.SetResult((WebsocketClient)args));
+                if (Connecting && _pendingRegister != null)
+                {
+                    tcs = _pendingRegister;
+                    isFirst = false;
+                }
+                else
+                {
+                    if (_transport != null)
+                    {
+                        previousTransport = _transport;
+                        _transport = null;
+                        _registered = false;
+                    }
 
-                await registeringTask.Task;
-
-                return registeringTask.Task.Result;
+                    Url = url;
+                    Connecting = true;
+                    _pendingRegister = new TaskCompletionSource<ClientWebSocketTransport>(TaskCreationOptions.RunContinuationsAsynchronously);
+                    tcs = _pendingRegister;
+                    isFirst = true;
+                }
             }
 
-            Url = url;
-            Connecting = true;
+            if (previousTransport != null)
+            {
+                DetachAndDisposeTransportFireAndForget(previousTransport);
+            }
+
+            if (!isFirst)
+            {
+                return tcs.Task;
+            }
+
+            return RegisterCore(url, tcs);
+        }
+
+        private async Task<ClientWebSocketTransport> RegisterCore(string url, TaskCompletionSource<ClientWebSocketTransport> tcs)
+        {
+            var transport = new ClientWebSocketTransport(new Uri(url), OpenTimeout, DefaultKeepAliveInterval, _logger);
+
+            lock (_registerGate)
+            {
+                _pendingTransport = transport;
+                _pendingTransportClosedEarly = false;
+            }
+
+            transport.PayloadReceived += OnTransportPayload;
+            transport.ErrorReceived += OnTransportError;
+            transport.Closed += OnTransportClosed;
 
             try
             {
-                _socket = new WebsocketClient(new Uri(Url));
-                _socket.ReconnectTimeout = null;
-
-                await _socket.Start().WithTimeout(OpenTimeout, "Unavailable WS RPC url at " + Url);
-                OnOpen(_socket);
-                return _socket;
+                await transport.StartAsync(CancellationToken.None);
             }
             catch (Exception e)
             {
-                RegisterErrored?.Invoke(this, e);
-                OnClose(new DisconnectionInfo(DisconnectionType.Error, WebSocketCloseStatus.Empty, e.Message, null, e));
+                bool disposed;
+                lock (_registerGate)
+                {
+                    disposed = _disposed;
+                    Connecting = false;
+                    _pendingRegister = null;
+                    if (ReferenceEquals(_pendingTransport, transport))
+                    {
+                        _pendingTransport = null;
+                        _pendingTransportClosedEarly = false;
+                    }
+                }
 
+                transport.PayloadReceived -= OnTransportPayload;
+                transport.ErrorReceived -= OnTransportError;
+                transport.Closed -= OnTransportClosed;
+                transport.Dispose();
+
+                if (disposed)
+                {
+                    var disposedException = new ObjectDisposedException(nameof(WebsocketConnection));
+                    tcs.TrySetException(disposedException);
+                    throw disposedException;
+                }
+
+                var mapped = MapOpenException(e);
+                RegisterErrored?.Invoke(this, mapped);
+                Closed?.Invoke(this, EventArgs.Empty);
+                tcs.TrySetException(mapped);
+
+                if (!ReferenceEquals(mapped, e))
+                    throw mapped;
                 throw;
             }
+
+            bool aborted;
+            bool abortedByDispose;
+            lock (_registerGate)
+            {
+                abortedByDispose = _disposed;
+                aborted = abortedByDispose
+                          || _pendingTransportClosedEarly
+                          || transport.Faulted
+                          || transport.ShutdownRequested;
+                if (!aborted)
+                {
+                    _transport = transport;
+                    _registered = true;
+                }
+                _pendingTransport = null;
+                _pendingTransportClosedEarly = false;
+                Connecting = false;
+                _pendingRegister = null;
+            }
+
+            if (aborted)
+            {
+                transport.PayloadReceived -= OnTransportPayload;
+                transport.ErrorReceived -= OnTransportError;
+                transport.Closed -= OnTransportClosed;
+                transport.Dispose();
+
+                Exception abortException = abortedByDispose
+                    ? new ObjectDisposedException(nameof(WebsocketConnection))
+                    : new IOException("WebSocket connection closed before registration completed.");
+                tcs.TrySetException(abortException);
+                throw abortException;
+            }
+
+            tcs.TrySetResult(transport);
+            try
+            {
+                Opened?.Invoke(this, transport);
+            }
+            catch (Exception ex)
+            {
+                _logger.Log("Opened event handler error: " + ex.Message);
+            }
+            return transport;
         }
 
-        private void OnOpen(WebsocketClient socket)
+        private void OnTransportPayload(object sender, string payload)
         {
-            if (socket == null)
-                return;
+            PayloadReceived?.Invoke(this, payload);
+        }
 
-            _messageSubscription = socket.MessageReceived.Subscribe(OnPayload);
-            _disconnectionSubscription = socket.DisconnectionHappened.Subscribe(OnDisconnect);
+        private void OnTransportError(object sender, Exception exception)
+        {
+            ErrorReceived?.Invoke(this, exception);
+        }
 
-            _socket = socket;
+        private void OnTransportClosed(object sender, EventArgs e)
+        {
+            var transport = sender as ClientWebSocketTransport;
             Connecting = false;
-            Opened?.Invoke(this, _socket);
-        }
 
-        private void OnDisconnect(DisconnectionInfo obj)
-        {
-            if (obj.Exception != null)
-                ErrorReceived?.Invoke(this, obj.Exception);
+            // Three close paths:
+            //   1. Client-initiated close (Close() / Dispose()): the calling code owns cleanup
+            //      through its finally block, so we leave _transport alone here.
+            //   2. Server-initiated graceful close: clear _transport so the next SendRequest
+            //      auto-reopens.
+            //   3. Transport faulted: leave _transport pointing at it so the next SendRequest's
+            //      SendAsync throws and routes through OnError<T> as a JSON-RPC error envelope.
+            if (transport is { Faulted: false, ShutdownRequested: false })
+            {
+                transport.PayloadReceived -= OnTransportPayload;
+                transport.ErrorReceived -= OnTransportError;
+                transport.Closed -= OnTransportClosed;
 
-            OnClose(obj);
-        }
+                lock (_registerGate)
+                {
+                    if (_registered && ReferenceEquals(_transport, transport))
+                    {
+                        _transport = null;
+                        _registered = false;
+                    }
+                    else if (ReferenceEquals(_pendingTransport, transport))
+                    {
+                        _pendingTransportClosedEarly = true;
+                    }
+                }
 
-        private void OnClose(DisconnectionInfo obj)
-        {
-            if (_socket == null)
-                return;
+                // Without this cleanup, the rented receive buffer and underlying ClientWebSocket
+                // would leak on every server-initiated close.
+                DisposeTransportFireAndForget(transport);
+            }
 
-            _logger.Log($"Connection closed. Close status: {obj.CloseStatus?.ToString() ?? "-- "}. Exception message: {obj.Exception?.Message ?? "--"}");
-
-            _socket = null;
-            Connecting = false;
+            _logger.Log("Connection closed");
             Closed?.Invoke(this, EventArgs.Empty);
         }
 
-        private void OnPayload(ResponseMessage obj)
+        private Exception MapOpenException(Exception e)
         {
-            string json = null;
-            switch (obj.MessageType)
+            var current = e;
+            while (current != null)
             {
-                case WebSocketMessageType.Binary:
-                    return;
-                case WebSocketMessageType.Text:
-                    json = obj.Text;
-                    break;
-                case WebSocketMessageType.Close:
-                    return;
+                if (current is SocketException se)
+                {
+                    switch (se.SocketErrorCode)
+                    {
+                        case SocketError.HostNotFound:
+                        case SocketError.NoData:
+                        case SocketError.ConnectionRefused:
+                        case SocketError.HostUnreachable:
+                            return new IOException("Unavailable WS RPC url at " + Url);
+                    }
+                }
+                current = current.InnerException;
             }
-
-            if (string.IsNullOrWhiteSpace(json))
-                return;
-
-            PayloadReceived?.Invoke(this, json);
+            return e;
         }
 
         protected virtual void Dispose(bool disposing)
@@ -300,14 +499,40 @@ namespace Reown.Core.Network.Websocket
 
             if (disposing)
             {
-                _messageSubscription?.Dispose();
-                _disconnectionSubscription?.Dispose();
-
-                if (_socket != null)
+                ClientWebSocketTransport transport;
+                ClientWebSocketTransport pendingTransport;
+                TaskCompletionSource<ClientWebSocketTransport> pendingRegister;
+                lock (_registerGate)
                 {
-                    _socket.Dispose();
-                    _socket = null;
+                    if (_disposed)
+                        return;
+                    _disposed = true;
+                    transport = _transport;
+                    pendingTransport = _pendingTransport;
+                    pendingRegister = _pendingRegister;
+                    _transport = null;
+                    _pendingTransport = null;
+                    _pendingRegister = null;
+                    _pendingTransportClosedEarly = false;
+                    Connecting = false;
+                    _registered = false;
                 }
+
+                if (transport != null)
+                {
+                    DetachTransport(transport);
+                    transport.Dispose();
+                }
+
+                if (pendingTransport != null && !ReferenceEquals(pendingTransport, transport))
+                {
+                    DetachTransport(pendingTransport);
+                    pendingTransport.Dispose();
+                }
+
+                pendingRegister?.TrySetException(new ObjectDisposedException(nameof(WebsocketConnection)));
+
+                return;
             }
 
             _disposed = true;
@@ -315,20 +540,24 @@ namespace Reown.Core.Network.Websocket
 
         private void OnError<T>(IJsonRpcPayload ogPayload, Exception e)
         {
-            var exception = e.Message.Contains(AddressNotFoundError) || e.Message.Contains(ConnectionRefusedError)
-                ? new IOException("Unavailable WS RPC url at " + Url)
-                : e;
+            Exception underlying;
+            if (e is ChannelClosedException cce)
+            {
+                underlying = cce.InnerException ?? new IOException("WebSocket connection closed.");
+            }
+            else
+            {
+                underlying = e;
+            }
 
-            var message = exception.Message;
             var payload = new JsonRpcResponse<T>(ogPayload.Id,
                 new Error
                 {
-                    Code = exception.HResult,
+                    Code = underlying.HResult,
                     Data = null,
-                    Message = message
+                    Message = underlying.Message
                 }, default);
 
-            //Trigger the payload event, converting the new JsonRpcResponse object to JSON string
             PayloadReceived?.Invoke(this, JsonConvert.SerializeObject(payload));
         }
     }
