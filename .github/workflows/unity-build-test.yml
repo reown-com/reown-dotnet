@@ -136,4 +136,4 @@ jobs:
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           github-comment: true
-          working-directory: Builds/WebGL/WebGL
+          working-directory: ${{ github.workspace }}/Builds/WebGL/WebGL
