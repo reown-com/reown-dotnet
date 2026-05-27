@@ -61,7 +61,7 @@ reown-dotnet/
 │   └── Reown.ZKCandySample.Unity/    # Zero-knowledge proofs demo
 │
 ├── test/                             # Test projects (target net8.0;net9.0;net10.0)
-│   ├── Reown.Core.Common.Test/       # Note: excluded from Reown.NoUnity.slnf
+│   ├── Reown.Core.Common.Test/
 │   ├── Reown.Core.Crypto.Test/
 │   ├── Reown.Core.Network.Test/
 │   ├── Reown.Core.Storage.Test/
@@ -289,7 +289,6 @@ com.reown.appkit.unity
 - Integration tests run single-threaded (`-m:1`) to coordinate relay communication
 - `Reown.Sign.Test` has custom `xunit.runner.json`: parallelization disabled, `stopOnFail: true`, `longRunningTestSeconds: 250`
 - `Rown.TestUtils` provides shared fixtures: `TwoClientsFixture<T>` (two-client dapp↔wallet scenarios), `CryptoWalletFixture` (Nethereum HD wallet), `TestOutputHelperLogger` (xUnit→Reown logger bridge), `TempFolder` (auto-cleanup temp dirs)
-- `Reown.Core.Common.Test` exists in `Reown.slnx` but is excluded from `Reown.NoUnity.slnf` — it won't run with the standard `dotnet test Reown.NoUnity.slnf` command
 - When modifying code, check if corresponding tests exist and add tests for new functionality
 - Unity playmode tests require a desktop target platform (Windows/macOS/Linux) to be selected, as they depend on the desktop AppKit UI layout
 
