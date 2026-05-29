@@ -16,4 +16,7 @@
     <ItemGroup>
         <PackageReference Include="Nethereum.Signer"/>
     </ItemGroup>
+    <ItemGroup>
+        <InternalsVisibleTo Include="Reown.Sign.Test"/>
+    </ItemGroup>
 </Project>

@@ -11,6 +11,7 @@
       "src\\Reown.Sign.Nethereum\\Reown.Sign.Nethereum.csproj",
       "src\\Reown.Sign\\Reown.Sign.csproj",
       "src\\Reown.WalletKit\\Reown.WalletKit.csproj",
+      "test\\Reown.Core.Common.Test\\Reown.Core.Common.Test.csproj",
       "test\\Reown.Core.Crypto.Test\\Reown.Core.Crypto.Test.csproj",
       "test\\Reown.Core.Network.Test\\Reown.Core.Network.Test.csproj",
       "test\\Reown.Core.Storage.Test\\Reown.Core.Storage.Test.csproj",

@@ -71,7 +71,7 @@ public class AuthenticateTests : IClassFixture<SignClientFixture>, IClassFixture
 
     // This test simulates the scenario where the wallet supports all the requested chains and methods
     // and replies with a single signature
-    [Fact]
+    [Fact] [Trait("Category", "integration")]
     public async Task TestAuthenticate_SingleSignature_AllChainsAndMethods()
     {
         await _signClientFixture.WaitForClientsReady();
@@ -158,7 +158,7 @@ public class AuthenticateTests : IClassFixture<SignClientFixture>, IClassFixture
 
     // This test simulates the scenario where the wallet supports subset of the requested chains and all methods
     // and replies with a single signature
-    [Fact]
+    [Fact] [Trait("Category", "integration")]
     public async Task TestAuthenticate_SingleSignature_SomeChainsAllMethods()
     {
         await _signClientFixture.WaitForClientsReady();
@@ -251,7 +251,7 @@ public class AuthenticateTests : IClassFixture<SignClientFixture>, IClassFixture
 
     // This test simulates the scenario where the wallet supports subset of the requested chains and methods
     // and replies with a single signature
-    [Fact]
+    [Fact] [Trait("Category", "integration")]
     public async Task TestAuthenticate_SingleSignature_SomeChainsAndMethods()
     {
         await _signClientFixture.WaitForClientsReady();
@@ -350,7 +350,7 @@ public class AuthenticateTests : IClassFixture<SignClientFixture>, IClassFixture
     }
 
     // This test simulates the scenario where the wallet supports all the requested chains and methods
-    [Fact]
+    [Fact] [Trait("Category", "integration")]
     public async Task TestAuthenticate_MultipleSignatures_AllChainsAndMethods()
     {
         await _signClientFixture.WaitForClientsReady();
@@ -423,7 +423,7 @@ public class AuthenticateTests : IClassFixture<SignClientFixture>, IClassFixture
     }
 
     // This test simulates the scenario where the wallet supports subset of requested chains and all methods
-    [Fact]
+    [Fact] [Trait("Category", "integration")]
     public async Task TestAuthenticate_MultipleSignatures_SomeChainsAllMethods()
     {
         await _signClientFixture.WaitForClientsReady();
@@ -504,7 +504,7 @@ public class AuthenticateTests : IClassFixture<SignClientFixture>, IClassFixture
     }
 
     // This test simulates the scenario where the wallet supports subset of requested chains and methods
-    [Fact]
+    [Fact] [Trait("Category", "integration")]
     public async Task TestAuthenticate_MultipleSignatures_SomeChainsAndMethods()
     {
         await _signClientFixture.WaitForClientsReady();
@@ -593,7 +593,7 @@ public class AuthenticateTests : IClassFixture<SignClientFixture>, IClassFixture
     }
 
     // Should establish normal sign session when URI doesn't specify `wc_sessionAuthenticate` method"
-    [Fact]
+    [Fact] [Trait("Category", "integration")]
     public async Task TestAuthenticate_NoWcAuthenticateInUri()
     {
         await _signClientFixture.WaitForClientsReady();
@@ -652,7 +652,7 @@ public class AuthenticateTests : IClassFixture<SignClientFixture>, IClassFixture
     }
 
     // Should establish normal sign session when wallet hasn't subscribed to SessionAuthenticateRequest event
-    [Fact]
+    [Fact] [Trait("Category", "integration")]
     public async Task TestAuthenticate_NoWcAuthenticateListeners()
     {
         await _signClientFixture.WaitForClientsReady();

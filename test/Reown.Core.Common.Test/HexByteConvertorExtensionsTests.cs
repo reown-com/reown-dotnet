@@ -4,6 +4,7 @@ using Xunit;
 
 namespace Reown.Core.Common.Test;
 
+[Trait("Category", "unit")]
 public class HexByteConvertorExtensionsTests
 {
     [Theory]
