@@ -112,7 +112,30 @@ namespace Reown.Sign.Models
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Accounts, Methods, Events);
+            return ContentHashCode(Accounts, Methods, Events);
+        }
+
+        private static int ContentHashCode(string[] accounts, string[] methods, string[] events)
+        {
+            var hash = new HashCode();
+            hash.Add(UnorderedHashCode(accounts));
+            hash.Add(UnorderedHashCode(methods));
+            hash.Add(UnorderedHashCode(events));
+            return hash.ToHashCode();
+        }
+
+        private static int UnorderedHashCode(string[] values)
+        {
+            if (values == null)
+                return 0;
+
+            var hash = 0;
+            foreach (var value in values)
+            {
+                hash ^= value?.GetHashCode() ?? 0;
+            }
+
+            return hash;
         }
 
         public bool TryGetChains(out string[] chainIds)
@@ -182,7 +205,7 @@ namespace Reown.Sign.Models
 
             public int GetHashCode(Namespace obj)
             {
-                return HashCode.Combine(obj.Accounts, obj.Methods, obj.Events);
+                return ContentHashCode(obj.Accounts, obj.Methods, obj.Events);
             }
         }
     }

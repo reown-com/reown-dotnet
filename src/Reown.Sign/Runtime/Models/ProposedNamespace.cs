@@ -112,7 +112,32 @@ namespace Reown.Sign.Models
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Chains, Methods, Events);
+            return ContentHashCode(Chains, Methods, Events);
+        }
+
+        private static int ContentHashCode(string[] chains, string[] methods, string[] events)
+        {
+            var hash = new HashCode();
+            hash.Add(UnorderedHashCode(chains));
+            hash.Add(UnorderedHashCode(methods));
+            hash.Add(UnorderedHashCode(events));
+            return hash.ToHashCode();
+        }
+
+        private static int UnorderedHashCode(string[] values)
+        {
+            if (values == null)
+            {
+                return 0;
+            }
+
+            var hash = 0;
+            foreach (var value in values)
+            {
+                hash ^= value == null ? 0 : value.GetHashCode();
+            }
+
+            return hash;
         }
 
         private sealed class RequiredNamespaceEqualityComparer : IEqualityComparer<ProposedNamespace>
@@ -145,7 +170,7 @@ namespace Reown.Sign.Models
 
             public int GetHashCode(ProposedNamespace obj)
             {
-                return HashCode.Combine(obj.Chains, obj.Methods, obj.Events);
+                return ContentHashCode(obj.Chains, obj.Methods, obj.Events);
             }
         }
     }
