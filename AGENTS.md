@@ -236,7 +236,7 @@ Current `[VersionMarker]` usage:
 
 Test projects target: `net8.0`, `net9.0`, `net10.0` (with `ImplicitUsings` and `Nullable` enabled)
 
-C# language version is set to 9.0 for Unity IL2CPP compatibility.
+C# language version is set to 9.0 for `src/` projects (via `src/Directory.Build.props`) for Unity IL2CPP compatibility. Test projects are not compiled by Unity, so `test/Directory.Build.props` pins them to C# 12.0 — the highest version supported by the lowest test target framework (net8.0). Use modern C# (up to 12.0) freely in tests.
 
 ### Key Dependencies
 
@@ -278,7 +278,7 @@ com.reown.appkit.unity
 - Follow existing code conventions in each file
 - Use existing libraries and utilities rather than adding new dependencies
 - Place `using` directives at the top of files (ImplicitUsings is disabled in src projects)
-- C# language version is 9.0 — do not use C# 10+ features (file-scoped namespaces, global usings, etc.) as they are incompatible with Unity IL2CPP/AOT compilation
+- C# language version is 9.0 for `src/` — do not use C# 10+ features (file-scoped namespaces, global usings, etc.) as they are incompatible with Unity IL2CPP/AOT compilation. This applies only to `src/`; test projects are pinned to C# 12.0 (see Target Frameworks) and may use newer features
 - Use centralized package versioning: add new NuGet dependencies to `Directory.Packages.props`, not individual `.csproj` files
 
 ### Testing Requirements

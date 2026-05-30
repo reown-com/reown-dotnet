@@ -9,7 +9,7 @@ namespace Reown.Core.Crypto.Encoder
     public static class Base58Encoding
     {
         public const int CheckSumSizeInBytes = 4;
-        private const string DIGITS = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+        private const string Digits = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
         public static byte[] AddCheckSum(byte[] data)
         {
@@ -44,7 +44,7 @@ namespace Reown.Core.Crypto.Encoder
             {
                 var remainder = (int)(intData % 58);
                 intData /= 58;
-                result = DIGITS[remainder] + result;
+                result = Digits[remainder] + result;
             }
 
             // Append `1` for each leading 0 byte
@@ -67,7 +67,7 @@ namespace Reown.Core.Crypto.Encoder
             BigInteger intData = 0;
             for (var i = 0; i < s.Length; i++)
             {
-                var digit = DIGITS.IndexOf(s[i]); //Slow
+                var digit = Digits.IndexOf(s[i]); //Slow
                 if (digit < 0)
                     throw new FormatException($"Invalid Base58 character `{s[i]}` at position {i}");
                 intData = intData * 58 + digit;

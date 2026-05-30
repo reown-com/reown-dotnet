@@ -81,7 +81,18 @@ namespace Reown.Sign.Models
 
         private static bool ArrayEquals(string[] a, string[] b)
         {
-            return a.Length == b.Length && Array.TrueForAll(a, b.Contains) && Array.TrueForAll(b, a.Contains);
+            if (ReferenceEquals(a, b))
+            {
+                return true;
+            }
+
+            if (a == null || b == null || a.Length != b.Length)
+            {
+                return false;
+            }
+
+            return a.OrderBy(value => value, StringComparer.Ordinal)
+                .SequenceEqual(b.OrderBy(value => value, StringComparer.Ordinal), StringComparer.Ordinal);
         }
 
         private bool Equals(Namespace other)
@@ -112,7 +123,33 @@ namespace Reown.Sign.Models
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Accounts, Methods, Events);
+            return ContentHashCode(Accounts, Methods, Events);
+        }
+
+        private static int ContentHashCode(string[] accounts, string[] methods, string[] events)
+        {
+            var hash = new HashCode();
+            hash.Add(UnorderedHashCode(accounts));
+            hash.Add(UnorderedHashCode(methods));
+            hash.Add(UnorderedHashCode(events));
+            return hash.ToHashCode();
+        }
+
+        private static int UnorderedHashCode(string[] values)
+        {
+            if (values == null)
+                return 0;
+
+            var hash = 0;
+            foreach (var value in values)
+            {
+                unchecked
+                {
+                    hash += value?.GetHashCode() ?? 0;
+                }
+            }
+
+            return hash;
         }
 
         public bool TryGetChains(out string[] chainIds)
@@ -182,7 +219,7 @@ namespace Reown.Sign.Models
 
             public int GetHashCode(Namespace obj)
             {
-                return HashCode.Combine(obj.Accounts, obj.Methods, obj.Events);
+                return ContentHashCode(obj.Accounts, obj.Methods, obj.Events);
             }
         }
     }
