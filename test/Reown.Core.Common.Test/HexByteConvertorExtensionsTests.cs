@@ -53,4 +53,113 @@ public class HexByteConvertorExtensionsTests
         Assert.Equal(expectedEmptyWithPrefix, resultEmptyWithPrefix);
         Assert.Equal(expectedEmptyWithoutPrefix, resultEmptyWithoutPrefix);
     }
+
+    [Fact]
+    public void StringToHex_EncodesUtf8()
+    {
+        Assert.Equal("0x48656c6c6f", "Hello".ToHex(true));
+    }
+
+    [Theory]
+    [InlineData(255, true, "0xff")]
+    [InlineData(255, false, "ff")]
+    public void IntToHex_FormatsValue(int value, bool prefix, string expected)
+    {
+        Assert.Equal(expected, value.ToHex(prefix));
+    }
+
+    [Theory]
+    [InlineData("0x1a2b3c", true)]
+    [InlineData("1a2b3c", true)]
+    [InlineData("0xABCDEF", true)]
+    [InlineData("deadBEEF", true)]
+    [InlineData("0x", true)]
+    [InlineData("0x1g", false)]
+    [InlineData("xyz", false)]
+    public void IsHex_VariousInputs_ReturnsExpected(string value, bool expected)
+    {
+        Assert.Equal(expected, value.IsHex());
+    }
+
+    [Theory]
+    [InlineData("0xabc", true)]
+    [InlineData("abc", false)]
+    public void HasHexPrefix_ChecksLeadingPrefix(string value, bool expected)
+    {
+        Assert.Equal(expected, value.HasHexPrefix());
+    }
+
+    [Theory]
+    [InlineData("0xabc", "abc")]
+    [InlineData("abc", "abc")]
+    public void RemoveHexPrefix_StripsLeadingPrefix(string value, string expected)
+    {
+        Assert.Equal(expected, value.RemoveHexPrefix());
+    }
+
+    [Theory]
+    [InlineData("abc", "0xabc")]
+    [InlineData("0xabc", "0xabc")]
+    public void EnsureHexPrefix_AddsPrefixWhenMissing(string value, string expected)
+    {
+        Assert.Equal(expected, value.EnsureHexPrefix());
+    }
+
+    [Fact]
+    public void EnsureHexPrefix_NullValue_ReturnsNull()
+    {
+        string? value = null;
+
+        Assert.Null(value.EnsureHexPrefix());
+    }
+
+    [Theory]
+    [InlineData("0xABCDEF", "abcdef", true)]
+    [InlineData("0xabc", "0xdef", false)]
+    public void IsTheSameHex_ComparesCaseInsensitivelyIgnoringPrefix(string first, string second, bool expected)
+    {
+        Assert.Equal(expected, first.IsTheSameHex(second));
+    }
+
+    [Fact]
+    public void HexToByteArray_RoundTripsWithToHex()
+    {
+        var bytes = new byte[] { 0x48, 0x65, 0x6c, 0x6c, 0x6f };
+
+        Assert.Equal(bytes, bytes.ToHex(true).HexToByteArray());
+    }
+
+    [Fact]
+    public void HexToByteArray_OddLengthString_PadsLeadingZero()
+    {
+        Assert.Equal(new byte[] { 0x0a }, "a".HexToByteArray());
+    }
+
+    [Fact]
+    public void HexToByteArray_EmptyString_ReturnsEmpty()
+    {
+        Assert.Empty("".HexToByteArray());
+    }
+
+    [Fact]
+    public void HexToByteArray_InvalidCharacter_ThrowsFormatException()
+    {
+        Assert.Throws<FormatException>(() => "0xZZ".HexToByteArray());
+    }
+
+    [Fact]
+    public void ToHexCompact_TrimsLeadingZeros()
+    {
+        var bytes = new byte[] { 0x00, 0x0a };
+
+        Assert.Equal("a", bytes.ToHexCompact());
+    }
+
+    [Fact]
+    public void ToHexCompact_AllZeroBytes_ReturnsEmptyString()
+    {
+        var bytes = new byte[] { 0x00, 0x00 };
+
+        Assert.Equal(string.Empty, bytes.ToHexCompact());
+    }
 }
