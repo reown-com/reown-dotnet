@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup Label="C#">
+        <!--
+            Test projects are not compiled by Unity, so they are not bound to the C# 9.0
+            limit that src/Directory.Build.props imposes for IL2CPP/AOT compatibility.
+            Pinned to 12.0 (the highest version supported by the lowest target framework,
+            net8.0) so it stays consistent across net8.0;net9.0;net10.0.
+        -->
+        <LangVersion>12.0</LangVersion>
+    </PropertyGroup>
+</Project>
