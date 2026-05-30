@@ -81,7 +81,18 @@ namespace Reown.Sign.Models
 
         private static bool ArrayEquals(string[] a, string[] b)
         {
-            return a.Length == b.Length && Array.TrueForAll(a, b.Contains) && Array.TrueForAll(b, a.Contains);
+            if (ReferenceEquals(a, b))
+            {
+                return true;
+            }
+
+            if (a == null || b == null || a.Length != b.Length)
+            {
+                return false;
+            }
+
+            return a.OrderBy(value => value, StringComparer.Ordinal)
+                .SequenceEqual(b.OrderBy(value => value, StringComparer.Ordinal), StringComparer.Ordinal);
         }
 
         private bool Equals(Namespace other)
@@ -132,7 +143,10 @@ namespace Reown.Sign.Models
             var hash = 0;
             foreach (var value in values)
             {
-                hash ^= value?.GetHashCode() ?? 0;
+                unchecked
+                {
+                    hash += value?.GetHashCode() ?? 0;
+                }
             }
 
             return hash;

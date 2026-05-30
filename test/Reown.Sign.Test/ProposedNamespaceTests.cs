@@ -84,4 +84,23 @@ public class ProposedNamespaceTests
             ProposedNamespace.RequiredNamespaceComparer.GetHashCode(a),
             ProposedNamespace.RequiredNamespaceComparer.GetHashCode(b));
     }
+
+    [Fact]
+    public void Equals_DuplicateMultiplicityDiffers_ReturnsFalse()
+    {
+        var a = new ProposedNamespace { Chains = new[] { "c1", "c1", "c2" }, Methods = new[] { "m" }, Events = new[] { "e" } };
+        var b = new ProposedNamespace { Chains = new[] { "c1", "c2", "c2" }, Methods = new[] { "m" }, Events = new[] { "e" } };
+
+        Assert.False(a.Equals(b));
+    }
+
+    [Fact]
+    public void GetHashCode_EqualNamespacesWithDuplicates_ReturnsSameHash()
+    {
+        var a = new ProposedNamespace { Chains = new[] { "c1", "c1", "c2" }, Methods = new[] { "m", "m" }, Events = new[] { "e" } };
+        var b = new ProposedNamespace { Chains = new[] { "c2", "c1", "c1" }, Methods = new[] { "m", "m" }, Events = new[] { "e" } };
+
+        Assert.True(a.Equals(b));
+        Assert.Equal(a.GetHashCode(), b.GetHashCode());
+    }
 }

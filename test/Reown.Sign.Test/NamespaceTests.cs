@@ -149,4 +149,23 @@ public class NamespaceTests
         Assert.True(Namespace.NamespaceComparer.Equals(ns1, ns2));
         Assert.Equal(Namespace.NamespaceComparer.GetHashCode(ns1), Namespace.NamespaceComparer.GetHashCode(ns2));
     }
+
+    [Fact] [Trait("Category", "unit")]
+    public void Equals_DuplicateMultiplicityDiffers_ReturnsFalse()
+    {
+        var ns1 = new Namespace { Accounts = new[] { "a", "a", "b" }, Methods = new[] { "m" }, Events = new[] { "e" } };
+        var ns2 = new Namespace { Accounts = new[] { "a", "b", "b" }, Methods = new[] { "m" }, Events = new[] { "e" } };
+
+        Assert.False(ns1.Equals(ns2));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void GetHashCode_EqualNamespacesWithDuplicates_ReturnsSameHash()
+    {
+        var ns1 = new Namespace { Accounts = new[] { "a", "a", "b" }, Methods = new[] { "m", "m" }, Events = new[] { "e" } };
+        var ns2 = new Namespace { Accounts = new[] { "b", "a", "a" }, Methods = new[] { "m", "m" }, Events = new[] { "e" } };
+
+        Assert.True(ns1.Equals(ns2));
+        Assert.Equal(ns1.GetHashCode(), ns2.GetHashCode());
+    }
 }
