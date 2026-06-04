@@ -210,6 +210,10 @@ jobs:
         uses: anthropics/claude-code-action@70a6e5256e9e2366a1ed5c041904a982ba3a328f # v1.0.135
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Provide a token explicitly so the action does not attempt the default OIDC token exchange
+          # (which would require `id-token: write`). This step's Claude has no gh/Bash tools, so the
+          # token is only used for the action's own setup, never by the model.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           claude_args: |
             --model claude-sonnet-4-6
             --max-turns 20
