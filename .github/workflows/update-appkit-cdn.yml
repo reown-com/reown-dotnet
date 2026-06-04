@@ -184,7 +184,7 @@ jobs:
       # unrestricted Bash, so it cannot change committed code, run git, or alter the PR's base/title.
       - name: Update PR description via Claude
         if: steps.versions.outputs.needs_update == 'true'
-        uses: anthropics/claude-code-action@v1
+        uses: anthropics/claude-code-action@70a6e5256e9e2366a1ed5c041904a982ba3a328f # v1.0.135
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           claude_args: |
