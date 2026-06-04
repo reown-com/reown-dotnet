@@ -19,6 +19,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  issues: write # opening a tracking issue when a scheduled run fails
 
 concurrency:
   group: update-appkit-cdn
@@ -309,4 +310,24 @@ jobs:
           else
             echo "::warning::No enriched description was produced; PR #$PR_NUMBER keeps its fallback body"
             echo "- Enrichment produced no body; PR #$PR_NUMBER keeps fallback body" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # A scheduled run failing silently could go unnoticed for a week. Open (or update, to avoid weekly
+      # duplicates) a tracking issue. Manual dispatch runs are watched live, so they are excluded. The
+      # non-critical enrichment step is continue-on-error, so it does not trigger this.
+      - name: Report scheduled failure
+        if: failure() && github.event_name == 'schedule'
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          TITLE="update-appkit-cdn workflow failed"
+          BODY=$(printf 'The scheduled update-appkit-cdn workflow failed.\n\nRun: %s\n\nThis issue is updated on each subsequent failure; close it once resolved.' "$RUN_URL")
+          EXISTING=$(gh issue list --state open --search "$TITLE in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body "$BODY"
+            echo "Updated existing failure issue #$EXISTING"
+          else
+            gh issue create --title "⚠️ $TITLE" --body "$BODY"
+            echo "Opened a new failure issue"
           fi
