@@ -1,0 +1,260 @@
+name: Update AppKit CDN
+
+# Weekly check for a new stable @reown/appkit-cdn release. When one exists, a deterministic
+# step bumps the version pinned in the Unity WebGL bridge, commits it, and opens a PR against
+# develop. Claude (Sonnet) then enriches that PR's description with a changelog and a Unity
+# WebGL impact assessment. Replaces the previous Devin automation.
+
+on:
+  schedule:
+    # Sundays at 08:00 UTC
+    - cron: "0 8 * * 0"
+  workflow_dispatch:
+    inputs:
+      force_version:
+        description: "Target @reown/appkit-cdn version (optional). Leave blank to use the npm 'latest' stable tag."
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: update-appkit-cdn
+  cancel-in-progress: false
+
+env:
+  JSLIB_PATH: src/Reown.AppKit.Unity/Plugins/AppKit.jslib
+  BASE_BRANCH: develop
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: develop
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: Determine versions
+        id: versions
+        env:
+          FORCE_VERSION: ${{ github.event.inputs.force_version }}
+        run: |
+          set -euo pipefail
+
+          CURRENT=$(grep -oE '@reown/appkit-cdn@[0-9]+\.[0-9]+\.[0-9]+' "$JSLIB_PATH" | head -1 | sed 's/.*@//' || true)
+          if [ -z "$CURRENT" ]; then
+            echo "::error::Could not parse the current @reown/appkit-cdn version from $JSLIB_PATH"
+            exit 1
+          fi
+
+          if [ -n "$FORCE_VERSION" ]; then
+            LATEST="$FORCE_VERSION"
+          else
+            LATEST=$(curl -fsSL "https://registry.npmjs.org/@reown/appkit-cdn/latest" | jq -r '.version')
+          fi
+
+          echo "Current: $CURRENT | Latest: $LATEST"
+
+          # Only act on clean stable releases (reject canary / prerelease tags like 1.8.21-improve-siwx.0).
+          if ! echo "$LATEST" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Latest version '$LATEST' is not a clean stable release; skipping."
+            echo "needs_update=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "$CURRENT" = "$LATEST" ]; then
+            echo "Already on the latest version ($CURRENT). Nothing to do."
+            echo "needs_update=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # On scheduled runs, never downgrade; only proceed if LATEST sorts strictly newer.
+          NEWER=$(printf '%s\n%s\n' "$CURRENT" "$LATEST" | sort -V | tail -1)
+          if [ "$NEWER" != "$LATEST" ] && [ -z "$FORCE_VERSION" ]; then
+            echo "Latest ($LATEST) is not newer than current ($CURRENT); skipping."
+            echo "needs_update=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          BRANCH="chore/bump-appkit-cdn-$LATEST"
+
+          # Avoid opening a duplicate PR if one is already in flight for this version.
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+            echo "Branch $BRANCH already exists on origin; skipping."
+            echo "needs_update=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          OPEN_PRS=$(gh pr list --state open --head "$BRANCH" --json number --jq 'length')
+          if [ "$OPEN_PRS" != "0" ]; then
+            echo "An open PR from $BRANCH already exists; skipping."
+            echo "needs_update=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "needs_update=true" >> "$GITHUB_OUTPUT"
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### AppKit CDN update"
+            echo ""
+            echo "- Current: \`$CURRENT\`"
+            echo "- Latest: \`$LATEST\`"
+            echo "- Action: opening PR on branch \`$BRANCH\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Deterministic mechanics: the version bump, branch, commit, push, and PR creation are
+      # owned by this step (not the model), so the diff and base branch are guaranteed correct.
+      # The PR opens with a useful fallback body in case the Claude enrichment step fails.
+      - name: Bump version and open PR
+        id: openpr
+        if: steps.versions.outputs.needs_update == 'true'
+        env:
+          CURRENT: ${{ steps.versions.outputs.current }}
+          LATEST: ${{ steps.versions.outputs.latest }}
+          BRANCH: ${{ steps.versions.outputs.branch }}
+        run: |
+          set -euo pipefail
+
+          git checkout -b "$BRANCH"
+
+          sed -i "s#@reown/appkit-cdn@${CURRENT}/#@reown/appkit-cdn@${LATEST}/#g" "$JSLIB_PATH"
+
+          if ! grep -q "@reown/appkit-cdn@${LATEST}/" "$JSLIB_PATH"; then
+            echo "::error::Version was not updated to $LATEST in $JSLIB_PATH"
+            exit 1
+          fi
+          if grep -q "@reown/appkit-cdn@${CURRENT}/" "$JSLIB_PATH"; then
+            echo "::error::Old version $CURRENT still present in $JSLIB_PATH after edit"
+            exit 1
+          fi
+
+          git add "$JSLIB_PATH"
+          git commit -m "chore: bump appkit-cdn to ${LATEST}"
+          git push -u origin "$BRANCH"
+
+          # Fallback description. The "Update PR description via Claude" step replaces this with
+          # the full changelog + WebGL impact analysis; if that step fails, the PR is still useful.
+          cat > "${RUNNER_TEMP}/pr-initial-body.md" <<EOF
+          ## Summary
+          Bumps the @reown/appkit-cdn version imported by the Unity WebGL bridge from $CURRENT to $LATEST.
+
+          > ⏳ The changelog and WebGL impact analysis are being generated and will be posted to this description shortly. Full upstream changelog: https://github.com/reown-com/appkit/blob/main/packages/cdn/CHANGELOG.md
+
+          ## Review & testing checklist
+          - [ ] Confirm @reown/appkit-cdn@$LATEST resolves on jsdelivr: https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@$LATEST/dist/appkit.js
+          - [ ] Confirm no other files reference the old version $CURRENT
+          - [ ] Build the Unity WebGL sample and smoke-test connect / sign / network switch against the Vercel preview
+
+          ## Notes
+          - This change only affects Unity WebGL builds; the .NET test suite does not cover Unity-specific code.
+          - Opened by the scheduled update-appkit-cdn workflow using the default GITHUB_TOKEN, so pull_request CI (Unity WebGL build + Vercel preview) does not start automatically. Push an empty commit or close/reopen to trigger it.
+          EOF
+
+          if ! PR_URL=$(gh pr create \
+            --base "$BASE_BRANCH" \
+            --head "$BRANCH" \
+            --title "chore: bump appkit-cdn to ${LATEST}" \
+            --body-file "${RUNNER_TEMP}/pr-initial-body.md"); then
+            echo "::error::gh pr create failed; deleting the pushed branch $BRANCH so future runs are not suppressed by the duplicate-branch guard"
+            git push origin --delete "$BRANCH" || true
+            exit 1
+          fi
+
+          echo "Opened PR: $PR_URL"
+          PR_NUMBER=$(printf '%s' "$PR_URL" | grep -oE '/pull/[0-9]+$' | grep -oE '[0-9]+$')
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "pr_url=$PR_URL" >> "$GITHUB_OUTPUT"
+          echo "- PR: $PR_URL" >> "$GITHUB_STEP_SUMMARY"
+
+      # Claude's only mutation is the PR body (a single `gh pr edit`). It has no Edit tool and no
+      # unrestricted Bash, so it cannot change committed code, run git, or alter the PR's base/title.
+      - name: Update PR description via Claude
+        if: steps.versions.outputs.needs_update == 'true'
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: |
+            --model claude-sonnet-4-6
+            --max-turns 25
+            --allowedTools "Read,Write,Glob,Grep,Bash(curl:*),Bash(gh:*)"
+          prompt: |
+            You are enriching the description of an already-open pull request for the Reown .NET / Unity SDK.
+
+            A deterministic CI step has ALREADY done all the mechanical work: it bumped
+            @reown/appkit-cdn from ${{ steps.versions.outputs.current }} to ${{ steps.versions.outputs.latest }}
+            in ${{ env.JSLIB_PATH }}, committed it, pushed the branch, and opened
+            PR #${{ steps.openpr.outputs.pr_number }} against `${{ env.BASE_BRANCH }}`.
+
+            Your ONLY job is to replace that PR's description with a high-quality changelog and a Unity
+            WebGL impact assessment. The single command that changes anything is one `gh pr edit`.
+
+            ## Tasks
+
+            1. Collect the changelog for every version greater than ${{ steps.versions.outputs.current }}
+               up to and including ${{ steps.versions.outputs.latest }}. Fetch these raw changelogs with curl:
+                 - https://raw.githubusercontent.com/reown-com/appkit/main/packages/cdn/CHANGELOG.md
+                 - https://raw.githubusercontent.com/reown-com/appkit/main/packages/appkit/CHANGELOG.md
+                 - https://raw.githubusercontent.com/reown-com/appkit/main/packages/adapters/wagmi/CHANGELOG.md
+               Save each file into ${{ runner.temp }} with `curl -o`, then inspect them with the Read and
+               Grep tools. Only `curl` and `gh` are available as shell commands — do NOT pipe curl through
+               grep / sed / awk or rely on other shell utilities.
+               The cdn changelog mostly says "Updated dependencies"; the real user-facing entries (with PR
+               links) live in the appkit and wagmi-adapter changelogs. Extract the meaningful entries —
+               features, fixes, behavioral/breaking changes — keeping their PR links (e.g. #5526 ->
+               https://github.com/reown-com/appkit/pull/5526). Skip pure "Updated dependencies" lines and
+               internal-only churn. If a changelog can't be fetched, note that in the body.
+
+            2. Assess WebGL impact. Read ${{ env.JSLIB_PATH }} to see exactly which web-SDK APIs the Unity
+               WebGL bridge depends on (createAppKit and its options such as isUnity / features /
+               excludeWalletIds / includeWalletIds / featuredWalletIds, WagmiAdapter, WagmiCore.reconnect,
+               Viem, networks.defineChain, account/network/state subscriptions, emitted event names, and the
+               signing / transaction / balance calls). Cross-reference the changelog against those APIs and
+               against WebGL-specific concerns: the ESM module shape loaded from jsdelivr, the exported names
+               under the AppKit namespace, option/return-shape changes, event renames, and anything touching
+               wagmi or viem. Write a short, specific assessment; if nothing is concerning, say so explicitly
+               and briefly justify why.
+
+            3. Compose the final PR description in markdown and write it to ${{ runner.temp }}/pr-body.md
+               (use the Write tool), with these sections:
+
+               ## Summary
+               One sentence: bumps the @reown/appkit-cdn version imported by the Unity WebGL bridge from
+               ${{ steps.versions.outputs.current }} to ${{ steps.versions.outputs.latest }}.
+
+               ## AppKit ${{ steps.versions.outputs.current }} -> ${{ steps.versions.outputs.latest }} changes
+               The filtered changelog, grouped as Added / Changed / Fixed where sensible, each item keeping
+               its PR link.
+
+               ## ⚠️ Potential WebGL impact
+               Your assessment from task 2.
+
+               ## Review & testing checklist
+               - [ ] Confirm `@reown/appkit-cdn@${{ steps.versions.outputs.latest }}` resolves on jsdelivr: https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@${{ steps.versions.outputs.latest }}/dist/appkit.js
+               - [ ] Confirm no other files reference the old version: `git grep -n "appkit-cdn@${{ steps.versions.outputs.current }}"`
+               - [ ] Build the Unity WebGL sample and smoke-test connect / sign / network switch against the Vercel preview
+
+               ## Notes
+               - This change only affects Unity WebGL builds; the .NET test suite does not cover Unity-specific code.
+               - Opened by the scheduled `update-appkit-cdn` workflow using the default GITHUB_TOKEN, so pull_request CI (Unity WebGL build + Vercel preview) does not start automatically. Push an empty commit or close/reopen the PR to trigger it.
+
+            4. Apply it: run `gh pr edit ${{ steps.openpr.outputs.pr_number }} --body-file ${{ runner.temp }}/pr-body.md`.
+               Then print the PR URL.
+
+            ## Constraints
+            - Do NOT edit, create, or delete any file in the repository. The only file you may write is
+              ${{ runner.temp }}/pr-body.md.
+            - Do NOT run git, and do NOT change the PR's base branch or title — only its body.
