@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       force_version:
-        description: "Target @reown/appkit-cdn version (optional). Leave blank to use the npm 'latest' stable tag."
+        description: "Manual override: pin a specific @reown/appkit-cdn version (must be a stable x.y.z). This deliberately bypasses the never-downgrade guard, so it can also roll BACK to an earlier version. Leave blank to use the npm 'latest' stable tag."
         required: false
         default: ""
 
@@ -278,6 +278,20 @@ jobs:
               summarize it factually.
             - The ONLY file you may write is ${{ runner.temp }}/pr-body.md. Do not modify any file in the
               repository.
+
+      # Enforce (not merely instruct) that the description step left the repository untouched. Its only
+      # legitimate output is a file under RUNNER_TEMP; any change to a tracked or untracked repo file is
+      # treated as tampering and fails the job before the description is applied. Nothing is committed
+      # after this point anyway, so an unscoped Write tool cannot reach the repo or the PR branch.
+      - name: Verify repository is unmodified
+        if: steps.versions.outputs.needs_update == 'true'
+        run: |
+          set -euo pipefail
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::The PR-description step modified the working tree; aborting without applying."
+            git status --porcelain
+            exit 1
+          fi
 
       # The single privileged GitHub mutation, performed by deterministic CI (not the model). Only runs
       # if Claude succeeded and actually produced a body; otherwise the PR keeps its fallback description.
