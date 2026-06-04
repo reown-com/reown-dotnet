@@ -61,7 +61,7 @@ jobs:
           if [ -n "$FORCE_VERSION" ]; then
             LATEST="$FORCE_VERSION"
           else
-            LATEST=$(curl -fsSL "https://registry.npmjs.org/@reown/appkit-cdn/latest" | jq -r '.version')
+            LATEST=$(curl --proto '=https' --proto-redir '=https' -fsSL "https://registry.npmjs.org/@reown/appkit-cdn/latest" | jq -r '.version')
           fi
 
           echo "Current: $CURRENT | Latest: $LATEST"
@@ -186,7 +186,7 @@ jobs:
         run: |
           set -euo pipefail
           fetch() {
-            if curl -fsSL --retry 3 "$1" -o "$2"; then
+            if curl --proto '=https' --proto-redir '=https' -fsSL --retry 3 "$1" -o "$2"; then
               echo "Fetched $1"
             else
               echo "::warning::Could not fetch $1"
