@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <DefaultVersion>1.6.0</DefaultVersion>
-        <DefaultTargetFrameworks>net7.0;net8.0;netstandard2.1;</DefaultTargetFrameworks>
+        <DefaultVersion>1.6.1</DefaultVersion>
+        <DefaultTargetFrameworks>net7.0;net8.0;net9.0;net10.0;netstandard2.1;</DefaultTargetFrameworks>
         <Copyright>reown inc.</Copyright>
         <PackageProjectUrl>https://reown.com/</PackageProjectUrl>
         <RepositoryUrl>https://github.com/reown-com/reown-dotnet</RepositoryUrl>

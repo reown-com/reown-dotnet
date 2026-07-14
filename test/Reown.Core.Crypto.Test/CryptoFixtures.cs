@@ -3,31 +3,29 @@ namespace Reown.Core.Crypto.Test;
 public class CryptoFixture : IDisposable
 {
     public Crypto PeerA { get; private set; }
-        
+
     public Crypto PeerB { get; private set; }
 
-    private readonly TaskCompletionSource<bool> _initCompleted = new();
+    private readonly Task _initTask;
 
     public CryptoFixture()
     {
         PeerA = new Crypto();
         PeerB = new Crypto();
 
-        Init();
+        _initTask = InitAsync();
     }
 
-    private async void Init()
+    private async Task InitAsync()
     {
         await Task.WhenAll(PeerA.Init(), PeerB.Init());
-            
-        _initCompleted.SetResult(true);
     }
-        
+
     public Task WaitForModulesReady()
     {
-        return _initCompleted.Task;
+        return _initTask;
     }
-        
+
     public void Dispose()
     {
         PeerA.Storage.Clear();

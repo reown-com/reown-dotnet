@@ -518,4 +518,324 @@ public class RecapTests
 
         _ = ReCap.Decode(mergedRecap);
     }
+
+    private static ReCap CreateEip155Recap()
+    {
+        var (resource, ability, actions, limits) = GetRecapProperties();
+        return new ReCap(resource, ability, actions, limits);
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void ValidateRecap_EmptyAtt_ThrowsArgumentException()
+    {
+        var recap = new ReCap(new Dictionary<string, AttValue>());
+
+        var exception = Assert.Throws<ArgumentException>(() => ReCap.Validate(recap));
+
+        Assert.Equal("No resources found in `att` property", exception.Message);
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void ValidateRecap_LimitNotAnObject_ThrowsArgumentException()
+    {
+        var recap = new ReCap(new Dictionary<string, AttValue>
+        {
+            {
+                "resource1", new AttValue
+                {
+                    Properties = new Dictionary<string, JToken>
+                    {
+                        { "ability1", new JArray("not-an-object") }
+                    }
+                }
+            }
+        });
+
+        var exception = Assert.Throws<ArgumentException>(() => ReCap.Validate(recap));
+
+        Assert.Contains("must be an object", exception.Message);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void AssignAbilityToActions_NullOrWhitespaceAbility_ThrowsArgumentException(string ability)
+    {
+        Assert.Throws<ArgumentException>(() => ReCap.AssignAbilityToActions(ability, new[]
+        {
+            "personal_sign"
+        }));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void AssignAbilityToActions_NullActions_ThrowsArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(() => ReCap.AssignAbilityToActions("request", null));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void Decode_EmptyAtt_ThrowsArgumentException()
+    {
+        var encoded = "urn:recap:" + Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("{\"att\":{}}")).TrimEnd('=');
+
+        Assert.Throws<ArgumentException>(() => ReCap.Decode(encoded));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void Decode_InvalidBase64_ThrowsFormatException()
+    {
+        Assert.Throws<FormatException>(() => ReCap.Decode("urn:recap:!!!"));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void GetActions_NoEip155Resource_ReturnsEmpty()
+    {
+        var recap = new ReCap("solana", "request", new[]
+        {
+            "sol_signMessage"
+        });
+
+        Assert.Empty(recap.GetActions());
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void TryGetRecapFromResources_NullResources_ReturnsFalse()
+    {
+        var success = ReCap.TryGetRecapFromResources(null, out var recap);
+
+        Assert.False(success);
+        Assert.Null(recap);
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void TryGetRecapFromResources_RecapIsLastResource_ReturnsTrue()
+    {
+        var encoded = CreateEip155Recap().Encode();
+        var resources = new[]
+        {
+            "https://example.com",
+            encoded
+        };
+
+        var success = ReCap.TryGetRecapFromResources(resources, out var recap);
+
+        Assert.True(success);
+        Assert.Equal(encoded, recap);
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void TryGetRecapFromResources_NoRecap_ReturnsFalse()
+    {
+        var resources = new[]
+        {
+            "https://example.com",
+            "https://other.com"
+        };
+
+        var success = ReCap.TryGetRecapFromResources(resources, out var recap);
+
+        Assert.False(success);
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void TryGetDecodedRecapFromResources_RecapIsLastResource_ReturnsDecodedRecap()
+    {
+        var encoded = CreateEip155Recap().Encode();
+        var resources = new[]
+        {
+            "https://example.com",
+            encoded
+        };
+
+        var success = ReCap.TryGetDecodedRecapFromResources(resources, out var recap);
+
+        Assert.True(success);
+        Assert.NotNull(recap);
+        Assert.True(recap.Att.ContainsKey("eip155"));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void TryGetDecodedRecapFromResources_NoRecap_ReturnsFalseAndNull()
+    {
+        var resources = new[]
+        {
+            "https://example.com"
+        };
+
+        var success = ReCap.TryGetDecodedRecapFromResources(resources, out var recap);
+
+        Assert.False(success);
+        Assert.Null(recap);
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void GetChainsFromEncodedRecap_ChainsAsStringToken_ReturnsChain()
+    {
+        var recap = new ReCap(new Dictionary<string, AttValue>
+        {
+            {
+                "eip155", new AttValue
+                {
+                    Properties = new Dictionary<string, JToken>
+                    {
+                        {
+                            "request/personal_sign", new JArray(new JObject
+                            {
+                                ["chains"] = "eip155:1"
+                            })
+                        }
+                    }
+                }
+            }
+        });
+
+        var chains = ReCap.GetChainsFromEncodedRecap(recap.Encode());
+
+        Assert.Equal(new[]
+        {
+            "eip155:1"
+        }, chains);
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void FormatStatement_CustomStatementContainingBase_ReturnsCustomStatementUnchanged()
+    {
+        var recap = CreateEip155Recap();
+        const string custom = "I further authorize the stated URI to perform the following actions on my behalf: existing.";
+
+        Assert.Equal(custom, recap.FormatStatement(custom));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void FormatStatement_CustomStatementWithoutBase_PrependsCustomStatement()
+    {
+        var recap = CreateEip155Recap();
+
+        var result = recap.FormatStatement("Sign in with Ethereum.");
+
+        Assert.StartsWith("Sign in with Ethereum. I further authorize the stated URI", result);
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void AddResources_NullResource_ThrowsArgumentNullException()
+    {
+        var recap = CreateEip155Recap();
+
+        Assert.Throws<ArgumentNullException>(() => recap.AddResources(null, NewActions()));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void AddResources_NullActions_ThrowsArgumentException()
+    {
+        var recap = CreateEip155Recap();
+
+        Assert.Throws<ArgumentException>(() => recap.AddResources("eip155", null));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void AddResources_EmptyActions_ThrowsArgumentException()
+    {
+        var recap = CreateEip155Recap();
+
+        Assert.Throws<ArgumentException>(() => recap.AddResources("eip155", new Dictionary<string, Dictionary<string, object>[]>()));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void AddResources_NullAtt_ThrowsInvalidOperationException()
+    {
+        var recap = new ReCap(null);
+
+        Assert.Throws<InvalidOperationException>(() => recap.AddResources("eip155", NewActions()));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void AddResources_NewResource_AddsResource()
+    {
+        var recap = CreateEip155Recap();
+
+        recap.AddResources("solana", NewActions("request/sol_signMessage"));
+
+        Assert.True(recap.Att.ContainsKey("solana"));
+        Assert.True(recap.Att["solana"].Properties.ContainsKey("request/sol_signMessage"));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void AddResources_ExistingResourceNewAction_AddsAction()
+    {
+        var recap = CreateEip155Recap();
+
+        recap.AddResources("eip155", NewActions("request/eth_sign"));
+
+        Assert.True(recap.Att["eip155"].Properties.ContainsKey("request/eth_sign"));
+        Assert.True(recap.Att["eip155"].Properties.ContainsKey("request/personal_sign"));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void AddResources_ExistingArrayAction_MergesUnion()
+    {
+        var recap = CreateEip155Recap();
+        var extra = new Dictionary<string, Dictionary<string, object>[]>
+        {
+            {
+                "request/personal_sign", new[]
+                {
+                    new Dictionary<string, object>
+                    {
+                        {
+                            "chains", new[]
+                            {
+                                "eip155:99"
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        recap.AddResources("eip155", extra);
+
+        var merged = (JArray)recap.Att["eip155"].Properties["request/personal_sign"];
+        Assert.Equal(2, merged.Count);
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void AddResources_ExistingNonArrayAction_ThrowsInvalidOperationException()
+    {
+        var recap = new ReCap(new Dictionary<string, AttValue>
+        {
+            {
+                "eip155", new AttValue
+                {
+                    Properties = new Dictionary<string, JToken>
+                    {
+                        { "request/personal_sign", JToken.FromObject("not-an-array") }
+                    }
+                }
+            }
+        });
+
+        Assert.Throws<InvalidOperationException>(() => recap.AddResources("eip155", NewActions("request/personal_sign")));
+    }
+
+    private static Dictionary<string, Dictionary<string, object>[]> NewActions(string key = "request/eth_sign")
+    {
+        return new Dictionary<string, Dictionary<string, object>[]>
+        {
+            {
+                key, new[]
+                {
+                    new Dictionary<string, object>
+                    {
+                        {
+                            "chains", new[]
+                            {
+                                "eip155:1"
+                            }
+                        }
+                    }
+                }
+            }
+        };
+    }
 }

@@ -202,24 +202,24 @@ public class SignTests : IAsyncLifetime
                 {
                     "eip155", new ProposedNamespace
                     {
-                        Methods = new[]
-                        {
+                        Methods =
+                        [
                             "eth_sendTransaction",
                             "eth_signTransaction",
                             "eth_sign",
                             "personal_sign",
                             "eth_signTypedData"
-                        },
-                        Chains = new[]
-                        {
+                        ],
+                        Chains =
+                        [
                             "eip155:1",
                             "eip155:10"
-                        },
-                        Events = new[]
-                        {
+                        ],
+                        Events =
+                        [
                             "chainChanged",
                             "accountsChanged"
-                        }
+                        ]
                     }
                 }
             }
@@ -287,24 +287,24 @@ public class SignTests : IAsyncLifetime
                 {
                     "eip155", new ProposedNamespace
                     {
-                        Methods = new[]
-                        {
+                        Methods =
+                        [
                             "eth_sendTransaction",
                             "eth_signTransaction",
                             "eth_sign",
                             "personal_sign",
                             "eth_signTypedData"
-                        },
-                        Chains = new[]
-                        {
+                        ],
+                        Chains =
+                        [
                             "eip155:1",
                             "eip155:10"
-                        },
-                        Events = new[]
-                        {
+                        ],
+                        Events =
+                        [
                             "chainChanged",
                             "accountsChanged"
-                        }
+                        ]
                     }
                 }
             }
@@ -348,20 +348,20 @@ public class SignTests : IAsyncLifetime
                 {
                     "eip155", new ProposedNamespace
                     {
-                        Methods = new[]
-                        {
+                        Methods =
+                        [
                             testMethod
-                        },
-                        Chains = new[]
-                        {
+                        ],
+                        Chains =
+                        [
                             "eip155:1",
                             "eip155:10"
-                        },
-                        Events = new[]
-                        {
+                        ],
+                        Events =
+                        [
                             "chainChanged",
                             "accountsChanged"
-                        }
+                        ]
                     }
                 }
             }
@@ -463,20 +463,20 @@ public class SignTests : IAsyncLifetime
                 {
                     "eip155", new ProposedNamespace
                     {
-                        Methods = new[]
-                        {
+                        Methods =
+                        [
                             validMethod
-                        },
-                        Chains = new[]
-                        {
+                        ],
+                        Chains =
+                        [
                             "eip155:1",
                             "eip155:10"
-                        },
-                        Events = new[]
-                        {
+                        ],
+                        Events =
+                        [
                             "chainChanged",
                             "accountsChanged"
-                        }
+                        ]
                     }
                 }
             }
@@ -547,21 +547,21 @@ public class SignTests : IAsyncLifetime
                 {
                     "eip155", new ProposedNamespace
                     {
-                        Methods = new[]
-                        {
+                        Methods =
+                        [
                             testMethod,
                             testMethod2
-                        },
-                        Chains = new[]
-                        {
+                        ],
+                        Chains =
+                        [
                             "eip155:1",
                             "eip155:10"
-                        },
-                        Events = new[]
-                        {
+                        ],
+                        Events =
+                        [
                             "chainChanged",
                             "accountsChanged"
-                        }
+                        ]
                     }
                 }
             }
@@ -687,21 +687,21 @@ public class SignTests : IAsyncLifetime
                 {
                     "eip155", new ProposedNamespace
                     {
-                        Methods = new[]
-                        {
+                        Methods =
+                        [
                             testMethod,
                             testMethod2
-                        },
-                        Chains = new[]
-                        {
+                        ],
+                        Chains =
+                        [
                             "eip155:1",
                             "eip155:10"
-                        },
-                        Events = new[]
-                        {
+                        ],
+                        Events =
+                        [
                             "chainChanged",
                             "accountsChanged"
-                        }
+                        ]
                     }
                 }
             }
@@ -831,20 +831,20 @@ public class SignTests : IAsyncLifetime
                     {
                         "eip155", new ProposedNamespace
                         {
-                            Methods = new[]
-                            {
+                            Methods =
+                            [
                                 testMethod,
                                 testMethod2
-                            },
-                            Chains = new[]
-                            {
+                            ],
+                            Chains =
+                            [
                                 "eip155:1"
-                            },
-                            Events = new[]
-                            {
+                            ],
+                            Events =
+                            [
                                 "chainChanged",
                                 "accountsChanged"
-                            }
+                            ]
                         }
                     }
                 }
@@ -981,20 +981,20 @@ public class SignTests : IAsyncLifetime
                 {
                     "eip155", new ProposedNamespace
                     {
-                        Methods = new[]
-                        {
+                        Methods =
+                        [
                             testMethod,
                             testMethod2
-                        },
-                        Chains = new[]
-                        {
+                        ],
+                        Chains =
+                        [
                             "eip155:1"
-                        },
-                        Events = new[]
-                        {
+                        ],
+                        Events =
+                        [
                             "chainChanged",
                             "accountsChanged"
-                        }
+                        ]
                     }
                 }
             }
@@ -1102,20 +1102,20 @@ public class SignTests : IAsyncLifetime
                 {
                     "eip155", new ProposedNamespace
                     {
-                        Methods = new[]
-                        {
+                        Methods =
+                        [
                             testMethod
-                        },
-                        Chains = new[]
-                        {
+                        ],
+                        Chains =
+                        [
                             "eip155:1",
                             "eip155:10"
-                        },
-                        Events = new[]
-                        {
+                        ],
+                        Events =
+                        [
                             "chainChanged",
                             "accountsChanged"
-                        }
+                        ]
                     }
                 }
             }
@@ -1208,20 +1208,20 @@ public class SignTests : IAsyncLifetime
                 {
                     "eip155", new ProposedNamespace
                     {
-                        Methods = new[]
-                        {
+                        Methods =
+                        [
                             testMethod
-                        },
-                        Chains = new[]
-                        {
+                        ],
+                        Chains =
+                        [
                             "eip155:1",
                             "eip155:10"
-                        },
-                        Events = new[]
-                        {
+                        ],
+                        Events =
+                        [
                             "chainChanged",
                             "accountsChanged"
-                        }
+                        ]
                     }
                 }
             }
@@ -1289,5 +1289,89 @@ public class SignTests : IAsyncLifetime
         );
 
         Assert.Equal(ErrorType.GENERIC, exception.CodeType);
+    }
+
+    private async Task<(string sessionTopic, string pairingTopic)> ConnectAndApprove()
+    {
+        const string testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
+        var dappConnectOptions = new ConnectOptions
+        {
+            RequiredNamespaces = new RequiredNamespaces
+            {
+                {
+                    "eip155", new ProposedNamespace
+                    {
+                        Methods = ["eth_sign"],
+                        Chains = ["eip155:1", "eip155:10"],
+                        Events = ["chainChanged", "accountsChanged"]
+                    }
+                }
+            }
+        };
+
+        var connectData = await _dapp.Connect(dappConnectOptions);
+        var pairingTopic = connectData.Uri["wc:".Length..].Split('@')[0];
+
+        _wallet.SessionProposed += async (sender, @event) =>
+        {
+            var approvedNamespaces = new Namespaces(@event.Proposal.RequiredNamespaces);
+            approvedNamespaces["eip155"]
+                .WithAccount($"eip155:1:{testAddress}")
+                .WithAccount($"eip155:10:{testAddress}");
+
+            var approveData = await _wallet.Approve(new ApproveParams
+            {
+                Id = @event.Id,
+                Namespaces = approvedNamespaces
+            });
+            await approveData.Acknowledged();
+        };
+
+        _ = await _wallet.Pair(connectData.Uri);
+        var sessionData = await connectData.Approval;
+
+        return (sessionData.Topic, pairingTopic);
+    }
+
+    [Fact] [Trait("Category", "integration")]
+    public async Task TestSessionPing()
+    {
+        var (sessionTopic, _) = await ConnectAndApprove();
+
+        var pinged = new TaskCompletionSource<string>();
+        _wallet.SessionPinged += (sender, @event) => pinged.TrySetResult(@event.Topic);
+
+        await _dapp.PingAsync(sessionTopic);
+
+        var pingedTopic = await pinged.Task.WithTimeout(TimeSpan.FromSeconds(5));
+        Assert.Equal(sessionTopic, pingedTopic);
+    }
+
+    [Fact] [Trait("Category", "integration")]
+    public async Task TestPairingPing()
+    {
+        var (_, pairingTopic) = await ConnectAndApprove();
+
+        var pinged = new TaskCompletionSource<string>();
+        _wallet.CoreClient.Pairing.PairingPinged += (sender, @event) => pinged.TrySetResult(@event.Topic);
+
+        await _dapp.CoreClient.Pairing.Ping(pairingTopic);
+
+        var pingedTopic = await pinged.Task.WithTimeout(TimeSpan.FromSeconds(5));
+        Assert.Equal(pairingTopic, pingedTopic);
+    }
+
+    [Fact] [Trait("Category", "integration")]
+    public async Task TestPairingDisconnect()
+    {
+        var (_, pairingTopic) = await ConnectAndApprove();
+
+        var deleted = new TaskCompletionSource<string>();
+        _wallet.CoreClient.Pairing.PairingDeleted += (sender, @event) => deleted.TrySetResult(@event.Topic);
+
+        await _dapp.CoreClient.Pairing.Disconnect(pairingTopic);
+
+        var deletedTopic = await deleted.Task.WithTimeout(TimeSpan.FromSeconds(5));
+        Assert.Equal(pairingTopic, deletedTopic);
     }
 }

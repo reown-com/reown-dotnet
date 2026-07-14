@@ -19,5 +19,6 @@
     </ItemGroup>
     <ItemGroup>
         <InternalsVisibleTo Include="Reown.Core.Network.Test" />
+        <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
     </ItemGroup>
 </Project>
