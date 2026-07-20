@@ -282,6 +282,7 @@ namespace Reown.Core.Controllers
                 catch (KeychainKeyNotFoundException ex)
                 {
                     ReownLogger.Log($"[{Name}] Dropping message on topic {topic}: {ex.Message}");
+                    return;
                 }
                 catch (Exception ex) when (ex is JsonException)
                 {

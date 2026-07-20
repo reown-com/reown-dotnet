@@ -55,4 +55,10 @@ public class KeyChainTests
         Assert.Equal(tag, exception.Tag);
         Assert.Equal($"Keychain does not contain key with tag: {tag}.", exception.Message);
     }
+
+    [Fact, Trait("Category", "unit")]
+    public void KeychainKeyNotFoundExceptionThrowsForNullTag()
+    {
+        Assert.Throws<ArgumentNullException>(() => new KeychainKeyNotFoundException(null!));
+    }
 }

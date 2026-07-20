@@ -19,7 +19,7 @@ namespace Reown.Core.Crypto
         public KeychainKeyNotFoundException(string tag)
             : base($"Keychain does not contain key with tag: {tag}.")
         {
-            Tag = tag;
+            Tag = tag ?? throw new ArgumentNullException(nameof(tag));
         }
 
         /// <summary>
