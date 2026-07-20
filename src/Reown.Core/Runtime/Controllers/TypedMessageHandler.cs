@@ -256,14 +256,17 @@ namespace Reown.Core.Controllers
                 var history = await CoreClient.History.JsonRpcHistoryOfType<T, TR>();
                 var expectingResult = await history.Exists(topic, rawResultPayload.Id);
 
-                var (resultDecoded, payload) = await TryDecodeOrDrop<JsonRpcResponse<TR>>(topic, message, options);
-                if (!resultDecoded) return;
-
                 try
                 {
+                    var payload = await CoreClient.Crypto.Decode<JsonRpcResponse<TR>>(topic, message, options);
+
                     await history.Resolve(payload);
 
                     await responseCallback(topic, payload);
+                }
+                catch (KeychainKeyNotFoundException ex)
+                {
+                    ReownLogger.Log($"[{Name}] Dropping message on topic {topic}: {ex.Message}");
                 }
                 catch (Exception ex) when (ex is JsonException)
                 {
