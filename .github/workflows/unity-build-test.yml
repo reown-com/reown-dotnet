@@ -9,6 +9,7 @@ on:
       - 'playground/**'
       - 'Reown.slnx'
       - 'Directory.Packages.props'
+      - '!**.md'
   pull_request:
     types: [opened, reopened, synchronize]
     paths:
@@ -17,6 +18,7 @@ on:
       - 'playground/**'
       - 'Reown.slnx'
       - 'Directory.Packages.props'
+      - '!**.md'
   workflow_dispatch:
 
 permissions:
