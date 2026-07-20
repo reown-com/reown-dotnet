@@ -132,11 +132,12 @@ namespace Reown.Core.Crypto
         }
 
         /// <summary>
-        ///     Get a saved key with the given tag.
+        ///     Get a saved key with the given tag. If no tag exists, then a <see cref="KeychainKeyNotFoundException" /> will
+        ///     be thrown.
         /// </summary>
         /// <param name="tag">The tag of the key to retrieve</param>
         /// <returns>The key with the given tag</returns>
-        /// <exception cref="InvalidOperationException">Thrown if the given tag does not match any key</exception>
+        /// <exception cref="KeychainKeyNotFoundException">Thrown if the given tag does not match any key</exception>
         public async Task<string> Get(string tag)
         {
             IsInitialized();
@@ -146,11 +147,11 @@ namespace Reown.Core.Crypto
         }
 
         /// <summary>
-        ///     Delete a key with the given tag. If no tag exists, then a ReownNetworkException will
+        ///     Delete a key with the given tag. If no tag exists, then a <see cref="KeychainKeyNotFoundException" /> will
         ///     be thrown.
         /// </summary>
         /// <param name="tag">The tag of the key to delete</param>
-        /// <exception cref="InvalidOperationException">Thrown if the given tag does not match any key</exception>
+        /// <exception cref="KeychainKeyNotFoundException">Thrown if the given tag does not match any key</exception>
         public async Task Delete(string tag)
         {
             IsInitialized();
@@ -164,7 +165,7 @@ namespace Reown.Core.Crypto
         {
             if (!await Has(tag))
             {
-                throw new InvalidOperationException($"Keychain does not contain key with tag: {tag}.");
+                throw new KeychainKeyNotFoundException(tag);
             }
         }
 

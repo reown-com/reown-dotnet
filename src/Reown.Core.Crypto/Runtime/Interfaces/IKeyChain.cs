@@ -43,20 +43,20 @@ namespace Reown.Core.Crypto.Interfaces
         Task Set(string tag, string key);
 
         /// <summary>
-        ///     Get a saved key with the given tag. If no tag exists, then a ReownNetworkException will
+        ///     Get a saved key with the given tag. If no tag exists, then a <see cref="KeychainKeyNotFoundException" /> will
         ///     be thrown.
         /// </summary>
         /// <param name="tag">The tag of the key to retrieve</param>
         /// <returns>The key with the given tag</returns>
-        /// <exception cref="ReownNetworkException">Thrown if the given tag does not match any key</exception>
+        /// <exception cref="KeychainKeyNotFoundException">Thrown if the given tag does not match any key</exception>
         Task<string> Get(string tag);
 
         /// <summary>
-        ///     Delete a key with the given tag. If no tag exists, then a ReownNetworkException will
+        ///     Delete a key with the given tag. If no tag exists, then a <see cref="KeychainKeyNotFoundException" /> will
         ///     be thrown.
         /// </summary>
         /// <param name="tag">The tag of the key to delete</param>
-        /// <exception cref="ReownNetworkException">Thrown if the given tag does not match any key</exception>
+        /// <exception cref="KeychainKeyNotFoundException">Thrown if the given tag does not match any key</exception>
         Task Delete(string tag);
     }
 }
