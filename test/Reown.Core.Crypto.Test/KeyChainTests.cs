@@ -41,7 +41,7 @@ public class KeyChainTests
 
         var exception = await Assert.ThrowsAsync<KeychainKeyNotFoundException>(() => keyChain.Get("unknown-tag"));
 
-        Assert.IsAssignableFrom<InvalidOperationException>(exception);
+        Assert.IsType<InvalidOperationException>(exception, exactMatch: false);
     }
 
     [Fact, Trait("Category", "unit")]

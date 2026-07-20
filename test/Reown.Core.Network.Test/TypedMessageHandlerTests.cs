@@ -18,7 +18,7 @@ namespace Reown.Core.Network.Test
     ///     Tests that <see cref="TypedMessageHandler" /> silently drops inbound messages when the
     ///     keychain no longer contains the key required to decode them.
     /// </summary>
-    public class TypedMessageHandlerTests : IDisposable
+    public sealed class TypedMessageHandlerTests : IDisposable
     {
         private readonly ILogger _previousLogger = ReownLogger.Instance;
         private readonly CapturingLogger _logger = new();
