@@ -1,6 +1,15 @@
 name: Build Unity Sample
 
 on:
+  push:
+    branches: [ develop ]
+    paths:
+      - 'src/**'
+      - 'sample/**'
+      - 'playground/**'
+      - 'Reown.slnx'
+      - 'Directory.Packages.props'
+      - '!**.md'
   pull_request:
     types: [opened, reopened, synchronize]
     paths:
@@ -9,6 +18,7 @@ on:
       - 'playground/**'
       - 'Reown.slnx'
       - 'Directory.Packages.props'
+      - '!**.md'
   workflow_dispatch:
 
 permissions:
@@ -20,7 +30,7 @@ concurrency:
 
 jobs:
   buildForAllSupportedPlatforms:
-    if: github.event.pull_request.draft == false
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     name: Build for ${{ matrix.targetPlatform }}
     runs-on: ubuntu-latest
     strategy:
@@ -44,8 +54,10 @@ jobs:
       - uses: actions/cache@v5
         with:
           path: ${{ matrix.projectPath }}/Library
-          key: Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}
-          restore-keys: Library-
+          key: Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}-${{ hashFiles(format('{0}/Assets/**', matrix.projectPath), format('{0}/Packages/**', matrix.projectPath), format('{0}/ProjectSettings/**', matrix.projectPath)) }}
+          restore-keys: |
+            Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}-
+            Library-${{ matrix.projectPath }}-
       - uses: game-ci/unity-builder@d829bfc901f2347c8fe18898f06712b66916ef42 # v5.0.0
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -63,7 +75,7 @@ jobs:
           name: Build-${{ matrix.targetPlatform }}
           path: Builds/${{ matrix.targetPlatform }}
   testAllModes:
-    if: github.event.pull_request.draft == false
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     name: Test in ${{ matrix.testMode }}
     runs-on: ubuntu-latest
     permissions:
@@ -88,8 +100,10 @@ jobs:
       - uses: actions/cache@v5
         with:
           path: ${{ matrix.projectPath }}/Library
-          key: Library-${{ matrix.projectPath }}-${{ matrix.testMode }}
-          restore-keys: Library-
+          key: Library-${{ matrix.projectPath }}-${{ matrix.testMode }}-${{ hashFiles(format('{0}/Assets/**', matrix.projectPath), format('{0}/Packages/**', matrix.projectPath), format('{0}/ProjectSettings/**', matrix.projectPath)) }}
+          restore-keys: |
+            Library-${{ matrix.projectPath }}-${{ matrix.testMode }}-
+            Library-${{ matrix.projectPath }}-
       - uses: game-ci/unity-test-runner@0ff419b913a3630032cbe0de48a0099b5a9f0ed9 # v4.3.1
         id: tests
         env:
@@ -114,6 +128,7 @@ jobs:
 
   deployToVercel:
     name: Deploy to Vercel
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     needs: buildForAllSupportedPlatforms
     permissions:
