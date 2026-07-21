@@ -79,17 +79,34 @@ namespace Reown.Core.Controllers
                     }
                     catch (Exception e)
                     {
-                        ReownLogger.LogError(e);
+                        LogSafely(e);
                     }
                 }
             }
             catch (Exception e)
             {
-                ReownLogger.LogError(e);
                 lock (_lock)
                 {
                     _isProcessing = false;
                 }
+
+                LogSafely(e);
+            }
+        }
+
+        /// <summary>
+        ///     Logs the exception, swallowing logger failures so that a faulty logger can neither stop the pump
+        ///     nor leak an exception into the producer's <c>Enqueue</c> task.
+        /// </summary>
+        /// <param name="e">The exception to log.</param>
+        private static void LogSafely(Exception e)
+        {
+            try
+            {
+                ReownLogger.LogError(e);
+            }
+            catch
+            {
             }
         }
     }

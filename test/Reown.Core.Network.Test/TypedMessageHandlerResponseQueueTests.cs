@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NSubstitute;
+using Reown.Core.Common.Logging;
 using Reown.Core.Controllers;
 using Reown.Core.Crypto.Interfaces;
 using Reown.Core.Crypto.Models;
@@ -289,6 +291,60 @@ namespace Reown.Core.Network.Test
             Assert.Same(firstHandlerCompleted.Task, completed);
         }
 
+        /// <summary>
+        ///     Ensures a message that fails to decode (e.g. the topic's sym key was deleted between delivery and
+        ///     decode) is logged instead of escaping the <c>async void</c> relay callback and crashing the process,
+        ///     and that later messages are still processed.
+        /// </summary>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task DecodeFailure_IsLoggedInsteadOfEscapingRelayCallback_AndLaterMessagesStillProcess()
+        {
+            var relayer = Substitute.For<IRelayer>();
+            var crypto = Substitute.For<ICrypto>();
+            var coreClient = Substitute.For<ICoreClient>();
+
+            coreClient.Relayer.Returns(relayer);
+            coreClient.Crypto.Returns(crypto);
+
+            var responsePayload = JsonConvert.DeserializeObject<JsonRpcPayload>(ResponsePayloadJson);
+            var decodeFailure = new InvalidOperationException("decode failure");
+            var decodeCalls = 0;
+            crypto.Decode<JsonRpcPayload>(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DecodeOptions>())
+                .Returns(_ =>
+                {
+                    if (Interlocked.Increment(ref decodeCalls) == 1)
+                    {
+                        throw decodeFailure;
+                    }
+
+                    return responsePayload;
+                });
+
+            var handler = new TypedMessageHandler(coreClient);
+            await handler.Init();
+
+            var rawMessageCount = 0;
+            handler.RawMessage += (_, _) => rawMessageCount++;
+
+            var originalLogger = ReownLogger.Instance;
+            var recordingLogger = new RecordingLogger();
+            ReownLogger.Instance = recordingLogger;
+
+            try
+            {
+                RaiseMessageReceived(relayer);
+                RaiseMessageReceived(relayer);
+            }
+            finally
+            {
+                ReownLogger.Instance = originalLogger;
+            }
+
+            Assert.Contains(decodeFailure, recordingLogger.Exceptions);
+            Assert.Equal(1, rawMessageCount);
+        }
+
         private static async Task<JsonRpcPayload> WaitForGate(TaskCompletionSource<bool> gate, JsonRpcPayload payload)
         {
             await gate.Task;
@@ -316,6 +372,24 @@ namespace Reown.Core.Network.Test
                 Topic = "topic",
                 Message = "encoded"
             });
+        }
+
+        private sealed class RecordingLogger : ILogger
+        {
+            public List<Exception> Exceptions { get; } = new();
+
+            public void Log(string message)
+            {
+            }
+
+            public void LogError(string message)
+            {
+            }
+
+            public void LogError(Exception e)
+            {
+                Exceptions.Add(e);
+            }
         }
 
         [RpcMethod("test_method")]

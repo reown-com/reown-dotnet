@@ -369,6 +369,10 @@ namespace Reown.Core.Controllers
         ///     An override to specify how long this request will live for. If null is given, then expiry will be taken from either T or TR
         ///     attributed options
         /// </param>
+        /// <param name="ct">
+        ///     Cancels the request only before the send begins; the token is not propagated into encoding,
+        ///     history recording, or publishing
+        /// </param>
         /// <typeparam name="T">The request type</typeparam>
         /// <typeparam name="TR">The response type</typeparam>
         /// <returns>The id of the request sent</returns>
@@ -438,24 +442,31 @@ namespace Reown.Core.Controllers
 
         private async void RelayMessageCallback(object sender, MessageEvent e)
         {
-            var topic = e.Topic;
-            var message = e.Message;
-
-            var options = DecodeOptionForTopic(topic);
-
-            var payload = await CoreClient.Crypto.Decode<JsonRpcPayload>(topic, message, options);
-            if (payload.IsRequest)
+            try
             {
-                await _requestPump.Enqueue((payload.Method, e));
-            }
-            else if (payload.IsResponse)
-            {
-                await _responsePump.Enqueue(new DecodedMessageEvent
+                var topic = e.Topic;
+                var message = e.Message;
+
+                var options = DecodeOptionForTopic(topic);
+
+                var payload = await CoreClient.Crypto.Decode<JsonRpcPayload>(topic, message, options);
+                if (payload.IsRequest)
                 {
-                    Topic = topic,
-                    Message = message,
-                    Payload = payload
-                });
+                    await _requestPump.Enqueue((payload.Method, e));
+                }
+                else if (payload.IsResponse)
+                {
+                    await _responsePump.Enqueue(new DecodedMessageEvent
+                    {
+                        Topic = topic,
+                        Message = message,
+                        Payload = payload
+                    });
+                }
+            }
+            catch (Exception exception)
+            {
+                ReownLogger.LogError(exception);
             }
         }
 
@@ -466,6 +477,7 @@ namespace Reown.Core.Controllers
                 return;
             }
 
+            // Iterate backwards so a callback disposing its own handler token mid-dispatch does not skip the next callback
             for (var i = callbacks.Count - 1; i >= 0; i--)
             {
                 try

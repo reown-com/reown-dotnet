@@ -475,20 +475,28 @@ namespace Reown.Sign
                 if (approvalTask.Task.IsCompleted)
                     return;
 
-                session.Self.PublicKey = publicKey;
-                session.RequiredNamespaces = requiredNamespaces;
-
-                await PrivateThis.SetExpiry(session.Topic, session.Expiry.Value);
-                await Client.Session.Set(session.Topic, session);
-
-                if (!string.IsNullOrWhiteSpace(topic))
+                try
                 {
-                    await Client.CoreClient.Pairing.UpdateMetadata(topic, session.Peer.Metadata);
+                    session.Self.PublicKey = publicKey;
+                    session.RequiredNamespaces = requiredNamespaces;
+
+                    await PrivateThis.SetExpiry(session.Topic, session.Expiry.Value);
+                    await Client.Session.Set(session.Topic, session);
+
+                    if (!string.IsNullOrWhiteSpace(topic))
+                    {
+                        await Client.CoreClient.Pairing.UpdateMetadata(topic, session.Peer.Metadata);
+                    }
+
+                    RemoveConnectionListeners();
+
+                    approvalTask.TrySetResult(session);
                 }
-
-                RemoveConnectionListeners();
-
-                approvalTask.TrySetResult(session);
+                catch (Exception e)
+                {
+                    RemoveConnectionListeners();
+                    approvalTask.TrySetException(e);
+                }
             }
 
             void OnSessionConnectionErrored(object sender, Exception exception)
