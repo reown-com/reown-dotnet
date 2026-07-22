@@ -21,16 +21,20 @@ namespace Reown.Core.Controllers
     {
         private readonly Dictionary<string, DecodeOptions> _decodeOptionsMap = new();
         private readonly Dictionary<string, List<Func<MessageEvent, Task>>> _requestCallbacksMap = new();
-        private readonly Queue<(string method, MessageEvent messageEvent)> _requestQueue = new();
-        private readonly Dictionary<string, List<Action<MessageEvent>>> _responseCallbacksMap = new();
+        private readonly Dictionary<string, List<Func<MessageEvent, Task>>> _responseCallbacksMap = new();
+        private readonly List<Func<DecodedMessageEvent, Task>> _rawResponseHandlers = new();
+        private readonly object _rawResponseHandlersLock = new();
         private readonly HashSet<string> _typeSafeCache = new();
+        private readonly SequentialMessagePump<(string method, MessageEvent messageEvent)> _requestPump;
+        private readonly SequentialMessagePump<DecodedMessageEvent> _responsePump;
         private bool _initialized;
-        private bool _isRequestQueueProcessing;
         protected bool Disposed;
 
         public TypedMessageHandler(ICoreClient coreClient)
         {
             CoreClient = coreClient;
+            _requestPump = new SequentialMessagePump<(string method, MessageEvent messageEvent)>(ProcessRequest);
+            _responsePump = new SequentialMessagePump<DecodedMessageEvent>(ProcessResponse);
         }
 
         public ICoreClient CoreClient { get; }
@@ -195,6 +199,12 @@ namespace Reown.Core.Controllers
         ///     Handle a specific request / response type and call the given callbacks for requests and responses. The
         ///     response callback is only triggered when it originates from the request of the same type.
         /// </summary>
+        /// <remarks>
+        ///     Callbacks are awaited to completion on a sequential message pump: no other inbound message of the same
+        ///     direction (request or response) is dispatched until the callback's task completes. A callback must
+        ///     therefore not await another round trip on the same client in the same direction — for example, awaiting
+        ///     a response inside a response callback deadlocks, because that response is queued behind the callback.
+        /// </remarks>
         /// <param name="requestCallback">The callback function to invoke when a request is received with the given request type</param>
         /// <param name="responseCallback">The callback function to invoke when a response is received with the given response type</param>
         /// <typeparam name="T">The request type to trigger the requestCallback for</typeparam>
@@ -236,7 +246,7 @@ namespace Reown.Core.Controllers
                 }
             }
 
-            async void ResponseCallback(MessageEvent e)
+            async Task ResponseCallback(MessageEvent e)
             {
                 if (responseCallback == null || Disposed)
                 {
@@ -276,7 +286,7 @@ namespace Reown.Core.Controllers
                 }
             }
 
-            async void InspectResponseRaw(object sender, DecodedMessageEvent e)
+            async Task InspectResponseRaw(DecodedMessageEvent e)
             {
                 var topic = e.Topic;
                 var message = e.Message;
@@ -303,7 +313,7 @@ namespace Reown.Core.Controllers
                     var callbacksCopy = callbacks.ToList();
                     foreach (var callback in callbacksCopy)
                     {
-                        callback(new MessageEvent
+                        await callback(new MessageEvent
                         {
                             Topic = topic,
                             Message = message
@@ -323,7 +333,7 @@ namespace Reown.Core.Controllers
 
             if (!_responseCallbacksMap.TryGetValue(method, out var responseCallbacks))
             {
-                responseCallbacks = new List<Action<MessageEvent>>();
+                responseCallbacks = new List<Func<MessageEvent, Task>>();
                 _responseCallbacksMap.Add(method, responseCallbacks);
             }
 
@@ -331,11 +341,17 @@ namespace Reown.Core.Controllers
 
             // Handle response_raw in this context
             // This will allow us to examine response_raw in every typed context registered
-            RawMessage += InspectResponseRaw;
+            lock (_rawResponseHandlersLock)
+            {
+                _rawResponseHandlers.Add(InspectResponseRaw);
+            }
 
             return new DisposeHandlerToken(() =>
             {
-                RawMessage -= InspectResponseRaw;
+                lock (_rawResponseHandlersLock)
+                {
+                    _rawResponseHandlers.Remove(InspectResponseRaw);
+                }
 
                 _requestCallbacksMap[method].Remove(RequestCallback);
                 _responseCallbacksMap[method].Remove(ResponseCallback);
@@ -360,6 +376,10 @@ namespace Reown.Core.Controllers
         /// <param name="expiry">
         ///     An override to specify how long this request will live for. If null is given, then expiry will be taken from either T or TR
         ///     attributed options
+        /// </param>
+        /// <param name="ct">
+        ///     Cancels the request only before the send begins; the token is not propagated into encoding,
+        ///     history recording, or publishing
         /// </param>
         /// <typeparam name="T">The request type</typeparam>
         /// <typeparam name="TR">The response type</typeparam>
@@ -444,66 +464,84 @@ namespace Reown.Core.Controllers
 
         private async void RelayMessageCallback(object sender, MessageEvent e)
         {
-            var topic = e.Topic;
-            var message = e.Message;
-
-            var options = DecodeOptionForTopic(topic);
-
-            var (decoded, payload) = await TryDecodeOrDrop<JsonRpcPayload>(topic, message, options);
-            if (!decoded) return;
-
-            if (payload.IsRequest)
+            try
             {
-                _requestQueue.Enqueue((payload.Method, e));
-                await ProcessRequestQueue();
-            }
-            else if (payload.IsResponse)
-            {
-                RawMessage?.Invoke(this,
-                    new DecodedMessageEvent
+                var topic = e.Topic;
+                var message = e.Message;
+
+                var options = DecodeOptionForTopic(topic);
+
+                var (decoded, payload) = await TryDecodeOrDrop<JsonRpcPayload>(topic, message, options);
+                if (!decoded) return;
+
+                if (payload.IsRequest)
+                {
+                    await _requestPump.Enqueue((payload.Method, e));
+                }
+                else if (payload.IsResponse)
+                {
+                    await _responsePump.Enqueue(new DecodedMessageEvent
                     {
                         Topic = topic,
                         Message = message,
                         Payload = payload
                     });
+                }
+            }
+            catch (Exception exception)
+            {
+                ReownLogger.LogError(exception);
             }
         }
 
-        private async Task ProcessRequestQueue()
+        private async Task ProcessRequest((string method, MessageEvent messageEvent) item)
         {
-            if (_isRequestQueueProcessing)
+            if (!_requestCallbacksMap.TryGetValue(item.method, out var callbacks))
             {
                 return;
             }
 
-            _isRequestQueueProcessing = true;
-
-            try
+            // Iterate backwards so a callback disposing its own handler token mid-dispatch does not skip the next callback
+            for (var i = callbacks.Count - 1; i >= 0; i--)
             {
-                while (_requestQueue.Count > 0)
+                try
                 {
-                    var (method, messageEvent) = _requestQueue.Dequeue();
-                    if (!_requestCallbacksMap.TryGetValue(method, out var callbacks))
-                    {
-                        continue;
-                    }
-
-                    for (var i = callbacks.Count - 1; i >= 0; i--)
-                    {
-                        try
-                        {
-                            await callbacks[i](messageEvent);
-                        }
-                        catch (Exception e)
-                        {
-                            ReownLogger.LogError(e);
-                        }
-                    }
+                    await callbacks[i](item.messageEvent);
+                }
+                catch (Exception e)
+                {
+                    ReownLogger.LogError(e);
                 }
             }
-            finally
+        }
+
+        private async Task ProcessResponse(DecodedMessageEvent messageEvent)
+        {
+            try
             {
-                _isRequestQueueProcessing = false;
+                RawMessage?.Invoke(this, messageEvent);
+            }
+            catch (Exception e)
+            {
+                ReownLogger.LogError(e);
+            }
+
+            Func<DecodedMessageEvent, Task>[] handlers;
+            lock (_rawResponseHandlersLock)
+            {
+                handlers = _rawResponseHandlers.ToArray();
+            }
+
+            for (var i = handlers.Length - 1; i >= 0; i--)
+            {
+                try
+                {
+                    await handlers[i](messageEvent);
+                }
+                catch (Exception e)
+                {
+                    ReownLogger.LogError(e);
+                }
             }
         }
 

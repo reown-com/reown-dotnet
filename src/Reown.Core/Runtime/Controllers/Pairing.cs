@@ -324,7 +324,7 @@ namespace Reown.Core.Controllers
             if (Store.Keys.Contains(topic))
             {
                 var id = await CoreClient.MessageHandler.SendRequest<PairingPing, bool>(topic, new PairingPing());
-                var done = new TaskCompletionSource<bool>();
+                var done = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                 _pairingPingResponseEvents.ListenOnce($"pairing_ping{id}", (sender, args) =>
                 {

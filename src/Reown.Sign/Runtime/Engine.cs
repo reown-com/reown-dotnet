@@ -413,38 +413,59 @@ namespace Reown.Sign
                 SessionProperties = sessionProperties
             };
 
-            var approvalTask = new TaskCompletionSource<Session>();
-
-            SessionConnected += OnSessionConnected;
-            SessionConnectionErrored += OnSessionConnectionErrored;
+            var approvalTask = new TaskCompletionSource<Session>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             if (string.IsNullOrWhiteSpace(topic))
             {
                 throw new InvalidOperationException("The pairing topic is empty");
             }
 
-            var id = await MessageHandler.SendRequest<SessionPropose, SessionProposeResponse>(topic, proposal);
+            CancellationTokenRegistration ctr = default;
 
-            var expiry = Clock.CalculateExpiry(options.Expiry);
+            SessionConnected += OnSessionConnected;
+            SessionConnectionErrored += OnSessionConnectionErrored;
 
-            await PrivateThis.SetProposal(id, new ProposalStruct
+            ctr = ct.Register(() =>
             {
-                Expiry = expiry,
-                Id = id,
-                Proposer = proposal.Proposer,
-                PairingTopic = topic,
-                Relays = proposal.Relays,
-                RequiredNamespaces = proposal.RequiredNamespaces,
-                OptionalNamespaces = proposal.OptionalNamespaces,
-                SessionProperties = proposal.SessionProperties
+                RemoveConnectionListeners();
+                approvalTask.TrySetCanceled(ct);
             });
+
+            try
+            {
+                var id = await MessageHandler.SendRequest<SessionPropose, SessionProposeResponse>(topic, proposal, ct: ct);
+
+                var expiry = Clock.CalculateExpiry(options.Expiry);
+
+                await PrivateThis.SetProposal(id, new ProposalStruct
+                {
+                    Expiry = expiry,
+                    Id = id,
+                    Proposer = proposal.Proposer,
+                    PairingTopic = topic,
+                    Relays = proposal.Relays,
+                    RequiredNamespaces = proposal.RequiredNamespaces,
+                    OptionalNamespaces = proposal.OptionalNamespaces,
+                    SessionProperties = proposal.SessionProperties
+                });
+            }
+            catch
+            {
+                RemoveConnectionListeners();
+                throw;
+            }
 
             return new ConnectedData(uri, topic, approvalTask.Task);
 
+            void RemoveConnectionListeners()
+            {
+                ctr.Dispose();
+                SessionConnected -= OnSessionConnected;
+                SessionConnectionErrored -= OnSessionConnectionErrored;
+            }
+
             async void OnSessionConnected(object sender, Session session)
             {
-                ct.ThrowIfCancellationRequested();
-
                 if (session == null)
                     return;
 
@@ -454,27 +475,32 @@ namespace Reown.Sign
                 if (approvalTask.Task.IsCompleted)
                     return;
 
-                session.Self.PublicKey = publicKey;
-                session.RequiredNamespaces = requiredNamespaces;
-
-                await PrivateThis.SetExpiry(session.Topic, session.Expiry.Value);
-                await Client.Session.Set(session.Topic, session);
-
-                if (!string.IsNullOrWhiteSpace(topic))
+                try
                 {
-                    await Client.CoreClient.Pairing.UpdateMetadata(topic, session.Peer.Metadata);
+                    session.Self.PublicKey = publicKey;
+                    session.RequiredNamespaces = requiredNamespaces;
+
+                    await PrivateThis.SetExpiry(session.Topic, session.Expiry.Value);
+                    await Client.Session.Set(session.Topic, session);
+
+                    if (!string.IsNullOrWhiteSpace(topic))
+                    {
+                        await Client.CoreClient.Pairing.UpdateMetadata(topic, session.Peer.Metadata);
+                    }
+
+                    RemoveConnectionListeners();
+
+                    approvalTask.TrySetResult(session);
                 }
-
-                SessionConnected -= OnSessionConnected;
-                SessionConnectionErrored -= OnSessionConnectionErrored;
-
-                approvalTask.SetResult(session);
+                catch (Exception e)
+                {
+                    RemoveConnectionListeners();
+                    approvalTask.TrySetException(e);
+                }
             }
 
             void OnSessionConnectionErrored(object sender, Exception exception)
             {
-                ct.ThrowIfCancellationRequested();
-
                 if (approvalTask.Task.IsCompleted)
                 {
                     return;
@@ -485,10 +511,9 @@ namespace Reown.Sign
                     return;
                 }
 
-                SessionConnected -= OnSessionConnected;
-                SessionConnectionErrored -= OnSessionConnectionErrored;
+                RemoveConnectionListeners();
 
-                approvalTask.SetException(exception);
+                approvalTask.TrySetException(exception);
             }
         }
 
@@ -535,9 +560,29 @@ namespace Reown.Sign
             };
 
             await Client.CoreClient.Relayer.Subscribe(sessionTopic);
-            var requestId = await MessageHandler.SendRequest<SessionSettle, bool>(sessionTopic, sessionSettle);
 
-            var acknowledgedTask = new TaskCompletionSource<Session>();
+            long requestId;
+            try
+            {
+                requestId = await MessageHandler.SendRequest<SessionSettle, bool>(sessionTopic, sessionSettle, ct: ct);
+            }
+            catch
+            {
+                try
+                {
+                    await Client.CoreClient.Relayer.Unsubscribe(sessionTopic);
+                    await Client.CoreClient.Crypto.DeleteKeyPair(selfPublicKey);
+                    await Client.CoreClient.Crypto.DeleteSymKey(sessionTopic);
+                }
+                catch (Exception e)
+                {
+                    ReownLogger.LogError(e);
+                }
+
+                throw;
+            }
+
+            var acknowledgedTask = new TaskCompletionSource<Session>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             _sessionEventsHandlerMap.ListenOnce($"session_approve{requestId}", (sender, args) =>
             {
@@ -615,9 +660,9 @@ namespace Reown.Sign
                 new SessionUpdate
                 {
                     Namespaces = namespaces
-                });
+                }, ct: ct);
 
-            var acknowledgedTask = new TaskCompletionSource<bool>();
+            var acknowledgedTask = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             _sessionEventsHandlerMap.ListenOnce($"session_update{id}", (sender, args) =>
             {
                 if (ct.IsCancellationRequested)
@@ -642,9 +687,9 @@ namespace Reown.Sign
             ct.ThrowIfCancellationRequested();
             IsInitialized();
             await PrivateThis.IsValidExtend(topic);
-            var id = await MessageHandler.SendRequest<SessionExtend, bool>(topic, new SessionExtend());
+            var id = await MessageHandler.SendRequest<SessionExtend, bool>(topic, new SessionExtend(), ct: ct);
 
-            var acknowledgedTask = new TaskCompletionSource<bool>();
+            var acknowledgedTask = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             _sessionEventsHandlerMap.ListenOnce($"session_extend{id}", (sender, args) =>
             {
@@ -685,14 +730,14 @@ namespace Reown.Sign
             var request = new JsonRpcRequest<T>(method, data);
 
             await PrivateThis.IsValidRequest(topic, request, requestChainId);
-            var taskSource = new TaskCompletionSource<TR>();
+            var taskSource = new TaskCompletionSource<TR>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             var id = await MessageHandler.SendRequest<SessionRequest<T>, TR>(topic,
                 new SessionRequest<T>
                 {
                     ChainId = requestChainId,
                     Request = request
-                });
+                }, ct: ct);
 
             var responseHandlerInstance = SessionRequestEvents<T, TR>()
                 .FilterResponses(e => e.Topic == topic && e.Response.Id == id);
@@ -776,7 +821,7 @@ namespace Reown.Sign
             if (Client.Session.Keys.Contains(topic))
             {
                 var id = await MessageHandler.SendRequest<SessionPing, bool>(topic, new SessionPing());
-                var done = new TaskCompletionSource<bool>();
+                var done = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 _sessionEventsHandlerMap.ListenOnce($"session_ping{id}", (sender, args) =>
                 {
                     if (args.IsError)
@@ -963,7 +1008,7 @@ namespace Reown.Sign
             long fallbackId = default;
             EventHandler<SessionAuthenticatedEventArgs> sessionAuthHandler = null;
             EventHandler<Session> sessionConnectedHandler = null;
-            var approvalTask = new TaskCompletionSource<Session>();
+            var approvalTask = new TaskCompletionSource<Session>(TaskCreationOptions.RunContinuationsAsynchronously);
             try
             {
                 var ids = await Task.WhenAll(
