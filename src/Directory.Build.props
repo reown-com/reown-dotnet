@@ -7,8 +7,9 @@
         <PackageProjectUrl>https://reown.com/</PackageProjectUrl>
         <RepositoryUrl>https://github.com/reown-com/reown-dotnet</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
-        <MSBUildProjectExtensionsPath>..\..\build\$(MSBuildProjectName)\obj\</MSBUildProjectExtensionsPath>
+        <MSBuildProjectExtensionsPath>..\..\build\$(MSBuildProjectName)\obj\</MSBuildProjectExtensionsPath>
         <BaseIntermediateOutputPath>..\..\build\$(MSBuildProjectName)\obj\</BaseIntermediateOutputPath>
+        <BaseOutputPath>..\..\build\$(MSBuildProjectName)\bin\</BaseOutputPath>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <PackageIcon>reown-avatar-positive.png</PackageIcon>
     </PropertyGroup>
@@ -20,12 +21,6 @@
             <Link>walletkit-icon.png</Link>
         </None>
     </ItemGroup>
-    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-        <OutputPath>..\..\build\$(MSBuildProjectName)\bin\Release\</OutputPath>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-        <OutputPath>..\..\build\$(MSBuildProjectName)\bin\Debug\</OutputPath>
-    </PropertyGroup>
     <PropertyGroup Label="C#">
         <LangVersion>9.0</LangVersion>
         <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
