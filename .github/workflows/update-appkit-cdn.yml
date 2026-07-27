@@ -207,7 +207,7 @@ jobs:
         id: describe
         if: steps.versions.outputs.needs_update == 'true'
         continue-on-error: true
-        uses: anthropics/claude-code-action@af0559ee4f514d1ef21826982bed13f7edc3c35e # v1.0.178
+        uses: anthropics/claude-code-action@be7b93b1907a4abad570368f3c74b6fe3807510b # v1.0.183
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           # Provide a token explicitly so the action does not attempt the default OIDC token exchange
