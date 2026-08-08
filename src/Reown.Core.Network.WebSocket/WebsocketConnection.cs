@@ -20,6 +20,12 @@ namespace Reown.Core.Network.Websocket
     {
         private static readonly TimeSpan DefaultKeepAliveInterval = TimeSpan.FromSeconds(30);
 
+        /// <summary>
+        ///     Preserves the value this connection used before <see cref="OpenTimeout" /> became
+        ///     settable, so callers that do not set it keep the previous behaviour.
+        /// </summary>
+        public static readonly TimeSpan DefaultOpenTimeout = TimeSpan.FromSeconds(60);
+
         private readonly string _context;
         private readonly ILogger _logger;
         private readonly object _registerGate = new object();
@@ -54,12 +60,20 @@ namespace Reown.Core.Network.Websocket
         public bool IsPaused { get; internal set; }
 
         /// <summary>
-        ///     The Open timeout
+        ///     How long a single connect attempt may run before the socket gives up.
         /// </summary>
-        public TimeSpan OpenTimeout
-        {
-            get => TimeSpan.FromSeconds(60);
-        }
+        /// <remarks>
+        ///     This is what actually paces reconnection, so it is settable rather than fixed. A
+        ///     relayer that abandons its connect on its own <c>ConnectionTimeout</c> does not cancel
+        ///     the attempt underneath: the socket keeps trying until this timeout,
+        ///     <see cref="Connecting" /> stays true for that whole stretch, and
+        ///     <c>RestartTransport</c> refuses to start a new attempt while it does. Measured on the
+        ///     relay lab — with the former hardcoded 60 s, a 10 s relayer timeout still produced
+        ///     attempts exactly 60 s apart, and connectivity restored just after an attempt began
+        ///     went unnoticed for the rest of that minute. Keep it at or below the relayer's
+        ///     <c>ConnectionTimeout</c>.
+        /// </remarks>
+        public TimeSpan OpenTimeout { get; set; } = DefaultOpenTimeout;
 
         public event EventHandler<string> PayloadReceived;
         public event EventHandler Closed;

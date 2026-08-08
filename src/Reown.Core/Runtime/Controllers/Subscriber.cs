@@ -262,6 +262,10 @@ namespace Reown.Core.Controllers
             }
             catch (Exception e)
             {
+                // Nothing observes _restartTask unless a Subscribe happens to race the restart, so
+                // without this a failed Restore is completely silent — and a failed Restore means
+                // Reset never ran and this socket carries no relay-side subscriptions at all.
+                _logger.LogError($"Restart failed, subscriptions were not rebuilt: {e.Message}");
                 _restartTask.SetException(e);
             }
         }

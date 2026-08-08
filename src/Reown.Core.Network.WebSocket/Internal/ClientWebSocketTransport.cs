@@ -27,7 +27,15 @@ namespace Reown.Core.Network.Websocket.Internal
 
         private readonly CancellationTokenSource _cts = new();
         private readonly object _gate = new();
+        /// <summary>
+        ///     How long a PONG may be outstanding before the connection is treated as dead. Without
+        ///     it the keep-alive PINGs are advisory only and a silently severed link stays
+        ///     <see cref="WebSocketState.Open" /> indefinitely.
+        /// </summary>
+        private static readonly TimeSpan DefaultKeepAliveTimeout = TimeSpan.FromSeconds(15);
+
         private readonly TimeSpan _keepAlive;
+        private readonly TimeSpan _keepAliveTimeout;
         private readonly ILogger _logger;
         private readonly TimeSpan _openTimeout;
 
@@ -51,11 +59,13 @@ namespace Reown.Core.Network.Websocket.Internal
         private volatile bool _serverInitiatedClose;
         private volatile bool _shutdownRequested;
 
-        public ClientWebSocketTransport(Uri uri, TimeSpan openTimeout, TimeSpan keepAlive, ILogger logger = null)
+        public ClientWebSocketTransport(Uri uri, TimeSpan openTimeout, TimeSpan keepAlive, ILogger logger = null,
+            TimeSpan? keepAliveTimeout = null)
         {
             _uri = uri ?? throw new ArgumentNullException(nameof(uri));
             _openTimeout = openTimeout;
             _keepAlive = keepAlive;
+            _keepAliveTimeout = keepAliveTimeout ?? DefaultKeepAliveTimeout;
             _logger = logger;
         }
 
@@ -200,6 +210,18 @@ namespace Reown.Core.Network.Websocket.Internal
 
             var client = new ClientWebSocket();
             client.Options.KeepAliveInterval = _keepAlive;
+
+// ClientWebSocketOptions.KeepAliveTimeout exists from .NET 9 on; earlier targets have no way to
+// require a PONG and stay exposed to the silent break described below.
+#if NET9_0_OR_GREATER
+            // Without this the PING frames sent on KeepAliveInterval never require a PONG:
+            // ClientWebSocketOptions.KeepAliveTimeout defaults to Timeout.InfiniteTimeSpan. A link
+            // that dies silently — no FIN, no RST, as when a phone sleeps or a network vanishes —
+            // then stays WebSocketState.Open forever: ReceiveAsync keeps waiting, Closed never
+            // fires, and the reconnect path is never entered. The client believes it is connected
+            // while the relay stopped reaching it long ago.
+            client.Options.KeepAliveTimeout = _keepAliveTimeout;
+#endif
 
             using (var connectCts = CancellationTokenSource.CreateLinkedTokenSource(externalToken, _cts.Token))
             {
