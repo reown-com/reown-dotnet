@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Reown.Core.Common;
 using Reown.Core.Common.Logging;
+using Reown.Core.Common.Utils;
 using Reown.Core.Network.Models;
 using Reown.Core.Network.Websocket.Internal;
 
@@ -382,6 +383,7 @@ namespace Reown.Core.Network.Websocket
                 {
                     var disposedException = new ObjectDisposedException(nameof(WebsocketConnection));
                     tcs.TrySetException(disposedException);
+                    tcs.Task.ObserveFault();
                     throw disposedException;
                 }
 
@@ -389,6 +391,7 @@ namespace Reown.Core.Network.Websocket
                 RegisterErrored?.Invoke(this, mapped);
                 Closed?.Invoke(this, EventArgs.Empty);
                 tcs.TrySetException(mapped);
+                tcs.Task.ObserveFault();
 
                 if (!ReferenceEquals(mapped, e))
                     throw mapped;
@@ -426,6 +429,7 @@ namespace Reown.Core.Network.Websocket
                     ? new ObjectDisposedException(nameof(WebsocketConnection))
                     : new IOException("WebSocket connection closed before registration completed.");
                 tcs.TrySetException(abortException);
+                tcs.Task.ObserveFault();
                 throw abortException;
             }
 
@@ -551,6 +555,7 @@ namespace Reown.Core.Network.Websocket
                 }
 
                 pendingRegister?.TrySetException(new ObjectDisposedException(nameof(WebsocketConnection)));
+                pendingRegister?.Task.ObserveFault();
 
                 return;
             }

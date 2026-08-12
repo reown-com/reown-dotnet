@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using Reown.Core.Common.Utils;
 using Newtonsoft.Json;
 using Reown.Core.Common.Events;
 using Reown.Core.Common.Logging;
@@ -127,6 +128,9 @@ namespace Reown.Core.Network
                 }
 
                 _connecting.SetException(e);
+
+                // Open() may throw before the await below is reached, leaving this copy unobserved.
+                _connecting.Task.ObserveFault();
             }
 
             connection.Opened += OnConnectionOnOpened;

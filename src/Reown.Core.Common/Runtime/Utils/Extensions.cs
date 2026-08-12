@@ -77,6 +77,20 @@ namespace Reown.Core.Common.Utils
         ///     exception resurfaces on the finalizer thread as an UnobservedTaskException — noise at
         ///     best, and a process kill wherever that event is left unhandled.
         /// </remarks>
+        /// <summary>
+        ///     Retrieves a task's exception so a failure nobody awaits cannot resurface later.
+        /// </summary>
+        /// <remarks>
+        ///     For the fan-out case: when a failure is both stored in a <see cref="TaskCompletionSource{T}" />
+        ///     for concurrent callers and thrown to the one that started the work, the stored copy is
+        ///     left unobserved whenever there are no concurrent callers. Observing does not swallow it —
+        ///     awaiting the task afterwards still throws.
+        /// </remarks>
+        public static void ObserveFault(this Task task)
+        {
+            ObserveAbandoned(task);
+        }
+
         private static void ObserveAbandoned(Task task)
         {
             _ = task.ContinueWith(
