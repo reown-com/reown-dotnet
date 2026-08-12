@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Net;
 
@@ -68,12 +69,30 @@ namespace Reown.Core.Common.Utils
         ///     an <see cref="AggregateException" /> — either way callers could neither see the failure
         ///     nor match on its message, and a task that failed instantly looked like success.
         /// </remarks>
+        /// <summary>
+        ///     Takes the exception off a task nobody is waiting for any more.
+        /// </summary>
+        /// <remarks>
+        ///     A timed-out task keeps running and may still fail. Nothing observes it by then, so its
+        ///     exception resurfaces on the finalizer thread as an UnobservedTaskException — noise at
+        ///     best, and a process kill wherever that event is left unhandled.
+        /// </remarks>
+        private static void ObserveAbandoned(Task task)
+        {
+            _ = task.ContinueWith(
+                static abandoned => _ = abandoned.Exception,
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+        }
+
         public static async Task<T> WithTimeout<T>(this Task<T> task, int timeout = 1000,
             string message = "Timeout of %t exceeded")
         {
             var resultT = await Task.WhenAny(task, Task.Delay(timeout));
             if (resultT != task)
             {
+                ObserveAbandoned(task);
                 throw new TimeoutException(message.Replace("%t", timeout.ToString()));
             }
 
@@ -93,6 +112,7 @@ namespace Reown.Core.Common.Utils
             var resultT = await Task.WhenAny(task, Task.Delay(timeout));
             if (resultT != task)
             {
+                ObserveAbandoned(task);
                 throw new TimeoutException(message.Replace("%t", timeout.ToString()));
             }
 
@@ -112,6 +132,7 @@ namespace Reown.Core.Common.Utils
             var resultT = await Task.WhenAny(task, Task.Delay(timeout));
             if (resultT != task)
             {
+                ObserveAbandoned(task);
                 throw new TimeoutException(message.Replace("%t", timeout.ToString()));
             }
 
@@ -131,6 +152,7 @@ namespace Reown.Core.Common.Utils
             var resultT = await Task.WhenAny(task, Task.Delay(timeout));
             if (resultT != task)
             {
+                ObserveAbandoned(task);
                 throw new TimeoutException(message.Replace("%t", timeout.ToString()));
             }
 

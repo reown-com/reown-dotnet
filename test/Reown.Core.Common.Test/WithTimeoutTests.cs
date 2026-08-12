@@ -76,6 +76,48 @@ namespace Reown.Core.Common.Test
 
         [Fact]
         [Trait("Category", "unit")]
+        public async Task A_timed_out_task_that_fails_later_does_not_resurface_on_the_finalizer()
+        {
+            // The task outlives the wait: the socket it belongs to can still fail seconds later, and
+            // with nobody left to observe it the exception comes back as an UnobservedTaskException.
+            var unobserved = 0;
+            void OnUnobserved(object sender, UnobservedTaskExceptionEventArgs e)
+            {
+                unobserved++;
+                e.SetObserved();
+            }
+
+            TaskScheduler.UnobservedTaskException += OnUnobserved;
+            try
+            {
+                await FaultAfterTimeout();
+
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+                await Task.Delay(200);
+
+                Assert.Equal(0, unobserved);
+            }
+            finally
+            {
+                TaskScheduler.UnobservedTaskException -= OnUnobserved;
+            }
+
+            // Kept in its own frame so the task becomes unreachable before the collection above.
+            static async Task FaultAfterTimeout()
+            {
+                var source = new TaskCompletionSource<bool>();
+
+                await Assert.ThrowsAsync<TimeoutException>(
+                    () => source.Task.WithTimeout(TimeSpan.FromMilliseconds(50), "socket stalled"));
+
+                source.TrySetException(new IOException("Unavailable WS RPC url"));
+            }
+        }
+
+        [Fact]
+        [Trait("Category", "unit")]
         public async Task Successful_results_are_returned_unchanged()
         {
             Assert.Equal(42, await Task.FromResult(42).WithTimeout(TimeSpan.FromSeconds(5)));
