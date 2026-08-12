@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -85,7 +85,14 @@ namespace Reown.Sign
             }
 
 #if !UNITY_2021_1_OR_NEWER
-            options.ConnectionBuilder ??= new Reown.Core.Network.Websocket.WebsocketConnectionBuilder();
+            // OpenTimeout has to track ConnectionTimeout. The relayer stops waiting at
+            // ConnectionTimeout but does not cancel the socket underneath, so a longer socket window
+            // keeps Connecting raised for the difference — and RestartTransport returns on its first
+            // line while Connecting is raised, which silently suppresses reconnects for that stretch.
+            options.ConnectionBuilder ??= new Reown.Core.Network.Websocket.WebsocketConnectionBuilder
+            {
+                OpenTimeout = options.ConnectionTimeout
+            };
 #endif
 
             CoreClient = options.CoreClient ?? new CoreClient(options);

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Net;
@@ -61,6 +61,13 @@ namespace Reown.Core.Common.Utils
                    + "=" + WebUtility.UrlEncode(value);
         }
 
+        /// <remarks>
+        ///     The task is awaited once <see cref="Task.WhenAny(Task[])" /> picks it, so a fault
+        ///     surfaces as the original exception. Returning without awaiting dropped it silently on
+        ///     the non-generic overloads, and reading <c>.Result</c> on the generic ones wrapped it in
+        ///     an <see cref="AggregateException" /> — either way callers could neither see the failure
+        ///     nor match on its message, and a task that failed instantly looked like success.
+        /// </remarks>
         public static async Task<T> WithTimeout<T>(this Task<T> task, int timeout = 1000,
             string message = "Timeout of %t exceeded")
         {
@@ -70,9 +77,16 @@ namespace Reown.Core.Common.Utils
                 throw new TimeoutException(message.Replace("%t", timeout.ToString()));
             }
 
-            return ((Task<T>)resultT).Result;
+            return await task;
         }
 
+        /// <remarks>
+        ///     The task is awaited once <see cref="Task.WhenAny(Task[])" /> picks it, so a fault
+        ///     surfaces as the original exception. Returning without awaiting dropped it silently on
+        ///     the non-generic overloads, and reading <c>.Result</c> on the generic ones wrapped it in
+        ///     an <see cref="AggregateException" /> — either way callers could neither see the failure
+        ///     nor match on its message, and a task that failed instantly looked like success.
+        /// </remarks>
         public static async Task WithTimeout(this Task task, int timeout = 1000,
             string message = "Timeout of %t exceeded")
         {
@@ -81,8 +95,17 @@ namespace Reown.Core.Common.Utils
             {
                 throw new TimeoutException(message.Replace("%t", timeout.ToString()));
             }
+
+            await task;
         }
 
+        /// <remarks>
+        ///     The task is awaited once <see cref="Task.WhenAny(Task[])" /> picks it, so a fault
+        ///     surfaces as the original exception. Returning without awaiting dropped it silently on
+        ///     the non-generic overloads, and reading <c>.Result</c> on the generic ones wrapped it in
+        ///     an <see cref="AggregateException" /> — either way callers could neither see the failure
+        ///     nor match on its message, and a task that failed instantly looked like success.
+        /// </remarks>
         public static async Task<T> WithTimeout<T>(this Task<T> task, TimeSpan timeout,
             string message = "Timeout of %t exceeded")
         {
@@ -92,9 +115,16 @@ namespace Reown.Core.Common.Utils
                 throw new TimeoutException(message.Replace("%t", timeout.ToString()));
             }
 
-            return ((Task<T>)resultT).Result;
+            return await task;
         }
 
+        /// <remarks>
+        ///     The task is awaited once <see cref="Task.WhenAny(Task[])" /> picks it, so a fault
+        ///     surfaces as the original exception. Returning without awaiting dropped it silently on
+        ///     the non-generic overloads, and reading <c>.Result</c> on the generic ones wrapped it in
+        ///     an <see cref="AggregateException" /> — either way callers could neither see the failure
+        ///     nor match on its message, and a task that failed instantly looked like success.
+        /// </remarks>
         public static async Task WithTimeout(this Task task, TimeSpan timeout,
             string message = "Timeout of %t exceeded")
         {
@@ -103,6 +133,8 @@ namespace Reown.Core.Common.Utils
             {
                 throw new TimeoutException(message.Replace("%t", timeout.ToString()));
             }
+
+            await task;
         }
 
         public static bool SetEquals<T>(this IEnumerable<T> first, IEnumerable<T> second,

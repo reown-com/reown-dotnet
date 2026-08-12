@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -267,6 +267,12 @@ namespace Reown.Core.Controllers
                 // Reset never ran and this socket carries no relay-side subscriptions at all.
                 _logger.LogError($"Restart failed, subscriptions were not rebuilt: {e.Message}");
                 _restartTask.SetException(e);
+
+                // Resubscribed means "the attempt is over", not "it succeeded". TransportOpen waits
+                // on this event, so leaving it unraised after a failure left the open hanging until
+                // its own backstop expired — for the one failure that matters most, a Restore that
+                // threw and left the socket with no subscriptions at all.
+                Resubscribed?.Invoke(this, EventArgs.Empty);
             }
         }
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Net.Sockets;
 using System.Net.WebSockets;
@@ -63,17 +63,23 @@ namespace Reown.Core.Network.Websocket
         ///     How long a single connect attempt may run before the socket gives up.
         /// </summary>
         /// <remarks>
-        ///     This is what actually paces reconnection, so it is settable rather than fixed. A
-        ///     relayer that abandons its connect on its own <c>ConnectionTimeout</c> does not cancel
-        ///     the attempt underneath: the socket keeps trying until this timeout,
-        ///     <see cref="Connecting" /> stays true for that whole stretch, and
-        ///     <c>RestartTransport</c> refuses to start a new attempt while it does. Measured on the
-        ///     relay lab — with the former hardcoded 60 s, a 10 s relayer timeout still produced
-        ///     attempts exactly 60 s apart, and connectivity restored just after an attempt began
-        ///     went unnoticed for the rest of that minute. Keep it at or below the relayer's
-        ///     <c>ConnectionTimeout</c>.
+        ///     Keep at or below the relayer's <c>ConnectionTimeout</c>: it stops waiting there but
+        ///     does not cancel this attempt, and <see cref="Connecting" /> stays true until this
+        ///     timeout expires, blocking restarts for the difference.
         /// </remarks>
         public TimeSpan OpenTimeout { get; set; } = DefaultOpenTimeout;
+
+        /// <summary>
+        ///     How long a PONG may be outstanding before the socket is treated as dead, or
+        ///     <see langword="null" /> to keep the transport default.
+        /// </summary>
+        /// <remarks>
+        ///     Requiring a PONG is what stops a silently severed link from staying
+        ///     <see cref="WebSocketState.Open" /> forever. It assumes something answers the PINGs:
+        ///     the relay does, but an intermediary that swallows them would abort healthy idle
+        ///     connections, so the requirement is settable rather than fixed.
+        /// </remarks>
+        public TimeSpan? KeepAliveTimeout { get; set; }
 
         public event EventHandler<string> PayloadReceived;
         public event EventHandler Closed;
@@ -336,7 +342,7 @@ namespace Reown.Core.Network.Websocket
 
         private async Task<ClientWebSocketTransport> RegisterCore(string url, TaskCompletionSource<ClientWebSocketTransport> tcs)
         {
-            var transport = new ClientWebSocketTransport(new Uri(url), OpenTimeout, DefaultKeepAliveInterval, _logger);
+            var transport = new ClientWebSocketTransport(new Uri(url), OpenTimeout, DefaultKeepAliveInterval, _logger, KeepAliveTimeout);
 
             lock (_registerGate)
             {

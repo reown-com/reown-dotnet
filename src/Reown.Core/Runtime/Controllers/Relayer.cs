@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Net.WebSockets;
 using System.Threading;
@@ -31,7 +31,13 @@ namespace Reown.Core.Controllers
         /// <summary>
         ///     Upper bound for the close that <see cref="RestartTransport" /> does before reopening.
         /// </summary>
-        private static readonly TimeSpan TransportCloseTimeout = TimeSpan.FromSeconds(10);
+        private static readonly TimeSpan DefaultTransportCloseTimeout = TimeSpan.FromSeconds(10);
+
+        /// <summary>
+        ///     How long a restart waits for the close it started to be reported before moving on.
+        /// </summary>
+        /// <remarks>Overridable so the recovery paths can be tested without waiting out real timeouts.</remarks>
+        protected virtual TimeSpan TransportCloseTimeout => DefaultTransportCloseTimeout;
 
         /// <summary>
         ///     Fallback when <see cref="ConnectionTimeout" /> was left unset; matches the value
@@ -52,9 +58,21 @@ namespace Reown.Core.Controllers
         ///     dominant term in how long recovery takes. Hence it tracks
         ///     <see cref="ConnectionTimeout" /> instead of being a fixed, generous constant.
         /// </remarks>
-        private static readonly TimeSpan TransportOpenGrace = TimeSpan.FromSeconds(10);
+        /// <summary>
+        ///     Upper bound for <c>Subscriber.Resubscribed</c> after a socket comes up.
+        /// </summary>
+        /// <remarks>
+        ///     Sized to the resubscribe path rather than the connect: the event fires only once every
+        ///     batch has been answered, and <c>RpcBatchSubscribe</c> allows a minute per batch of 500
+        ///     topics. This is a backstop for a resubscription that never reports at all — a failed
+        ///     restart raises the event immediately, so the common failure does not wait it out.
+        /// </remarks>
+        private static readonly TimeSpan ResubscribeBudget = TimeSpan.FromMinutes(3);
 
-        private static readonly TimeSpan ReconnectInitialDelay = TimeSpan.FromSeconds(1);
+        private static readonly TimeSpan DefaultReconnectInitialDelay = TimeSpan.FromSeconds(1);
+
+        /// <remarks>Overridable so the backoff loop can be tested without waiting out real delays.</remarks>
+        protected virtual TimeSpan ReconnectInitialDelay => DefaultReconnectInitialDelay;
 
         /// <summary>
         ///     Ceiling for the pause between reconnect attempts.
@@ -67,7 +85,10 @@ namespace Reown.Core.Controllers
         ///     connectivity restored just after an attempt began went unnoticed for the best part of
         ///     a minute. Pausing longer costs latency and buys no relief for the relay.
         /// </remarks>
-        private static readonly TimeSpan ReconnectMaxDelay = TimeSpan.FromSeconds(5);
+        private static readonly TimeSpan DefaultReconnectMaxDelay = TimeSpan.FromSeconds(5);
+
+        /// <remarks>Overridable so the backoff loop can be tested without waiting out real delays.</remarks>
+        protected virtual TimeSpan ReconnectMaxDelay => DefaultReconnectMaxDelay;
 
         private bool _reconnecting;
 
@@ -407,14 +428,21 @@ namespace Reown.Core.Controllers
 
                 Task2();
 
-                // task1 waits for Subscriber.Resubscribed, which nothing guarantees will ever be
-                // raised — Subscriber.Restore can throw, or the batch can be empty. Left unbounded
-                // this await keeps _reconnecting raised forever (it is only cleared in the finally
-                // below), and a raised _reconnecting silently disables every future reconnect.
-                // Time it out into the "socket stalled" path so the transport is reported closed and
-                // the reconnect loop gets to try again.
-                await Task.WhenAll(task1.Task, task2.Task)
-                    .WithTimeout((ConnectionTimeout ?? DefaultConnectionTimeout) + TransportOpenGrace, "socket stalled");
+                // The two waits are bounded separately because they are waiting for different work.
+                // task2 is the connect; task1 is the resubscription, which only completes once
+                // BatchSubscribe has worked through every batch, each with its own one-minute bound
+                // in RpcBatchSubscribe. One connect-sized budget over both declared a healthy
+                // connection stalled whenever an account simply had more topics than a single
+                // connect takes, and tore it down while the batch loop kept running against the
+                // provider that had already been replaced.
+                //
+                // Neither may be left unbounded: this await holds _reconnecting raised (cleared only
+                // in the finally below), and a stuck _reconnecting silently disables every later
+                // reconnect. Timing out into the "socket stalled" path reports the transport closed
+                // and lets the reconnect loop try again.
+                await Task.WhenAll(
+                    task2.Task.WithTimeout(ConnectionTimeout ?? DefaultConnectionTimeout, "socket stalled"),
+                    task1.Task.WithTimeout(ResubscribeBudget, "socket stalled"));
 
                 _logger.Log("Transport opened");
             }
@@ -513,16 +541,40 @@ namespace Reown.Core.Controllers
 
         protected virtual async Task CreateProvider()
         {
-            var auth = await CoreClient.Crypto.SignJwt(_relayUrl);
-
-            // The provider being replaced keeps its handlers otherwise, and a socket abandoned by a
-            // restart still reports its close later on. That late Disconnected reaches the live
-            // relayer: it wipes the fresh subscription map into Subscriber's cache and starts a
-            // reconnect loop over a connection that is perfectly healthy.
+            // Detached before the first await, not after it: a socket abandoned by a restart still
+            // reports its close later on, and anything arriving in that window reaches the live
+            // relayer — wiping the fresh subscription map into Subscriber's cache and starting a
+            // reconnect over a connection that is perfectly healthy.
+            IJsonRpcProvider previous = Provider;
             UnregisterProviderEventListeners();
+
+            var auth = await CoreClient.Crypto.SignJwt(_relayUrl);
 
             Provider = await CreateProvider(auth);
             RegisterProviderEventListeners();
+
+            // Detaching only stops the events. Without disposing, the abandoned transport keeps its
+            // receive loop, its socket and its rented buffer alive for the life of the process, and
+            // a reconnecting client leaks one of each per attempt.
+            DisposeProviderFireAndForget(previous);
+        }
+
+        private void DisposeProviderFireAndForget(IJsonRpcProvider provider)
+        {
+            if (provider == null || ReferenceEquals(provider, Provider))
+                return;
+
+            _ = Task.Run(() =>
+            {
+                try
+                {
+                    (provider as IDisposable)?.Dispose();
+                }
+                catch (Exception e)
+                {
+                    _logger.Log($"Disposing the replaced provider failed: {e.Message}");
+                }
+            });
         }
 
         protected virtual async Task<IJsonRpcProvider> CreateProvider(string auth)
@@ -641,7 +693,21 @@ namespace Reown.Core.Controllers
             if (Provider.Connection.IsPaused)
                 return;
 
-            await RestartTransport();
+            // async void: anything escaping here goes straight to the thread pool and takes the
+            // process with it. TransportOpen rethrows every failure that is not its own timeout, so
+            // a connect that fails outright — no network, refused socket — would arrive here.
+            try
+            {
+                await RestartTransport();
+            }
+            catch (Exception ex)
+            {
+                _logger.Log($"Restart after a stalled connection failed: {ex.Message}");
+
+                // A stall that could not be restarted still needs the retry loop, otherwise the
+                // transport stays down until something else happens to poke it.
+                await ReconnectWithBackoff();
+            }
         }
 
         protected virtual async void OnProviderPayload(string payloadJson)
