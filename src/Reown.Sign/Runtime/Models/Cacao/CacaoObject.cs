@@ -27,6 +27,11 @@ namespace Reown.Sign.Models.Cacao
 
         public async Task<bool> VerifySignature(string projectId, string rpcUrl = null)
         {
+            if (!Payload.IsWithinValidityWindow())
+            {
+                return false;
+            }
+
             var reconstructed = FormatMessage();
             var walletAddress = CacaoUtils.ExtractDidAddress(Payload.Iss);
             var chainId = CacaoUtils.ExtractDidChainId(Payload.Iss);

@@ -1,6 +1,7 @@
 #nullable enable
 
 using System;
+using System.Globalization;
 using System.Linq;
 using Newtonsoft.Json;
 using Reown.Sign.Utils;
@@ -66,6 +67,42 @@ namespace Reown.Sign.Models.Cacao
             Statement = statement;
             RequestId = requestId;
             Resources = resources;
+        }
+
+        /// <summary>
+        ///     Returns true when optional CACAO <c>exp</c> and <c>nbf</c> are absent or <paramref name="now"/>
+        ///     is inside the validity window. Unparseable timestamps fail closed.
+        /// </summary>
+        public bool IsWithinValidityWindow(DateTimeOffset? now = null)
+        {
+            var clock = now ?? DateTimeOffset.UtcNow;
+
+            if (Expiration != null)
+            {
+                if (!TryParseCacaoTimestamp(Expiration, out var exp) || clock >= exp)
+                {
+                    return false;
+                }
+            }
+
+            if (NotBefore != null)
+            {
+                if (!TryParseCacaoTimestamp(NotBefore, out var nbf) || clock < nbf)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool TryParseCacaoTimestamp(string value, out DateTimeOffset timestamp)
+        {
+            return DateTimeOffset.TryParse(
+                value,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                out timestamp);
         }
 
         public static CacaoPayload FromAuthPayloadParams(AuthPayloadParams authPayloadParams, string iss)
