@@ -1,4 +1,5 @@
 using Reown.Sign.Models.Cacao;
+using Reown.Sign.Utils;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -99,6 +100,47 @@ public class CacaoTests
     public void IsWithinValidityWindow_FutureNbf_IsNotYetValid()
     {
         Assert.False(Payload(nbf: "2024-01-01T00:00:00Z").IsWithinValidityWindow(Now));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void IsWithinValidityWindow_NbfEqualToNow_IsValid()
+    {
+        Assert.True(Payload(nbf: "2023-11-14T22:13:20Z").IsWithinValidityWindow(Now));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void IsWithinValidityWindow_ExpWithNonUtcOffset_HonorsOffset()
+    {
+        Assert.False(Payload(exp: "2023-11-14T23:13:20+02:00").IsWithinValidityWindow(Now));
+        Assert.True(Payload(exp: "2023-11-15T01:13:20+02:00").IsWithinValidityWindow(Now));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void IsWithinValidityWindow_BlankExpAndNbf_TreatedAsAbsent()
+    {
+        Assert.True(Payload(exp: "", nbf: "   ").IsWithinValidityWindow(Now));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void IsWithinValidityWindow_Expired_ReportsReason()
+    {
+        Assert.False(Payload(exp: "2023-01-01T00:00:00Z").IsWithinValidityWindow(Now, out var reason));
+        Assert.Equal("expired", reason);
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void NormalizeExpiration_IntegerSeconds_BecomesRfc3339()
+    {
+        var now = DateTimeOffset.FromUnixTimeSeconds(1_700_000_000);
+        var normalized = CacaoUtils.NormalizeExpiration("3600", now);
+        Assert.Equal(now.AddSeconds(3600).ToRfc3339(), normalized);
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void NormalizeExpiration_Timestamp_Unchanged()
+    {
+        const string timestamp = "2024-01-01T00:00:00.0000000Z";
+        Assert.Equal(timestamp, CacaoUtils.NormalizeExpiration(timestamp, Now));
     }
 
     [Fact] [Trait("Category", "unit")]

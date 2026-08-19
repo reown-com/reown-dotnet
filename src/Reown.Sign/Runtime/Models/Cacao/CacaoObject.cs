@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Reown.Core.Common.Logging;
 using Reown.Sign.Utils;
 
 namespace Reown.Sign.Models.Cacao
@@ -27,8 +28,9 @@ namespace Reown.Sign.Models.Cacao
 
         public async Task<bool> VerifySignature(string projectId, string rpcUrl = null)
         {
-            if (!Payload.IsWithinValidityWindow())
+            if (!Payload.IsWithinValidityWindow(null, out var reason))
             {
+                ReownLogger.Log($"CACAO rejected: {reason}");
                 return false;
             }
 

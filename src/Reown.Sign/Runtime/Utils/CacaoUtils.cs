@@ -47,5 +47,28 @@ namespace Reown.Sign.Utils
         {
             return dateTimeOffset.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ", CultureInfo.InvariantCulture);
         }
+
+        /// <summary>
+        ///     <c>AuthParams.Expiration</c> is used both as an RFC 3339 timestamp and
+        ///     as a duration in seconds. When the value is an integer, emit
+        ///     <paramref name="now"/> plus that many seconds so CACAO <c>exp</c> stays
+        ///     a timestamp.
+        /// </summary>
+        /// <param name="expiration">Raw exp from AuthParams, timestamp or seconds.</param>
+        /// <param name="now">Clock used when expanding a duration. Defaults to UTC now.</param>
+        public static string NormalizeExpiration(string expiration, DateTimeOffset? now = null)
+        {
+            if (string.IsNullOrWhiteSpace(expiration))
+            {
+                return expiration;
+            }
+
+            if (long.TryParse(expiration, NumberStyles.Integer, CultureInfo.InvariantCulture, out var seconds))
+            {
+                return (now ?? DateTimeOffset.UtcNow).AddSeconds(seconds).ToRfc3339();
+            }
+
+            return expiration;
+        }
     }
 }
