@@ -953,7 +953,7 @@ namespace Reown.Sign
                 Nonce = authParams.Nonce,
                 Iat = DateTimeOffset.UtcNow.ToRfc3339(),
                 Exp = CacaoUtils.NormalizeExpiration(authParams.Expiration),
-                Nbf = authParams.NotBefore?.ToString(),
+                Nbf = CacaoUtils.NormalizeExpiration(authParams.NotBefore),
                 Resources = authParams.Resources,
                 PairingTopic = pairingData.Topic
             };

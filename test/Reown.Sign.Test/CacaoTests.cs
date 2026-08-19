@@ -133,7 +133,35 @@ public class CacaoTests
     {
         var now = DateTimeOffset.FromUnixTimeSeconds(1_700_000_000);
         var normalized = CacaoUtils.NormalizeExpiration("3600", now);
-        Assert.Equal(now.AddSeconds(3600).ToRfc3339(), normalized);
+        Assert.Equal("2023-11-14T23:13:20.0000000Z", normalized);
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void NormalizeExpiration_NonUtcNow_EmitsUtcZ()
+    {
+        var now = new DateTimeOffset(2023, 11, 14, 23, 13, 20, TimeSpan.FromHours(2));
+        var normalized = CacaoUtils.NormalizeExpiration("3600", now);
+        Assert.Equal("2023-11-14T22:13:20.0000000Z", normalized);
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void NormalizeExpiration_EpochLikeInteger_Unchanged()
+    {
+        const string epochSeconds = "1735689600";
+        Assert.Equal(epochSeconds, CacaoUtils.NormalizeExpiration(epochSeconds, Now));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void NormalizeExpiration_NegativeInteger_Unchanged()
+    {
+        Assert.Equal("-1", CacaoUtils.NormalizeExpiration("-1", Now));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public void NormalizeExpiration_EpochMilliseconds_Unchanged()
+    {
+        const string epochMs = "1735689600000";
+        Assert.Equal(epochMs, CacaoUtils.NormalizeExpiration(epochMs, Now));
     }
 
     [Fact] [Trait("Category", "unit")]

@@ -20,9 +20,19 @@ namespace Reown.Sign.Models.Engine
         [JsonProperty("uri")]
         public string Uri;
 
+        /// <summary>
+        ///     CACAO not-before. RFC 3339 timestamp, or a positive duration in
+        ///     seconds below one year (expanded to UTC now plus that many seconds,
+        ///     same as <see cref="Expiration"/>). Omit or leave blank for no nbf.
+        /// </summary>
         [JsonProperty("nbf", NullValueHandling = NullValueHandling.Include)]
         public string NotBefore;
 
+        /// <summary>
+        ///     CACAO expiration. RFC 3339 timestamp, or a positive duration in
+        ///     seconds below one year (expanded to UTC now plus that many seconds).
+        ///     Epoch-sized integers are left unchanged and fail closed as unparseable.
+        /// </summary>
         [JsonProperty("exp", NullValueHandling = NullValueHandling.Include)]
         public string Expiration;
 
