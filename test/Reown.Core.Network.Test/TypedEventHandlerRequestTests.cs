@@ -85,6 +85,49 @@ namespace Reown.Core.Network.Test
         }
 
         /// <summary>
+        ///     A nullable value type response assigned no value is not an answer, so nothing is sent: the
+        ///     response would otherwise carry neither a result nor an error.
+        /// </summary>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task NullableValueTypeResponse_SubscriberAnswersNull_SendsNoResponse()
+        {
+            var (coreClient, messageHandler) = CreateCoreClient();
+            using var handler = TypedEventHandler<TestRequest, int?>.GetInstance(coreClient);
+
+            handler.OnRequest += e =>
+            {
+                e.Response = null;
+                return Task.CompletedTask;
+            };
+
+            await DeliverRequest<TestRequest, int?>(messageHandler, new TestRequest());
+
+            _ = messageHandler.DidNotReceiveWithAnyArgs().SendResult<TestRequest, int?>(default, default, default);
+        }
+
+        /// <summary>
+        ///     A nullable value type response holding the underlying type's default value is a real answer.
+        /// </summary>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task NullableValueTypeResponse_SubscriberAnswersDefaultValue_SendsThatValue()
+        {
+            var (coreClient, messageHandler) = CreateCoreClient();
+            using var handler = TypedEventHandler<TestRequest, int?>.GetInstance(coreClient);
+
+            handler.OnRequest += e =>
+            {
+                e.Response = 0;
+                return Task.CompletedTask;
+            };
+
+            await DeliverRequest<TestRequest, int?>(messageHandler, new TestRequest());
+
+            _ = messageHandler.Received(1).SendResult<TestRequest, int?>(RequestId, Topic, 0);
+        }
+
+        /// <summary>
         ///     The unanswered-request behaviour of a reference type response is unchanged.
         /// </summary>
         [Fact]

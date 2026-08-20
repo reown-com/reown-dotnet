@@ -1368,6 +1368,15 @@ public class SignTests : IAsyncLifetime
         Assert.False(result);
     }
 
+    [Fact] [Trait("Category", "integration")]
+    public async Task TestRespondWithNullNullableResultIsRejected()
+    {
+        var (sessionTopic, _) = await ConnectAndApprove();
+
+        await Assert.ThrowsAsync<ArgumentException>(() => _wallet.RespondAsync<TestRequest2, int?>(
+            sessionTopic, new JsonRpcResponse<int?>(1, null, null)));
+    }
+
     private async Task<(string sessionTopic, string pairingTopic)> ConnectAndApprove(params string[] methods)
     {
         const string testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";

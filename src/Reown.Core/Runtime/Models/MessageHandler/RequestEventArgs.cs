@@ -51,13 +51,13 @@ namespace Reown.Core.Models.MessageHandler
 
         /// <summary>
         ///     Whether <see cref="Response" /> holds a response to send when this event finishes propagating.
-        ///     A value type response counts even when it equals the default value of TR, so a response of
-        ///     <c>false</c> or <c>0</c> is sent like any other. A response type that never gets assigned, or that
-        ///     is assigned a null reference, leaves the request unanswered.
+        ///     True once a response has been assigned and is not null, counting a value type response that equals
+        ///     its default: a <c>false</c> or <c>0</c> answer is sent like any other. Assigning nothing, a null
+        ///     reference, or a nullable value type without a value leaves the request unanswered.
         /// </summary>
         public bool HasResponse
         {
-            get => _responseAssigned && (typeof(TR).IsValueType || _response != null);
+            get => _responseAssigned && _response != null;
         }
 
         /// <summary>
