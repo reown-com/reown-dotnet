@@ -21,21 +21,43 @@ namespace Reown.Core.Models.MessageHandler
         /// </summary>
         public Error Error;
 
-        /// <summary>
-        ///     The current response to send when this event finishes propagating. You can set this value
-        ///     to send a response when this event completes.
-        ///     If the <see cref="Error" /> field is non-null, then this field will not be sent and the
-        ///     <see cref="Error" /> will be sent instead
-        /// </summary>
-        public TR Response;
-
         public VerifiedContext VerifiedContext;
+
+        private TR _response;
+        private bool _responseAssigned;
 
         internal RequestEventArgs(string topic, JsonRpcRequest<T> request, VerifiedContext context)
         {
             Topic = topic;
             Request = request;
             VerifiedContext = context;
+        }
+
+        /// <summary>
+        ///     The current response to send when this event finishes propagating. You can set this value
+        ///     to send a response when this event completes.
+        ///     If the <see cref="Error" /> field is non-null, then this field will not be sent and the
+        ///     <see cref="Error" /> will be sent instead
+        /// </summary>
+        public TR Response
+        {
+            get => _response;
+            set
+            {
+                _response = value;
+                _responseAssigned = true;
+            }
+        }
+
+        /// <summary>
+        ///     Whether <see cref="Response" /> holds a response to send when this event finishes propagating.
+        ///     A value type response counts even when it equals the default value of TR, so a response of
+        ///     <c>false</c> or <c>0</c> is sent like any other. A response type that never gets assigned, or that
+        ///     is assigned a null reference, leaves the request unanswered.
+        /// </summary>
+        public bool HasResponse
+        {
+            get => _responseAssigned && (typeof(TR).IsValueType || _response != null);
         }
 
         /// <summary>
