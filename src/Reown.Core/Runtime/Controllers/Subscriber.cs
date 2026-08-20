@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -129,6 +129,16 @@ namespace Reown.Core.Controllers
 
         public event EventHandler Sync;
         public event EventHandler Resubscribed;
+
+        /// <summary>
+        ///     Raised when a restart could not rebuild the subscriptions, carrying the failure.
+        /// </summary>
+        /// <remarks>
+        ///     Internal on purpose: this is the contract between the subscriber and the relayer that
+        ///     drives it, and both live in this assembly. Putting it on <see cref="ISubscriber" />
+        ///     would grow a public interface for a detail no implementer outside needs.
+        /// </remarks>
+        internal event EventHandler<Exception> ResubscribeFailed;
         public event EventHandler<ActiveSubscription> Created;
         public event EventHandler<DeletedSubscription> Deleted;
 
@@ -268,11 +278,15 @@ namespace Reown.Core.Controllers
                 _logger.LogError($"Restart failed, subscriptions were not rebuilt: {e.Message}");
                 _restartTask.SetException(e);
 
-                // Resubscribed means "the attempt is over", not "it succeeded". TransportOpen waits
-                // on this event, so leaving it unraised after a failure left the open hanging until
-                // its own backstop expired — for the one failure that matters most, a Restore that
-                // threw and left the socket with no subscriptions at all.
-                Resubscribed?.Invoke(this, EventArgs.Empty);
+                // Nothing awaits _restartTask unless a Subscribe happens to race the restart, so
+                // without this the failure resurfaces on the finalizer thread.
+                _restartTask.Task.ObserveFault();
+
+                // Reported rather than passed off as completion. Raising Resubscribed here would
+                // unblock TransportOpen, but it would also present a socket carrying no
+                // subscriptions as a successful open: the reconnect loop exits on Connected and the
+                // client stays deaf until some unrelated disconnect wakes it.
+                ResubscribeFailed?.Invoke(this, e);
             }
         }
 

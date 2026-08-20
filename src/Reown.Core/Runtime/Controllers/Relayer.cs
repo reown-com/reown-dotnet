@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Net.WebSockets;
 using System.Threading;
@@ -46,30 +46,22 @@ namespace Reown.Core.Controllers
         private static readonly TimeSpan DefaultConnectionTimeout = TimeSpan.FromSeconds(30);
 
         /// <summary>
-        ///     How much longer than <see cref="ConnectionTimeout" /> a whole <see cref="TransportOpen" />
-        ///     may take before it is abandoned — the room left for the resubscribe that follows the
-        ///     connect.
-        /// </summary>
-        /// <remarks>
-        ///     The resulting bound is the backstop that breaks a stuck reconnect: the flag
-        ///     <c>TransportOpen</c> raises is cleared only in its own finally, so an open that never
-        ///     returns disables every subsequent restart. Observed on a real client — the transport
-        ///     stayed down until this bound fired and released it, which also makes the bound the
-        ///     dominant term in how long recovery takes. Hence it tracks
-        ///     <see cref="ConnectionTimeout" /> instead of being a fixed, generous constant.
-        /// </remarks>
-        /// <summary>
         ///     Upper bound for <c>Subscriber.Resubscribed</c> after a socket comes up.
         /// </summary>
         /// <remarks>
         ///     Sized to the resubscribe path rather than the connect: the event fires only once every
         ///     batch has been answered, and <c>RpcBatchSubscribe</c> allows a minute per batch of 500
-        ///     topics. This is a backstop for a resubscription that never reports at all — a failed
-        ///     restart raises the event immediately, so the common failure does not wait it out.
+        ///     topics. Only a backstop for a resubscription that never reports either way — a restart
+        ///     that fails reports it, and the open fails with it, so no ordinary failure waits it out.
         /// </remarks>
-        private static readonly TimeSpan ResubscribeBudget = TimeSpan.FromMinutes(3);
+        private static readonly TimeSpan DefaultResubscribeBudget = TimeSpan.FromMinutes(3);
 
         private static readonly TimeSpan DefaultReconnectInitialDelay = TimeSpan.FromSeconds(1);
+
+        /// <summary>
+        ///     Upper bound for the resubscription, overridable so tests need not wait out the real one.
+        /// </summary>
+        protected virtual TimeSpan ResubscribeBudget => DefaultResubscribeBudget;
 
         /// <remarks>Overridable so the backoff loop can be tested without waiting out real delays.</remarks>
         protected virtual TimeSpan ReconnectInitialDelay => DefaultReconnectInitialDelay;
@@ -90,12 +82,26 @@ namespace Reown.Core.Controllers
         /// <remarks>Overridable so the backoff loop can be tested without waiting out real delays.</remarks>
         protected virtual TimeSpan ReconnectMaxDelay => DefaultReconnectMaxDelay;
 
+        private readonly Subscriber _subscriber;
+
         private bool _reconnecting;
 
         /// <summary>
         ///     Mutual exclusion for <see cref="RestartTransport" />: 1 while a restart is in flight.
         /// </summary>
         private int _restarting;
+
+        private int _reconnectLoop;
+
+        /// <summary>
+        ///     Counts how many reconnect loops have actually started, latch included.
+        /// </summary>
+        /// <remarks>
+        ///     Internal, and only so a test can assert that repeated disconnects produce one loop and
+        ///     not one per disconnect. The alternative was inferring it from attempt timings, which
+        ///     is exactly the kind of assertion that passes on a fast machine and fails on CI.
+        /// </remarks>
+        internal int ReconnectLoopsStarted;
         private string _relayUrl;
         protected bool Disposed;
 
@@ -110,7 +116,11 @@ namespace Reown.Core.Controllers
         {
             CoreClient = opts.CoreClient;
             Messages = new MessageTracker(CoreClient);
-            Subscriber = new Subscriber(this);
+
+            // Kept as the concrete type as well: the failure of a resubscribe is reported over an
+            // internal event, deliberately not on ISubscriber.
+            _subscriber = new Subscriber(this);
+            Subscriber = _subscriber;
             Publisher = new Publisher(this);
 
             _relayUrl = opts.RelayUrl;
@@ -138,7 +148,9 @@ namespace Reown.Core.Controllers
 
         /// <summary>
         ///     How long the <see cref="IRelayer" /> should wait before throwing a <see cref="TimeoutException" /> during
-        ///     the connection phase. If this field is null, then the timeout will be infinite.
+        ///     the connection phase. Null falls back to 30 seconds; it no longer means an unbounded
+        ///     wait, because this await holds <c>_reconnecting</c> raised and a stuck flag disables
+        ///     every later reconnect.
         /// </summary>
         public TimeSpan? ConnectionTimeout { get; set; }
 
@@ -348,20 +360,52 @@ namespace Reown.Core.Controllers
         ///     flag stays raised and every later reconnect attempt, the SDK's own included, returns
         ///     on its first line while the client reports itself connected.
         /// </remarks>
-        private async Task TransportCloseInternal(bool explicitClose)
+        /// <param name="attempt">
+        ///     Carries whether the caller gave up waiting for this close. <c>null</c> when nobody can.
+        /// </param>
+        private async Task TransportCloseInternal(bool explicitClose, CloseAttempt attempt = null)
         {
             _logger.Log($"Close transport. Connected: {Connected}, explicit: {explicitClose}");
-            if (Connected)
-            {
-                if (explicitClose)
-                {
-                    TransportExplicitlyClosed = true;
-                }
 
-                await Provider.Disconnect();
-                OnTransportClosed?.Invoke(this, EventArgs.Empty);
-                _logger.Log("Transport closed");
+            // Outside the Connected check on purpose. The flag means "do not reconnect", and the
+            // moment a caller most needs it is when the transport is already down and the reconnect
+            // loop is working to bring it back: gating it on Connected made TransportClose a no-op
+            // in exactly that state, leaving the loop to reopen a transport the caller closed.
+            if (explicitClose)
+            {
+                TransportExplicitlyClosed = true;
             }
+
+            if (!Connected)
+            {
+                return;
+            }
+
+            await Provider.Disconnect();
+
+            // Disconnect can return long after the caller stopped waiting — a dead network keeps the
+            // socket in retransmission for minutes. By then the reopen is normally in flight, and
+            // OnTransportClosed is what RejectTransportOpen listens to, so reporting this close now
+            // would tear down the healthy connection that replaced it.
+            if (attempt is { Abandoned: true })
+            {
+                _logger.Log("Abandoned close finished; not reporting it against the transport that replaced it");
+                return;
+            }
+
+            OnTransportClosed?.Invoke(this, EventArgs.Empty);
+            _logger.Log("Transport closed");
+        }
+
+        /// <summary>
+        ///     Tracks whether a close is still the one its caller is waiting for.
+        /// </summary>
+        private sealed class CloseAttempt
+        {
+            /// <summary>
+            ///     Gets or sets a value indicating whether the caller stopped waiting for this close.
+            /// </summary>
+            public volatile bool Abandoned;
         }
 
         public async Task TransportOpen(string relayUrl = null)
@@ -370,6 +414,12 @@ namespace Reown.Core.Controllers
             if (_reconnecting) return;
             _relayUrl = relayUrl ?? _relayUrl;
             _reconnecting = true;
+
+            // ListenOnce detaches only the handler whose event fired, and exactly one of these two
+            // ever does. Dropping the other left it subscribed for good, one more on every reconnect
+            // for the life of the process.
+            Action stopWaitingForResubscribe = null;
+            Action stopWaitingForResubscribeFailure = null;
             try
             {
                 var task1 = new TaskCompletionSource<bool>();
@@ -379,23 +429,40 @@ namespace Reown.Core.Controllers
                 }
                 else
                 {
-                    EventUtils.ListenOnce((_, _) => task1.TrySetResult(true),
+                    stopWaitingForResubscribe = EventUtils.ListenOnce((_, _) => task1.TrySetResult(true),
                         h => Subscriber.Resubscribed += h,
                         h => Subscriber.Resubscribed -= h);
+
+                    // A replay that failed has to fail the open. The socket is up, but it carries no
+                    // subscriptions, and reporting that as success lets the reconnect loop exit on
+                    // Connected and leaves the client deaf until an unrelated disconnect.
+                    stopWaitingForResubscribeFailure = EventUtils.ListenOnce<Exception>(
+                        (_, error) => task1.TrySetException(error),
+                        h => _subscriber.ResubscribeFailed += h,
+                        h => _subscriber.ResubscribeFailed -= h);
                 }
 
                 var task2 = new TaskCompletionSource<bool>();
 
                 void RejectTransportOpen(object sender, EventArgs @event)
                 {
-                    task2.TrySetException(
-                        new IOException("The transport was closed before the connection was established.")
-                    );
+                    var closed = new IOException("The transport was closed before the connection was established.");
+
+                    // Both, not just task2: a transport closed while the connect neither completes
+                    // nor faults would otherwise leave task1 waiting out its whole budget, holding
+                    // _reconnecting — and a raised _reconnecting disables every later restart.
+                    task2.TrySetException(closed);
+                    task1.TrySetException(closed);
                 }
 
                 async void Task2()
                 {
-                    var cleanupEvent = OnTransportClosed.ListenOnce(RejectTransportOpen);
+                    // Through the subscribe/unsubscribe pair, not the ListenOnce extension on the
+                    // event: that overload takes the delegate by value, so its "+=" lands on a local
+                    // copy and the event field is never touched. This handler had never once run.
+                    var cleanupEvent = EventUtils.ListenOnce(RejectTransportOpen,
+                        h => OnTransportClosed += h,
+                        h => OnTransportClosed -= h);
                     try
                     {
                         var connectionTask = Provider.Connect();
@@ -438,8 +505,8 @@ namespace Reown.Core.Controllers
                 //
                 // Neither may be left unbounded: this await holds _reconnecting raised (cleared only
                 // in the finally below), and a stuck _reconnecting silently disables every later
-                // reconnect. Timing out into the "socket stalled" path reports the transport closed
-                // and lets the reconnect loop try again.
+                // reconnect. Timing out closes whatever came up, and that close is what the reconnect
+                // loop watches — OnTransportClosed has no listener outside this method.
                 await Task.WhenAll(
                     task2.Task.WithTimeout(ConnectionTimeout ?? DefaultConnectionTimeout, "socket stalled"),
                     task1.Task.WithTimeout(ResubscribeBudget, "socket stalled"));
@@ -449,13 +516,41 @@ namespace Reown.Core.Controllers
             catch (Exception e)
             {
                 // TODO Check for system socket hang up message
-                if (e.Message != "socket stalled")
-                    throw;
 
-                OnTransportClosed?.Invoke(this, EventArgs.Empty);
+                // Whatever failed, a socket left connected without its subscriptions is the worst of
+                // the outcomes: every reconnect loop here stops on Connected, so nothing retries and
+                // the client stays deaf. This is not only the rethrown case — the connect can succeed
+                // and the resubscription time out, and that used to return from here reporting
+                // success, with the socket up and not one relay-side subscription behind it.
+                if (Connected)
+                {
+                    // Guarded: Close throws when the transport went away between the check above and
+                    // the call, and letting that out would replace the failure the caller needs with
+                    // the incidental one — including on the stalled path, which swallows by design.
+                    try
+                    {
+                        await TransportCloseInternal(false);
+                    }
+                    catch (Exception closeFailure)
+                    {
+                        _logger.Log($"Closing the failed transport failed too: {closeFailure.Message}");
+                    }
+                }
+                else if (e.Message == "socket stalled")
+                {
+                    // Nothing was closed, so say so: the closing above reports itself.
+                    OnTransportClosed?.Invoke(this, EventArgs.Empty);
+                }
+
+                if (e.Message != "socket stalled")
+                {
+                    throw;
+                }
             }
             finally
             {
+                stopWaitingForResubscribe?.Invoke();
+                stopWaitingForResubscribeFailure?.Invoke();
                 _reconnecting = false;
             }
         }
@@ -495,6 +590,7 @@ namespace Reown.Core.Controllers
         private async Task RestartTransportUnsafe(string relayUrl)
         {
             _relayUrl = relayUrl ?? _relayUrl;
+            bool closeAbandoned = false;
             if (Connected)
             {
                 _logger.Log("Already connected. Closing transport");
@@ -508,15 +604,25 @@ namespace Reown.Core.Controllers
                 // retransmitting, and Provider.Disconnected may never arrive at all. The provider is
                 // replaced immediately below, so a close that did not finish must not hold up the
                 // reopen — otherwise RestartTransport never returns and the caller sees a hang.
-                bool closeReported = true;
+                var attempt = new CloseAttempt();
+
+                // Held and observed separately. WhenAll folds a child's failure in only once every
+                // child has finished, and task1 waits for a Disconnected that a close which threw
+                // will never raise — so the failed close would sit there with nobody to fold it in
+                // and come back on the finalizer thread. Closing an already-gone transport throws
+                // exactly that way.
+                Task closing = TransportCloseInternal(false, attempt);
+                closing.ObserveFault();
+
                 try
                 {
-                    await Task.WhenAll(task1.Task, TransportCloseInternal(false))
+                    await Task.WhenAll(task1.Task, closing)
                         .WithTimeout(TransportCloseTimeout, "transport close stalled");
                 }
                 catch (TimeoutException)
                 {
-                    closeReported = false;
+                    closeAbandoned = true;
+                    attempt.Abandoned = true;
                     _logger.Log("Close did not finish in time, reopening anyway");
                 }
 
@@ -524,18 +630,25 @@ namespace Reown.Core.Controllers
                 // OnDisconnected, which OnProviderDisconnected raises once the close is reported.
                 // Abandoning the close without it leaves Subscriber holding the dead socket's topic
                 // map: OnDisable never runs, so nothing is cached for Reset to re-subscribe, and
-                // Restore then throws on the non-empty map straight into _restartTask, where the
-                // exception is never observed. The outcome is a live socket with no relay-side
-                // subscriptions at all and a local map that still claims every one of them —
-                // invisible to any check that trusts that map.
-                if (!closeReported)
-                {
-                    _logger.Log("Close was abandoned, reporting the disconnect so subscriptions get rebuilt");
-                    OnDisconnected?.Invoke(this, EventArgs.Empty);
-                }
+                // Restore then throws on the non-empty map. That throw is reported now rather than
+                // buried, so the open fails and the loop retries — but retrying a socket that was
+                // never going to carry subscriptions is still a wasted round, and without this the
+                // local map goes on claiming every topic the dead socket held.
             }
 
+            // Detaches the old provider before anything else, which is why the compensation below
+            // waits for it: an abandoned close can still finish and report itself through
+            // Provider.Disconnected, and arriving alongside the compensating event it would raise
+            // OnDisconnected twice. The second one caches an already empty topic map, so Reset
+            // resubscribes to nothing and reports success.
             await CreateProvider();
+
+            if (closeAbandoned)
+            {
+                _logger.Log("Close was abandoned, reporting the disconnect so subscriptions get rebuilt");
+                OnDisconnected?.Invoke(this, EventArgs.Empty);
+            }
+
             await TransportOpen();
         }
 
@@ -647,6 +760,46 @@ namespace Reown.Core.Controllers
         ///     messages it can no longer deliver.
         /// </remarks>
         private async Task ReconnectWithBackoff()
+        {
+            // One loop at a time. Every failed attempt closes the socket it managed to open, and that
+            // close is itself a disconnect arriving here: without this latch each failure started
+            // another loop while the earlier ones kept running — they only exit on Connected — and
+            // every newcomer restarted the delay at its initial value, so the backoff never grew and
+            // a long outage was met with a steady stream of attempts instead of a widening one.
+            while (true)
+            {
+                if (Interlocked.CompareExchange(ref _reconnectLoop, 1, 0) != 0)
+                {
+                    _logger.Log("A reconnect loop is already running, not starting another");
+                    return;
+                }
+
+                Interlocked.Increment(ref ReconnectLoopsStarted);
+
+                try
+                {
+                    await ReconnectWithBackoffUnsafe();
+                }
+                finally
+                {
+                    Interlocked.Exchange(ref _reconnectLoop, 0);
+                }
+
+                // A disconnect arriving while this loop was on its way out found the latch still
+                // taken and returned without starting anything, and nothing else is watching. Read
+                // the state the loop exited on once more now that the latch is free: without this
+                // the latch turns a lost wakeup into a transport that stays down for good, which is
+                // worse than the loops it was added to stop.
+                if (Disposed || TransportExplicitlyClosed || Connected)
+                {
+                    return;
+                }
+
+                _logger.Log("A disconnect arrived as the reconnect loop was leaving; going round again");
+            }
+        }
+
+        private async Task ReconnectWithBackoffUnsafe()
         {
             TimeSpan delay = ReconnectInitialDelay;
 

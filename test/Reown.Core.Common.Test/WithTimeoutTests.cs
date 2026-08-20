@@ -39,13 +39,18 @@ namespace Reown.Core.Common.Test
             var second = new TaskCompletionSource<bool>();
             Task<bool[]> whenAll = Task.WhenAll(first.Task, second.Task);
 
-            first.TrySetException(new TimeoutException("socket stalled"));
-            second.TrySetException(new TimeoutException("socket stalled"));
+            // Deliberately not the wrapper's own message: giving both the same text lets an
+            // implementation that swallows the fault and waits out its timeout pass on the strength
+            // of a TimeoutException it raised itself.
+            first.TrySetException(new TimeoutException("the socket underneath died"));
+            second.TrySetException(new TimeoutException("the socket underneath died"));
 
+            var started = DateTime.UtcNow;
             TimeoutException error = await Assert.ThrowsAsync<TimeoutException>(
                 () => whenAll.WithTimeout(TimeSpan.FromSeconds(5), "socket stalled"));
 
-            Assert.Equal("socket stalled", error.Message);
+            Assert.Equal("the socket underneath died", error.Message);
+            Assert.True(DateTime.UtcNow - started < TimeSpan.FromSeconds(4), "the fault was waited out, not propagated");
         }
 
         [Fact]
