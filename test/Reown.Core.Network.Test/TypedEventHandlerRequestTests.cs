@@ -142,7 +142,7 @@ namespace Reown.Core.Network.Test
             await DeliverRequest<TestRequest, TestResponse>(messageHandler, new TestRequest());
 
             _ = messageHandler.DidNotReceiveWithAnyArgs()
-                .SendResult<TestRequest, TestResponse>(default, default, default);
+                .SendResult<TestRequest, TestResponse>(default, default, default!);
         }
 
         /// <summary>
@@ -190,7 +190,7 @@ namespace Reown.Core.Network.Test
             ITypedMessageHandler messageHandler)
         {
             var registration = messageHandler.ReceivedCalls().Single(call => IsHandleMessageTypeFor<T, TR>(call));
-            return (Func<string, JsonRpcRequest<T>, Task>)registration.GetArguments()[0];
+            return Assert.IsType<Func<string, JsonRpcRequest<T>, Task>>(registration.GetArguments()[0]);
         }
 
         private static bool IsHandleMessageTypeFor<T, TR>(ICall call)

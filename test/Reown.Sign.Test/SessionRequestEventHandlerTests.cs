@@ -87,8 +87,8 @@ public class SessionRequestEventHandlerTests
     private static Task DeliverSessionRequest(ITypedMessageHandler messageHandler, string innerMethod)
     {
         var registration = messageHandler.ReceivedCalls().Single(IsSessionRequestRegistration);
-        var requestCallback =
-            (Func<string, JsonRpcRequest<SessionRequest<TestRequest>>, Task>)registration.GetArguments()[0];
+        var requestCallback = Assert.IsType<Func<string, JsonRpcRequest<SessionRequest<TestRequest>>, Task>>(
+            registration.GetArguments()[0]);
 
         var sessionRequest = new SessionRequest<TestRequest>
         {
