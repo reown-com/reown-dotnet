@@ -1,9 +1,14 @@
 using System;
+using System.IO;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NSubstitute;
 using Reown.Core.Controllers;
 using Reown.Core.Interfaces;
+using Reown.Core.Models.Relay;
+using Reown.Core.Models.Subscriber;
 using Xunit;
 
 namespace Reown.Core.Network.Test
@@ -149,6 +154,68 @@ namespace Reown.Core.Network.Test
             await Task.WhenAll(fromConnect, fromInit);
         }
 
+        /// <summary>
+        ///     Ensures a subscription that completes after its socket went away is not kept.
+        /// </summary>
+        /// <remarks>
+        ///     Both Subscribe and BatchSubscribe record into the map only once the relay has
+        ///     answered, and RpcSubscribe even restarts the transport itself between attempts. A
+        ///     disconnect landing in that gap clears the map, and the answer that arrives afterwards
+        ///     puts back an entry belonging to a socket that no longer exists. The relay has no such
+        ///     subscription on the new connection, so nothing is delivered on that topic — while
+        ///     every local check, the wallet's "missing" list included, reports it as subscribed.
+        /// </remarks>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task A_subscription_answered_after_the_socket_died_is_discarded()
+        {
+            var subscriber = new GatedRpcSubscriber(BuildRelayer());
+            await subscriber.Init();
+
+            Task<string> subscribing = subscriber.Subscribe("topic-a");
+            await subscriber.RpcEntered;
+
+            // The socket goes away while the relay is still answering.
+            subscriber.SimulateDisconnect();
+            subscriber.ReleaseRpc();
+
+            await Assert.ThrowsAnyAsync<Exception>(() => subscribing);
+
+            Assert.Empty(subscriber.Subscriptions);
+            Assert.DoesNotContain("topic-a", subscriber.Topics);
+
+            // Still pending, so the heartbeat sweep subscribes it again on the connection that is
+            // up. Dropping it here instead would leave the topic in neither the map nor the sweep.
+            await subscriber.CheckPendingAsync();
+
+            Assert.Contains("topic-a", subscriber.SweptTopics);
+        }
+
+        /// <summary>
+        ///     Ensures a failing pending sweep does not take the process down.
+        /// </summary>
+        /// <remarks>
+        ///     The heartbeat calls CheckPending, and BatchSubscribe handles only TimeoutException —
+        ///     a transport that cannot connect at all throws IOException straight out of an
+        ///     async void. On the lab that killed the subscriber on the first heartbeat after the
+        ///     network went away. Without the fix this test does not fail, it takes the test host
+        ///     with it, which is the point being made.
+        /// </remarks>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task A_failing_pending_sweep_does_not_kill_the_process()
+        {
+            var subscriber = new ThrowingBatchSubscriber(BuildRelayer());
+            await subscriber.Init();
+
+            subscriber.SweepPending();
+
+            // Long enough for the continuation to run and rethrow, had nothing caught it.
+            await Task.Delay(200);
+
+            Assert.True(true, "the process is still here");
+        }
+
         private static IRelayer BuildRelayer()
         {
             var relayer = Substitute.For<IRelayer>();
@@ -245,6 +312,143 @@ namespace Reown.Core.Network.Test
             protected override Task Restore()
             {
                 return Task.CompletedTask;
+            }
+        }
+
+        /// <summary>
+        ///     Test subscriber whose batch subscribe fails the way a dead transport does.
+        /// </summary>
+        private sealed class ThrowingBatchSubscriber : Subscriber
+        {
+            /// <summary>
+            ///     Initializes a subscriber whose batch subscribe always fails.
+            /// </summary>
+            /// <param name="relayer">The relayer instance to attach to.</param>
+            public ThrowingBatchSubscriber(IRelayer relayer) : base(relayer)
+            {
+            }
+
+            /// <summary>
+            ///     Runs the sweep the heartbeat would run.
+            /// </summary>
+            public void SweepPending()
+            {
+                CheckPending();
+            }
+
+            /// <summary>
+            ///     Skips the listener registration so nothing outside holds this subscriber alive.
+            /// </summary>
+            protected override void RegisterEventListeners()
+            {
+            }
+
+            /// <summary>
+            ///     Restores without reaching storage.
+            /// </summary>
+            /// <returns>A completed task.</returns>
+            protected override Task Restore()
+            {
+                return Task.CompletedTask;
+            }
+
+            /// <summary>
+            ///     Fails the way Relayer.Request does when the transport cannot be established.
+            /// </summary>
+            /// <param name="subscriptions">The pending subscriptions being swept.</param>
+            /// <returns>A task that is always faulted.</returns>
+            protected override Task BatchSubscribe(PendingSubscription[] subscriptions)
+            {
+                return Task.FromException(new IOException("Could not establish connection"));
+            }
+        }
+
+        /// <summary>
+        ///     Test subscriber whose relay call parks until released, so a disconnect can land in it.
+        /// </summary>
+        private sealed class GatedRpcSubscriber : Subscriber
+        {
+            private readonly TaskCompletionSource<bool> _gate =
+                new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            private readonly TaskCompletionSource<bool> _entered =
+                new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            /// <summary>
+            ///     Initializes a subscriber whose relay call can be held open.
+            /// </summary>
+            /// <param name="relayer">The relayer instance to attach to.</param>
+            public GatedRpcSubscriber(IRelayer relayer) : base(relayer)
+            {
+            }
+
+            /// <summary>
+            ///     Completes once the relay call is parked.
+            /// </summary>
+            public Task RpcEntered
+            {
+                get => _entered.Task;
+            }
+
+            /// <summary>
+            ///     Lets the parked relay call answer.
+            /// </summary>
+            public void ReleaseRpc()
+            {
+                _gate.TrySetResult(true);
+            }
+
+            /// <summary>
+            ///     Runs the disconnect handler the relayer would raise.
+            /// </summary>
+            public void SimulateDisconnect()
+            {
+                OnDisconnect();
+            }
+
+            /// <summary>
+            ///     Skips the listener registration so nothing outside holds this subscriber alive.
+            /// </summary>
+            protected override void RegisterEventListeners()
+            {
+            }
+
+            /// <summary>
+            ///     Restores without reaching storage.
+            /// </summary>
+            /// <returns>A completed task.</returns>
+            protected override Task Restore()
+            {
+                return Task.CompletedTask;
+            }
+
+            /// <summary>
+            ///     Gets the topics the pending sweep tried to subscribe.
+            /// </summary>
+            public List<string> SweptTopics { get; } = new List<string>();
+
+            /// <summary>
+            ///     Records what the sweep picked up instead of reaching the relay.
+            /// </summary>
+            /// <param name="subscriptions">The pending subscriptions being swept.</param>
+            /// <returns>A completed task.</returns>
+            protected override Task BatchSubscribe(PendingSubscription[] subscriptions)
+            {
+                SweptTopics.AddRange(subscriptions.Select(sub => sub.Topic));
+                return Task.CompletedTask;
+            }
+
+            /// <summary>
+            ///     Parks until released, then answers as the relay would.
+            /// </summary>
+            /// <param name="topic">The topic being subscribed to.</param>
+            /// <param name="relay">The relay protocol options.</param>
+            /// <returns>The subscription id.</returns>
+            protected override async Task<string> RpcSubscribe(string topic, ProtocolOptions relay)
+            {
+                _entered.TrySetResult(true);
+                await _gate.Task;
+                return "id-" + topic;
             }
         }
 

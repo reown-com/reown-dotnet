@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,6 +30,12 @@ namespace Reown.Core.Controllers
         private readonly TopicMap _topicMap = new();
         private ActiveSubscription[] _cached = Array.Empty<ActiveSubscription>();
         private string _clientId;
+
+        /// <summary>
+        ///     Bumped every time the socket goes away, so an answer that outlived its socket
+        ///     can be told apart from one that belongs to the connection in use now.
+        /// </summary>
+        private int _connectionEpoch;
         private bool _initialized;
         private TaskCompletionSource<bool> _restartTask;
 
@@ -195,8 +202,33 @@ namespace Reown.Core.Controllers
                 Topic = topic
             };
 
+            var epoch = Volatile.Read(ref _connectionEpoch);
+
             _pending.Add(topic, @params);
             var id = await RpcSubscribe(topic, @params.Relay);
+
+            // A relay-side subscription belongs to the socket it was made on. If that socket went
+            // away while this call was in flight, recording the answer now would leave the map
+            // claiming a topic the new connection never subscribed to: nothing is delivered on it,
+            // and every local check — including the caller's own idea of what is missing — reports
+            // it as healthy.
+            //
+            // The topic stays pending on purpose: OnSubscribe, which is what normally clears it, did
+            // not run, so leaving it there lets the heartbeat sweep subscribe it again on the
+            // connection that is up. Reported as well, so a caller waiting on this call learns that
+            // it did not take effect rather than holding an id for a subscription nobody has.
+            //
+            // The retry inside RpcSubscribe restarts the transport itself, which raises the epoch,
+            // so a subscribe that survived a timeout lands here too even though the relay accepted
+            // it on the live socket. That costs one duplicate subscription on the relay until the
+            // sweep re-subscribes; keeping a subscription nobody can see costs delivery.
+            if (Volatile.Read(ref _connectionEpoch) != epoch)
+            {
+                _logger.LogError($"Subscription to {topic} was answered after its socket went away; discarding it");
+
+                throw new IOException($"The transport was replaced while subscribing to {topic}.");
+            }
+
             OnSubscribe(id, @params);
             return id;
         }
@@ -355,13 +387,55 @@ namespace Reown.Core.Controllers
 
             if (Subscriptions.Count > 0)
             {
-                throw new InvalidOperationException($"Restoring will override existing data in {Name}.");
+                // The topics are named because this is the only place they can be: the map is
+                // cleared on the way out of the connection, so anything found here arrived after
+                // that and points at a subscription that outlived its socket. Without them the
+                // failure says a restart did not happen but not what stopped it.
+                //
+                // Capped: this message is logged, carried on ResubscribeFailed and may reach a crash
+                // reporter, and an account with a few dozen pairings would otherwise turn one line
+                // into a wall of hashes. The first few plus the count is what makes it findable.
+                const int namedTopicsLimit = 10;
+                var stillInMap = Topics;
+                var named = string.Join(", ", stillInMap.Take(namedTopicsLimit));
+                var rest = stillInMap.Length > namedTopicsLimit
+                    ? $" and {stillInMap.Length - namedTopicsLimit} more"
+                    : string.Empty;
+
+                throw new InvalidOperationException(
+                    $"Restoring will override existing data in {Name}. Still in the map ({stillInMap.Length}): {named}{rest}");
             }
 
             _cached = persisted;
         }
 
+        /// <remarks>
+        ///     async void because the heartbeat calls it: anything escaping lands on the thread pool
+        ///     and takes the process with it. BatchSubscribe handles only TimeoutException, so a
+        ///     transport that cannot connect at all — the ordinary state during an outage, and
+        ///     exactly when there are pending topics to sweep — throws IOException straight through
+        ///     here. Observed on the lab: the process dies on the first heartbeat after the network
+        ///     goes away.
+        /// </remarks>
         protected virtual async void CheckPending()
+        {
+            try
+            {
+                await CheckPendingAsync();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Sweeping the pending subscriptions failed: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        ///     Subscribes whatever is still waiting to be subscribed.
+        /// </summary>
+        /// <remarks>
+        ///     Internal so a test can await the sweep rather than the fire-and-forget wrapper.
+        /// </remarks>
+        internal async Task CheckPendingAsync()
         {
             if (_relayer.TransportExplicitlyClosed)
                 return;
@@ -451,6 +525,10 @@ namespace Reown.Core.Controllers
 
         protected virtual void OnDisable()
         {
+            // Bumped before the map is emptied: anything still waiting on the relay belongs to the
+            // socket being torn down here, and its answer must not put an entry back afterwards.
+            Interlocked.Increment(ref _connectionEpoch);
+
             _cached = Values;
             _subscriptions.Clear();
             _topicMap.Clear();
@@ -667,6 +745,8 @@ namespace Reown.Core.Controllers
         protected virtual async Task BatchSubscribe(PendingSubscription[] subscriptions)
         {
             if (subscriptions.Length == 0) return;
+
+            var epoch = Volatile.Read(ref _connectionEpoch);
             var batches = subscriptions.Batch(BatchSubscribeTopicsLimit);
             foreach (var batch in batches)
             {
@@ -685,6 +765,16 @@ namespace Reown.Core.Controllers
                 {
                     _relayer.TriggerConnectionStalled();
                     continue;
+                }
+
+                // Same rule as in Subscribe: a batch answered after its socket went away describes
+                // subscriptions the current connection does not have. Dropped rather than thrown —
+                // this runs from the restart and from the pending sweep, neither of which has a
+                // caller waiting to hear about it; the topics stay pending and are picked up again.
+                if (Volatile.Read(ref _connectionEpoch) != epoch)
+                {
+                    _logger.LogError($"Batch subscribe to {topics.Length} topic(s) was answered after its socket went away; discarding it");
+                    return;
                 }
 
                 OnBatchSubscribe(result
