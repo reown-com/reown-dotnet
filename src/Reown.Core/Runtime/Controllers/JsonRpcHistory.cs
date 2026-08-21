@@ -241,20 +241,12 @@ namespace Reown.Core.Controllers
         {
             IsInitialized();
 
-            if (_records.ContainsKey(id))
+            if (!_records.TryGetValue(id, out var record))
             {
                 return Task.FromResult(false);
             }
 
-            try
-            {
-                var record = GetRecord(id);
-                return Task.FromResult(record.Topic == topic);
-            }
-            catch (KeyNotFoundException)
-            {
-                return Task.FromResult(false);
-            }
+            return Task.FromResult(record.Topic == topic);
         }
 
         private Task SetJsonRpcRecords(JsonRpcRecord<T, TR>[] records)

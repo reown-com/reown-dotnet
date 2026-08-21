@@ -300,7 +300,7 @@ namespace Reown.Core.Models.MessageHandler
             if (RequestPredicate != null && !RequestPredicate(rea)) return;
             if (_onRequest == null) return;
 
-            var isDisposed = ((CoreClient)Ref).Disposed;
+            var isDisposed = Ref.Disposed;
 
             if (isDisposed)
             {
@@ -310,7 +310,7 @@ namespace Reown.Core.Models.MessageHandler
 
             await _onRequest(rea);
 
-            var nextIsDisposed = ((CoreClient)Ref).Disposed;
+            var nextIsDisposed = Ref.Disposed;
 
             if (nextIsDisposed)
             {
@@ -322,7 +322,7 @@ namespace Reown.Core.Models.MessageHandler
             {
                 await Ref.MessageHandler.SendError<T, TR>(arg2.Id, arg1, rea.Error);
             }
-            else if (rea.Response != null)
+            else if (rea.HasResponse)
             {
                 await Ref.MessageHandler.SendResult<T, TR>(arg2.Id, arg1, rea.Response);
             }

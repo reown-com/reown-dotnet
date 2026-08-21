@@ -21,21 +21,43 @@ namespace Reown.Core.Models.MessageHandler
         /// </summary>
         public Error Error;
 
-        /// <summary>
-        ///     The current response to send when this event finishes propagating. You can set this value
-        ///     to send a response when this event completes.
-        ///     If the <see cref="Error" /> field is non-null, then this field will not be sent and the
-        ///     <see cref="Error" /> will be sent instead
-        /// </summary>
-        public TR Response;
-
         public VerifiedContext VerifiedContext;
+
+        private TR _response;
+        private bool _responseAssigned;
 
         internal RequestEventArgs(string topic, JsonRpcRequest<T> request, VerifiedContext context)
         {
             Topic = topic;
             Request = request;
             VerifiedContext = context;
+        }
+
+        /// <summary>
+        ///     The current response to send when this event finishes propagating. You can set this value
+        ///     to send a response when this event completes.
+        ///     If the <see cref="Error" /> field is non-null, then this field will not be sent and the
+        ///     <see cref="Error" /> will be sent instead
+        /// </summary>
+        public TR Response
+        {
+            get => _response;
+            set
+            {
+                _response = value;
+                _responseAssigned = true;
+            }
+        }
+
+        /// <summary>
+        ///     Whether <see cref="Response" /> holds a response to send when this event finishes propagating.
+        ///     True once a response has been assigned and is not null, counting a value type response that equals
+        ///     its default: a <c>false</c> or <c>0</c> answer is sent like any other. Assigning nothing, a null
+        ///     reference, or a nullable value type without a value leaves the request unanswered.
+        /// </summary>
+        public bool HasResponse
+        {
+            get => _responseAssigned && _response != null;
         }
 
         /// <summary>

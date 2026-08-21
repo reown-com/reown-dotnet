@@ -111,7 +111,7 @@ namespace Reown.Sign
                 throw new ArgumentNullException(nameof(response));
             }
 
-            if (Equals(response.Result, default(T)) && response.Error == null)
+            if (response.Result == null && response.Error == null)
             {
                 throw new ArgumentException("Response result and error cannot both be null.");
             }
