@@ -374,6 +374,107 @@ namespace Reown.Core.Network.Test
             Assert.True(relayer.Connected);
         }
 
+        /// <summary>
+        ///     Ensures opening a transport that is already open leaves it alone.
+        /// </summary>
+        /// <remarks>
+        ///     The open waits for <c>Subscriber.Resubscribed</c>, which only comes out of a restart
+        ///     driven by the provider's Connected event — an already connected provider never raises
+        ///     it. The wait therefore runs to its budget and then, because a failed open closes what
+        ///     it finds, takes down a healthy connection along with its subscriptions.
+        /// </remarks>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task Opening_a_transport_that_is_already_open_leaves_it_alone()
+        {
+            var relayer = new TestRelayer();
+            await relayer.Init();
+
+            Assert.True(relayer.Connected, "the transport should be up after Init");
+            int attemptsBefore = relayer.OpenAttempts;
+
+            Task open = relayer.TransportOpen();
+
+            Task finished = await Task.WhenAny(open, Task.Delay(TimeSpan.FromSeconds(5)));
+            Assert.Same(open, finished);
+            await open;
+
+            Assert.True(relayer.Connected, "the healthy connection was torn down");
+            Assert.Equal(attemptsBefore, relayer.OpenAttempts);
+
+            relayer.Dispose();
+        }
+
+        /// <summary>
+        ///     Ensures a close issued while a connect is in flight is not undone when it completes.
+        /// </summary>
+        /// <remarks>
+        ///     A connect runs for as long as its whole timeout, and a close arriving inside that
+        ///     window finds the socket still down — there is nothing to tear down, so it leaves
+        ///     behind nothing but the flag. Handing the finished connection over anyway answers a
+        ///     caller who asked for the transport to go away by bringing it back, and the reconnect
+        ///     loop then exits on Connected and leaves it up.
+        /// </remarks>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task A_close_during_a_connect_is_not_undone_when_it_completes()
+        {
+            var relayer = new TestRelayer();
+            await relayer.Init();
+
+            relayer.HoldOpen = new TaskCompletionSource<bool>();
+
+            Task restart = relayer.RestartTransport();
+
+            // The restart has closed the old socket and is now parked inside the reopen.
+            var reopenBy = DateTime.UtcNow.AddSeconds(5);
+            while (relayer.OpenAttempts < 2 && DateTime.UtcNow < reopenBy)
+            {
+                await Task.Delay(10);
+            }
+
+            Assert.True(relayer.OpenAttempts >= 2, "the reopen never started");
+            Assert.False(relayer.Connected, "the socket should be down while the reopen is parked");
+
+            // Nothing to disconnect at this point, so this leaves only the flag behind.
+            await relayer.TransportClose();
+
+            relayer.HoldOpen.TrySetResult(true);
+
+            Task finished = await Task.WhenAny(restart, Task.Delay(TimeSpan.FromSeconds(10)));
+            Assert.Same(restart, finished);
+            await restart;
+
+            Assert.True(relayer.TransportExplicitlyClosed);
+            Assert.False(relayer.Connected);
+
+            relayer.Dispose();
+        }
+
+        /// <summary>
+        ///     Ensures a close issued during a restart is not undone by the reopen that restart runs.
+        /// </summary>
+        /// <remarks>
+        ///     The flag means "do not reconnect", and a restart already past its own guard still has
+        ///     a reopen ahead of it. Clearing the flag there would answer a caller who just closed the
+        ///     transport by bringing it back up — the wallet going to background mid-reconnect is
+        ///     exactly this sequence.
+        /// </remarks>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task A_close_during_a_restart_survives_the_reopen()
+        {
+            var relayer = new TestRelayer();
+            await relayer.EstablishProvider();
+
+            relayer.WhileBuildingConnection = () => relayer.TransportClose();
+
+            await relayer.RestartTransport();
+
+            Assert.True(relayer.TransportExplicitlyClosed);
+            Assert.Equal(0, relayer.OpenAttempts);
+        }
+
         private sealed class TestRelayer : Relayer
         {
             public readonly FakeConnection Connection = new FakeConnection();
@@ -409,10 +510,21 @@ namespace Reown.Core.Network.Test
                 return CreateProvider();
             }
 
-            protected override Task<IJsonRpcConnection> BuildConnection(string url)
+            /// <summary>
+            ///     Runs while the restart is between its own guard and the reopen that follows it.
+            /// </summary>
+            public Func<Task> WhileBuildingConnection;
+
+            protected override async Task<IJsonRpcConnection> BuildConnection(string url)
             {
                 ConnectionsBuilt++;
-                return Task.FromResult<IJsonRpcConnection>(Connection);
+
+                if (WhileBuildingConnection != null)
+                {
+                    await WhileBuildingConnection();
+                }
+
+                return Connection;
             }
 
             public async Task OnOpen()

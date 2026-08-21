@@ -408,10 +408,47 @@ namespace Reown.Core.Controllers
             public volatile bool Abandoned;
         }
 
-        public async Task TransportOpen(string relayUrl = null)
+        /// <remarks>
+        ///     Asking for the transport to open is the counterpart of asking for it to close, so this
+        ///     clears the flag a close raised. The reconnect path deliberately does not come through
+        ///     here: an open it started before the caller closed would otherwise clear the flag on
+        ///     that caller's behalf and bring the socket back up.
+        /// </remarks>
+        public Task TransportOpen(string relayUrl = null)
         {
             TransportExplicitlyClosed = false;
+            return TransportOpenCore(relayUrl);
+        }
+
+        private async Task TransportOpenCore(string relayUrl)
+        {
+            // Read here rather than at the caller: a restart passes its own check long before it
+            // reaches this point, and a close arriving in between has to win.
+            if (TransportExplicitlyClosed)
+            {
+                _logger.Log("The transport was explicitly closed while this open was on its way; not opening");
+                return;
+            }
+
             if (_reconnecting) return;
+
+            // Nothing here to open, and waiting anyway is worse than doing nothing. The wait below
+            // is for Subscriber.Resubscribed, which comes out of a restart driven by the provider's
+            // Connected event — and a provider that is already connected never raises it, so the
+            // wait is doomed from its first millisecond. It then sat out the whole resubscribe
+            // budget and, since a failed open closes what it finds, tore down a healthy connection
+            // carrying live subscriptions. Upstream fares worse: there the wait has no bound at
+            // all, so one such call parks _reconnecting for good and every later reconnect returns
+            // on its first line, this class's own loop included.
+            //
+            // Changing the relay URL still works: RestartTransport closes first, so it does not
+            // arrive here with a live socket.
+            if (Connected)
+            {
+                _logger.Log("The transport is already open; nothing to do");
+                return;
+            }
+
             _relayUrl = relayUrl ?? _relayUrl;
             _reconnecting = true;
 
@@ -510,6 +547,30 @@ namespace Reown.Core.Controllers
                 await Task.WhenAll(
                     task2.Task.WithTimeout(ConnectionTimeout ?? DefaultConnectionTimeout, "socket stalled"),
                     task1.Task.WithTimeout(ResubscribeBudget, "socket stalled"));
+
+                // Checked again, not only on the way in: a connect runs for as long as its whole
+                // timeout, and a close arriving inside that window had nothing to tear down — the
+                // socket was still down, so it left behind nothing but the flag. Handing the
+                // finished connection over anyway answers a caller who asked for the transport to
+                // go away by bringing it back, and the reconnect loop then exits on Connected and
+                // leaves it up.
+                if (TransportExplicitlyClosed)
+                {
+                    _logger.Log("The transport was explicitly closed while this open was in flight; closing what it opened");
+
+                    // Guarded for the same reason as the failure path below: a close that throws
+                    // here would replace a well-defined outcome with an incidental exception.
+                    try
+                    {
+                        await TransportCloseInternal(false);
+                    }
+                    catch (Exception closeFailure)
+                    {
+                        _logger.Log($"Closing an unwanted transport failed: {closeFailure.Message}");
+                    }
+
+                    return;
+                }
 
                 _logger.Log("Transport opened");
             }
@@ -649,7 +710,7 @@ namespace Reown.Core.Controllers
                 OnDisconnected?.Invoke(this, EventArgs.Empty);
             }
 
-            await TransportOpen();
+            await TransportOpenCore(null);
         }
 
         protected virtual async Task CreateProvider()

@@ -156,7 +156,11 @@ namespace Reown.Core.Controllers
             {
                 _clientId = await _relayer.CoreClient.Crypto.GetClientId();
 
-                await Restart();
+                // Enabled even when the restart rebuilt nothing, which OnConnect deliberately does
+                // not do. There is nothing cached to protect on a first run, and leaving the flag
+                // down would make every public method on this subscriber throw for the rest of the
+                // process — an app started with no network would never recover.
+                _ = await Restart();
                 RegisterEventListeners();
                 OnEnabled();
             }
@@ -261,14 +265,30 @@ namespace Reown.Core.Controllers
             return false;
         }
         
-        private async Task Restart()
+        /// <summary>
+        ///     Rebuilds the subscriptions this socket is supposed to carry.
+        /// </summary>
+        /// <returns><c>true</c> when they were rebuilt; <c>false</c> when the restart failed.</returns>
+        /// <remarks>
+        ///     Returned rather than read back off <see cref="_restartTask" />: the field is replaced by
+        ///     whichever restart starts last, so a caller reading it after its own await can be told
+        ///     about someone else's restart.
+        /// </remarks>
+        private async Task<bool> Restart()
         {
-            _restartTask = new TaskCompletionSource<bool>();
+            // Held locally as well: the field belongs to whichever restart started last, so
+            // completing through it lets two overlapping restarts complete each other's latch —
+            // and the second SetResult on an already completed one throws out of this method,
+            // leaving both Resubscribed and ResubscribeFailed unraised.
+            var latch = new TaskCompletionSource<bool>();
+            _restartTask = latch;
+
             try
             {
                 await Restore();
                 await Reset();
-                _restartTask.SetResult(true);
+                latch.SetResult(true);
+                return true;
             }
             catch (Exception e)
             {
@@ -276,17 +296,19 @@ namespace Reown.Core.Controllers
                 // without this a failed Restore is completely silent — and a failed Restore means
                 // Reset never ran and this socket carries no relay-side subscriptions at all.
                 _logger.LogError($"Restart failed, subscriptions were not rebuilt: {e.Message}");
-                _restartTask.SetException(e);
+                latch.SetException(e);
 
-                // Nothing awaits _restartTask unless a Subscribe happens to race the restart, so
+                // Nothing awaits the latch unless a Subscribe happens to race the restart, so
                 // without this the failure resurfaces on the finalizer thread.
-                _restartTask.Task.ObserveFault();
+                latch.Task.ObserveFault();
 
                 // Reported rather than passed off as completion. Raising Resubscribed here would
                 // unblock TransportOpen, but it would also present a socket carrying no
                 // subscriptions as a successful open: the reconnect loop exits on Connected and the
                 // client stays deaf until some unrelated disconnect wakes it.
                 ResubscribeFailed?.Invoke(this, e);
+
+                return false;
             }
         }
 
@@ -434,11 +456,41 @@ namespace Reown.Core.Controllers
             _topicMap.Clear();
         }
 
+        /// <remarks>
+        ///     async void because it is an event handler: anything escaping it lands on the thread
+        ///     pool and takes the process with it, so the work lives in an awaitable body and the
+        ///     failure stops here.
+        /// </remarks>
         protected virtual async void OnConnect()
+        {
+            try
+            {
+                await OnConnectAsync();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Handling a connect failed: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        ///     Rebuilds the subscriptions for a socket that just came up.
+        /// </summary>
+        /// <remarks>
+        ///     Internal so a test can await the whole handler instead of guessing how long its
+        ///     continuation needs.
+        /// </remarks>
+        internal async Task OnConnectAsync()
         {
             if (RestartInProgress) return;
 
-            await Restart();
+            // A restart that rebuilt nothing leaves this socket carrying no relay-side
+            // subscriptions, and OnEnabled would drop the cache the next restart rebuilds from.
+            // Unlike Init above there is no client waiting to be made usable here, so the honest
+            // move is to leave the subscriber as it was and let the transport fail the open.
+            if (!await Restart())
+                return;
+
             OnEnabled();
         }
 
