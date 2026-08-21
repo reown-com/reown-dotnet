@@ -345,6 +345,81 @@ namespace Reown.Core.Network.Test
             Assert.Equal(1, rawMessageCount);
         }
 
+        /// <summary>
+        ///     Ensures one throwing response callback does not stop the others registered for the same RPC method.
+        ///     Response callbacks are keyed by method, so every handler registered for a method - including a
+        ///     consumer's own - shares one list, and the callback that resolves the pending request may be dispatched
+        ///     after a callback that throws.
+        /// </summary>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task ThrowingResponseCallback_DoesNotSkipOtherCallbacksForSameMethod()
+        {
+            var relayer = Substitute.For<IRelayer>();
+            var crypto = Substitute.For<ICrypto>();
+            var historyFactory = Substitute.For<IJsonRpcHistoryFactory>();
+            var coreClient = Substitute.For<ICoreClient>();
+
+            coreClient.Relayer.Returns(relayer);
+            coreClient.Crypto.Returns(crypto);
+            coreClient.History.Returns(historyFactory);
+
+            var responsePayload = JsonConvert.DeserializeObject<JsonRpcPayload>(ResponsePayloadJson);
+            crypto.Decode<JsonRpcPayload>(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DecodeOptions>())
+                .Returns(responsePayload);
+            crypto.Decode<JsonRpcResponse<ThrowingResponse>>(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DecodeOptions>())
+                .Returns(new JsonRpcResponse<ThrowingResponse>());
+            crypto.Decode<JsonRpcResponse<TestResponse>>(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DecodeOptions>())
+                .Returns(new JsonRpcResponse<TestResponse>());
+            crypto.HasKeys(Arg.Any<string>()).Returns(true);
+
+            var method = RpcMethodAttribute.MethodForType<TestRequest>();
+
+            // Only the TestResponse registration finds the record, so exactly one raw handler dispatches the
+            // response - to both callbacks, since both registered for TestRequest's method.
+            var throwingHistory = Substitute.For<IJsonRpcHistory<TestRequest, ThrowingResponse>>();
+            var history = Substitute.For<IJsonRpcHistory<TestRequest, TestResponse>>();
+            historyFactory.JsonRpcHistoryOfType<TestRequest, ThrowingResponse>().Returns(throwingHistory);
+            historyFactory.JsonRpcHistoryOfType<TestRequest, TestResponse>().Returns(history);
+            throwingHistory.Get(Arg.Any<string>(), Arg.Any<long>())
+                .Returns<JsonRpcRecord<TestRequest, ThrowingResponse>>(_ => throw new KeyNotFoundException());
+            history.Get(Arg.Any<string>(), Arg.Any<long>())
+                .Returns(new JsonRpcRecord<TestRequest, TestResponse>(new JsonRpcRequest<TestRequest>(method, null)));
+
+            var handler = new TypedMessageHandler(coreClient);
+            await handler.Init();
+
+            var callbackFailure = new InvalidOperationException("response callback failure");
+            var secondCallbackInvoked = false;
+
+            await handler.HandleMessageType<TestRequest, ThrowingResponse>(
+                (_, _) => Task.CompletedTask,
+                (_, _) => throw callbackFailure);
+            await handler.HandleMessageType<TestRequest, TestResponse>(
+                (_, _) => Task.CompletedTask,
+                (_, _) =>
+                {
+                    secondCallbackInvoked = true;
+                    return Task.CompletedTask;
+                });
+
+            var originalLogger = ReownLogger.Instance;
+            var recordingLogger = new RecordingLogger();
+            ReownLogger.Instance = recordingLogger;
+
+            try
+            {
+                RaiseMessageReceived(relayer);
+            }
+            finally
+            {
+                ReownLogger.Instance = originalLogger;
+            }
+
+            Assert.True(secondCallbackInvoked);
+            Assert.Contains(callbackFailure, recordingLogger.Exceptions);
+        }
+
         private static async Task<JsonRpcPayload> WaitForGate(TaskCompletionSource<bool> gate, JsonRpcPayload payload)
         {
             await gate.Task;
@@ -398,6 +473,10 @@ namespace Reown.Core.Network.Test
         }
 
         public class TestResponse
+        {
+        }
+
+        public class ThrowingResponse
         {
         }
 

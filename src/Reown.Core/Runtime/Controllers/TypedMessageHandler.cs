@@ -313,11 +313,18 @@ namespace Reown.Core.Controllers
                     var callbacksCopy = callbacks.ToList();
                     foreach (var callback in callbacksCopy)
                     {
-                        await callback(new MessageEvent
+                        try
                         {
-                            Topic = topic,
-                            Message = message
-                        });
+                            await callback(new MessageEvent
+                            {
+                                Topic = topic,
+                                Message = message
+                            });
+                        }
+                        catch (Exception callbackException)
+                        {
+                            ReownLogger.LogError(callbackException);
+                        }
                     }
                 }
             }
