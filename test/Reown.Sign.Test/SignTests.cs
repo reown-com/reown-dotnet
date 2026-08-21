@@ -1291,7 +1291,93 @@ public class SignTests : IAsyncLifetime
         Assert.Equal(ErrorType.GENERIC, exception.CodeType);
     }
 
-    private async Task<(string sessionTopic, string pairingTopic)> ConnectAndApprove()
+    [Fact] [Trait("Category", "integration")]
+    public async Task TestValueTypeSessionRequestIsAnsweredOnce()
+    {
+        var testMethod = RpcMethodAttribute.MethodForType<TestRequest2>();
+        var (sessionTopic, _) = await ConnectAndApprove(testMethod);
+
+        _wallet.Engine.SessionRequestEvents<TestRequest2, bool>()
+            .OnRequest += requestData =>
+        {
+            requestData.Response = true;
+            return Task.CompletedTask;
+        };
+
+        var responsesReceived = 0;
+        _dapp.SessionRequestEvents<TestRequest2, bool>()
+            .FilterResponses(r => r.Topic == sessionTopic)
+            .OnResponse += _ =>
+        {
+            Interlocked.Increment(ref responsesReceived);
+            return Task.CompletedTask;
+        };
+
+        var testData = new TestRequest2
+        {
+            x = "abc",
+            y = 3
+        };
+
+        var result = await _dapp.RequestAsync<TestRequest2, bool>(sessionTopic, testMethod, testData);
+
+        Assert.True(result);
+
+        // A duplicate response carries the same request id, so it is only visible by counting messages
+        await Task.Delay(2000);
+
+        Assert.Equal(1, Volatile.Read(ref responsesReceived));
+    }
+
+    [Fact] [Trait("Category", "integration")]
+    public async Task TestRespondWithDefaultValueTypeResult()
+    {
+        var testMethod = RpcMethodAttribute.MethodForType<TestRequest2>();
+        var (sessionTopic, _) = await ConnectAndApprove(testMethod);
+
+        var responded = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _wallet.Engine.SessionRequestEvents<TestRequest2, bool>()
+            .OnRequest += async requestData =>
+        {
+            try
+            {
+                await _wallet.RespondAsync<TestRequest2, bool>(sessionTopic,
+                    new JsonRpcResponse<bool>(requestData.Request.Id, null, false));
+
+                responded.TrySetResult(true);
+            }
+            catch (Exception e)
+            {
+                // Answer anyway so the dapp request completes and the failure surfaces below
+                requestData.Response = false;
+                responded.TrySetException(e);
+            }
+        };
+
+        var testData = new TestRequest2
+        {
+            x = "abc",
+            y = 3
+        };
+
+        var result = await _dapp
+            .RequestAsync<TestRequest2, bool>(sessionTopic, testMethod, testData)
+            .WithTimeout(TimeSpan.FromSeconds(15));
+
+        Assert.True(await responded.Task.WithTimeout(TimeSpan.FromSeconds(5)));
+        Assert.False(result);
+    }
+
+    [Fact] [Trait("Category", "integration")]
+    public async Task TestRespondWithNullNullableResultIsRejected()
+    {
+        var (sessionTopic, _) = await ConnectAndApprove();
+
+        await Assert.ThrowsAsync<ArgumentException>(() => _wallet.RespondAsync<TestRequest2, int?>(
+            sessionTopic, new JsonRpcResponse<int?>(1, null, null)));
+    }
+
+    private async Task<(string sessionTopic, string pairingTopic)> ConnectAndApprove(params string[] methods)
     {
         const string testAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
         var dappConnectOptions = new ConnectOptions
@@ -1301,7 +1387,7 @@ public class SignTests : IAsyncLifetime
                 {
                     "eip155", new ProposedNamespace
                     {
-                        Methods = ["eth_sign"],
+                        Methods = methods.Length > 0 ? methods : ["eth_sign"],
                         Chains = ["eip155:1", "eip155:10"],
                         Events = ["chainChanged", "accountsChanged"]
                     }

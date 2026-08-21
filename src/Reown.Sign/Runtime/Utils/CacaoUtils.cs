@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using Reown.Core.Common.Utils;
 
 namespace Reown.Sign.Utils
 {
@@ -46,6 +47,34 @@ namespace Reown.Sign.Utils
         public static string ToRfc3339(this DateTimeOffset dateTimeOffset)
         {
             return dateTimeOffset.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ", CultureInfo.InvariantCulture);
+        }
+
+        /// <summary>
+        ///     <c>AuthParams.Expiration</c> and <c>NotBefore</c> are used both as
+        ///     RFC 3339 timestamps and as durations in seconds. When the value is a
+        ///     positive integer below one year, emit UTC <paramref name="now"/> plus
+        ///     that many seconds so CACAO <c>exp</c>/<c>nbf</c> stay timestamps.
+        ///     Epoch-sized or negative integers are left unchanged so they fail
+        ///     closed as unparseable instead of overflowing or expanding into a
+        ///     decades-long window.
+        /// </summary>
+        /// <param name="expiration">Raw exp or nbf from AuthParams, timestamp or seconds.</param>
+        /// <param name="now">Clock used when expanding a duration. Defaults to UTC now.</param>
+        public static string NormalizeExpiration(string expiration, DateTimeOffset? now = null)
+        {
+            if (string.IsNullOrWhiteSpace(expiration))
+            {
+                return expiration;
+            }
+
+            if (long.TryParse(expiration, NumberStyles.Integer, CultureInfo.InvariantCulture, out var seconds)
+                && seconds > 0
+                && seconds <= Clock.ONE_YEAR)
+            {
+                return (now ?? DateTimeOffset.UtcNow).ToUniversalTime().AddSeconds(seconds).ToRfc3339();
+            }
+
+            return expiration;
         }
     }
 }

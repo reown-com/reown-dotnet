@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - develop
     paths-ignore:
       - '**.md'
       - '.editorconfig'
@@ -24,7 +25,7 @@ concurrency:
 
 jobs:
   build:
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    if: github.event_name != 'pull_request' || (github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository)
     name: Build and analyze
     runs-on: windows-latest
     steps:
@@ -33,31 +34,31 @@ jobs:
         with:
           java-version: 17
           distribution: "zulu" # Alternative distribution options are available.
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
       - name: Setup .NET
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: |
             8.0.x
             9.0.x
             10.0.x
       - name: Cache NuGet packages
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props', '**/*.csproj') }}
           restore-keys: ${{ runner.os }}-nuget-
       - name: Cache SonarQube Cloud packages
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~\sonar\cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
       - name: Cache SonarQube Cloud scanner
         id: cache-sonar-scanner
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: .\.sonar\scanner
           key: ${{ runner.os }}-sonar-scanner

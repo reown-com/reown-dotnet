@@ -232,11 +232,51 @@ namespace Reown.Core.Models.MessageHandler
             }
         }
 
+        /// <summary>
+        ///     Dispatches a received response to the <see cref="OnResponse" /> subscribers. Each subscriber is
+        ///     invoked without awaiting its completion so that a subscriber awaiting another round trip cannot
+        ///     block or deadlock the sequential response pump; subscriber exceptions are logged.
+        /// </summary>
+        /// <param name="arg1">The topic the response was received on</param>
+        /// <param name="arg2">The response payload</param>
         protected virtual Task ResponseCallback(string arg1, JsonRpcResponse<TR> arg2)
         {
+            var handlers = _onResponse;
+            if (handlers == null)
+            {
+                return Task.CompletedTask;
+            }
+
             var rea = new ResponseEventArgs<TR>(arg2, arg1);
-            return ResponsePredicate != null && !ResponsePredicate(rea) ? Task.CompletedTask :
-                _onResponse != null ? _onResponse(rea) : Task.CompletedTask;
+            if (ResponsePredicate != null && !ResponsePredicate(rea))
+            {
+                return Task.CompletedTask;
+            }
+
+            foreach (var handler in handlers.GetInvocationList())
+            {
+                _ = InvokeResponseHandler((ResponseMethod<TR>)handler, rea);
+            }
+
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        ///     Invokes a single <see cref="OnResponse" /> subscriber detached from the response pump,
+        ///     logging any exception it throws instead of propagating it.
+        /// </summary>
+        /// <param name="handler">The subscriber to invoke</param>
+        /// <param name="args">The response event arguments</param>
+        private static async Task InvokeResponseHandler(ResponseMethod<TR> handler, ResponseEventArgs<TR> args)
+        {
+            try
+            {
+                await handler(args);
+            }
+            catch (Exception e)
+            {
+                ReownLogger.LogError(e);
+            }
         }
 
         protected virtual async Task RequestCallback(string arg1, JsonRpcRequest<T> arg2)
@@ -260,7 +300,7 @@ namespace Reown.Core.Models.MessageHandler
             if (RequestPredicate != null && !RequestPredicate(rea)) return;
             if (_onRequest == null) return;
 
-            var isDisposed = ((CoreClient)Ref).Disposed;
+            var isDisposed = Ref.Disposed;
 
             if (isDisposed)
             {
@@ -270,7 +310,7 @@ namespace Reown.Core.Models.MessageHandler
 
             await _onRequest(rea);
 
-            var nextIsDisposed = ((CoreClient)Ref).Disposed;
+            var nextIsDisposed = Ref.Disposed;
 
             if (nextIsDisposed)
             {
@@ -282,7 +322,7 @@ namespace Reown.Core.Models.MessageHandler
             {
                 await Ref.MessageHandler.SendError<T, TR>(arg2.Id, arg1, rea.Error);
             }
-            else if (rea.Response != null)
+            else if (rea.HasResponse)
             {
                 await Ref.MessageHandler.SendResult<T, TR>(arg2.Id, arg1, rea.Response);
             }
@@ -327,10 +367,7 @@ namespace Reown.Core.Models.MessageHandler
                 }
 
                 DisposeActions.Clear();
-
-                if (Instances.ContainsKey(context))
-                    Instances.Remove(context);
-
+                Instances.Remove(context);
                 Teardown();
             }
 

@@ -85,6 +85,12 @@ namespace Reown.Core.Interfaces
         Verifier Verify { get; }
 
         /// <summary>
+        ///     Whether this Core module has been disposed. Once true, the module can no longer
+        ///     send or receive messages and all of its sub-modules have been torn down.
+        /// </summary>
+        bool Disposed { get; }
+
+        /// <summary>
         ///     Start the Core module, which will initialize all modules the Core module uses
         /// </summary>
         public Task Start();
