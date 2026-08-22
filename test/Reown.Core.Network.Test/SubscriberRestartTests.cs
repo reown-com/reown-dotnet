@@ -8,6 +8,7 @@ using NSubstitute;
 using Reown.Core.Controllers;
 using Reown.Core.Interfaces;
 using Reown.Core.Models.Relay;
+using Reown.Core.Network;
 using Reown.Core.Models.Subscriber;
 using Xunit;
 
@@ -223,6 +224,43 @@ namespace Reown.Core.Network.Test
             Assert.True(true, "the process is still here");
         }
 
+        /// <summary>
+        ///     Ensures a map left over from a replaced connection is dropped rather than blocking
+        ///     every restart that follows.
+        /// </summary>
+        /// <remarks>
+        ///     Reproduces what a device showed: the transport errored out without a disconnect ever
+        ///     being raised, so nothing cleared the map. Restore then refused to run against it,
+        ///     no batch subscribe went out, and the wallet reported every topic subscribed while the
+        ///     relay had none of them — a state that only a restart of the application recovered
+        ///     from. Entries recorded on a provider that is no longer in use are not live state.
+        /// </remarks>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task A_map_left_by_a_replaced_provider_is_dropped_on_restart()
+        {
+            var relayer = BuildRelayer();
+            var first = Substitute.For<IJsonRpcProvider>();
+            var second = Substitute.For<IJsonRpcProvider>();
+
+            relayer.Provider.Returns(first);
+
+            var subscriber = new ProviderTrackingSubscriber(relayer);
+            await subscriber.Init();
+            await subscriber.Subscribe("topic-a");
+
+            Assert.Contains("topic-a", subscriber.Topics);
+
+            // The connection is replaced and nobody reports the old one as gone.
+            relayer.Provider.Returns(second);
+            subscriber.Swept.Clear();
+
+            await subscriber.OnConnectAsync();
+
+            Assert.DoesNotContain("topic-a", subscriber.Topics);
+            Assert.Contains("topic-persisted", subscriber.Swept);
+        }
+
         private static IRelayer BuildRelayer()
         {
             var relayer = Substitute.For<IRelayer>();
@@ -318,6 +356,71 @@ namespace Reown.Core.Network.Test
             /// <returns>A completed task.</returns>
             protected override Task Restore()
             {
+                return Task.CompletedTask;
+            }
+        }
+
+        /// <summary>
+        ///     Test subscriber that restores a known set and records what the restart re-subscribes.
+        /// </summary>
+        private sealed class ProviderTrackingSubscriber : Subscriber
+        {
+            /// <summary>
+            ///     Initializes the subscriber.
+            /// </summary>
+            /// <param name="relayer">The relayer instance to attach to.</param>
+            public ProviderTrackingSubscriber(IRelayer relayer) : base(relayer)
+            {
+            }
+
+            /// <summary>
+            ///     Gets the topics a restart handed to the batch subscribe.
+            /// </summary>
+            public List<string> Swept { get; } = new List<string>();
+
+            /// <summary>
+            ///     Skips the listener registration so nothing outside holds this subscriber alive.
+            /// </summary>
+            protected override void RegisterEventListeners()
+            {
+            }
+
+            /// <summary>
+            ///     Answers as the relay would, without reaching one.
+            /// </summary>
+            /// <param name="topic">The topic being subscribed to.</param>
+            /// <param name="relay">The relay protocol options.</param>
+            /// <returns>The subscription id.</returns>
+            protected override Task<string> RpcSubscribe(string topic, ProtocolOptions relay)
+            {
+                return Task.FromResult("id-" + topic);
+            }
+
+            /// <summary>
+            ///     Restores a fixed set, so Restore reaches its guard instead of returning early.
+            /// </summary>
+            /// <returns>One persisted subscription.</returns>
+            protected override Task<ActiveSubscription[]> GetRelayerSubscriptions()
+            {
+                return Task.FromResult(new[]
+                {
+                    new ActiveSubscription
+                    {
+                        Id = "id-persisted",
+                        Topic = "topic-persisted",
+                        Relay = new ProtocolOptions { Protocol = "irn" }
+                    }
+                });
+            }
+
+            /// <summary>
+            ///     Records what the restart tried to subscribe instead of reaching the relay.
+            /// </summary>
+            /// <param name="subscriptions">The subscriptions being re-subscribed.</param>
+            /// <returns>A completed task.</returns>
+            protected override Task BatchSubscribe(PendingSubscription[] subscriptions)
+            {
+                Swept.AddRange(subscriptions.Select(sub => sub.Topic));
                 return Task.CompletedTask;
             }
         }

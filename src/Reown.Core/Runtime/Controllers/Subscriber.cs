@@ -8,6 +8,7 @@ using Reown.Core.Common.Logging;
 using Reown.Core.Common.Model.Relay;
 using Reown.Core.Common.Utils;
 using Reown.Core.Interfaces;
+using Reown.Core.Network;
 using Reown.Core.Models.Relay;
 using Reown.Core.Models.Subscriber;
 using Reown.Core.Network.Models;
@@ -44,9 +45,28 @@ namespace Reown.Core.Controllers
         private string _clientId;
 
         /// <summary>
-        ///     Bumped every time the socket goes away, so an answer that outlived its socket
-        ///     can be told apart from one that belongs to the connection in use now.
+        ///     The provider the entries in the map were made on.
         /// </summary>
+        /// <remarks>
+        ///     A relay-side subscription belongs to a connection, so the connection itself is what
+        ///     tells a live entry from a stale one. Watching for the disconnect event instead is not
+        ///     enough: a socket can go away without one being raised, and then nothing clears the
+        ///     map, nothing marks the answers still in flight as stale, and the map goes on claiming
+        ///     topics the new connection never subscribed to. Seen on a device — the map kept
+        ///     growing after the transport had already errored out, Restore refused to run against
+        ///     it, and the wallet reported every topic subscribed while the relay delivered nothing.
+        /// </remarks>
+        private IJsonRpcProvider _mapProvider;
+
+        /// <summary>
+        ///     Bumped every time the socket is reported gone.
+        /// </summary>
+        /// <remarks>
+        ///     Kept alongside the provider because neither signal covers the other. A disconnect
+        ///     without a new provider still invalidates every relay-side subscription, and a
+        ///     provider replaced without a disconnect ever being raised leaves the map claiming
+        ///     topics the new connection never subscribed to. Both were seen on real devices.
+        /// </remarks>
         private int _connectionEpoch;
         private bool _initialized;
         private TaskCompletionSource<bool> _restartTask;
@@ -248,6 +268,7 @@ namespace Reown.Core.Controllers
                 Topic = topic
             };
 
+            var provider = _relayer.Provider;
             var epoch = Volatile.Read(ref _connectionEpoch);
 
             // Indexer, not Add: a subscribe whose answer was discarded leaves its topic here on
@@ -271,11 +292,11 @@ namespace Reown.Core.Controllers
             // connection that is up. Reported as well, so a caller waiting on this call learns that
             // it did not take effect rather than holding an id for a subscription nobody has.
             //
-            // The retry inside RpcSubscribe restarts the transport itself, which raises the epoch,
-            // so a subscribe that survived a timeout lands here too even though the relay accepted
-            // it on the live socket. That costs one duplicate subscription on the relay until the
-            // sweep re-subscribes; keeping a subscription nobody can see costs delivery.
-            if (Volatile.Read(ref _connectionEpoch) != epoch)
+            // The retry inside RpcSubscribe restarts the transport itself, which replaces the
+            // provider, so a subscribe that survived a timeout lands here too even though the relay
+            // accepted it on the live socket. That costs one duplicate subscription on the relay
+            // until the sweep re-subscribes; keeping a subscription nobody can see costs delivery.
+            if (!ReferenceEquals(provider, _relayer.Provider) || Volatile.Read(ref _connectionEpoch) != epoch)
             {
                 _logger.LogError($"Subscription to {topic} was answered after its socket went away; discarding it");
 
@@ -367,6 +388,8 @@ namespace Reown.Core.Controllers
         /// </remarks>
         private async Task<bool> Restart()
         {
+            DiscardMapBuiltOnAnotherProvider();
+
             // Held locally as well: the field belongs to whichever restart started last, so
             // completing through it lets two overlapping restarts complete each other's latch —
             // and the second SetResult on an already completed one throws out of this method,
@@ -436,6 +459,36 @@ namespace Reown.Core.Controllers
         protected virtual async Task SetRelayerSubscriptions(ActiveSubscription[] subscriptions)
         {
             await _relayer.CoreClient.Storage.SetItem(StorageKey, subscriptions);
+        }
+
+        /// <summary>
+        ///     Drops entries that belong to a connection this subscriber no longer has.
+        /// </summary>
+        /// <remarks>
+        ///     Restore refuses to run against a non-empty map, and rightly so — it would overwrite
+        ///     live state. But entries left over from a replaced provider are not live state: the
+        ///     relay has no such subscriptions, and keeping them turns the refusal into a permanent
+        ///     one. Every restart then ends without a batch subscribe, while the map goes on
+        ///     reporting the topics as present, so nothing repairs them and nothing is delivered.
+        /// </remarks>
+        private void DiscardMapBuiltOnAnotherProvider()
+        {
+            ActiveSubscription[] discarded;
+
+            lock (_sync)
+            {
+                if (_subscriptions.Count == 0) return;
+                if (ReferenceEquals(_mapProvider, _relayer.Provider)) return;
+
+                discarded = _subscriptions.Values.ToArray();
+
+                _cached = discarded;
+                _subscriptions.Clear();
+                _topicMap.Clear();
+            }
+
+            _logger.LogError(
+                $"Dropped {discarded.Length} subscription(s) recorded on a connection that has been replaced");
         }
 
         protected virtual async Task Restore()
@@ -590,7 +643,7 @@ namespace Reown.Core.Controllers
 
         protected virtual void OnDisable()
         {
-            // Bumped before the map is emptied: anything still waiting on the relay belongs to the
+            // Raised before the map is emptied: anything still waiting on the relay belongs to the
             // socket being torn down here, and its answer must not put an entry back afterwards.
             Interlocked.Increment(ref _connectionEpoch);
 
@@ -712,6 +765,8 @@ namespace Reown.Core.Controllers
         {
             lock (_sync)
             {
+                _mapProvider = _relayer.Provider;
+
                 _subscriptions.Remove(id);
 
                 _subscriptions.Add(id, subscription);
@@ -846,6 +901,7 @@ namespace Reown.Core.Controllers
         {
             if (subscriptions.Length == 0) return;
 
+            var provider = _relayer.Provider;
             var epoch = Volatile.Read(ref _connectionEpoch);
             var batches = subscriptions.Batch(BatchSubscribeTopicsLimit);
             foreach (var batch in batches)
@@ -871,7 +927,7 @@ namespace Reown.Core.Controllers
                 // subscriptions the current connection does not have. Dropped rather than thrown —
                 // this runs from the restart and from the pending sweep, neither of which has a
                 // caller waiting to hear about it; the topics stay pending and are picked up again.
-                if (Volatile.Read(ref _connectionEpoch) != epoch)
+                if (!ReferenceEquals(provider, _relayer.Provider) || Volatile.Read(ref _connectionEpoch) != epoch)
                 {
                     _logger.LogError($"Batch subscribe to {topics.Length} topic(s) was answered after its socket went away; discarding it");
                     return;
