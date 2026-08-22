@@ -189,6 +189,13 @@ namespace Reown.Core.Network.Test
             await subscriber.CheckPendingAsync();
 
             Assert.Contains("topic-a", subscriber.SweptTopics);
+
+            // And the caller's own retry has to work too: the entry kept for the sweep must not
+            // make Subscribe throw on a duplicate key, which would fail the very call it was for.
+            string id = await subscriber.Subscribe("topic-a");
+
+            Assert.Equal("id-topic-a", id);
+            Assert.Contains("topic-a", subscriber.Topics);
         }
 
         /// <summary>

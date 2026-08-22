@@ -28,6 +28,18 @@ namespace Reown.Core.Controllers
         private readonly Dictionary<string, ActiveSubscription> _subscriptions = new();
 
         private readonly TopicMap _topicMap = new();
+
+        /// <summary>
+        ///     Guards the three collections below.
+        /// </summary>
+        /// <remarks>
+        ///     They are reached from two directions at once: the heartbeat sweeps the pending set
+        ///     while application threads subscribe and unsubscribe, and the relayer's own events
+        ///     clear the map from the thread pool. Enumerating a Dictionary being written to throws,
+        ///     and two concurrent writes corrupt it outright. Events are raised outside the lock —
+        ///     handlers persist the whole set and are free to call back in.
+        /// </remarks>
+        private readonly object _sync = new();
         private ActiveSubscription[] _cached = Array.Empty<ActiveSubscription>();
         private string _clientId;
 
@@ -73,9 +85,19 @@ namespace Reown.Core.Controllers
         /// <summary>
         ///     A dictionary of active subscriptions where the key is the id of the Subscription
         /// </summary>
+        /// <remarks>
+        ///     A snapshot, not the live map: handing out the dictionary itself lets a caller
+        ///     enumerate it while the relayer's events are clearing it.
+        /// </remarks>
         public IReadOnlyDictionary<string, ActiveSubscription> Subscriptions
         {
-            get => _subscriptions;
+            get
+            {
+                lock (_sync)
+                {
+                    return new Dictionary<string, ActiveSubscription>(_subscriptions);
+                }
+            }
         }
 
         /// <summary>
@@ -107,7 +129,13 @@ namespace Reown.Core.Controllers
         /// </summary>
         public int Length
         {
-            get => _subscriptions.Count;
+            get
+            {
+                lock (_sync)
+                {
+                    return _subscriptions.Count;
+                }
+            }
         }
 
         /// <summary>
@@ -115,7 +143,13 @@ namespace Reown.Core.Controllers
         /// </summary>
         public string[] Ids
         {
-            get => _subscriptions.Keys.ToArray();
+            get
+            {
+                lock (_sync)
+                {
+                    return _subscriptions.Keys.ToArray();
+                }
+            }
         }
 
         /// <summary>
@@ -123,7 +157,13 @@ namespace Reown.Core.Controllers
         /// </summary>
         public ActiveSubscription[] Values
         {
-            get => _subscriptions.Values.ToArray();
+            get
+            {
+                lock (_sync)
+                {
+                    return _subscriptions.Values.ToArray();
+                }
+            }
         }
 
         /// <summary>
@@ -131,7 +171,13 @@ namespace Reown.Core.Controllers
         /// </summary>
         public string[] Topics
         {
-            get => _topicMap.Topics;
+            get
+            {
+                lock (_sync)
+                {
+                    return _topicMap.Topics;
+                }
+            }
         }
 
         public event EventHandler Sync;
@@ -204,7 +250,14 @@ namespace Reown.Core.Controllers
 
             var epoch = Volatile.Read(ref _connectionEpoch);
 
-            _pending.Add(topic, @params);
+            // Indexer, not Add: a subscribe whose answer was discarded leaves its topic here on
+            // purpose, and the retry that follows would otherwise throw on the duplicate key —
+            // failing exactly the call the entry was kept for.
+            lock (_sync)
+            {
+                _pending[topic] = @params;
+            }
+
             var id = await RpcSubscribe(topic, @params.Relay);
 
             // A relay-side subscription belongs to the socket it was made on. If that socket went
@@ -275,7 +328,13 @@ namespace Reown.Core.Controllers
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    if (!_pending.ContainsKey(topic) && Topics.Contains(topic))
+                    bool settled;
+                    lock (_sync)
+                    {
+                        settled = !_pending.ContainsKey(topic) && _topicMap.Topics.Contains(topic);
+                    }
+
+                    if (settled)
                     {
                         return true;
                     }
@@ -385,7 +444,7 @@ namespace Reown.Core.Controllers
 
             if (persisted.Length == 0) return;
 
-            if (Subscriptions.Count > 0)
+            if (Length > 0)
             {
                 // The topics are named because this is the only place they can be: the map is
                 // cleared on the way out of the connection, so anything found here arrived after
@@ -440,7 +499,13 @@ namespace Reown.Core.Controllers
             if (_relayer.TransportExplicitlyClosed)
                 return;
 
-            await BatchSubscribe(_pending.Values.ToArray());
+            PendingSubscription[] pending;
+            lock (_sync)
+            {
+                pending = _pending.Values.ToArray();
+            }
+
+            await BatchSubscribe(pending);
         }
 
         protected virtual async Task Reset()
@@ -529,9 +594,12 @@ namespace Reown.Core.Controllers
             // socket being torn down here, and its answer must not put an entry back afterwards.
             Interlocked.Increment(ref _connectionEpoch);
 
-            _cached = Values;
-            _subscriptions.Clear();
-            _topicMap.Clear();
+            lock (_sync)
+            {
+                _cached = _subscriptions.Values.ToArray();
+                _subscriptions.Clear();
+                _topicMap.Clear();
+            }
         }
 
         /// <remarks>
@@ -588,7 +656,10 @@ namespace Reown.Core.Controllers
                 Topic = @params.Topic
             });
 
-            _ = _pending.Remove(@params.Topic);
+            lock (_sync)
+            {
+                _ = _pending.Remove(@params.Topic);
+            }
         }
 
         protected virtual void OnResubscribe(string id, PendingSubscription @params)
@@ -600,7 +671,10 @@ namespace Reown.Core.Controllers
                 Topic = @params.Topic
             });
 
-            _ = _pending.Remove(@params.Topic);
+            lock (_sync)
+            {
+                _ = _pending.Remove(@params.Topic);
+            }
         }
 
         protected virtual async Task OnUnsubscribe(string topic, string id, Error reason)
@@ -616,19 +690,36 @@ namespace Reown.Core.Controllers
             await _relayer.Messages.Delete(topic);
         }
 
+        /// <remarks>
+        ///     The check and the write are deliberately not one atomic step: making them so would
+        ///     mean either calling the overridable AddSubscription while holding the lock — and with
+        ///     it raising Created, whose handlers write back through this class — or bypassing that
+        ///     override entirely and quietly changing what a subclass sees. Two callers racing here
+        ///     end up recording the same subscription twice, which AddSubscription tolerates and
+        ///     which was equally possible before the lock existed.
+        /// </remarks>
         protected virtual void SetSubscription(string id, ActiveSubscription subscription)
         {
-            if (_subscriptions.ContainsKey(id)) return;
+            lock (_sync)
+            {
+                if (_subscriptions.ContainsKey(id)) return;
+            }
 
             AddSubscription(id, subscription);
         }
 
         protected virtual void AddSubscription(string id, ActiveSubscription subscription)
         {
-            _subscriptions.Remove(id);
+            lock (_sync)
+            {
+                _subscriptions.Remove(id);
 
-            _subscriptions.Add(id, subscription);
-            _topicMap.Set(subscription.Topic, id);
+                _subscriptions.Add(id, subscription);
+                _topicMap.Set(subscription.Topic, id);
+            }
+
+            // Outside the lock: handlers persist the whole set, which reads back through the
+            // properties above.
             Created?.Invoke(this, subscription);
         }
 
@@ -654,9 +745,15 @@ namespace Reown.Core.Controllers
 
         protected virtual void DeleteSubscription(string id, Error reason)
         {
-            var subscription = GetSubscription(id);
-            _subscriptions.Remove(id);
-            _topicMap.Delete(subscription.Topic, id);
+            ActiveSubscription subscription;
+
+            lock (_sync)
+            {
+                subscription = GetSubscription(id);
+                _subscriptions.Remove(id);
+                _topicMap.Delete(subscription.Topic, id);
+            }
+
             Deleted?.Invoke(this,
                 new DeletedSubscription
                 {
@@ -688,12 +785,15 @@ namespace Reown.Core.Controllers
 
         protected virtual ActiveSubscription GetSubscription(string id)
         {
-            if (!_subscriptions.TryGetValue(id, out var subscription))
+            lock (_sync)
             {
-                throw new KeyNotFoundException($"No subscription found with id: {id}.");
-            }
+                if (!_subscriptions.TryGetValue(id, out var subscription))
+                {
+                    throw new KeyNotFoundException($"No subscription found with id: {id}.");
+                }
 
-            return subscription;
+                return subscription;
+            }
         }
 
         protected virtual bool HasSubscription(string id, string topic)
