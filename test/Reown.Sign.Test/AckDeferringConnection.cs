@@ -74,6 +74,11 @@ internal sealed class AckDeferringConnection : IJsonRpcConnection
     /// </summary>
     public bool DeliveredPushBeforeAck { get; private set; }
 
+    /// <summary>
+    ///     Whether a publish acknowledgement was actually withheld while armed.
+    /// </summary>
+    public bool HeldAcknowledgement { get; private set; }
+
     public bool Connected => _inner.Connected;
     public bool Connecting => _inner.Connecting;
     public string Url => _inner.Url;
@@ -128,6 +133,7 @@ internal sealed class AckDeferringConnection : IJsonRpcConnection
         {
             _armed = true;
             DeliveredPushBeforeAck = false;
+            HeldAcknowledgement = false;
         }
     }
 
@@ -166,6 +172,7 @@ internal sealed class AckDeferringConnection : IJsonRpcConnection
                 else if (TryGetResponseId(json, out var id) && _pendingPublishIds.Remove(id))
                 {
                     _heldAcks.Add(json);
+                    HeldAcknowledgement = true;
                     holdThisFrame = true;
                 }
             }

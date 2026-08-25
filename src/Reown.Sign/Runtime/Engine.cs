@@ -37,7 +37,8 @@ namespace Reown.Sign
         private const long SessionExpiry = Clock.SEVEN_DAYS;
 
         /// <summary>
-        ///     How long <see cref="RequestAsync{T,TR}" /> waits for a response when the caller gives no expiry.
+        ///     How long <see cref="RequestAsync{T,TR}(string,string,T,string,long?,CancellationToken)" /> waits
+        ///     for a response when the caller gives no expiry.
         ///     Matches the default the reference TypeScript client uses for wc_sessionRequest.
         /// </summary>
         private const long DefaultRequestExpiry = Clock.FIVE_MINUTES * 3;
@@ -256,8 +257,10 @@ namespace Reown.Sign
         {
             var uniqueKey = typeof(T).FullName + "--" + typeof(TR).FullName;
             var instance = SessionRequestEventHandler<T, TR>.GetInstance(Client.CoreClient, PrivateThis);
-            if (!_disposeActions.ContainsKey(uniqueKey))
-                _disposeActions.Add(uniqueKey, () => instance.Dispose());
+
+            // Assigned rather than added: a replacement instance has to be the one this engine disposes.
+            _disposeActions[uniqueKey] = () => instance.Dispose();
+
             return instance;
         }
 
@@ -461,14 +464,7 @@ namespace Reown.Sign
             {
                 RemoveConnectionListeners();
 
-                try
-                {
-                    await PrivateThis.DeleteProposal(proposalId);
-                }
-                catch (Exception e)
-                {
-                    ReownLogger.LogError(e);
-                }
+                await Suppress(() => PrivateThis.DeleteProposal(proposalId));
 
                 throw;
             }
@@ -797,18 +793,7 @@ namespace Reown.Sign
             var responseHandlerInstance = SessionRequestEvents<T, TR>()
                 .FilterResponses(e => e.Topic == topic && e.Response.Id == id);
 
-            TypedEventHandler<T, TR>.ResponseMethod<TR> onResponseHandler = null;
-            var unsubscribed = 0;
-
-            void Unsubscribe()
-            {
-                if (Interlocked.Exchange(ref unsubscribed, 1) != 0)
-                    return;
-
-                responseHandlerInstance.OnResponse -= onResponseHandler;
-            }
-
-            onResponseHandler = args =>
+            TypedEventHandler<T, TR>.ResponseMethod<TR> onResponseHandler = args =>
             {
                 if (args.Response.IsError)
                     taskSource.TrySetException(args.Response.Error.ToException());
@@ -860,7 +845,7 @@ namespace Reown.Sign
                 }
                 finally
                 {
-                    Unsubscribe();
+                    responseHandlerInstance.OnResponse -= onResponseHandler;
                     responseHandlerInstance.Dispose();
                 }
             }
@@ -875,29 +860,43 @@ namespace Reown.Sign
         /// <param name="selfPublicKey">The key pair generated for this session</param>
         private async Task CleanUpFailedSettle(string sessionTopic, string selfPublicKey)
         {
-            try
+            await Suppress(() => Client.Session.Keys.Contains(sessionTopic)
+                ? Client.Session.Delete(sessionTopic, Error.FromErrorType(ErrorType.SESSION_SETTLEMENT_FAILED))
+                : Task.CompletedTask);
+
+            await Suppress(() => Client.CoreClient.Expirer.Has(sessionTopic)
+                ? Client.CoreClient.Expirer.Delete(sessionTopic)
+                : Task.CompletedTask);
+
+            await Suppress(() => Client.CoreClient.Relayer.Unsubscribe(sessionTopic));
+
+            await Suppress(async () =>
             {
-                if (Client.Session.Keys.Contains(sessionTopic))
-                {
-                    await Client.Session.Delete(sessionTopic, Error.FromErrorType(ErrorType.SESSION_SETTLEMENT_FAILED));
-                }
-
-                if (Client.CoreClient.Expirer.Has(sessionTopic))
-                {
-                    await Client.CoreClient.Expirer.Delete(sessionTopic);
-                }
-
-                await Client.CoreClient.Relayer.Unsubscribe(sessionTopic);
-
                 if (await Client.CoreClient.Crypto.HasKeys(selfPublicKey))
                 {
                     await Client.CoreClient.Crypto.DeleteKeyPair(selfPublicKey);
                 }
+            });
 
+            await Suppress(async () =>
+            {
                 if (await Client.CoreClient.Crypto.HasKeys(sessionTopic))
                 {
                     await Client.CoreClient.Crypto.DeleteSymKey(sessionTopic);
                 }
+            });
+        }
+
+        /// <summary>
+        ///     Runs one compensating cleanup step, logging a failure instead of letting it mask the error that
+        ///     started the rollback or stop the remaining steps.
+        /// </summary>
+        /// <param name="step">The cleanup step to run</param>
+        private static async Task Suppress(Func<Task> step)
+        {
+            try
+            {
+                await step();
             }
             catch (Exception e)
             {
@@ -1256,16 +1255,9 @@ namespace Reown.Sign
             {
                 UnsubscribeAll();
 
-                try
-                {
-                    await PrivateThis.DeleteProposal(fallbackId);
-                    await Client.Auth.PendingRequests.Delete(authId, Error.FromErrorType(ErrorType.USER_DISCONNECTED));
-                    await Client.CoreClient.Expirer.Delete(authId);
-                }
-                catch (Exception e)
-                {
-                    ReownLogger.LogError(e);
-                }
+                await Suppress(() => PrivateThis.DeleteProposal(fallbackId));
+                await Suppress(() => Client.Auth.PendingRequests.Delete(authId, Error.FromErrorType(ErrorType.USER_DISCONNECTED)));
+                await Suppress(() => Client.CoreClient.Expirer.Has(authId) ? Client.CoreClient.Expirer.Delete(authId) : Task.CompletedTask);
 
                 throw;
             }

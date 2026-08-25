@@ -22,6 +22,8 @@ public class RequestAsyncOrderingTests : IAsyncLifetime
 {
     private const string TestAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
 
+    private static readonly TimeSpan RequestDeadline = TimeSpan.FromSeconds(30);
+
     private readonly ITestOutputHelper _testOutputHelper;
     private readonly AckDeferringConnectionBuilder _dappConnectionBuilder = new();
 
@@ -102,7 +104,8 @@ public class RequestAsyncOrderingTests : IAsyncLifetime
     {
         var topic = await EstablishSession();
 
-        _wallet.Engine.SessionRequestEvents<OrderingTestRequest, OrderingTestResponse>().OnRequest += requestData =>
+        var walletHandler = _wallet.Engine.SessionRequestEvents<OrderingTestRequest, OrderingTestResponse>();
+        walletHandler.OnRequest += requestData =>
         {
             var data = requestData.Request.Params;
             requestData.Response = new OrderingTestResponse
@@ -113,6 +116,10 @@ public class RequestAsyncOrderingTests : IAsyncLifetime
             return Task.CompletedTask;
         };
 
+        // The wallet has to be able to receive the request before it is published, for the same reason the
+        // dapp has to be able to receive the response before it publishes.
+        await walletHandler.WhenRegisteredAsync();
+
         var connection = _dappConnectionBuilder.Connection;
         Assert.NotNull(connection);
 
@@ -120,7 +127,7 @@ public class RequestAsyncOrderingTests : IAsyncLifetime
 
         try
         {
-            var response = await _dapp.RequestAsync<OrderingTestRequest, OrderingTestResponse>(
+            var request = _dapp.RequestAsync<OrderingTestRequest, OrderingTestResponse>(
                 topic,
                 RpcMethodAttribute.MethodForType<OrderingTestRequest>(),
                 new OrderingTestRequest
@@ -129,15 +136,24 @@ public class RequestAsyncOrderingTests : IAsyncLifetime
                     b = 7
                 });
 
-            Assert.Equal(42, response.result);
+            // The production timeout is fifteen minutes, far longer than a test may wait. Without this
+            // deadline an unfixed implementation would hang instead of failing.
+            var finished = await Task.WhenAny(request, Task.Delay(RequestDeadline));
+
+            Assert.True(ReferenceEquals(finished, request),
+                $"RequestAsync did not complete within {RequestDeadline.TotalSeconds} s, which is what the response-listener race looks like.");
+
+            Assert.Equal(42, (await request).result);
         }
         finally
         {
             connection.ReleaseAll();
         }
 
+        Assert.True(connection.HeldAcknowledgement,
+            "The publish acknowledgement was never withheld, so the inverted frame ordering was not exercised.");
         Assert.True(connection.DeliveredPushBeforeAck,
-            "The test did not manage to deliver the response before the publish acknowledgement, so the race was not exercised.");
+            "The response was not delivered while the acknowledgement was held, so the race was not exercised.");
     }
 
     [Fact]

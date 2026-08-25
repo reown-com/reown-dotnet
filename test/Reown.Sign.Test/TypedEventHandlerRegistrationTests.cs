@@ -4,6 +4,9 @@ using Reown.Core.Interfaces;
 using Reown.Core.Models;
 using Reown.Core.Models.MessageHandler;
 using Reown.Core.Network.Models;
+using Reown.Sign.Interfaces;
+using Reown.Sign.Models;
+using Reown.Sign.Models.Engine.Methods;
 using Xunit;
 
 namespace Reown.Sign.Test;
@@ -112,6 +115,90 @@ public class TypedEventHandlerRegistrationTests
         singleton.Dispose();
 
         Assert.True(filtered.Disposed);
+    }
+
+    [Fact]
+    public void GetInstance_AfterTheOwningClientIsDisposed_ReturnsAFreshInstance()
+    {
+        const string context = "registration-reinit";
+
+        var firstClient = BuildCoreClient(context, Task.FromResult(new DisposeHandlerToken(() => { })));
+        var first = TypedEventHandler<RegistrationProbeRequest, RegistrationProbeResponse>.GetInstance(firstClient);
+
+        firstClient.Disposed.Returns(true);
+
+        var secondClient = BuildCoreClient(context, Task.FromResult(new DisposeHandlerToken(() => { })));
+        var second = TypedEventHandler<RegistrationProbeRequest, RegistrationProbeResponse>.GetInstance(secondClient);
+
+        try
+        {
+            Assert.NotSame(first, second);
+            Assert.True(first.Disposed);
+        }
+        finally
+        {
+            second.Dispose();
+        }
+    }
+
+    [Fact]
+    public void GetInstance_WhileTheOwningClientIsAlive_ReturnsTheSameInstance()
+    {
+        var client = BuildCoreClient($"registration-shared-{Guid.NewGuid()}", Task.FromResult(new DisposeHandlerToken(() => { })));
+
+        var first = TypedEventHandler<RegistrationProbeRequest, RegistrationProbeResponse>.GetInstance(client);
+
+        try
+        {
+            Assert.Same(first, TypedEventHandler<RegistrationProbeRequest, RegistrationProbeResponse>.GetInstance(client));
+            Assert.False(first.Disposed);
+        }
+        finally
+        {
+            first.Dispose();
+        }
+    }
+
+    [Fact]
+    public async Task SessionRequestEvents_WhenRegisteredAsync_WaitsForTheWrappedHandler()
+    {
+        var registration = new TaskCompletionSource<DisposeHandlerToken>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var messageHandler = Substitute.For<ITypedMessageHandler>();
+        messageHandler
+            .HandleMessageType<SessionRequest<RegistrationProbeRequest>, RegistrationProbeResponse>(
+                Arg.Any<Func<string, JsonRpcRequest<SessionRequest<RegistrationProbeRequest>>, Task>>(),
+                Arg.Any<Func<string, JsonRpcResponse<RegistrationProbeResponse>, Task>>())
+            .Returns(registration.Task);
+
+        var coreClient = Substitute.For<ICoreClient>();
+        coreClient.Context.Returns($"registration-wrapped-{Guid.NewGuid()}");
+        coreClient.MessageHandler.Returns(messageHandler);
+
+        var handler = SessionRequestEventHandler<RegistrationProbeRequest, RegistrationProbeResponse>
+            .GetInstance(coreClient, Substitute.For<IEnginePrivate>());
+
+        try
+        {
+            var filtered = handler.FilterResponses(_ => true);
+            filtered.OnResponse += _ => Task.CompletedTask;
+
+            var registered = filtered.WhenRegisteredAsync();
+
+            // Readiness has to be transitive: the filtered handler is only live once the shared handler for
+            // the wrapped SessionRequest type pair is registered.
+            Assert.False(registered.IsCompleted);
+
+            registration.SetResult(new DisposeHandlerToken(() => { }));
+
+            await registered;
+
+            Assert.True(registered.IsCompletedSuccessfully);
+        }
+        finally
+        {
+            handler.Dispose();
+        }
     }
 
     private static ICoreClient BuildCoreClient(string context, Task<DisposeHandlerToken> registration)

@@ -19,6 +19,8 @@ namespace Reown.Sign.Models
     {
         private readonly IEnginePrivate _enginePrivate;
 
+        private TypedEventHandler<SessionRequest<T>, TR> _wrappedRef;
+
         protected SessionRequestEventHandler(ICoreClient engine, IEnginePrivate enginePrivate) : base(engine)
         {
             _enginePrivate = enginePrivate;
@@ -74,16 +76,31 @@ namespace Reown.Sign.Models
         {
             var wrappedRef = TypedEventHandler<SessionRequest<T>, TR>.GetInstance(Ref);
 
+            _wrappedRef = wrappedRef;
+
             wrappedRef.OnRequest += WrappedRefOnOnRequest;
             wrappedRef.OnResponse += WrappedRefOnOnResponse;
 
-            DisposeActions.Add(() =>
+            await wrappedRef.WhenRegisteredAsync();
+        }
+
+        /// <summary>
+        ///     Detaches from the shared handler for the wrapped <see cref="SessionRequest{T}" /> type pair. This
+        ///     runs whenever the last subscription is removed, not only on disposal, so re-subscribing this
+        ///     instance cannot leave a second set of forwarding handlers behind.
+        /// </summary>
+        protected override void Teardown()
+        {
+            var wrappedRef = _wrappedRef;
+            if (wrappedRef != null)
             {
+                _wrappedRef = null;
+
                 wrappedRef.OnRequest -= WrappedRefOnOnRequest;
                 wrappedRef.OnResponse -= WrappedRefOnOnResponse;
-            });
+            }
 
-            await wrappedRef.WhenRegisteredAsync();
+            base.Teardown();
         }
 
         /// <summary>

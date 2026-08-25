@@ -330,7 +330,7 @@ namespace Reown.Core.Controllers
                 var done = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                 // Registered before publishing: the pong can arrive before the relay acknowledges our publish.
-                _pairingPingResponseEvents.ListenOnce(pingEventId, (sender, args) =>
+                var removePingListener = _pairingPingResponseEvents.ListenOnce(pingEventId, (sender, args) =>
                 {
                     if (args.IsError)
                         done.TrySetException(args.Error.ToException());
@@ -344,7 +344,7 @@ namespace Reown.Core.Controllers
                 }
                 catch
                 {
-                    _pairingPingResponseEvents.Clear(pingEventId);
+                    removePingListener();
                     throw;
                 }
 

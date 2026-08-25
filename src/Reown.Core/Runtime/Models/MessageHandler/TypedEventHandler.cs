@@ -278,10 +278,7 @@ namespace Reown.Core.Models.MessageHandler
         {
             Action disposeDerived = derived.Dispose;
 
-            lock (_disposeActionsLock)
-            {
-                DisposeActions.Add(disposeDerived);
-            }
+            AddDisposeAction(disposeDerived);
 
             derived._detachFromParent = () =>
             {
@@ -290,6 +287,26 @@ namespace Reown.Core.Models.MessageHandler
                     DisposeActions.Remove(disposeDerived);
                 }
             };
+        }
+
+        /// <summary>
+        ///     Registers work to run when this instance is disposed. If it has already been disposed the action
+        ///     runs immediately, so cleanup registered by an asynchronous setup that finished after disposal is
+        ///     not silently dropped.
+        /// </summary>
+        /// <param name="action">The cleanup to run on disposal</param>
+        protected void AddDisposeAction(Action action)
+        {
+            lock (_disposeActionsLock)
+            {
+                if (!Disposed)
+                {
+                    DisposeActions.Add(action);
+                    return;
+                }
+            }
+
+            action();
         }
 
         /// <summary>
@@ -476,6 +493,7 @@ namespace Reown.Core.Models.MessageHandler
                 Action[] disposeActions;
                 lock (_disposeActionsLock)
                 {
+                    Disposed = true;
                     disposeActions = DisposeActions.ToArray();
                     DisposeActions.Clear();
                 }
