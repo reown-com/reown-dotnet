@@ -38,6 +38,12 @@ namespace Reown.Core.Models.MessageHandler
         public delegate Task ResponseMethod<TResponseArgs>(ResponseEventArgs<TResponseArgs> e);
 
         protected static readonly Dictionary<string, TypedEventHandler<T, TR>> Instances = new();
+
+        /// <summary>
+        ///     Guards every read and write of <see cref="Instances" />. Dictionary operations only: never call
+        ///     into an instance while holding it.
+        /// </summary>
+        protected static readonly object InstancesLock = new();
         private readonly object _eventLock = new();
         private readonly object _disposeActionsLock = new();
         protected readonly List<Action> DisposeActions = new();
@@ -87,11 +93,18 @@ namespace Reown.Core.Models.MessageHandler
             if (TryGetLiveInstance(engine, out var instance))
                 return instance;
 
-            var newInstance = new TypedEventHandler<T, TR>(engine);
+            lock (InstancesLock)
+            {
+                if (Instances.TryGetValue(context, out var raced))
+                {
+                    return raced;
+                }
 
-            Instances.Add(context, newInstance);
+                var newInstance = new TypedEventHandler<T, TR>(engine);
+                Instances.Add(context, newInstance);
 
-            return newInstance;
+                return newInstance;
+            }
         }
 
         /// <summary>
@@ -105,17 +118,21 @@ namespace Reown.Core.Models.MessageHandler
         protected static bool TryGetLiveInstance(ICoreClient engine, out TypedEventHandler<T, TR> instance)
         {
             var context = engine.Context;
+            TypedEventHandler<T, TR> stale;
 
-            if (!Instances.TryGetValue(context, out instance))
-                return false;
+            lock (InstancesLock)
+            {
+                if (!Instances.TryGetValue(context, out instance))
+                    return false;
 
-            if (!instance.Disposed && !instance.Ref.Disposed)
-                return true;
+                if (!instance.Disposed && !instance.Ref.Disposed)
+                    return true;
 
-            Instances.Remove(context);
+                Instances.Remove(context);
 
-            var stale = instance;
-            instance = null;
+                stale = instance;
+                instance = null;
+            }
 
             if (!stale.Disposed)
             {
@@ -132,10 +149,19 @@ namespace Reown.Core.Models.MessageHandler
         /// <param name="engine">The client whose registered instance should be disposed</param>
         public static void DisposeInstance(ICoreClient engine)
         {
-            if (Instances.TryGetValue(engine.Context, out var instance))
+            TypedEventHandler<T, TR> instance;
+
+            lock (InstancesLock)
             {
-                instance.Dispose();
+                // The reference check matters: contexts are reused, so a replacement client may already have
+                // registered its own instance under the same context.
+                if (!Instances.TryGetValue(engine.Context, out instance) || !ReferenceEquals(instance.Ref, engine))
+                {
+                    return;
+                }
             }
+
+            instance.Dispose();
         }
 
         /// <summary>
@@ -505,12 +531,18 @@ namespace Reown.Core.Models.MessageHandler
 
                 // Only the singleton registered for this context may evict itself; instances produced by
                 // FilterRequests/FilterResponses share the context but are not the registered singleton.
-                if (Instances.TryGetValue(context, out var registered) && ReferenceEquals(registered, this))
+                lock (InstancesLock)
                 {
-                    Instances.Remove(context);
+                    if (Instances.TryGetValue(context, out var registered) && ReferenceEquals(registered, this))
+                    {
+                        Instances.Remove(context);
+                    }
                 }
 
-                Teardown();
+                lock (_eventLock)
+                {
+                    Teardown();
+                }
             }
 
             Disposed = true;

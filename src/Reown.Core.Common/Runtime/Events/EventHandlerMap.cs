@@ -81,26 +81,33 @@ namespace Reown.Core.Common.Events
             EventHandler<TEventArgs> internalHandler = null;
             internalHandler = (src, args) =>
             {
-                this[eventId] -= internalHandler;
+                Remove(eventId, internalHandler);
                 eventHandler(src, args);
             };
-            this[eventId] += internalHandler;
 
-            var removed = false;
-            return () =>
+            Combine(eventId, internalHandler);
+
+            return () => Remove(eventId, internalHandler);
+        }
+
+        private void Combine(string eventId, EventHandler<TEventArgs> handler)
+        {
+            lock (_mappingLock)
             {
-                lock (_mappingLock)
+                _mapping.TryAdd(eventId, _beforeEventExecuted);
+                _mapping[eventId] += handler;
+            }
+        }
+
+        private void Remove(string eventId, EventHandler<TEventArgs> handler)
+        {
+            lock (_mappingLock)
+            {
+                if (_mapping.TryGetValue(eventId, out var current))
                 {
-                    if (removed)
-                    {
-                        return;
-                    }
-
-                    removed = true;
+                    _mapping[eventId] = current - handler;
                 }
-
-                this[eventId] -= internalHandler;
-            };
+            }
         }
 
         public bool TryGetValue(string eventName, out EventHandler<TEventArgs> handler)

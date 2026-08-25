@@ -44,11 +44,18 @@ namespace Reown.Sign.Models
             if (TryGetLiveInstance(engine, out var instance))
                 return instance;
 
-            var newInstance = new SessionRequestEventHandler<T, TR>(engine, enginePrivate);
+            lock (InstancesLock)
+            {
+                if (Instances.TryGetValue(context, out var raced))
+                {
+                    return raced;
+                }
 
-            Instances.Add(context, newInstance);
+                var newInstance = new SessionRequestEventHandler<T, TR>(engine, enginePrivate);
+                Instances.Add(context, newInstance);
 
-            return newInstance;
+                return newInstance;
+            }
         }
 
         protected override TypedEventHandler<T, TR> BuildNew(ICoreClient @ref,
@@ -123,7 +130,10 @@ namespace Reown.Sign.Models
 
         private bool IsRegisteredInstance()
         {
-            return Instances.TryGetValue(Ref.Context, out var registered) && ReferenceEquals(registered, this);
+            lock (InstancesLock)
+            {
+                return Instances.TryGetValue(Ref.Context, out var registered) && ReferenceEquals(registered, this);
+            }
         }
 
         private Task WrappedRefOnOnResponse(ResponseEventArgs<TR> e)

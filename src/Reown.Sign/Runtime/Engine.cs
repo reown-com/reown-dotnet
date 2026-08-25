@@ -805,11 +805,6 @@ namespace Reown.Sign
 
             responseHandlerInstance.OnResponse += onResponseHandler;
 
-            // Registering the handler is asynchronous, and the relay's acknowledgement of our publish carries no
-            // ordering guarantee against the peer's response. Wait for the handler to be live before publishing,
-            // otherwise a response that overtakes the acknowledgement is dropped and this call never completes.
-            await responseHandlerInstance.WhenRegisteredAsync();
-
             using (var timeoutTokenSource = new CancellationTokenSource(timeout))
             using (ct.Register(() => taskSource.TrySetCanceled()))
             using (timeoutTokenSource.Token.Register(() => taskSource.TrySetException(
@@ -818,6 +813,12 @@ namespace Reown.Sign
             {
                 try
                 {
+                    // Registering the handler is asynchronous, and the relay's acknowledgement of our publish
+                    // carries no ordering guarantee against the peer's response. Wait for the handler to be live
+                    // before publishing, otherwise a response that overtakes the acknowledgement is dropped and
+                    // this call never completes.
+                    await responseHandlerInstance.WhenRegisteredAsync();
+
                     var sendTask = MessageHandler.SendRequestWithId<SessionRequest<T>, TR>(topic, sessionRequest, id, publishExpiry, ct: ct);
 
                     // Racing the publish against the wait means the timeout also bounds a publish
