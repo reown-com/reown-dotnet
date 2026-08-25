@@ -973,17 +973,18 @@ namespace Reown.Sign
         }
 
         /// <summary>
-        ///     Clamps a request expiry in seconds to a range that can also be expressed as a
-        ///     <see cref="CancellationTokenSource" /> delay, which is rejected above
-        ///     <see cref="int.MaxValue" /> milliseconds.
+        ///     Clamps a request expiry in seconds to a range the relay accepts as a publish time to live and
+        ///     that can also be expressed as a <see cref="CancellationTokenSource" /> delay, which is rejected
+        ///     above <see cref="int.MaxValue" /> milliseconds. The relay refuses a time to live below thirty
+        ///     seconds, so that is the floor.
         /// </summary>
         /// <param name="expirySeconds">The requested expiry, in seconds</param>
         /// <returns>The clamped expiry, in seconds</returns>
         private static long ClampExpiry(long expirySeconds)
         {
-            if (expirySeconds < Clock.ONE_SECOND)
+            if (expirySeconds < Clock.THIRTY_SECONDS)
             {
-                return Clock.ONE_SECOND;
+                return Clock.THIRTY_SECONDS;
             }
 
             return expirySeconds > Clock.SEVEN_DAYS ? Clock.SEVEN_DAYS : expirySeconds;

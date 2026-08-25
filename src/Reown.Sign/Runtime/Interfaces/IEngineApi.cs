@@ -301,7 +301,8 @@ namespace Reown.Sign.Interfaces
         /// <param name="chainId">An (optional) chainId the request should be performed in</param>
         /// <param name="expiry">
         ///     How long, in seconds, to wait for a response and to keep the request alive on the relay. Values
-        ///     outside one second to seven days are clamped into that range. If null is given, the wait falls back
+        ///     outside thirty seconds to seven days are clamped into that range, which is what the relay accepts
+        ///     as a publish time to live. If null is given, the wait falls back
         ///     to the protocol default of fifteen minutes and the relay keeps the request for the time to live
         ///     declared on the attributed options of T or TR
         /// </param>
@@ -326,7 +327,8 @@ namespace Reown.Sign.Interfaces
         /// <param name="chainId">An (optional) chainId the request should be performed in</param>
         /// <param name="expiry">
         ///     How long, in seconds, to wait for a response and to keep the request alive on the relay. Values
-        ///     outside one second to seven days are clamped into that range. If null is given, the wait falls back
+        ///     outside thirty seconds to seven days are clamped into that range, which is what the relay accepts
+        ///     as a publish time to live. If null is given, the wait falls back
         ///     to the protocol default of fifteen minutes and the relay keeps the request for the time to live
         ///     declared on the attributed options of T or TR
         /// </param>
