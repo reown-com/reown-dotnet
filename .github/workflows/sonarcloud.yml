@@ -82,5 +82,8 @@ jobs:
         run: |
           ./.sonar/scanner/dotnet-sonarscanner begin /k:"reown-com_reown-dotnet" /o:"reown-com" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.token="$SONAR_TOKEN"
           dotnet build Reown.NoUnity.slnf --no-incremental
-          dotnet-coverage collect "dotnet test Reown.NoUnity.slnf" -f xml -o "coverage.xml"
+          # Tests run here only to produce coverage. dotnet-build-test.yml is what
+          # gates test results, so a failing test must not stop the analysis from
+          # being submitted.
+          dotnet-coverage collect "dotnet test Reown.NoUnity.slnf" -f xml -o "coverage.xml" || true
           ./.sonar/scanner/dotnet-sonarscanner end /d:sonar.token="$SONAR_TOKEN"
