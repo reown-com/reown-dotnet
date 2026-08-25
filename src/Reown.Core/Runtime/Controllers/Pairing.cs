@@ -323,16 +323,30 @@ namespace Reown.Core.Controllers
             await IsValidPairingTopic(topic);
             if (Store.Keys.Contains(topic))
             {
-                var id = await CoreClient.MessageHandler.SendRequest<PairingPing, bool>(topic, new PairingPing());
+                var pairingPing = new PairingPing();
+                var id = CoreClient.MessageHandler.GenerateRequestId(pairingPing);
+                var pingEventId = $"pairing_ping{id}";
+
                 var done = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-                _pairingPingResponseEvents.ListenOnce($"pairing_ping{id}", (sender, args) =>
+                // Registered before publishing: the pong can arrive before the relay acknowledges our publish.
+                _pairingPingResponseEvents.ListenOnce(pingEventId, (sender, args) =>
                 {
                     if (args.IsError)
-                        done.SetException(args.Error.ToException());
+                        done.TrySetException(args.Error.ToException());
                     else
-                        done.SetResult(args.Result);
+                        done.TrySetResult(args.Result);
                 });
+
+                try
+                {
+                    await CoreClient.MessageHandler.SendRequestWithId<PairingPing, bool>(topic, pairingPing, id);
+                }
+                catch
+                {
+                    _pairingPingResponseEvents.Clear(pingEventId);
+                    throw;
+                }
 
                 await done.Task;
             }
@@ -491,13 +505,9 @@ namespace Reown.Core.Controllers
             }
         }
 
-        private async Task OnPairingPingResponse(string topic, JsonRpcResponse<bool> payload)
+        private Task OnPairingPingResponse(string topic, JsonRpcResponse<bool> payload)
         {
             var id = payload.Id;
-
-            // put at the end of the stack to avoid a race condition
-            // where session_ping listener is not yet initialized
-            await Task.Delay(500);
 
             PairingPinged?.Invoke(this, new PairingEvent
             {
@@ -506,6 +516,8 @@ namespace Reown.Core.Controllers
             });
 
             _pairingPingResponseEvents[$"pairing_ping{id}"](this, payload);
+
+            return Task.CompletedTask;
         }
 
         private async Task OnPairingDeleteRequest(string topic, JsonRpcRequest<PairingDelete> payload)

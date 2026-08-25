@@ -35,6 +35,12 @@ namespace Reown.Sign
     {
         private const long ProposalExpiry = Clock.THIRTY_DAYS;
         private const long SessionExpiry = Clock.SEVEN_DAYS;
+
+        /// <summary>
+        ///     How long <see cref="RequestAsync{T,TR}" /> waits for a response when the caller gives no expiry.
+        ///     Matches the default the reference TypeScript client uses for wc_sessionRequest.
+        /// </summary>
+        private const long DefaultRequestExpiry = Clock.FIVE_MINUTES * 3;
         private const int KeyLength = 32;
 
         private readonly EventHandlerMap<SessionEvent<JToken>> _customSessionEventsHandlerMap = new();
@@ -431,16 +437,16 @@ namespace Reown.Sign
                 approvalTask.TrySetCanceled(ct);
             });
 
+            var proposalId = MessageHandler.GenerateRequestId(proposal);
+
             try
             {
-                var id = await MessageHandler.SendRequest<SessionPropose, SessionProposeResponse>(topic, proposal, ct: ct);
-
-                var expiry = Clock.CalculateExpiry(options.Expiry);
-
-                await PrivateThis.SetProposal(id, new ProposalStruct
+                // The proposal has to be stored before the request is published: the response handler reads it
+                // back by id, and a response can reach us before the relay acknowledges our own publish.
+                await PrivateThis.SetProposal(proposalId, new ProposalStruct
                 {
-                    Expiry = expiry,
-                    Id = id,
+                    Expiry = Clock.CalculateExpiry(options.Expiry),
+                    Id = proposalId,
                     Proposer = proposal.Proposer,
                     PairingTopic = topic,
                     Relays = proposal.Relays,
@@ -448,10 +454,22 @@ namespace Reown.Sign
                     OptionalNamespaces = proposal.OptionalNamespaces,
                     SessionProperties = proposal.SessionProperties
                 });
+
+                await MessageHandler.SendRequestWithId<SessionPropose, SessionProposeResponse>(topic, proposal, proposalId, ct: ct);
             }
             catch
             {
                 RemoveConnectionListeners();
+
+                try
+                {
+                    await PrivateThis.DeleteProposal(proposalId);
+                }
+                catch (Exception e)
+                {
+                    ReownLogger.LogError(e);
+                }
+
                 throw;
             }
 
@@ -561,36 +579,10 @@ namespace Reown.Sign
 
             await Client.CoreClient.Relayer.Subscribe(sessionTopic);
 
-            long requestId;
-            try
-            {
-                requestId = await MessageHandler.SendRequest<SessionSettle, bool>(sessionTopic, sessionSettle, ct: ct);
-            }
-            catch
-            {
-                try
-                {
-                    await Client.CoreClient.Relayer.Unsubscribe(sessionTopic);
-                    await Client.CoreClient.Crypto.DeleteKeyPair(selfPublicKey);
-                    await Client.CoreClient.Crypto.DeleteSymKey(sessionTopic);
-                }
-                catch (Exception e)
-                {
-                    ReownLogger.LogError(e);
-                }
-
-                throw;
-            }
+            var requestId = MessageHandler.GenerateRequestId(sessionSettle);
+            var acknowledgeEventId = $"session_approve{requestId}";
 
             var acknowledgedTask = new TaskCompletionSource<Session>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-            _sessionEventsHandlerMap.ListenOnce($"session_approve{requestId}", (sender, args) =>
-            {
-                if (args.IsError)
-                    acknowledgedTask.SetException(args.Error.ToException());
-                else
-                    acknowledgedTask.SetResult(Client.Session.Get(sessionTopic));
-            });
 
             var session = new Session
             {
@@ -606,7 +598,31 @@ namespace Reown.Sign
                 RequiredNamespaces = requiredNamespaces
             };
 
-            await Client.Session.Set(sessionTopic, session);
+            // Both the acknowledgement listener and the session itself have to exist before the settle request is
+            // published, because the peer's response can reach us before the relay acknowledges our own publish.
+            var removeAcknowledgeListener = _sessionEventsHandlerMap.ListenOnce(acknowledgeEventId, (sender, args) =>
+            {
+                if (args.IsError)
+                    acknowledgedTask.TrySetException(args.Error.ToException());
+                else
+                    acknowledgedTask.TrySetResult(Client.Session.Get(sessionTopic));
+            });
+
+            try
+            {
+                await Client.Session.Set(sessionTopic, session);
+
+                await MessageHandler.SendRequestWithId<SessionSettle, bool>(sessionTopic, sessionSettle, requestId, ct: ct);
+            }
+            catch
+            {
+                removeAcknowledgeListener();
+
+                await CleanUpFailedSettle(sessionTopic, selfPublicKey);
+
+                throw;
+            }
+
             await PrivateThis.SetExpiry(sessionTopic, Clock.CalculateExpiry(SessionExpiry));
             if (!string.IsNullOrWhiteSpace(pairingTopic))
                 await Client.CoreClient.Pairing.UpdateMetadata(pairingTopic, session.Peer.Metadata);
@@ -656,23 +672,38 @@ namespace Reown.Sign
             ct.ThrowIfCancellationRequested();
             IsInitialized();
             await PrivateThis.IsValidUpdate(topic, namespaces);
-            var id = await MessageHandler.SendRequest<SessionUpdate, bool>(topic,
-                new SessionUpdate
-                {
-                    Namespaces = namespaces
-                }, ct: ct);
+
+            var sessionUpdate = new SessionUpdate
+            {
+                Namespaces = namespaces
+            };
+
+            var id = MessageHandler.GenerateRequestId(sessionUpdate);
+            var updateEventId = $"session_update{id}";
 
             var acknowledgedTask = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            _sessionEventsHandlerMap.ListenOnce($"session_update{id}", (sender, args) =>
+
+            // Registered before publishing: the acknowledgement can arrive before the relay acknowledges our publish.
+            var removeUpdateListener = _sessionEventsHandlerMap.ListenOnce(updateEventId, (sender, args) =>
             {
                 if (ct.IsCancellationRequested)
                     acknowledgedTask.TrySetCanceled();
 
                 if (args.IsError)
-                    acknowledgedTask.SetException(args.Error.ToException());
+                    acknowledgedTask.TrySetException(args.Error.ToException());
                 else
-                    acknowledgedTask.SetResult(args.Result);
+                    acknowledgedTask.TrySetResult(args.Result);
             });
+
+            try
+            {
+                await MessageHandler.SendRequestWithId<SessionUpdate, bool>(topic, sessionUpdate, id, ct: ct);
+            }
+            catch
+            {
+                removeUpdateListener();
+                throw;
+            }
 
             await Client.Session.Update(topic, new Session
             {
@@ -687,20 +718,34 @@ namespace Reown.Sign
             ct.ThrowIfCancellationRequested();
             IsInitialized();
             await PrivateThis.IsValidExtend(topic);
-            var id = await MessageHandler.SendRequest<SessionExtend, bool>(topic, new SessionExtend(), ct: ct);
+
+            var sessionExtend = new SessionExtend();
+            var id = MessageHandler.GenerateRequestId(sessionExtend);
+            var extendEventId = $"session_extend{id}";
 
             var acknowledgedTask = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            _sessionEventsHandlerMap.ListenOnce($"session_extend{id}", (sender, args) =>
+            // Registered before publishing: the acknowledgement can arrive before the relay acknowledges our publish.
+            var removeExtendListener = _sessionEventsHandlerMap.ListenOnce(extendEventId, (sender, args) =>
             {
                 if (ct.IsCancellationRequested)
                     acknowledgedTask.TrySetCanceled();
 
                 if (args.IsError)
-                    acknowledgedTask.SetException(args.Error.ToException());
+                    acknowledgedTask.TrySetException(args.Error.ToException());
                 else
-                    acknowledgedTask.SetResult(args.Result);
+                    acknowledgedTask.TrySetResult(args.Result);
             });
+
+            try
+            {
+                await MessageHandler.SendRequestWithId<SessionExtend, bool>(topic, sessionExtend, id, ct: ct);
+            }
+            catch
+            {
+                removeExtendListener();
+                throw;
+            }
 
             await PrivateThis.SetExpiry(topic, Clock.CalculateExpiry(SessionExpiry));
 
@@ -730,26 +775,41 @@ namespace Reown.Sign
             var request = new JsonRpcRequest<T>(method, data);
 
             await PrivateThis.IsValidRequest(topic, request, requestChainId);
-            var taskSource = new TaskCompletionSource<TR>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            var id = await MessageHandler.SendRequest<SessionRequest<T>, TR>(topic,
-                new SessionRequest<T>
-                {
-                    ChainId = requestChainId,
-                    Request = request
-                }, ct: ct);
+            var sessionRequest = new SessionRequest<T>
+            {
+                ChainId = requestChainId,
+                Request = request
+            };
+
+            var id = MessageHandler.GenerateRequestId(sessionRequest);
+
+            // A caller-supplied expiry bounds both the wait and the relay's time to live, as it does in the
+            // reference clients. Without one, the wait falls back to the protocol default while the relay keeps
+            // the time to live declared on SessionRequest<T>.
+            var publishExpiry = expiry.HasValue ? ClampExpiry(expiry.Value) : (long?)null;
+            var timeout = TimeSpan.FromSeconds(publishExpiry ?? ClampExpiry(Math.Min(
+                MessageHandler.RpcRequestOptionsFromType<SessionRequest<T>, TR>().TTL,
+                DefaultRequestExpiry)));
+
+            var taskSource = new TaskCompletionSource<TR>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             var responseHandlerInstance = SessionRequestEvents<T, TR>()
                 .FilterResponses(e => e.Topic == topic && e.Response.Id == id);
 
             TypedEventHandler<T, TR>.ResponseMethod<TR> onResponseHandler = null;
-            CancellationTokenRegistration ctr = default;
+            var unsubscribed = 0;
+
+            void Unsubscribe()
+            {
+                if (Interlocked.Exchange(ref unsubscribed, 1) != 0)
+                    return;
+
+                responseHandlerInstance.OnResponse -= onResponseHandler;
+            }
 
             onResponseHandler = args =>
             {
-                responseHandlerInstance.OnResponse -= onResponseHandler;
-                ctr.Dispose();
-
                 if (args.Response.IsError)
                     taskSource.TrySetException(args.Response.Error.ToException());
                 else
@@ -760,20 +820,149 @@ namespace Reown.Sign
 
             responseHandlerInstance.OnResponse += onResponseHandler;
 
-            ctr = ct.Register(() =>
-            {
-                responseHandlerInstance.OnResponse -= onResponseHandler;
-                taskSource.TrySetCanceled();
-            });
+            // Registering the handler is asynchronous, and the relay's acknowledgement of our publish carries no
+            // ordering guarantee against the peer's response. Wait for the handler to be live before publishing,
+            // otherwise a response that overtakes the acknowledgement is dropped and this call never completes.
+            await responseHandlerInstance.WhenRegisteredAsync();
 
-            SessionRequestSent?.Invoke(this, new SessionRequestEvent
+            using (var timeoutTokenSource = new CancellationTokenSource(timeout))
+            using (ct.Register(() => taskSource.TrySetCanceled()))
+            using (timeoutTokenSource.Token.Register(() => taskSource.TrySetException(
+                       ReownNetworkException.FromType(ErrorType.SESSION_REQUEST_EXPIRED,
+                           context: $"No response to {method} (id {id}) on topic {topic} within {timeout.TotalSeconds} seconds."))))
             {
-                Topic = topic,
-                Id = id,
-                ChainId = requestChainId
-            });
+                try
+                {
+                    var sendTask = MessageHandler.SendRequestWithId<SessionRequest<T>, TR>(topic, sessionRequest, id, publishExpiry, ct: ct);
 
-            return await taskSource.Task;
+                    // Racing the publish against the wait means the timeout also bounds a publish
+                    // acknowledgement that never arrives, instead of only the peer's response.
+                    if (ReferenceEquals(await Task.WhenAny(sendTask, taskSource.Task), sendTask))
+                    {
+                        await sendTask;
+
+                        SessionRequestSent?.Invoke(this, new SessionRequestEvent
+                        {
+                            Topic = topic,
+                            Id = id,
+                            ChainId = requestChainId
+                        });
+                    }
+                    else
+                    {
+                        // The response, the timeout or cancellation won. The publish is left to finish on its
+                        // own; its outcome no longer decides the result of this call, but a request that was
+                        // answered still has to report that it was sent.
+                        ReportWhenSent(sendTask, taskSource.Task, topic, id, requestChainId);
+                    }
+
+                    return await taskSource.Task;
+                }
+                finally
+                {
+                    Unsubscribe();
+                    responseHandlerInstance.Dispose();
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Undoes the state a failed <see cref="ApproveAsync(ApproveParams,CancellationToken)" /> created for
+        ///     the session topic. The session may already have been removed by an inbound error response, so each
+        ///     step is guarded and failures are logged rather than masking the original error.
+        /// </summary>
+        /// <param name="sessionTopic">The topic the settle request was going to be published on</param>
+        /// <param name="selfPublicKey">The key pair generated for this session</param>
+        private async Task CleanUpFailedSettle(string sessionTopic, string selfPublicKey)
+        {
+            try
+            {
+                if (Client.Session.Keys.Contains(sessionTopic))
+                {
+                    await Client.Session.Delete(sessionTopic, Error.FromErrorType(ErrorType.SESSION_SETTLEMENT_FAILED));
+                }
+
+                if (Client.CoreClient.Expirer.Has(sessionTopic))
+                {
+                    await Client.CoreClient.Expirer.Delete(sessionTopic);
+                }
+
+                await Client.CoreClient.Relayer.Unsubscribe(sessionTopic);
+
+                if (await Client.CoreClient.Crypto.HasKeys(selfPublicKey))
+                {
+                    await Client.CoreClient.Crypto.DeleteKeyPair(selfPublicKey);
+                }
+
+                if (await Client.CoreClient.Crypto.HasKeys(sessionTopic))
+                {
+                    await Client.CoreClient.Crypto.DeleteSymKey(sessionTopic);
+                }
+            }
+            catch (Exception e)
+            {
+                ReownLogger.LogError(e);
+            }
+        }
+
+        /// <summary>
+        ///     Raises <see cref="SessionRequestSent" /> once a publish that lost the race against the response
+        ///     completes, so a request that was answered before its own acknowledgement arrived still reports
+        ///     that it was sent. Nothing is raised when the request already failed or was cancelled, and a failed
+        ///     publish is logged rather than left unobserved.
+        /// </summary>
+        /// <param name="sendTask">The publish that is still in flight</param>
+        /// <param name="requestTask">The task the caller is waiting on</param>
+        /// <param name="topic">The topic the request was published on</param>
+        /// <param name="id">The id of the request</param>
+        /// <param name="chainId">The chain the request was made for</param>
+        private void ReportWhenSent(Task sendTask, Task requestTask, string topic, long id, string chainId)
+        {
+            _ = sendTask.ContinueWith(t =>
+                {
+                    if (t.IsFaulted)
+                    {
+                        ReownLogger.LogError(t.Exception);
+                        return;
+                    }
+
+                    if (t.IsCanceled || requestTask.Status != TaskStatus.RanToCompletion)
+                    {
+                        return;
+                    }
+
+                    try
+                    {
+                        SessionRequestSent?.Invoke(this, new SessionRequestEvent
+                        {
+                            Topic = topic,
+                            Id = id,
+                            ChainId = chainId
+                        });
+                    }
+                    catch (Exception e)
+                    {
+                        ReownLogger.LogError(e);
+                    }
+                },
+                TaskContinuationOptions.ExecuteSynchronously);
+        }
+
+        /// <summary>
+        ///     Clamps a request expiry in seconds to a range that can also be expressed as a
+        ///     <see cref="CancellationTokenSource" /> delay, which is rejected above
+        ///     <see cref="int.MaxValue" /> milliseconds.
+        /// </summary>
+        /// <param name="expirySeconds">The requested expiry, in seconds</param>
+        /// <returns>The clamped expiry, in seconds</returns>
+        private static long ClampExpiry(long expirySeconds)
+        {
+            if (expirySeconds < Clock.ONE_SECOND)
+            {
+                return Clock.ONE_SECOND;
+            }
+
+            return expirySeconds > Clock.SEVEN_DAYS ? Clock.SEVEN_DAYS : expirySeconds;
         }
 
         public async Task RespondAsync<T, TR>(string topic, JsonRpcResponse<TR> response, CancellationToken ct = default)
@@ -820,15 +1009,31 @@ namespace Reown.Sign
 
             if (Client.Session.Keys.Contains(topic))
             {
-                var id = await MessageHandler.SendRequest<SessionPing, bool>(topic, new SessionPing());
+                var sessionPing = new SessionPing();
+                var id = MessageHandler.GenerateRequestId(sessionPing);
+                var pingEventId = $"session_ping{id}";
+
                 var done = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                _sessionEventsHandlerMap.ListenOnce($"session_ping{id}", (sender, args) =>
+
+                // Registered before publishing: the pong can arrive before the relay acknowledges our publish.
+                var removePingListener = _sessionEventsHandlerMap.ListenOnce(pingEventId, (sender, args) =>
                 {
                     if (args.IsError)
-                        done.SetException(args.Error.ToException());
+                        done.TrySetException(args.Error.ToException());
                     else
-                        done.SetResult(args.Result);
+                        done.TrySetResult(args.Result);
                 });
+
+                try
+                {
+                    await MessageHandler.SendRequestWithId<SessionPing, bool>(topic, sessionPing, id);
+                }
+                catch
+                {
+                    removePingListener();
+                    throw;
+                }
+
                 await done.Task;
             }
             else if (Client.CoreClient.Pairing.Store.Keys.Contains(topic))
@@ -1004,53 +1209,66 @@ namespace Reown.Sign
                 RequiredNamespaces = new RequiredNamespaces()
             };
 
-            long authId = default;
-            long fallbackId = default;
+            var authId = MessageHandler.GenerateRequestId(request);
+            var fallbackId = MessageHandler.GenerateRequestId(proposal);
+
             EventHandler<SessionAuthenticatedEventArgs> sessionAuthHandler = null;
             EventHandler<Session> sessionConnectedHandler = null;
             var approvalTask = new TaskCompletionSource<Session>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            // Listeners and the state their handlers read back by id are established before either request is
+            // published: a response can reach us before the relay acknowledges our own publish.
+            sessionAuthHandler = (sender, session) => OnSessionAuthenticated(sender, session, fallbackId);
+            sessionConnectedHandler = (sender, session) => OnSessionConnected(sender, session, fallbackId);
+
+            SessionConnected += sessionConnectedHandler;
+            SessionConnectionErrored += OnSessionConnectionErrored;
+            SessionAuthenticated += sessionAuthHandler;
+
             try
             {
-                var ids = await Task.WhenAll(
-                    MessageHandler.SendRequest<SessionAuthenticate, AuthenticateResponse>(pairingData.Topic, request),
-                    MessageHandler.SendRequest<SessionPropose, SessionProposeResponse>(pairingData.Topic, proposal)
+                await PrivateThis.SetProposal(fallbackId, new ProposalStruct
+                {
+                    Expiry = Clock.CalculateExpiry(long.TryParse(authParams.Expiration, out var fallbackExp) ? fallbackExp : Clock.ONE_HOUR),
+                    Id = fallbackId,
+                    Proposer = participant,
+                    PairingTopic = pairingData.Topic,
+                    Relays = proposal.Relays,
+                    OptionalNamespaces = proposal.OptionalNamespaces
+                });
+
+                await Client.Auth.PendingRequests.Set(authId, new AuthPendingRequest
+                {
+                    Id = authId,
+                    Requester = participant,
+                    PairingTopic = pairingData.Topic,
+                    PayloadParams = request.Payload,
+                    Expiry = request.ExpiryTimestamp
+                });
+                Client.CoreClient.Expirer.Set(authId, request.ExpiryTimestamp);
+
+                await Task.WhenAll(
+                    MessageHandler.SendRequestWithId<SessionAuthenticate, AuthenticateResponse>(pairingData.Topic, request, authId),
+                    MessageHandler.SendRequestWithId<SessionPropose, SessionProposeResponse>(pairingData.Topic, proposal, fallbackId)
                 );
-
-                authId = ids[0];
-                fallbackId = ids[1];
-
-                sessionAuthHandler = (sender, session) => OnSessionAuthenticated(sender, session, fallbackId);
-                sessionConnectedHandler = (sender, session) => OnSessionConnected(sender, session, fallbackId);
-
-                SessionConnected += sessionConnectedHandler;
-                SessionConnectionErrored += OnSessionConnectionErrored;
-                SessionAuthenticated += sessionAuthHandler;
             }
             catch (Exception)
             {
                 UnsubscribeAll();
+
+                try
+                {
+                    await PrivateThis.DeleteProposal(fallbackId);
+                    await Client.Auth.PendingRequests.Delete(authId, Error.FromErrorType(ErrorType.USER_DISCONNECTED));
+                    await Client.CoreClient.Expirer.Delete(authId);
+                }
+                catch (Exception e)
+                {
+                    ReownLogger.LogError(e);
+                }
+
                 throw;
             }
-
-            await PrivateThis.SetProposal(fallbackId, new ProposalStruct
-            {
-                Expiry = Clock.CalculateExpiry(long.TryParse(authParams.Expiration, out var fallbackExp) ? fallbackExp : Clock.ONE_HOUR),
-                Id = fallbackId,
-                Proposer = participant,
-                PairingTopic = pairingData.Topic,
-                Relays = proposal.Relays,
-                OptionalNamespaces = proposal.OptionalNamespaces
-            });
-
-            await Client.Auth.PendingRequests.Set(authId, new AuthPendingRequest
-            {
-                Id = authId,
-                Requester = participant,
-                PairingTopic = pairingData.Topic,
-                PayloadParams = request.Payload,
-                Expiry = request.ExpiryTimestamp
-            });
-            Client.CoreClient.Expirer.Set(authId, request.ExpiryTimestamp);
 
             return new AuthenticateData(pairingData.Uri, approvalTask.Task);
 

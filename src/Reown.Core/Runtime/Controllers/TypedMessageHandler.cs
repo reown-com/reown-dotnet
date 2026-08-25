@@ -391,7 +391,35 @@ namespace Reown.Core.Controllers
         /// <typeparam name="T">The request type</typeparam>
         /// <typeparam name="TR">The response type</typeparam>
         /// <returns>The id of the request sent</returns>
-        public async Task<long> SendRequest<T, TR>(string topic, T parameters, long? expiry = null,
+        public Task<long> SendRequest<T, TR>(string topic, T parameters, long? expiry = null,
+            EncodeOptions options = null, CancellationToken ct = default)
+        {
+            return SendRequestWithId<T, TR>(topic, parameters, GenerateRequestId(parameters), expiry, options, ct);
+        }
+
+        /// <summary>
+        ///     Send a typed request message with the given request / response type pair T, TR to the given topic,
+        ///     using an id obtained beforehand from <see cref="GenerateRequestId{T}" />.
+        /// </summary>
+        /// <param name="topic">The topic to send the request in</param>
+        /// <param name="parameters">
+        ///     The typed request message to send. This must be the same, unmodified instance that
+        ///     <see cref="GenerateRequestId{T}" /> was called with
+        /// </param>
+        /// <param name="requestId">The id to send the request with</param>
+        /// <param name="expiry">
+        ///     An override to specify how long this request will live for. If null is given, then expiry will be taken from either T or TR
+        ///     attributed options
+        /// </param>
+        /// <param name="options">(optional) Crypto Encoding options</param>
+        /// <param name="ct">
+        ///     Cancels the request only before the send begins; the token is not propagated into encoding,
+        ///     history recording, or publishing
+        /// </param>
+        /// <typeparam name="T">The request type</typeparam>
+        /// <typeparam name="TR">The response type</typeparam>
+        /// <returns>The id of the request sent, which is always the given <paramref name="requestId" /></returns>
+        public async Task<long> SendRequestWithId<T, TR>(string topic, T parameters, long requestId, long? expiry = null,
             EncodeOptions options = null, CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
@@ -399,9 +427,7 @@ namespace Reown.Core.Controllers
 
             var method = RpcMethodAttribute.MethodForType<T>();
 
-            var messageId = RpcPayloadId.GenerateFromDataHash(parameters);
-
-            var payload = new JsonRpcRequest<T>(method, parameters, messageId);
+            var payload = new JsonRpcRequest<T>(method, parameters, requestId);
 
             var message = await CoreClient.Crypto.Encode(topic, payload, options);
 
@@ -417,6 +443,18 @@ namespace Reown.Core.Controllers
             await CoreClient.Relayer.Publish(topic, message, opts);
 
             return payload.Id;
+        }
+
+        /// <summary>
+        ///     Derive the id that <see cref="SendRequest{T,TR}(string,T,long?,EncodeOptions,CancellationToken)" />
+        ///     would use for the given request parameters.
+        /// </summary>
+        /// <param name="parameters">The typed request message that will be sent</param>
+        /// <typeparam name="T">The request type</typeparam>
+        /// <returns>The id the request will be sent with</returns>
+        public long GenerateRequestId<T>(T parameters)
+        {
+            return RpcPayloadId.GenerateFromDataHash(parameters);
         }
 
         /// <summary>

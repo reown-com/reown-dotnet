@@ -270,13 +270,9 @@ namespace Reown.Sign
             }
         }
 
-        async Task IEnginePrivate.OnSessionPingResponse(string topic, JsonRpcResponse<bool> payload)
+        Task IEnginePrivate.OnSessionPingResponse(string topic, JsonRpcResponse<bool> payload)
         {
             var id = payload.Id;
-
-            // put at the end of the stack to avoid a race condition
-            // where session_ping listener is not yet initialized
-            await Task.Delay(500);
 
             SessionPinged?.Invoke(this, new SessionEvent
             {
@@ -286,6 +282,8 @@ namespace Reown.Sign
 
             // Still used, do not remove
             _sessionEventsHandlerMap[$"session_ping{id}"](this, payload);
+
+            return Task.CompletedTask;
         }
 
         async Task IEnginePrivate.OnSessionDeleteRequest(string topic, JsonRpcRequest<SessionDelete> payload)

@@ -39,9 +39,12 @@ namespace Reown.Core.Models.MessageHandler
 
         protected static readonly Dictionary<string, TypedEventHandler<T, TR>> Instances = new();
         private readonly object _eventLock = new();
+        private readonly object _disposeActionsLock = new();
         protected readonly List<Action> DisposeActions = new();
         protected readonly ICoreClient Ref;
         private int _activeCount;
+        private Action _detachFromParent;
+        private Task _setupTask;
 
         protected DisposeHandlerToken MessageHandler;
         protected Func<RequestEventArgs<T, TR>, bool> RequestPredicate;
@@ -68,7 +71,9 @@ namespace Reown.Core.Models.MessageHandler
         ///     Get a singleton instance of this class for the given <see cref="IEngine" /> context. The context
         ///     string of the given <see cref="IEngine" /> will be used to determine the singleton instance to
         ///     return (or if a new one needs to be created). Beware that multiple <see cref="IEngine" /> instances
-        ///     with the same context string will share the same event handlers.
+        ///     with the same context string will share the same event handlers. A cached instance whose client has
+        ///     already been disposed is discarded rather than returned, since context strings are derived from the
+        ///     client name and are therefore reused by a client that is re-created after being disposed.
         /// </summary>
         /// <param name="engine">
         ///     The engine this singleton instance is for, and where the context string will
@@ -79,7 +84,7 @@ namespace Reown.Core.Models.MessageHandler
         {
             var context = engine.Context;
 
-            if (Instances.TryGetValue(context, out var instance))
+            if (TryGetLiveInstance(engine, out var instance))
                 return instance;
 
             var newInstance = new TypedEventHandler<T, TR>(engine);
@@ -87,6 +92,50 @@ namespace Reown.Core.Models.MessageHandler
             Instances.Add(context, newInstance);
 
             return newInstance;
+        }
+
+        /// <summary>
+        ///     Returns the registered instance for the given client's context, discarding and unregistering a
+        ///     cached instance that is itself disposed or whose client has been disposed. An instance belonging to
+        ///     another client that is still alive is returned, which is the documented sharing behaviour.
+        /// </summary>
+        /// <param name="engine">The client asking for the instance</param>
+        /// <param name="instance">The registered instance, when a usable one exists</param>
+        /// <returns>true when a usable instance was found, false otherwise</returns>
+        protected static bool TryGetLiveInstance(ICoreClient engine, out TypedEventHandler<T, TR> instance)
+        {
+            var context = engine.Context;
+
+            if (!Instances.TryGetValue(context, out instance))
+                return false;
+
+            if (!instance.Disposed && !instance.Ref.Disposed)
+                return true;
+
+            Instances.Remove(context);
+
+            var stale = instance;
+            instance = null;
+
+            if (!stale.Disposed)
+            {
+                stale.Dispose();
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Disposes the instance registered for the given client's context, if there is one. Used to tear
+        ///     down a handler that another handler wraps.
+        /// </summary>
+        /// <param name="engine">The client whose registered instance should be disposed</param>
+        public static void DisposeInstance(ICoreClient engine)
+        {
+            if (Instances.TryGetValue(engine.Context, out var instance))
+            {
+                instance.Dispose();
+            }
         }
 
         /// <summary>
@@ -105,7 +154,7 @@ namespace Reown.Core.Models.MessageHandler
 
                     if (_activeCount == 0)
                     {
-                        Setup();
+                        BeginSetup();
                     }
 
                     _activeCount++;
@@ -143,7 +192,7 @@ namespace Reown.Core.Models.MessageHandler
 
                     if (_activeCount == 0)
                     {
-                        Setup();
+                        BeginSetup();
                     }
 
                     _activeCount++;
@@ -213,18 +262,77 @@ namespace Reown.Core.Models.MessageHandler
                 ResponsePredicate = responsePredicate
             };
 
-            DisposeActions.Add(wrappedRef.Dispose);
+            TrackDerivedInstance(wrappedRef);
 
             return wrappedRef;
         }
 
-        protected virtual async void Setup()
+        /// <summary>
+        ///     Registers an instance produced by <see cref="FilterRequests" /> or <see cref="FilterResponses" /> so
+        ///     that disposing this instance also disposes the derived one. The derived instance removes itself from
+        ///     this list when it is disposed first, so a long-lived handler that hands out many filtered instances
+        ///     does not accumulate dead entries.
+        /// </summary>
+        /// <param name="derived">The instance produced from this one by a filter call</param>
+        protected void TrackDerivedInstance(TypedEventHandler<T, TR> derived)
+        {
+            Action disposeDerived = derived.Dispose;
+
+            lock (_disposeActionsLock)
+            {
+                DisposeActions.Add(disposeDerived);
+            }
+
+            derived._detachFromParent = () =>
+            {
+                lock (_disposeActionsLock)
+                {
+                    DisposeActions.Remove(disposeDerived);
+                }
+            };
+        }
+
+        /// <summary>
+        ///     Returns a task that completes once the message handler registration triggered by the first
+        ///     <see cref="OnRequest" /> or <see cref="OnResponse" /> subscription has finished. Await this before
+        ///     publishing a request whose response this handler is meant to receive: registration is asynchronous,
+        ///     so a response that arrives before it completes would find no handler and be dropped.
+        /// </summary>
+        /// <returns>
+        ///     A task that completes when the handler is registered, or an already completed task when no
+        ///     subscription is currently active.
+        /// </returns>
+        public Task WhenRegisteredAsync()
+        {
+            lock (_eventLock)
+            {
+                return _setupTask ?? Task.CompletedTask;
+            }
+        }
+
+        private void BeginSetup()
+        {
+            var setupTask = SetupAsync();
+            _setupTask = setupTask;
+
+            setupTask.ContinueWith(t => ReownLogger.LogError(t.Exception),
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
+        }
+
+        /// <summary>
+        ///     Registers this handler with the underlying <see cref="ITypedMessageHandler" /> so that requests and
+        ///     responses of the type pair T, TR are routed to it. Called when the first event subscription is added.
+        /// </summary>
+        /// <returns>A task that completes once the handler is live and able to receive messages</returns>
+        protected virtual async Task SetupAsync()
         {
             MessageHandler = await Ref.MessageHandler.HandleMessageType<T, TR>(RequestCallback, ResponseCallback);
         }
 
         protected virtual void Teardown()
         {
+            _setupTask = null;
+
             if (MessageHandler != null)
             {
                 MessageHandler.Dispose();
@@ -361,13 +469,29 @@ namespace Reown.Core.Models.MessageHandler
             if (disposing)
             {
                 var context = Ref.Context;
-                foreach (var action in DisposeActions)
+
+                _detachFromParent?.Invoke();
+                _detachFromParent = null;
+
+                Action[] disposeActions;
+                lock (_disposeActionsLock)
+                {
+                    disposeActions = DisposeActions.ToArray();
+                    DisposeActions.Clear();
+                }
+
+                foreach (var action in disposeActions)
                 {
                     action();
                 }
 
-                DisposeActions.Clear();
-                Instances.Remove(context);
+                // Only the singleton registered for this context may evict itself; instances produced by
+                // FilterRequests/FilterResponses share the context but are not the registered singleton.
+                if (Instances.TryGetValue(context, out var registered) && ReferenceEquals(registered, this))
+                {
+                    Instances.Remove(context);
+                }
+
                 Teardown();
             }
 
