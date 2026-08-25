@@ -51,6 +51,7 @@ namespace Reown.Core.Models.MessageHandler
         private int _activeCount;
         private Action _detachFromParent;
         private Task _setupTask;
+        private int _setupGeneration;
 
         protected DisposeHandlerToken MessageHandler;
         protected Func<RequestEventArgs<T, TR>, bool> RequestPredicate;
@@ -128,15 +129,23 @@ namespace Reown.Core.Models.MessageHandler
                 if (!instance.Disposed && !instance.Ref.Disposed)
                     return true;
 
-                Instances.Remove(context);
-
                 stale = instance;
                 instance = null;
             }
 
+            // Disposed before the entry is removed, so an override that has to tear down a handler it wraps can
+            // still recognise itself as the registered instance.
             if (!stale.Disposed)
             {
                 stale.Dispose();
+            }
+
+            lock (InstancesLock)
+            {
+                if (Instances.TryGetValue(context, out var remaining) && ReferenceEquals(remaining, stale))
+                {
+                    Instances.Remove(context);
+                }
             }
 
             return false;
@@ -369,11 +378,27 @@ namespace Reown.Core.Models.MessageHandler
         /// <returns>A task that completes once the handler is live and able to receive messages</returns>
         protected virtual async Task SetupAsync()
         {
-            MessageHandler = await Ref.MessageHandler.HandleMessageType<T, TR>(RequestCallback, ResponseCallback);
+            var generation = _setupGeneration;
+
+            var handler = await Ref.MessageHandler.HandleMessageType<T, TR>(RequestCallback, ResponseCallback);
+
+            lock (_eventLock)
+            {
+                // A teardown while the registration was in flight makes this token obsolete. Assigning it would
+                // overwrite a newer one and leak this registration into the message handler's callback maps.
+                if (generation == _setupGeneration && !Disposed)
+                {
+                    MessageHandler = handler;
+                    return;
+                }
+            }
+
+            handler.Dispose();
         }
 
         protected virtual void Teardown()
         {
+            _setupGeneration++;
             _setupTask = null;
 
             if (MessageHandler != null)

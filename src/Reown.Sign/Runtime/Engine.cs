@@ -46,6 +46,7 @@ namespace Reown.Sign
 
         private readonly EventHandlerMap<SessionEvent<JToken>> _customSessionEventsHandlerMap = new();
         private readonly Dictionary<string, Action> _disposeActions = new();
+        private readonly object _disposeActionsLock = new();
         private readonly EventHandlerMap<JsonRpcResponse<bool>> _sessionEventsHandlerMap = new();
 
         private bool _initialized;
@@ -259,7 +260,10 @@ namespace Reown.Sign
             var instance = SessionRequestEventHandler<T, TR>.GetInstance(Client.CoreClient, PrivateThis);
 
             // Assigned rather than added: a replacement instance has to be the one this engine disposes.
-            _disposeActions[uniqueKey] = () => instance.Dispose();
+            lock (_disposeActionsLock)
+            {
+                _disposeActions[uniqueKey] = () => instance.Dispose();
+            }
 
             return instance;
         }
@@ -816,8 +820,17 @@ namespace Reown.Sign
                     // Registering the handler is asynchronous, and the relay's acknowledgement of our publish
                     // carries no ordering guarantee against the peer's response. Wait for the handler to be live
                     // before publishing, otherwise a response that overtakes the acknowledgement is dropped and
-                    // this call never completes.
-                    await responseHandlerInstance.WhenRegisteredAsync();
+                    // this call never completes. The wait is raced against the task source so the timeout and the
+                    // cancellation token bound this leg as well.
+                    var registration = responseHandlerInstance.WhenRegisteredAsync();
+
+                    if (!ReferenceEquals(await Task.WhenAny(registration, taskSource.Task), registration))
+                    {
+                        LogFailure(registration);
+                        return await taskSource.Task;
+                    }
+
+                    await registration;
 
                     var sendTask = MessageHandler.SendRequestWithId<SessionRequest<T>, TR>(topic, sessionRequest, id, publishExpiry, ct: ct);
 
@@ -903,6 +916,17 @@ namespace Reown.Sign
             {
                 ReownLogger.LogError(e);
             }
+        }
+
+        /// <summary>
+        ///     Observes a task whose outcome is no longer awaited, logging its exception instead of leaving it
+        ///     unobserved.
+        /// </summary>
+        /// <param name="task">The task to observe</param>
+        private static void LogFailure(Task task)
+        {
+            _ = task.ContinueWith(t => ReownLogger.LogError(t.Exception),
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
         }
 
         /// <summary>
@@ -1556,7 +1580,15 @@ namespace Reown.Sign
 
                 Client.CoreClient.Expirer.Expired -= ExpiredCallback;
 
-                foreach (var action in _disposeActions.Values)
+                Action[] disposeActions;
+                lock (_disposeActionsLock)
+                {
+                    disposeActions = new Action[_disposeActions.Count];
+                    _disposeActions.Values.CopyTo(disposeActions, 0);
+                    _disposeActions.Clear();
+                }
+
+                foreach (var action in disposeActions)
                 {
                     action();
                 }
@@ -1566,7 +1598,6 @@ namespace Reown.Sign
                     disposeHandlerToken.Dispose();
                 }
 
-                _disposeActions.Clear();
                 _messageDisposeHandlers = Array.Empty<DisposeHandlerToken>();
             }
 
