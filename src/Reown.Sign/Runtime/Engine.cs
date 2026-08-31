@@ -837,7 +837,7 @@ namespace Reown.Sign
             responseHandlerInstance.OnResponse += onResponseHandler;
 
             using (var timeoutTokenSource = new CancellationTokenSource(timeout))
-            using (ct.Register(() => taskSource.TrySetCanceled()))
+            using (ct.Register(() => taskSource.TrySetCanceled(ct)))
             using (timeoutTokenSource.Token.Register(() => taskSource.TrySetException(
                        ReownNetworkException.FromType(ErrorType.SESSION_REQUEST_EXPIRED,
                            context: $"No response to {method} (id {id}) on topic {topic} within {timeout.TotalSeconds} seconds."))))
