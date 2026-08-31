@@ -19,8 +19,7 @@ namespace Reown.Core.Models
 
         /// <summary>
         ///     How long the request lives for, in seconds. When null, the lifetime is taken from the
-        ///     <see cref="Reown.Core.Network.Models.RpcRequestOptionsAttribute" /> on either the request or
-        ///     the response type.
+        ///     <see cref="Reown.Core.Network.Models.RpcRequestOptionsAttribute" /> on the request type.
         /// </summary>
         public long? Expiry { get; set; }
 
