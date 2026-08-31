@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -934,6 +934,23 @@ namespace Reown.Sign
         }
 
         /// <summary>
+        ///     Undoes the state a failed <see cref="AuthenticateAsync" /> created before publishing its requests.
+        ///     Each step is guarded and failures are logged rather than masking the original error.
+        /// </summary>
+        /// <param name="fallbackProposalId">The id of the fallback session proposal</param>
+        /// <param name="authId">The id of the authentication request</param>
+        private async Task CleanUpFailedAuthenticate(long fallbackProposalId, long authId)
+        {
+            await Suppress(() => PrivateThis.DeleteProposal(fallbackProposalId));
+
+            await Suppress(() => Client.Auth.PendingRequests.Delete(authId, Error.FromErrorType(ErrorType.USER_DISCONNECTED)));
+
+            await Suppress(() => Client.CoreClient.Expirer.Has(authId)
+                ? Client.CoreClient.Expirer.Delete(authId)
+                : Task.CompletedTask);
+        }
+
+        /// <summary>
         ///     Runs one compensating cleanup step, logging a failure instead of letting it mask the error that
         ///     started the rollback or stop the remaining steps.
         /// </summary>
@@ -1109,7 +1126,7 @@ namespace Reown.Sign
                         new SendRequestOptions
                         {
                             RequestId = id
-                        });
+                        }, ct);
                 }
                 catch
                 {
@@ -1335,21 +1352,18 @@ namespace Reown.Sign
                         new SendRequestOptions
                         {
                             RequestId = authId
-                        }),
+                        }, ct),
                     MessageHandler.SendRequest<SessionPropose, SessionProposeResponse>(pairingData.Topic, proposal,
                         new SendRequestOptions
                         {
                             RequestId = fallbackId
-                        })
+                        }, ct)
                 );
             }
             catch (Exception)
             {
                 UnsubscribeAll();
-
-                await Suppress(() => PrivateThis.DeleteProposal(fallbackId));
-                await Suppress(() => Client.Auth.PendingRequests.Delete(authId, Error.FromErrorType(ErrorType.USER_DISCONNECTED)));
-                await Suppress(() => Client.CoreClient.Expirer.Has(authId) ? Client.CoreClient.Expirer.Delete(authId) : Task.CompletedTask);
+                await CleanUpFailedAuthenticate(fallbackId, authId);
 
                 throw;
             }

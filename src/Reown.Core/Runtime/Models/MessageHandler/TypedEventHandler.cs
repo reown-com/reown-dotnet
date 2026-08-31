@@ -41,7 +41,8 @@ namespace Reown.Core.Models.MessageHandler
 
         /// <summary>
         ///     Guards every read and write of <see cref="Instances" />. Dictionary operations only: never call
-        ///     into an instance while holding it.
+        ///     into an instance while holding it. Like the dictionary it guards, this is one lock per closed
+        ///     generic type, which is what keeps the base and derived handlers of the same closed type in sync.
         /// </summary>
         protected static readonly object InstancesLock = new();
         private readonly object _eventLock = new();
