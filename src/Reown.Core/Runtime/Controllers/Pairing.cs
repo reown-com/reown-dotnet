@@ -325,7 +325,7 @@ namespace Reown.Core.Controllers
             {
                 var pairingPing = new PairingPing();
                 var id = CoreClient.MessageHandler.GenerateRequestId(pairingPing);
-                var pingEventId = $"pairing_ping{id}";
+                var pingEventId = $"pairing_ping_{id}";
 
                 var done = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -519,7 +519,7 @@ namespace Reown.Core.Controllers
                 Topic = topic
             });
 
-            _pairingPingResponseEvents[$"pairing_ping{id}"](this, payload);
+            _pairingPingResponseEvents[$"pairing_ping_{id}"](this, payload);
 
             return Task.CompletedTask;
         }

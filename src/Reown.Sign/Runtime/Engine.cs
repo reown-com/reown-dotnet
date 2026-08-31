@@ -585,7 +585,7 @@ namespace Reown.Sign
             await Client.CoreClient.Relayer.Subscribe(sessionTopic);
 
             var requestId = MessageHandler.GenerateRequestId(sessionSettle);
-            var acknowledgeEventId = $"session_approve{requestId}";
+            var acknowledgeEventId = $"session_approve_{requestId}";
 
             var acknowledgedTask = new TaskCompletionSource<Session>(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -688,7 +688,7 @@ namespace Reown.Sign
             };
 
             var id = MessageHandler.GenerateRequestId(sessionUpdate);
-            var updateEventId = $"session_update{id}";
+            var updateEventId = $"session_update_{id}";
 
             var acknowledgedTask = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -696,7 +696,10 @@ namespace Reown.Sign
             var removeUpdateListener = _sessionEventsHandlerMap.ListenOnce(updateEventId, (sender, args) =>
             {
                 if (ct.IsCancellationRequested)
+                {
                     acknowledgedTask.TrySetCanceled();
+                    return;
+                }
 
                 if (args.IsError)
                     acknowledgedTask.TrySetException(args.Error.ToException());
@@ -734,7 +737,7 @@ namespace Reown.Sign
 
             var sessionExtend = new SessionExtend();
             var id = MessageHandler.GenerateRequestId(sessionExtend);
-            var extendEventId = $"session_extend{id}";
+            var extendEventId = $"session_extend_{id}";
 
             var acknowledgedTask = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -742,7 +745,10 @@ namespace Reown.Sign
             var removeExtendListener = _sessionEventsHandlerMap.ListenOnce(extendEventId, (sender, args) =>
             {
                 if (ct.IsCancellationRequested)
+                {
                     acknowledgedTask.TrySetCanceled();
+                    return;
+                }
 
                 if (args.IsError)
                     acknowledgedTask.TrySetException(args.Error.ToException());
@@ -811,6 +817,10 @@ namespace Reown.Sign
 
             var taskSource = new TaskCompletionSource<TR>(TaskCreationOptions.RunContinuationsAsynchronously);
 
+            // When the response wins the race, SessionRequestSent is raised from the publish continuation, which
+            // runs on a relay thread. Remember where the caller is so the event is raised there instead.
+            var callerContext = SynchronizationContext.Current;
+
             var responseHandlerInstance = SessionRequestEvents<T, TR>()
                 .FilterResponses(e => e.Topic == topic && e.Response.Id == id);
 
@@ -856,8 +866,8 @@ namespace Reown.Sign
                             Expiry = publishExpiry
                         }, ct);
 
-                    // Racing the publish against the wait means the timeout also bounds a publish
-                    // acknowledgement that never arrives, instead of only the peer's response.
+                    // Race the publish too, so the timeout also covers an acknowledgement that never
+                    // arrives, not just a response that never arrives.
                     if (ReferenceEquals(await Task.WhenAny(sendTask, taskSource.Task), sendTask))
                     {
                         await sendTask;
@@ -874,7 +884,7 @@ namespace Reown.Sign
                         // The response, the timeout or cancellation won. The publish is left to finish on its
                         // own; its outcome no longer decides the result of this call, but a request that was
                         // answered still has to report that it was sent.
-                        ReportWhenSent(sendTask, taskSource.Task, topic, id, requestChainId);
+                        ReportWhenSent(sendTask, taskSource.Task, topic, id, requestChainId, callerContext);
                     }
 
                     return await taskSource.Task;
@@ -962,36 +972,58 @@ namespace Reown.Sign
         /// <param name="topic">The topic the request was published on</param>
         /// <param name="id">The id of the request</param>
         /// <param name="chainId">The chain the request was made for</param>
-        private void ReportWhenSent(Task sendTask, Task requestTask, string topic, long id, string chainId)
+        /// <param name="callerContext">
+        ///     The synchronization context the request was made on, so the event reaches subscribers there
+        ///     rather than on the thread that finished the publish. Null raises it on that thread
+        /// </param>
+        private void ReportWhenSent(Task sendTask, Task requestTask, string topic, long id, string chainId,
+            SynchronizationContext callerContext)
         {
             _ = sendTask.ContinueWith(t =>
+            {
+                if (t.IsFaulted)
                 {
-                    if (t.IsFaulted)
-                    {
-                        ReownLogger.LogError(t.Exception);
-                        return;
-                    }
+                    ReownLogger.LogError(t.Exception);
+                    return;
+                }
 
-                    if (t.IsCanceled || requestTask.Status != TaskStatus.RanToCompletion)
-                    {
-                        return;
-                    }
+                if (t.IsCanceled || requestTask.Status != TaskStatus.RanToCompletion)
+                {
+                    return;
+                }
 
-                    try
-                    {
-                        SessionRequestSent?.Invoke(this, new SessionRequestEvent
-                        {
-                            Topic = topic,
-                            Id = id,
-                            ChainId = chainId
-                        });
-                    }
-                    catch (Exception e)
-                    {
-                        ReownLogger.LogError(e);
-                    }
-                },
-                TaskContinuationOptions.ExecuteSynchronously);
+                var sent = new SessionRequestEvent
+                {
+                    Topic = topic,
+                    Id = id,
+                    ChainId = chainId
+                };
+
+                if (callerContext == null)
+                {
+                    RaiseSessionRequestSent(sent);
+                    return;
+                }
+
+                callerContext.Post(_ => RaiseSessionRequestSent(sent), null);
+            });
+        }
+
+        /// <summary>
+        ///     Raises <see cref="SessionRequestSent" /> without letting a subscriber's exception escape onto a
+        ///     thread that has nowhere to report it.
+        /// </summary>
+        /// <param name="sent">The event to raise</param>
+        private void RaiseSessionRequestSent(SessionRequestEvent sent)
+        {
+            try
+            {
+                SessionRequestSent?.Invoke(this, sent);
+            }
+            catch (Exception e)
+            {
+                ReownLogger.LogError(e);
+            }
         }
 
         /// <summary>
@@ -1058,7 +1090,7 @@ namespace Reown.Sign
             {
                 var sessionPing = new SessionPing();
                 var id = MessageHandler.GenerateRequestId(sessionPing);
-                var pingEventId = $"session_ping{id}";
+                var pingEventId = $"session_ping_{id}";
 
                 var done = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 

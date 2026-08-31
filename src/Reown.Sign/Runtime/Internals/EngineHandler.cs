@@ -167,7 +167,7 @@ namespace Reown.Sign
                 SessionRejected?.Invoke(this, session);
 
                 // Still used do not remove
-                _sessionEventsHandlerMap[$"session_approve{id}"](this, payload);
+                _sessionEventsHandlerMap[$"session_approve_{id}"](this, payload);
             }
             else
             {
@@ -176,7 +176,7 @@ namespace Reown.Sign
                     Acknowledged = true
                 });
                 SessionApproved?.Invoke(this, session);
-                _sessionEventsHandlerMap[$"session_approve{id}"](this, payload);
+                _sessionEventsHandlerMap[$"session_approve_{id}"](this, payload);
             }
         }
 
@@ -216,7 +216,7 @@ namespace Reown.Sign
                 Topic = topic
             });
             // Still used, do not remove
-            _sessionEventsHandlerMap[$"session_update{id}"](this, payload);
+            _sessionEventsHandlerMap[$"session_update_{id}"](this, payload);
         }
 
         async Task IEnginePrivate.OnSessionExtendRequest(string topic, JsonRpcRequest<SessionExtend> payload)
@@ -248,7 +248,7 @@ namespace Reown.Sign
                 Id = id
             });
             // Still used, do not remove
-            _sessionEventsHandlerMap[$"session_extend{id}"](this, payload);
+            _sessionEventsHandlerMap[$"session_extend_{id}"](this, payload);
         }
 
         async Task IEnginePrivate.OnSessionPingRequest(string topic, JsonRpcRequest<SessionPing> payload)
@@ -281,7 +281,7 @@ namespace Reown.Sign
             });
 
             // Still used, do not remove
-            _sessionEventsHandlerMap[$"session_ping{id}"](this, payload);
+            _sessionEventsHandlerMap[$"session_ping_{id}"](this, payload);
 
             return Task.CompletedTask;
         }
