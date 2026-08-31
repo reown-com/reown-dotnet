@@ -340,7 +340,11 @@ namespace Reown.Core.Controllers
 
                 try
                 {
-                    await CoreClient.MessageHandler.SendRequestWithId<PairingPing, bool>(topic, pairingPing, id);
+                    await CoreClient.MessageHandler.SendRequest<PairingPing, bool>(topic, pairingPing,
+                        new SendRequestOptions
+                        {
+                            RequestId = id
+                        });
                 }
                 catch
                 {

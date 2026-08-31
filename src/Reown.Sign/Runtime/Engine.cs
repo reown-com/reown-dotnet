@@ -42,6 +42,7 @@ namespace Reown.Sign
         ///     Matches the default the reference TypeScript client uses for wc_sessionRequest.
         /// </summary>
         private const long DefaultRequestExpiry = Clock.FIVE_MINUTES * 3;
+
         private const int KeyLength = 32;
 
         private readonly EventHandlerMap<SessionEvent<JToken>> _customSessionEventsHandlerMap = new();
@@ -462,7 +463,11 @@ namespace Reown.Sign
                     SessionProperties = proposal.SessionProperties
                 });
 
-                await MessageHandler.SendRequestWithId<SessionPropose, SessionProposeResponse>(topic, proposal, proposalId, ct: ct);
+                await MessageHandler.SendRequest<SessionPropose, SessionProposeResponse>(topic, proposal,
+                    new SendRequestOptions
+                    {
+                        RequestId = proposalId
+                    }, ct);
             }
             catch
             {
@@ -612,7 +617,11 @@ namespace Reown.Sign
             {
                 await Client.Session.Set(sessionTopic, session);
 
-                await MessageHandler.SendRequestWithId<SessionSettle, bool>(sessionTopic, sessionSettle, requestId, ct: ct);
+                await MessageHandler.SendRequest<SessionSettle, bool>(sessionTopic, sessionSettle,
+                    new SendRequestOptions
+                    {
+                        RequestId = requestId
+                    }, ct);
             }
             catch
             {
@@ -697,7 +706,11 @@ namespace Reown.Sign
 
             try
             {
-                await MessageHandler.SendRequestWithId<SessionUpdate, bool>(topic, sessionUpdate, id, ct: ct);
+                await MessageHandler.SendRequest<SessionUpdate, bool>(topic, sessionUpdate,
+                    new SendRequestOptions
+                    {
+                        RequestId = id
+                    }, ct);
             }
             catch
             {
@@ -739,7 +752,11 @@ namespace Reown.Sign
 
             try
             {
-                await MessageHandler.SendRequestWithId<SessionExtend, bool>(topic, sessionExtend, id, ct: ct);
+                await MessageHandler.SendRequest<SessionExtend, bool>(topic, sessionExtend,
+                    new SendRequestOptions
+                    {
+                        RequestId = id
+                    }, ct);
             }
             catch
             {
@@ -832,7 +849,12 @@ namespace Reown.Sign
 
                     await registration;
 
-                    var sendTask = MessageHandler.SendRequestWithId<SessionRequest<T>, TR>(topic, sessionRequest, id, publishExpiry, ct: ct);
+                    var sendTask = MessageHandler.SendRequest<SessionRequest<T>, TR>(topic, sessionRequest,
+                        new SendRequestOptions
+                        {
+                            RequestId = id,
+                            Expiry = publishExpiry
+                        }, ct);
 
                     // Racing the publish against the wait means the timeout also bounds a publish
                     // acknowledgement that never arrives, instead of only the peer's response.
@@ -1051,7 +1073,11 @@ namespace Reown.Sign
 
                 try
                 {
-                    await MessageHandler.SendRequestWithId<SessionPing, bool>(topic, sessionPing, id);
+                    await MessageHandler.SendRequest<SessionPing, bool>(topic, sessionPing,
+                        new SendRequestOptions
+                        {
+                            RequestId = id
+                        });
                 }
                 catch
                 {
@@ -1273,8 +1299,16 @@ namespace Reown.Sign
                 Client.CoreClient.Expirer.Set(authId, request.ExpiryTimestamp);
 
                 await Task.WhenAll(
-                    MessageHandler.SendRequestWithId<SessionAuthenticate, AuthenticateResponse>(pairingData.Topic, request, authId),
-                    MessageHandler.SendRequestWithId<SessionPropose, SessionProposeResponse>(pairingData.Topic, proposal, fallbackId)
+                    MessageHandler.SendRequest<SessionAuthenticate, AuthenticateResponse>(pairingData.Topic, request,
+                        new SendRequestOptions
+                        {
+                            RequestId = authId
+                        }),
+                    MessageHandler.SendRequest<SessionPropose, SessionProposeResponse>(pairingData.Topic, proposal,
+                        new SendRequestOptions
+                        {
+                            RequestId = fallbackId
+                        })
                 );
             }
             catch (Exception)

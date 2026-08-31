@@ -110,32 +110,32 @@ namespace Reown.Core.Interfaces
         DecodeOptions DecodeOptionForTopic(string topic);
 
         /// <summary>
+        ///     Send a typed request message with the given request / response type pair T, TR to the given topic.
+        ///     Set <see cref="SendRequestOptions.RequestId" /> when a response listener has to be registered
+        ///     before the request is published, which requires knowing the request id up front.
+        /// </summary>
+        /// <param name="topic">The topic to send the request in</param>
+        /// <param name="parameters">The typed request message to send</param>
+        /// <param name="requestOptions">
+        ///     The id, lifetime and encoding to send the request with. All of its values are optional, and null
+        ///     is equivalent to a new instance with nothing set
+        /// </param>
+        /// <param name="ct">
+        ///     Cancels the request only before the send begins; the token is not propagated into encoding,
+        ///     history recording, or publishing
+        /// </param>
+        /// <typeparam name="T">The request type</typeparam>
+        /// <typeparam name="TR">The response type</typeparam>
+        /// <returns>
+        ///     The id of the request sent, which is <see cref="SendRequestOptions.RequestId" /> when one was given
+        /// </returns>
+        Task<long> SendRequest<T, TR>(string topic, T parameters, SendRequestOptions requestOptions, CancellationToken ct = default);
+
+        /// <summary>
         ///     Send a typed request message with the given request / response type pair T, TR to the given topic
         /// </summary>
         /// <param name="topic">The topic to send the request in</param>
         /// <param name="parameters">The typed request message to send</param>
-        /// <param name="expiry">
-        ///     An override to specify how long this request will live for. If null is given, then expiry will be taken from either T or TR
-        ///     attributed options
-        /// </param>
-        /// <param name="options">(optional) Crypto Encoding options</param>
-        /// <typeparam name="T">The request type</typeparam>
-        /// <typeparam name="TR">The response type</typeparam>
-        /// <returns>The id of the request sent</returns>
-        Task<long> SendRequest<T, TR>(string topic, T parameters, long? expiry = null, EncodeOptions options = null, CancellationToken ct = default);
-
-        /// <summary>
-        ///     Send a typed request message with the given request / response type pair T, TR to the given topic,
-        ///     using an id obtained beforehand from <see cref="GenerateRequestId{T}" />. Use this overload when a
-        ///     response listener has to be registered before the request is published, which requires knowing the
-        ///     request id up front.
-        /// </summary>
-        /// <param name="topic">The topic to send the request in</param>
-        /// <param name="parameters">
-        ///     The typed request message to send. This must be the same, unmodified instance that
-        ///     <see cref="GenerateRequestId{T}" /> was called with, since the id is derived from its contents
-        /// </param>
-        /// <param name="requestId">The id to send the request with, obtained from <see cref="GenerateRequestId{T}" /></param>
         /// <param name="expiry">
         ///     An override to specify how long this request will live for. If null is given, then expiry will be taken from either T or TR
         ///     attributed options
@@ -147,13 +147,14 @@ namespace Reown.Core.Interfaces
         /// </param>
         /// <typeparam name="T">The request type</typeparam>
         /// <typeparam name="TR">The response type</typeparam>
-        /// <returns>The id of the request sent, which is always the given <paramref name="requestId" /></returns>
-        Task<long> SendRequestWithId<T, TR>(string topic, T parameters, long requestId, long? expiry = null, EncodeOptions options = null, CancellationToken ct = default);
+        /// <returns>The id of the request sent</returns>
+        Task<long> SendRequest<T, TR>(string topic, T parameters, long? expiry = null, EncodeOptions options = null, CancellationToken ct = default);
 
         /// <summary>
-        ///     Derive the id that <see cref="SendRequest{T,TR}(string,T,long?,EncodeOptions,CancellationToken)" />
-        ///     would use for the given request parameters. Ids are derived from the contents of the parameters, so
-        ///     the same instance must be passed on to the send in order for the ids to match.
+        ///     Derive the id that <see cref="SendRequest{T,TR}(string,T,SendRequestOptions,CancellationToken)" />
+        ///     would use for the given request parameters when no <see cref="SendRequestOptions.RequestId" /> is
+        ///     set. Ids are derived from the contents of the parameters, so the same instance must be passed on to
+        ///     the send in order for the ids to match.
         /// </summary>
         /// <param name="parameters">The typed request message that will be sent</param>
         /// <typeparam name="T">The request type</typeparam>
