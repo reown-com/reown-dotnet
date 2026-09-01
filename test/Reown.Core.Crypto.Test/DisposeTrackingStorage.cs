@@ -49,9 +49,6 @@ internal sealed class DisposeTrackingStorage : InMemoryStorage
 
     private void ThrowIfDisposed()
     {
-        if (DisposeCount > 0)
-        {
-            throw new ObjectDisposedException(nameof(DisposeTrackingStorage));
-        }
+        ObjectDisposedException.ThrowIf(DisposeCount > 0, this);
     }
 }

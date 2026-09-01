@@ -26,7 +26,7 @@ namespace Reown.Core
         private readonly string _optName;
         private readonly string guid = "";
         private readonly IKeyValueStorage _ownedStorage;
-        private readonly ICrypto _ownedCrypto;
+        private readonly Crypto.Crypto _ownedCrypto;
 
         /// <summary>
         ///     Create a new Core with the given options.

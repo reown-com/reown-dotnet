@@ -132,6 +132,8 @@ public class KeyChainTests
 
         keyChain.Dispose();
         keyChain.Dispose();
+
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => keyChain.Has("tag"));
     }
 
     [Fact, Trait("Category", "unit")]
