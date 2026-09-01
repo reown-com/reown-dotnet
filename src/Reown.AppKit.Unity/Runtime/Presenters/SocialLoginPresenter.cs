@@ -59,7 +59,12 @@ namespace Reown.AppKit.Unity
         private void OpenWebWallet()
         {
             var deepLink = Linker.BuildConnectionDeepLink(ProfileConnector.WebWalletUrl, _connectionProposal.Uri);
-            deepLink = $"{deepLink}&provider={_providerName}";
+            deepLink = $"{deepLink}&provider={Uri.EscapeDataString(_providerName)}";
+
+            var projectId = AppKit.Config?.projectId;
+            if (!string.IsNullOrWhiteSpace(projectId))
+                deepLink = $"{deepLink}&projectId={Uri.EscapeDataString(projectId)}";
+
             Application.OpenURL(deepLink);
         }
 

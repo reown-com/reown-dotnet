@@ -67,15 +67,47 @@ namespace Reown.Core.Common.Events
             // This is necessary to avoid null reference exceptions when no event handler is provided.
         }
 
-        public void ListenOnce(string eventId, EventHandler<TEventArgs> eventHandler)
+        /// <summary>
+        ///     Register an EventHandler that is removed again as soon as it fires once.
+        /// </summary>
+        /// <param name="eventId">The eventId to listen on</param>
+        /// <param name="eventHandler">The handler to invoke on the first event</param>
+        /// <returns>
+        ///     An action that removes the registration. Use it to cancel a listener that is no longer wanted
+        ///     without disturbing other listeners on the same eventId. It is safe to call more than once.
+        /// </returns>
+        public Action ListenOnce(string eventId, EventHandler<TEventArgs> eventHandler)
         {
             EventHandler<TEventArgs> internalHandler = null;
             internalHandler = (src, args) =>
             {
-                this[eventId] -= internalHandler;
+                Remove(eventId, internalHandler);
                 eventHandler(src, args);
             };
-            this[eventId] += internalHandler;
+
+            Combine(eventId, internalHandler);
+
+            return () => Remove(eventId, internalHandler);
+        }
+
+        private void Combine(string eventId, EventHandler<TEventArgs> handler)
+        {
+            lock (_mappingLock)
+            {
+                _mapping.TryAdd(eventId, _beforeEventExecuted);
+                _mapping[eventId] += handler;
+            }
+        }
+
+        private void Remove(string eventId, EventHandler<TEventArgs> handler)
+        {
+            lock (_mappingLock)
+            {
+                if (_mapping.TryGetValue(eventId, out var current))
+                {
+                    _mapping[eventId] = current - handler;
+                }
+            }
         }
 
         public bool TryGetValue(string eventName, out EventHandler<TEventArgs> handler)

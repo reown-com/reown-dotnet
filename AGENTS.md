@@ -308,11 +308,11 @@ com.reown.appkit.unity
 ### CI/CD Pipeline
 
 **Pull Request Validation:**
-- .NET unit and integration tests on Windows (`dotnet-build-test.yml`) — requires .NET 8.0.x, 9.0.x, and 10.0.x SDKs; runs across all three target frameworks
+- .NET unit and integration tests on Linux (`dotnet-build-test.yml`) — requires .NET 8.0.x, 9.0.x, and 10.0.x SDKs; runs across all three target frameworks
 - Unity builds for Windows, Android, WebGL using `game-ci/unity-builder` v4.5 (`unity-build-test.yml`)
 - Unity playmode and editmode tests using `game-ci/unity-test-runner` v4.3.1
 - WebGL deployment to Vercel with PR comment (runs after Unity build job)
-- SonarCloud code quality analysis with coverage collection (`sonarcloud.yml`)
+- SonarCloud code quality analysis with coverage collection on Linux (`sonarcloud.yml`)
 - Claude AI code review on PRs targeting `develop`, or triggered by `@claude review` comment (`claude-review.yml`)
 - Version sync: when `src/Directory.Build.props` changes, `sync-unity-package-version.yml` auto-commits version updates
 

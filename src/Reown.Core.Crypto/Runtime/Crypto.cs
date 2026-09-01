@@ -12,6 +12,7 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Security;
+using Reown.Core.Common.Logging;
 using Reown.Core.Common.Utils;
 using Reown.Core.Crypto.Encoder;
 using Reown.Core.Crypto.Interfaces;
@@ -47,12 +48,15 @@ namespace Reown.Core.Crypto
         private static readonly Encoding DataEncoding = Encoding.UTF8;
         private static readonly Encoding JsonEncoding = Encoding.UTF8;
         private readonly bool _newStorage;
+        private readonly bool _ownsKeyChain;
 
         private bool _initialized;
         protected bool Disposed;
 
         /// <summary>
         ///     Create a new instance of the crypto module, with a given storage module.
+        ///     The keychain built over that storage is owned by this crypto module and is disposed with it.
+        ///     The storage itself belongs to the caller and is left alone.
         /// </summary>
         /// <param name="storage">The storage module to use to load the keychain from</param>
         public Crypto(IKeyValueStorage storage)
@@ -62,10 +66,13 @@ namespace Reown.Core.Crypto
 
             KeyChain = new KeyChain(storage);
             Storage = storage;
+            _ownsKeyChain = true;
         }
 
         /// <summary>
         ///     Create a new instance of the crypto module, with a given keychain.
+        ///     The keychain belongs to the caller: it is not disposed with this crypto module, so it stays
+        ///     usable afterwards.
         /// </summary>
         /// <param name="keyChain">The keychain to use for this crypto module</param>
         public Crypto(IKeyChain keyChain)
@@ -75,7 +82,8 @@ namespace Reown.Core.Crypto
         }
 
         /// <summary>
-        ///     Create a new instance of the crypto module using an empty keychain stored in-memory using a Dictionary
+        ///     Create a new instance of the crypto module using an empty keychain stored in-memory using a Dictionary.
+        ///     Both the storage and the keychain are created here, so both are disposed with this crypto module.
         /// </summary>
         public Crypto() : this(new InMemoryStorage())
         {
@@ -137,8 +145,14 @@ namespace Reown.Core.Crypto
         ///     been initialized
         ///     Initializing the module will invoke Init() on the backing KeyChain
         /// </summary>
+        /// <exception cref="ObjectDisposedException">Thrown if this crypto module has been disposed</exception>
+        /// <exception cref="InvalidOperationException">
+        ///     Thrown by the backing keychain if the storage holds a keychain that cannot be read
+        /// </exception>
         public async Task Init()
         {
+            ThrowIfDisposed();
+
             if (!_initialized)
             {
                 if (_newStorage)
@@ -593,9 +607,20 @@ namespace Reown.Core.Crypto
 
         private void IsInitialized()
         {
+            ThrowIfDisposed();
+
             if (!_initialized)
             {
                 throw new InvalidOperationException($"{nameof(Crypto)} module not initialized.");
+            }
+        }
+
+        private void ThrowIfDisposed()
+        {
+            if (Disposed)
+            {
+                throw new ObjectDisposedException(nameof(Crypto),
+                    $"This {nameof(Crypto)} module has been disposed and cannot be reused. Create a new {nameof(Crypto)} module instead of sharing one between clients.");
             }
         }
 
@@ -658,8 +683,10 @@ namespace Reown.Core.Crypto
             {
                 seed = await KeyChain.Get(CryptoClientSeed);
             }
-            catch (InvalidOperationException)
+            catch (KeychainKeyNotFoundException)
             {
+                LogMissingClientSeed();
+
                 var seedRaw = new byte[32];
                 RandomNumberGenerator.Fill(seedRaw);
                 seed = seedRaw.ToHex();
@@ -669,6 +696,23 @@ namespace Reown.Core.Crypto
             return seed.HexToByteArray();
         }
 
+        private void LogMissingClientSeed()
+        {
+            var otherKeyCount = KeyChain.Keychain.Count;
+            if (otherKeyCount == 0)
+            {
+                ReownLogger.Log(
+                    $"[{Name}] No client seed found in the keychain, generating a new one. The client id changes with it. " +
+                    "This is expected on a first run; on any other run it means the keychain came up empty and existing sessions can no longer be decrypted.");
+            }
+            else
+            {
+                ReownLogger.LogError(
+                    $"[{Name}] No client seed found in the keychain, but it holds {otherKeyCount} other key(s). " +
+                    "Generating a new client seed, which changes the client id.");
+            }
+        }
+
         protected virtual void Dispose(bool disposing)
         {
             if (Disposed)
@@ -676,7 +720,15 @@ namespace Reown.Core.Crypto
 
             if (disposing)
             {
-                KeyChain?.Dispose();
+                if (_ownsKeyChain)
+                {
+                    KeyChain?.Dispose();
+                }
+
+                if (_newStorage)
+                {
+                    Storage?.Dispose();
+                }
             }
 
             Disposed = true;

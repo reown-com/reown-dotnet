@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using Reown.Core.Common.Logging;
 using Reown.Core.Common.Utils;
 using Reown.Core.Crypto.Interfaces;
 using Reown.Core.Storage.Interfaces;
@@ -15,6 +16,7 @@ namespace Reown.Core.Crypto
     {
         private readonly string _storagePrefix = Constants.CORE_STORAGE_PREFIX;
 
+        private bool _disposed;
         private bool _initialized;
         private Dictionary<string, string> _keyChain = new();
 
@@ -75,17 +77,26 @@ namespace Reown.Core.Crypto
                 "reown.core.crypto.keychain";
         }
 
+        /// <summary>
+        ///     Dispose this keychain. Every key operation throws <see cref="ObjectDisposedException" /> afterwards.
+        /// </summary>
         public void Dispose()
         {
-            _keyChain?.Clear();
-            Storage?.Dispose();
+            _disposed = true;
         }
 
         /// <summary>
         ///     Initialize the KeyChain, this will load the keychain into memory from the storage
         /// </summary>
+        /// <exception cref="ObjectDisposedException">Thrown if this keychain has been disposed</exception>
+        /// <exception cref="InvalidOperationException">
+        ///     Thrown if the storage holds a keychain that cannot be read. Starting with an empty keychain in
+        ///     that case would overwrite the stored keys with the first key written afterwards.
+        /// </exception>
         public async Task Init()
         {
+            ThrowIfDisposed();
+
             if (!_initialized)
             {
                 var keyChain = await GetKeyChain();
@@ -171,9 +182,20 @@ namespace Reown.Core.Crypto
 
         private void IsInitialized()
         {
+            ThrowIfDisposed();
+
             if (!_initialized)
             {
                 throw new InvalidOperationException($"{nameof(Keychain)} module not initialized.");
+            }
+        }
+
+        private void ThrowIfDisposed()
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(KeyChain),
+                    $"This {nameof(KeyChain)} has been disposed and cannot be reused. Create a new {nameof(KeyChain)} instance instead of sharing one between clients.");
             }
         }
 
@@ -182,16 +204,29 @@ namespace Reown.Core.Crypto
             var hasKey = await Storage.HasItem(StorageKey);
             if (!hasKey)
             {
-                await Storage.SetItem(StorageKey, new Dictionary<string, string>());
+                ReownLogger.Log(
+                    $"[{Name}] No keychain found in storage at {StorageKey}, starting with an empty keychain.");
+                return null;
             }
 
-            return await Storage.GetItem<Dictionary<string, string>>(StorageKey);
+            var keyChain = await Storage.GetItem<Dictionary<string, string>>(StorageKey);
+            if (keyChain == null)
+            {
+                throw new InvalidOperationException(
+                    $"The keychain stored at {StorageKey} could not be read as a key/value dictionary. Refusing to " +
+                    "start with an empty keychain, which would overwrite the stored keys. Remove that storage entry " +
+                    "to start with a fresh keychain, which requires reconnecting every existing session.");
+            }
+
+            return keyChain;
         }
 
         private async Task SaveKeyChain()
         {
-            // We need to copy the contents, otherwise Dispose()
-            // may clear the reference stored inside InMemoryStorage
+            ThrowIfDisposed();
+
+            // Store a copy: InMemoryStorage keeps the reference it is given, so passing the live dictionary
+            // would let a later Set() change the stored keychain and every keychain that loaded it
             await Storage.SetItem(StorageKey, new Dictionary<string, string>(_keyChain));
         }
     }

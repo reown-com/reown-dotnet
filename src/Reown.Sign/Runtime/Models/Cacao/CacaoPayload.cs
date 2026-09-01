@@ -1,6 +1,7 @@
 #nullable enable
 
 using System;
+using System.Globalization;
 using System.Linq;
 using Newtonsoft.Json;
 using Reown.Sign.Utils;
@@ -66,6 +67,75 @@ namespace Reown.Sign.Models.Cacao
             Statement = statement;
             RequestId = requestId;
             Resources = resources;
+        }
+
+        /// <summary>
+        ///     Returns true when optional CACAO <c>exp</c> and <c>nbf</c> are absent or
+        ///     <paramref name="now"/> is inside the validity window. Unparseable
+        ///     timestamps fail closed. Blank values are treated as absent.
+        /// </summary>
+        /// <param name="now">Clock used for the comparison. Defaults to UTC now.</param>
+        public bool IsWithinValidityWindow(DateTimeOffset? now = null)
+        {
+            return IsWithinValidityWindow(now, out _);
+        }
+
+        /// <summary>
+        ///     Same as <see cref="IsWithinValidityWindow(DateTimeOffset?)"/> and writes
+        ///     a short reason when the window check fails.
+        /// </summary>
+        /// <param name="now">Clock used for the comparison. Defaults to UTC now.</param>
+        /// <param name="reason">expired, not yet valid, or unparseable exp/nbf.</param>
+        public bool IsWithinValidityWindow(DateTimeOffset? now, out string reason)
+        {
+            var clock = now ?? DateTimeOffset.UtcNow;
+            reason = string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(Expiration))
+            {
+                if (!TryParseCacaoTimestamp(Expiration, out var exp))
+                {
+                    reason = "unparseable exp";
+                    return false;
+                }
+
+                if (clock >= exp)
+                {
+                    reason = "expired";
+                    return false;
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(NotBefore))
+            {
+                if (!TryParseCacaoTimestamp(NotBefore, out var nbf))
+                {
+                    reason = "unparseable nbf";
+                    return false;
+                }
+
+                if (clock < nbf)
+                {
+                    reason = "not yet valid";
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        ///     Parses a CACAO timestamp. Unparseable values fail closed.
+        /// </summary>
+        /// <param name="value">RFC 3339 / ISO-8601 timestamp.</param>
+        /// <param name="timestamp">Parsed instant in UTC when the parse succeeds.</param>
+        private static bool TryParseCacaoTimestamp(string value, out DateTimeOffset timestamp)
+        {
+            return DateTimeOffset.TryParse(
+                value,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                out timestamp);
         }
 
         public static CacaoPayload FromAuthPayloadParams(AuthPayloadParams authPayloadParams, string iss)

@@ -111,7 +111,7 @@ namespace Reown.Sign.Unity
 
             if (disposing)
             {
-                _semaphoreSlim.Dispose();
+                _semaphoreSlim?.Dispose();
             }
 
             Disposed = true;

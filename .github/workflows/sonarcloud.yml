@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - develop
     paths-ignore:
       - '**.md'
       - '.editorconfig'
@@ -24,12 +25,13 @@ concurrency:
 
 jobs:
   build:
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    if: github.event_name != 'pull_request' || (github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository)
     name: Build and analyze
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: 17
           distribution: "zulu" # Alternative distribution options are available.
@@ -52,31 +54,37 @@ jobs:
       - name: Cache SonarQube Cloud packages
         uses: actions/cache@v6
         with:
-          path: ~\sonar\cache
+          path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
       - name: Cache SonarQube Cloud scanner
         id: cache-sonar-scanner
         uses: actions/cache@v6
         with:
-          path: .\.sonar\scanner
+          path: ./.sonar/scanner
           key: ${{ runner.os }}-sonar-scanner
           restore-keys: ${{ runner.os }}-sonar-scanner
       - name: Install SonarQube Cloud scanner
         if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
-        shell: powershell
+        shell: bash
         run: |
-          New-Item -Path .\.sonar\scanner -ItemType Directory
-          dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
+          mkdir -p ./.sonar/scanner
+          dotnet tool update dotnet-sonarscanner --tool-path ./.sonar/scanner
       - name: Install dotnet-coverage
-        run: dotnet tool install --global dotnet-coverage
+        shell: bash
+        run: |
+          dotnet tool install --global dotnet-coverage
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        shell: powershell
+        shell: bash
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"reown-com_reown-dotnet" /o:"reown-com" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.token="$env:SONAR_TOKEN"
+          ./.sonar/scanner/dotnet-sonarscanner begin /k:"reown-com_reown-dotnet" /o:"reown-com" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.token="$SONAR_TOKEN"
           dotnet build Reown.NoUnity.slnf --no-incremental
-          dotnet-coverage collect "dotnet test Reown.NoUnity.slnf" -f xml -o "coverage.xml"
-          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="$env:SONAR_TOKEN"
+          # Tests run here only to produce coverage. dotnet-build-test.yml is what
+          # gates test results, so a failing test must not stop the analysis from
+          # being submitted.
+          dotnet-coverage collect "dotnet test Reown.NoUnity.slnf" -f xml -o "coverage.xml" || true
+          ./.sonar/scanner/dotnet-sonarscanner end /d:sonar.token="$SONAR_TOKEN"
