@@ -234,8 +234,8 @@ namespace Reown.Core.Crypto
         {
             ThrowIfDisposed();
 
-            // We need to copy the contents, otherwise Dispose()
-            // may clear the reference stored inside InMemoryStorage
+            // Store a copy: InMemoryStorage keeps the reference it is given, so passing the live dictionary
+            // would let a later Set() change the stored keychain and every keychain that loaded it
             await Storage.SetItem(StorageKey, new Dictionary<string, string>(_keyChain));
         }
     }
