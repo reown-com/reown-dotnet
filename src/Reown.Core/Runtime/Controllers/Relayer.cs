@@ -553,13 +553,16 @@ namespace Reown.Core.Controllers
                 Publisher?.Dispose();
                 Messages?.Dispose();
 
-                // Un-listen to events
-                Provider.Connected -= OnProviderConnected;
-                Provider.Disconnected -= OnProviderDisconnected;
-                Provider.RawMessageReceived -= OnProviderRawMessageReceived;
-                Provider.ErrorReceived -= OnProviderErrorReceived;
+                // Provider is null until the transport is started
+                if (Provider != null)
+                {
+                    Provider.Connected -= OnProviderConnected;
+                    Provider.Disconnected -= OnProviderDisconnected;
+                    Provider.RawMessageReceived -= OnProviderRawMessageReceived;
+                    Provider.ErrorReceived -= OnProviderErrorReceived;
 
-                Provider.Dispose();
+                    Provider.Dispose();
+                }
             }
 
             Disposed = true;

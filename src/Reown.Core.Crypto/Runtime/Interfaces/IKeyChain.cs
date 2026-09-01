@@ -9,6 +9,13 @@ namespace Reown.Core.Crypto.Interfaces
     /// <summary>
     ///     A module that represents a keychain
     /// </summary>
+    /// <remarks>
+    ///     A keychain that comes up empty overwrites the stored keys as soon as the first key is written, so a
+    ///     disposed keychain must not be reused. Implementations are expected to throw
+    ///     <see cref="System.ObjectDisposedException" /> from every key operation once disposed, which is what
+    ///     the default <see cref="KeyChain" /> does.
+    ///     The backing storage belongs to whoever created it and is not disposed with the keychain.
+    /// </remarks>
     public interface IKeyChain : IModule
     {
         /// <summary>

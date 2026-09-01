@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Reown.Core.Controllers;
-using Reown.Core.Crypto;
 using Reown.Core.Crypto.Interfaces;
 using Reown.Core.Interfaces;
 using Reown.Core.Models;
@@ -26,36 +25,44 @@ namespace Reown.Core
 
         private readonly string _optName;
         private readonly string guid = "";
+        private readonly IKeyValueStorage _ownedStorage;
+        private readonly ICrypto _ownedCrypto;
 
         /// <summary>
         ///     Create a new Core with the given options.
         /// </summary>
-        /// <param name="options">The options to use to configure the new Core module</param>
+        /// <param name="options">
+        ///     The options to use to configure the new Core module. The options object is read but never written to,
+        ///     and every module it supplies belongs to the caller: only the modules this client creates itself are
+        ///     disposed with it. The same options object can therefore be used to build another client once this
+        ///     one has been disposed.
+        /// </param>
         public CoreClient(CoreOptions options = null)
         {
             if (options == null)
             {
-                var storage = new InMemoryStorage();
                 options = new CoreOptions
                 {
-                    KeyChain = new KeyChain(storage),
                     ProjectId = null,
-                    RelayUrl = null,
-                    Storage = storage
+                    RelayUrl = null
                 };
-            }
 
-            if (options.Storage == null)
-            {
-                options.Storage = new FileSystemStorage();
+                _ownedStorage = new InMemoryStorage();
+                Storage = _ownedStorage;
             }
-            
-            options.RelayUrlBuilder ??= new RelayUrlBuilder();
+            else if (options.Storage == null)
+            {
+                _ownedStorage = new FileSystemStorage();
+                Storage = _ownedStorage;
+            }
+            else
+            {
+                Storage = options.Storage;
+            }
 
             Options = options;
             ProjectId = options.ProjectId;
             RelayUrl = options.RelayUrl;
-            Storage = options.Storage;
 
             if (options.CryptoModule != null)
             {
@@ -63,12 +70,10 @@ namespace Reown.Core
             }
             else
             {
-                if (options.KeyChain == null)
-                {
-                    options.KeyChain = new KeyChain(options.Storage);
-                }
-
-                Crypto = new Crypto.Crypto(options.KeyChain);
+                _ownedCrypto = options.KeyChain != null
+                    ? new Crypto.Crypto(options.KeyChain)
+                    : new Crypto.Crypto(Storage);
+                Crypto = _ownedCrypto;
             }
 
             HeartBeat = new HeartBeat();
@@ -84,7 +89,7 @@ namespace Reown.Core
                 ProjectId = ProjectId,
                 RelayUrl = options.RelayUrl,
                 ConnectionTimeout = options.ConnectionTimeout,
-                RelayUrlBuilder = options.RelayUrlBuilder
+                RelayUrlBuilder = options.RelayUrlBuilder ?? new RelayUrlBuilder()
             });
 
             MessageHandler = new TypedMessageHandler(this);
@@ -208,12 +213,14 @@ namespace Reown.Core
             if (disposing)
             {
                 HeartBeat?.Dispose();
-                Crypto?.Dispose();
+
+                // Relayer and MessageHandler go before Crypto: in-flight messages decode through it.
                 Relayer?.Dispose();
-                Storage?.Dispose();
                 MessageHandler?.Dispose();
                 Expirer?.Dispose();
                 Pairing?.Dispose();
+                _ownedCrypto?.Dispose();
+                _ownedStorage?.Dispose();
                 Verify?.Dispose();
             }
 

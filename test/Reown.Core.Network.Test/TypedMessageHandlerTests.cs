@@ -96,6 +96,33 @@ namespace Reown.Core.Network.Test
             Assert.Contains(_logger.Messages, m => m.Contains($"Dropping message on topic {topic}"));
         }
 
+        /// <summary>
+        ///     A relayed message that arrives after the crypto module was disposed is dropped the same way
+        ///     as one whose key is missing, instead of surfacing as an error during teardown.
+        /// </summary>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task RelayMessageCallback_DropsMessage_WhenCryptoModuleDisposed()
+        {
+            const string topic = "disposed-crypto-topic";
+            var coreClient = CreateCoreClient();
+            coreClient.Crypto
+                .Decode<JsonRpcPayload>(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DecodeOptions>())
+                .Returns<Task<JsonRpcPayload>>(_ => throw new ObjectDisposedException(nameof(Crypto)));
+
+            var handler = new TypedMessageHandler(coreClient);
+            await handler.Init();
+
+            var rawMessageRaised = false;
+            handler.RawMessage += (_, _) => rawMessageRaised = true;
+
+            coreClient.Relayer.OnMessageReceived += Raise.Event<EventHandler<MessageEvent>>(
+                this, new MessageEvent { Topic = topic, Message = "encrypted" });
+
+            Assert.False(rawMessageRaised);
+            Assert.Contains(_logger.Messages, m => m.Contains($"Dropping message on topic {topic}"));
+        }
+
         private static ICoreClient CreateCoreClient()
         {
             var coreClient = Substitute.For<ICoreClient>();

@@ -111,7 +111,8 @@ namespace Reown.Sign.Unity
 
             if (disposing)
             {
-                _semaphoreSlim.Dispose();
+                // Null until Init() runs, so a storage that was never initialized can still be disposed
+                _semaphoreSlim?.Dispose();
             }
 
             Disposed = true;

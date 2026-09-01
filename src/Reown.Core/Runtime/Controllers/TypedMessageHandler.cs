@@ -268,15 +268,20 @@ namespace Reown.Core.Controllers
 
                 try
                 {
-                    var payload = await CoreClient.Crypto.Decode<JsonRpcResponse<TR>>(topic, message, options);
+                    JsonRpcResponse<TR> payload;
+                    try
+                    {
+                        payload = await CoreClient.Crypto.Decode<JsonRpcResponse<TR>>(topic, message, options);
+                    }
+                    catch (Exception ex) when (ex is KeychainKeyNotFoundException || ex is ObjectDisposedException)
+                    {
+                        ReownLogger.Log($"[{Name}] Dropping message on topic {topic}: {ex.Message}");
+                        return;
+                    }
 
                     await history.Resolve(payload);
 
                     await responseCallback(topic, payload);
-                }
-                catch (KeychainKeyNotFoundException ex)
-                {
-                    ReownLogger.Log($"[{Name}] Dropping message on topic {topic}: {ex.Message}");
                 }
                 catch (Exception ex) when (ex is JsonException)
                 {
@@ -462,7 +467,7 @@ namespace Reown.Core.Controllers
             {
                 return (true, await CoreClient.Crypto.Decode<T>(topic, message, options));
             }
-            catch (KeychainKeyNotFoundException ex)
+            catch (Exception ex) when (ex is KeychainKeyNotFoundException || ex is ObjectDisposedException)
             {
                 ReownLogger.Log($"[{Name}] Dropping message on topic {topic}: {ex.Message}");
                 return (false, default);
