@@ -19,6 +19,8 @@ namespace Reown.Sign.Models
     {
         private readonly IEnginePrivate _enginePrivate;
 
+        private TypedEventHandler<SessionRequest<T>, TR> _wrappedRef;
+
         protected SessionRequestEventHandler(ICoreClient engine, IEnginePrivate enginePrivate) : base(engine)
         {
             _enginePrivate = enginePrivate;
@@ -39,14 +41,21 @@ namespace Reown.Sign.Models
         {
             var context = engine.Context;
 
-            if (Instances.TryGetValue(context, out var instance))
+            if (TryGetLiveInstance(engine, out var instance))
                 return instance;
 
-            var newInstance = new SessionRequestEventHandler<T, TR>(engine, enginePrivate);
+            lock (InstancesLock)
+            {
+                if (Instances.TryGetValue(context, out var raced))
+                {
+                    return raced;
+                }
 
-            Instances.Add(context, newInstance);
+                var newInstance = new SessionRequestEventHandler<T, TR>(engine, enginePrivate);
+                Instances.Add(context, newInstance);
 
-            return newInstance;
+                return newInstance;
+            }
         }
 
         protected override TypedEventHandler<T, TR> BuildNew(ICoreClient @ref,
@@ -58,24 +67,73 @@ namespace Reown.Sign.Models
                 ResponsePredicate = responsePredicate
             };
 
-            DisposeActions.Add(instance.Dispose);
+            TrackDerivedInstance(instance);
 
             return instance;
         }
 
-        protected override void Setup()
+        /// <summary>
+        ///     Subscribes to the shared handler for the wrapped <see cref="SessionRequest{T}" /> type pair and
+        ///     completes only once that handler is itself registered, so that awaiting
+        ///     <see cref="TypedEventHandler{T,TR}.WhenRegisteredAsync" /> on this instance guarantees the whole
+        ///     chain is live.
+        /// </summary>
+        /// <returns>A task that completes once the wrapped handler is registered</returns>
+        protected override async Task SetupAsync()
         {
             var wrappedRef = TypedEventHandler<SessionRequest<T>, TR>.GetInstance(Ref);
+
+            _wrappedRef = wrappedRef;
 
             wrappedRef.OnRequest += WrappedRefOnOnRequest;
             wrappedRef.OnResponse += WrappedRefOnOnResponse;
 
-            DisposeActions.Add(() =>
+            await wrappedRef.WhenRegisteredAsync();
+        }
+
+        /// <summary>
+        ///     Detaches from the shared handler for the wrapped <see cref="SessionRequest{T}" /> type pair. This
+        ///     runs whenever the last subscription is removed, not only on disposal, so re-subscribing this
+        ///     instance cannot leave a second set of forwarding handlers behind.
+        /// </summary>
+        protected override void Teardown()
+        {
+            var wrappedRef = _wrappedRef;
+            if (wrappedRef != null)
             {
+                _wrappedRef = null;
+
                 wrappedRef.OnRequest -= WrappedRefOnOnRequest;
                 wrappedRef.OnResponse -= WrappedRefOnOnResponse;
-                wrappedRef.Dispose();
-            });
+            }
+
+            base.Teardown();
+        }
+
+        /// <summary>
+        ///     Disposes this handler and, when this is the instance registered for the client's context, the
+        ///     shared handler for the wrapped <see cref="SessionRequest{T}" /> type pair as well. Instances
+        ///     produced by the filter methods only unsubscribe, because they share that wrapped handler.
+        /// </summary>
+        /// <param name="disposing">Whether managed resources should be released</param>
+        protected override void Dispose(bool disposing)
+        {
+            var disposeWrapped = disposing && !Disposed && IsRegisteredInstance();
+
+            base.Dispose(disposing);
+
+            if (disposeWrapped)
+            {
+                TypedEventHandler<SessionRequest<T>, TR>.DisposeInstance(Ref);
+            }
+        }
+
+        private bool IsRegisteredInstance()
+        {
+            lock (InstancesLock)
+            {
+                return Instances.TryGetValue(Ref.Context, out var registered) && ReferenceEquals(registered, this);
+            }
         }
 
         private Task WrappedRefOnOnResponse(ResponseEventArgs<TR> e)

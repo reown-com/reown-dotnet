@@ -91,6 +91,9 @@
                 case ErrorType.SESSION_SETTLEMENT_FAILED:
                     errorMessage = "Session settlement failed.";
                     break;
+                case ErrorType.SESSION_REQUEST_EXPIRED:
+                    errorMessage = "Request expired. Please try again.";
+                    break;
                 case ErrorType.UNKNOWN:
                     errorMessage = "Unknown error {params}";
                     break;

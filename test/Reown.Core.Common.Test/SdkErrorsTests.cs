@@ -28,6 +28,7 @@ public class SdkErrorsTests
     [InlineData(ErrorType.JSONRPC_REQUEST_METHOD_REJECTED, "User rejected the request.")]
     [InlineData(ErrorType.USER_DISCONNECTED, "User disconnected.")]
     [InlineData(ErrorType.SESSION_SETTLEMENT_FAILED, "Session settlement failed.")]
+    [InlineData(ErrorType.SESSION_REQUEST_EXPIRED, "Request expired. Please try again.")]
     [InlineData(ErrorType.WC_METHOD_UNSUPPORTED, "Unsupported wc_ method")]
     [InlineData(ErrorType.UNKNOWN, "Unknown error {params}")]
     public void MessageFromType_KnownTypes_ReturnsExpectedMessage(ErrorType type, string expected)
@@ -37,7 +38,6 @@ public class SdkErrorsTests
 
     [Theory]
     [InlineData(ErrorType.SETTLE_TIMEOUT)]
-    [InlineData(ErrorType.SESSION_REQUEST_EXPIRED)]
     public void MessageFromType_UnmappedTypes_FallsBackToGenericMessage(ErrorType type)
     {
         Assert.Equal("{message}", SdkErrors.MessageFromType(type));
