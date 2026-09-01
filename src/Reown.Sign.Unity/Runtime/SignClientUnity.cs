@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Reown.Core.Common.Logging;
 using Reown.Core.Common.Model.Errors;
-using Reown.Core.Crypto;
 using Reown.Core.Storage;
 using Reown.Core.Storage.Interfaces;
 using Reown.Sign.Models;
@@ -41,9 +40,7 @@ namespace Reown.Sign.Unity
         {
             if (options.Storage == null)
             {
-                var storage = await BuildUnityStorage();
-                options.Storage = storage;
-                options.KeyChain ??= new KeyChain(storage);
+                options.Storage = await BuildUnityStorage();
             }
 
             options.RelayUrlBuilder ??= new UnityRelayUrlBuilder();

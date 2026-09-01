@@ -587,8 +587,9 @@ namespace Reown.Core.Controllers
             {
                 Store?.Dispose();
                 PairingCreated -= PairingCreatedCallback;
-                _pairingDeleteMessageHandler.Dispose();
-                _pairingPingMessageHandler.Dispose();
+
+                _pairingDeleteMessageHandler?.Dispose();
+                _pairingPingMessageHandler?.Dispose();
             }
 
             Disposed = true;

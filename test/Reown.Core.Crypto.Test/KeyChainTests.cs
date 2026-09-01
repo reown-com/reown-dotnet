@@ -61,4 +61,111 @@ public class KeyChainTests
     {
         Assert.Throws<ArgumentNullException>(() => new KeychainKeyNotFoundException(null!));
     }
+
+    [Fact, Trait("Category", "unit")]
+    public async Task InitDoesNotWriteAnEmptyKeychainToStorage()
+    {
+        var storage = new InMemoryStorage();
+        await storage.Init();
+
+        var keyChain = new KeyChain(storage);
+        await keyChain.Init();
+
+        Assert.False(await storage.HasItem(keyChain.StorageKey));
+    }
+
+    [Fact, Trait("Category", "unit")]
+    public async Task InitThrowsWhenTheStoredKeychainCannotBeRead()
+    {
+        var storage = new InMemoryStorage();
+        await storage.Init();
+
+        var keyChain = new KeyChain(storage);
+        await storage.SetItem<object>(keyChain.StorageKey, "not-a-keychain");
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => keyChain.Init());
+
+        Assert.Equal("not-a-keychain", await storage.GetItem<object>(keyChain.StorageKey));
+    }
+
+    [Fact, Trait("Category", "unit")]
+    public async Task InitAfterDisposeThrowsObjectDisposedException()
+    {
+        var keyChain = await CreateInitializedKeyChainAsync();
+        keyChain.Dispose();
+
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => keyChain.Init());
+    }
+
+    [Fact, Trait("Category", "unit")]
+    public async Task GetAfterDisposeThrowsObjectDisposedException()
+    {
+        var keyChain = await CreateInitializedKeyChainAsync();
+        await keyChain.Set("tag", "key");
+        keyChain.Dispose();
+
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => keyChain.Get("tag"));
+    }
+
+    [Fact, Trait("Category", "unit")]
+    public async Task SetAfterDisposeThrowsAndLeavesStoredKeysIntact()
+    {
+        var storage = new InMemoryStorage();
+        await storage.Init();
+
+        var keyChain = new KeyChain(storage);
+        await keyChain.Init();
+        await keyChain.Set("session-tag", "session-key");
+        keyChain.Dispose();
+
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => keyChain.Set("client-seed", "seed"));
+
+        var stored = await storage.GetItem<Dictionary<string, string>>(keyChain.StorageKey);
+        Assert.Equal("session-key", Assert.Contains("session-tag", stored));
+        Assert.Single(stored);
+    }
+
+    [Fact, Trait("Category", "unit")]
+    public async Task DisposeIsIdempotent()
+    {
+        var keyChain = await CreateInitializedKeyChainAsync();
+
+        keyChain.Dispose();
+        keyChain.Dispose();
+
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => keyChain.Has("tag"));
+    }
+
+    [Fact, Trait("Category", "unit")]
+    public async Task DisposeLeavesTheStorageAlone()
+    {
+        var storage = new DisposeTrackingStorage();
+        await storage.Init();
+
+        var keyChain = new KeyChain(storage);
+        await keyChain.Init();
+        await keyChain.Set("session-tag", "session-key");
+        keyChain.Dispose();
+
+        Assert.Equal(0, storage.DisposeCount);
+        await storage.SetItem("some-key", "some-value");
+        Assert.Equal("some-value", await storage.GetItem<string>("some-key"));
+    }
+
+    [Fact, Trait("Category", "unit")]
+    public async Task ReplacementKeyChainOverTheSameStorageLoadsStoredKeys()
+    {
+        var storage = new DisposeTrackingStorage();
+        await storage.Init();
+
+        var first = new KeyChain(storage);
+        await first.Init();
+        await first.Set("session-tag", "session-key");
+        first.Dispose();
+
+        var second = new KeyChain(storage);
+        await second.Init();
+
+        Assert.Equal("session-key", await second.Get("session-tag"));
+    }
 }

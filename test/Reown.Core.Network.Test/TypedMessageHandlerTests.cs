@@ -99,6 +99,33 @@ namespace Reown.Core.Network.Test
         }
 
         /// <summary>
+        ///     A relayed message that arrives after the crypto module was disposed is dropped the same way
+        ///     as one whose key is missing, instead of surfacing as an error during teardown.
+        /// </summary>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task RelayMessageCallback_DropsMessage_WhenCryptoModuleDisposed()
+        {
+            const string topic = "disposed-crypto-topic";
+            var coreClient = CreateCoreClient();
+            coreClient.Crypto
+                .Decode<JsonRpcPayload>(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DecodeOptions>())
+                .Returns<Task<JsonRpcPayload>>(_ => throw new ObjectDisposedException(nameof(Crypto)));
+
+            var handler = new TypedMessageHandler(coreClient);
+            await handler.Init();
+
+            var rawMessageRaised = false;
+            handler.RawMessage += (_, _) => rawMessageRaised = true;
+
+            coreClient.Relayer.OnMessageReceived += Raise.Event<EventHandler<MessageEvent>>(
+                this, new MessageEvent { Topic = topic, Message = "encrypted" });
+
+            Assert.False(rawMessageRaised);
+            Assert.Contains(_logger.Messages, m => m.Contains($"Dropping message on topic {topic}"));
+        }
+
+        /// <summary>
         ///     With no options the request is published under the id derived from its parameters, with the
         ///     lifetime declared on the request type and no encode options.
         /// </summary>

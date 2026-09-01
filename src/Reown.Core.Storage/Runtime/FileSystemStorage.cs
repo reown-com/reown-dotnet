@@ -176,7 +176,7 @@ namespace Reown.Core.Storage
 
             if (disposing)
             {
-                _semaphoreSlim.Dispose();
+                _semaphoreSlim?.Dispose();
             }
 
             Disposed = true;
