@@ -588,7 +588,6 @@ namespace Reown.Core.Controllers
                 Store?.Dispose();
                 PairingCreated -= PairingCreatedCallback;
 
-                // Null until Init() runs, so a pairing module that was never initialized can still be disposed
                 _pairingDeleteMessageHandler?.Dispose();
                 _pairingPingMessageHandler?.Dispose();
             }

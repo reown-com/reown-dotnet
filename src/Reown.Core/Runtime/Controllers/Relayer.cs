@@ -553,7 +553,6 @@ namespace Reown.Core.Controllers
                 Publisher?.Dispose();
                 Messages?.Dispose();
 
-                // Provider is null until the transport is started
                 if (Provider != null)
                 {
                     Provider.Connected -= OnProviderConnected;

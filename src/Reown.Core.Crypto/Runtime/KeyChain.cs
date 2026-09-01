@@ -78,17 +78,8 @@ namespace Reown.Core.Crypto
         }
 
         /// <summary>
-        ///     Dispose this keychain. The backing storage is left alone: the keychain does not own it and the
-        ///     caller may still be using it.
-        ///     A disposed keychain cannot be reused: <see cref="Init" />, <see cref="Has" />, <see cref="Get" />,
-        ///     <see cref="Set" /> and <see cref="Delete" /> all throw <see cref="ObjectDisposedException" />
-        ///     afterwards.
+        ///     Dispose this keychain. Every key operation throws <see cref="ObjectDisposedException" /> afterwards.
         /// </summary>
-        /// <remarks>
-        ///     The in-memory keys are deliberately not cleared here. Clearing them would race with a
-        ///     <see cref="Set" /> that is already past its disposed check, which would write an empty keychain
-        ///     over the stored keys.
-        /// </remarks>
         public void Dispose()
         {
             _disposed = true;
