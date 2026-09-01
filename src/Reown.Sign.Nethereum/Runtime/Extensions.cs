@@ -35,6 +35,11 @@ namespace Reown.Sign.Nethereum
                 }
                 catch (ReownNetworkException e)
                 {
+                    if (e.CodeType == ErrorType.SESSION_REQUEST_EXPIRED)
+                    {
+                        throw;
+                    }
+
                     try
                     {
                         var metaMaskError = JsonConvert.DeserializeObject<MetaMaskError>(e.Message);

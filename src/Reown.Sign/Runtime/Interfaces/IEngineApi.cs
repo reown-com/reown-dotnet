@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using Reown.Core.Common.Model.Errors;
 using Reown.Core.Models;
 using Reown.Core.Models.MessageHandler;
 using Reown.Core.Models.Pairing;
@@ -287,7 +288,8 @@ namespace Reown.Sign.Interfaces
         /// <summary>
         ///     Send a request to the session in the given topic with the request data T. You may (optionally) specify
         ///     a chainId the request should be performed in. This function will await a response of type TR from the session.
-        ///     If no response is ever received, then a Timeout exception may be thrown.
+        ///     If no response arrives before the request expires, a <see cref="ReownNetworkException" /> with
+        ///     <see cref="ErrorType.SESSION_REQUEST_EXPIRED" /> is thrown.
         ///     The type T MUST define the RpcMethodAttribute to tell the SDK what JSON RPC method to use for the given
         ///     type T.
         ///     Either type T or TR MUST define a RpcRequestOptions and RpcResponseOptions attribute to tell the SDK
@@ -298,8 +300,11 @@ namespace Reown.Sign.Interfaces
         /// <param name="data">The data of the request</param>
         /// <param name="chainId">An (optional) chainId the request should be performed in</param>
         /// <param name="expiry">
-        ///     An override to specify how long this request will live for. If null is given, then expiry will be taken from either T or TR
-        ///     attributed options
+        ///     How long, in seconds, to wait for a response and to keep the request alive on the relay. Values
+        ///     outside thirty seconds to seven days are clamped into that range, which is what the relay accepts
+        ///     as a publish time to live. If null is given, the wait falls back
+        ///     to the protocol default of fifteen minutes and the relay keeps the request for the time to live
+        ///     declared on the attributed options of T or TR
         /// </param>
         /// <param name="ct">Cancellation token</param>
         /// <typeparam name="T">The type of the request data. MUST define the RpcMethodAttribute</typeparam>
@@ -310,7 +315,8 @@ namespace Reown.Sign.Interfaces
         /// <summary>
         ///     Send a request to the default session with the request data T. You may (optionally) specify
         ///     a chainId the request should be performed in. This function will await a response of type TR from the session.
-        ///     If no response is ever received, then a Timeout exception may be thrown.
+        ///     If no response arrives before the request expires, a <see cref="ReownNetworkException" /> with
+        ///     <see cref="ErrorType.SESSION_REQUEST_EXPIRED" /> is thrown.
         ///     The type T MUST define the RpcMethodAttribute to tell the SDK what JSON RPC method to use for the given
         ///     type T.
         ///     Either type T or TR MUST define a RpcRequestOptions and RpcResponseOptions attribute to tell the SDK
@@ -320,8 +326,11 @@ namespace Reown.Sign.Interfaces
         /// <param name="data">The data of the request</param>
         /// <param name="chainId">An (optional) chainId the request should be performed in</param>
         /// <param name="expiry">
-        ///     An override to specify how long this request will live for. If null is given, then expiry will be taken from either T or TR
-        ///     attributed options
+        ///     How long, in seconds, to wait for a response and to keep the request alive on the relay. Values
+        ///     outside thirty seconds to seven days are clamped into that range, which is what the relay accepts
+        ///     as a publish time to live. If null is given, the wait falls back
+        ///     to the protocol default of fifteen minutes and the relay keeps the request for the time to live
+        ///     declared on the attributed options of T or TR
         /// </param>
         /// <typeparam name="T">The type of the request data. MUST define the RpcMethodAttribute</typeparam>
         /// <typeparam name="TR">The type of the response data.</typeparam>

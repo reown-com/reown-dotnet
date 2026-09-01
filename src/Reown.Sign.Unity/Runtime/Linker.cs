@@ -195,7 +195,7 @@ namespace Reown.Sign.Unity
             if (disposed) return;
 
             if (disposing)
-                _signClient.SessionRequestSent -= SessionRequestSentHandler;
+                _signClient.SessionRequestSentUnity -= SessionRequestSentHandler;
 
             disposed = true;
         }
