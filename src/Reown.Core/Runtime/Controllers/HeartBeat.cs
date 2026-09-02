@@ -12,6 +12,10 @@ namespace Reown.Core
     /// </summary>
     public class HeartBeat : IHeartBeat
     {
+        private readonly object _lifecycleLock = new();
+        private Task _pulseTask = Task.CompletedTask;
+        private bool _initialized;
+
         /// <summary>
         ///     The context UUID that this heartbeat module uses
         /// </summary>
@@ -57,44 +61,113 @@ namespace Reown.Core
         public event EventHandler OnPulse;
 
         /// <summary>
-        ///     Initialize the heartbeat module. This will start the pulse event and
-        ///     will continuously emit the pulse event at the configured interval. If the
-        ///     HeartBeatCancellationToken is cancelled, then the interval will be halted.
+        ///     Starts the pulse loop if it has not already been started. The loop stops when either the supplied
+        ///     cancellation token or the <see cref="CancellationTokenSource" /> is cancelled.
         /// </summary>
-        /// <returns></returns>
+        /// <param name="cancellationToken">A token that can stop the pulse loop.</param>
+        /// <returns>A task that completes after the pulse loop has been started.</returns>
         public Task InitAsync(CancellationToken cancellationToken = default)
         {
-            if (cancellationToken != default)
+            lock (_lifecycleLock)
             {
-                CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            }
-
-            var token = CancellationTokenSource.Token;
-            Task.Run(async () =>
-            {
-                while (!token.IsCancellationRequested)
+                if (Disposed || _initialized)
                 {
-                    try
-                    {
-                        Pulse();
-                    }
-                    catch (Exception ex)
-                    {
-                        ReownLogger.LogError(ex);
-                    }
-
-                    await Task.Delay(Interval, token);
+                    return Task.CompletedTask;
                 }
-            }, token);
+
+                if (cancellationToken.CanBeCanceled)
+                {
+                    var previousCancellationTokenSource = CancellationTokenSource;
+                    CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+                        previousCancellationTokenSource.Token,
+                        cancellationToken);
+                    previousCancellationTokenSource.Dispose();
+                }
+
+                _initialized = true;
+                var token = CancellationTokenSource.Token;
+                _pulseTask = Task.Run(() => PulseLoopAsync(token));
+                ObservePulseTask(_pulseTask);
+            }
 
             return Task.CompletedTask;
         }
 
-        private void Pulse()
+        internal Task PulseTask
         {
-            OnPulse?.Invoke(this, EventArgs.Empty);
+            get
+            {
+                lock (_lifecycleLock)
+                {
+                    return _pulseTask;
+                }
+            }
         }
 
+        private async Task PulseLoopAsync(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    Pulse();
+                    await Task.Delay(Interval, token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (token.IsCancellationRequested)
+                {
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    LogError(ex);
+                }
+            }
+        }
+
+        private static void ObservePulseTask(Task pulseTask)
+        {
+            pulseTask.ContinueWith(
+                task => LogError(task.Exception),
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+        }
+
+        private void Pulse()
+        {
+            var handlers = OnPulse;
+            if (handlers == null)
+            {
+                return;
+            }
+
+            foreach (EventHandler handler in handlers.GetInvocationList())
+            {
+                try
+                {
+                    handler(this, EventArgs.Empty);
+                }
+                catch (Exception ex)
+                {
+                    LogError(ex);
+                }
+            }
+        }
+
+        private static void LogError(Exception exception)
+        {
+            try
+            {
+                ReownLogger.LogError(exception);
+            }
+            catch
+            {
+            }
+        }
+
+        /// <summary>
+        ///     Cancels the pulse loop and releases the resources used by this heartbeat module.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
@@ -103,14 +176,35 @@ namespace Reown.Core
 
         protected virtual void Dispose(bool disposing)
         {
-            if (Disposed) return;
+            CancellationTokenSource cancellationTokenSource = null;
 
-            if (disposing)
+            lock (_lifecycleLock)
             {
-                CancellationTokenSource?.Dispose();
+                if (Disposed) return;
+
+                Disposed = true;
+                if (disposing)
+                {
+                    cancellationTokenSource = CancellationTokenSource;
+                }
             }
 
-            Disposed = true;
+            if (cancellationTokenSource == null)
+            {
+                return;
+            }
+
+            try
+            {
+                cancellationTokenSource.Cancel();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+            finally
+            {
+                cancellationTokenSource.Dispose();
+            }
         }
     }
 }
