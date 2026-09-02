@@ -253,10 +253,9 @@ namespace Reown.Core.Controllers
         private void DeleteWithTarget(string targetType, object key)
         {
             var target = FormatTarget(targetType, key);
-            var exists = Has(target);
-            if (exists)
+            var expiration = GetExpiration(target);
+            if (expiration != null)
             {
-                var expiration = GetExpiration(target);
                 _expirations.Remove(target);
                 Deleted?.Invoke(this, new ExpirerEventArgs
                 {
