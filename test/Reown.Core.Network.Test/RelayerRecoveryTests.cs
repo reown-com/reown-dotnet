@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -132,6 +132,20 @@ namespace Reown.Core.Network.Test
             Assert.Same(restart, finished);
             var error = await Assert.ThrowsAsync<InvalidOperationException>(() => restart);
             Assert.Equal("storage unavailable", error.Message);
+
+            // The backoff loop is still retrying, and every attempt holds Connected true between
+            // the connect and the close that follows its failed resubscribe. Reading Connected
+            // without this lands in that window sooner or later — the same guard the sibling test
+            // uses, for the same reason.
+            relayer.FailOpensUntil = relayer.OpenAttempts + 100;
+
+            // An attempt that started before that flag was set can still be inside its window, so
+            // give it a moment to close rather than reading the state mid-attempt.
+            var settledBy = DateTime.UtcNow.AddSeconds(5);
+            while (relayer.Connected && DateTime.UtcNow < settledBy)
+            {
+                await Task.Delay(10);
+            }
 
             // The open failed, so the socket it left behind has to go with it: leaving it up lets
             // the next caller read Connected and conclude there is nothing to restart.
@@ -279,13 +293,19 @@ namespace Reown.Core.Network.Test
             var relayer = new TestRelayer();
             await relayer.Init();
 
+            // Measured against what the relayer keeps for itself rather than against zero: it holds
+            // one permanent listener on Resubscribed to know which connection the subscriber has
+            // replayed onto. The leak this test is about is growth per reconnect, not the baseline.
+            var resubscribedBaseline = HandlerCount(relayer.Subscriber, "Resubscribed");
+            var failedBaseline = HandlerCount(relayer.Subscriber, "ResubscribeFailed");
+
             for (var i = 0; i < 3; i++)
             {
                 await relayer.RestartTransport();
             }
 
-            Assert.Equal(0, HandlerCount(relayer.Subscriber, "Resubscribed"));
-            Assert.Equal(0, HandlerCount(relayer.Subscriber, "ResubscribeFailed"));
+            Assert.Equal(resubscribedBaseline, HandlerCount(relayer.Subscriber, "Resubscribed"));
+            Assert.Equal(failedBaseline, HandlerCount(relayer.Subscriber, "ResubscribeFailed"));
 
             relayer.Dispose();
         }
@@ -475,6 +495,75 @@ namespace Reown.Core.Network.Test
             Assert.Equal(0, relayer.OpenAttempts);
         }
 
+        /// <summary>
+        ///     A transport that came up through Init counts as carrying its subscriptions.
+        /// </summary>
+        /// <remarks>
+        ///     Init registers the listeners after Subscriber.Init has already run, so the replay
+        ///     that happens on the way up is never heard. Deriving the answer from what was heard
+        ///     leaves a freshly opened, fully subscribed transport looking unrecovered, and the
+        ///     first pass of the reconnect loop then tears down a healthy socket.
+        /// </remarks>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task A_transport_opened_by_init_counts_as_replayed()
+        {
+            var relayer = new TestRelayer();
+            await relayer.Init();
+
+            Assert.True(relayer.Connected, "the transport should be up after Init");
+            Assert.True(relayer.Replayed, "a transport opened by Init must not be treated as unrecovered");
+
+            relayer.Dispose();
+        }
+
+        /// <summary>
+        ///     A socket that came back on its own does not end the reconnect loop.
+        /// </summary>
+        /// <remarks>
+        ///     WebsocketConnection.SendRequest re-registers the transport in place when it finds
+        ///     none. That path raises Opened rather than the provider's Connected, so the subscriber
+        ///     never replays — and because the provider object is unchanged, anything comparing it
+        ///     against the one last replayed onto would call this recovered and let the loop exit
+        ///     over an empty topic map.
+        /// </remarks>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task A_socket_that_came_back_without_a_replay_is_not_treated_as_recovered()
+        {
+            var relayer = new TestRelayer();
+            await relayer.Init();
+
+            // A replay onto the provider that is current now, so a check comparing the two would
+            // hold — this is the state the loop is actually in when a socket drops mid-session.
+            await relayer.RestartTransport();
+            Assert.True(relayer.Replayed, "the restart should have replayed the subscriptions");
+
+            var atBuild = new TaskCompletionSource<bool>();
+            var release = new TaskCompletionSource<bool>();
+            relayer.WhileBuildingConnection = async () =>
+            {
+                // Held before CreateProvider assigns the new provider, so the identity the check
+                // would compare is still the one that was replayed onto.
+                relayer.Connection.IsConnected = true;
+                atBuild.TrySetResult(true);
+                await release.Task;
+            };
+
+            relayer.Connection.IsConnected = true;
+            relayer.Connection.RaiseClosed();
+
+            var reached = await Task.WhenAny(atBuild.Task, Task.Delay(TimeSpan.FromSeconds(5)));
+            Assert.Same(atBuild.Task, reached);
+
+            Assert.True(relayer.Connected, "the socket is up in this window");
+            Assert.False(relayer.Replayed,
+                "a live socket with no replay behind it was reported as carrying its subscriptions");
+
+            release.TrySetResult(true);
+            relayer.Dispose();
+        }
+
         private sealed class TestRelayer : Relayer
         {
             public readonly FakeConnection Connection = new FakeConnection();
@@ -493,6 +582,11 @@ namespace Reown.Core.Network.Test
             public ICoreClient Core
             {
                 get => CoreClient;
+            }
+
+            public bool Replayed
+            {
+                get => ConnectedAndReplayed;
             }
 
             public static readonly TimeSpan CloseTimeout = TimeSpan.FromMilliseconds(500);

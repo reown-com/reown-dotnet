@@ -54,10 +54,17 @@ namespace Reown.Core.Network.Test
         {
             // Nothing awaits the restart latch unless a Subscribe happens to race the restart, so
             // the exception put on it has no observer in the ordinary case.
+            // Matched on the message rather than counted: this event is process-wide, so a task
+            // leaked by any earlier test in the assembly would otherwise fail this one for
+            // something it never did.
             var unobserved = 0;
             void OnUnobserved(object sender, UnobservedTaskExceptionEventArgs e)
             {
-                unobserved++;
+                if (e.Exception?.InnerExceptions.Any(x => x.Message == "storage unavailable") == true)
+                {
+                    unobserved++;
+                }
+
                 e.SetObserved();
             }
 
@@ -180,7 +187,9 @@ namespace Reown.Core.Network.Test
             subscriber.SimulateDisconnect();
             subscriber.ReleaseRpc();
 
-            await Assert.ThrowsAnyAsync<Exception>(() => subscribing);
+            // Pinned to the type the discard actually throws: ThrowsAnyAsync would pass just as
+            // happily on a NullReferenceException from some later refactor.
+            await Assert.ThrowsAsync<IOException>(() => subscribing);
 
             Assert.Empty(subscriber.Subscriptions);
             Assert.DoesNotContain("topic-a", subscriber.Topics);
