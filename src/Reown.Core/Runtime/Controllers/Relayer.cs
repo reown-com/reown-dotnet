@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Net.WebSockets;
 using System.Threading;
@@ -92,6 +92,18 @@ namespace Reown.Core.Controllers
         private int _restarting;
 
         private int _reconnectLoop;
+
+        /// <summary>
+        ///     Whether the subscriptions have been replayed onto the transport that is up now.
+        ///     Cleared wherever <see cref="OnDisconnected" /> is raised, set by the replay itself.
+        ///     See <see cref="ConnectedAndReplayed" />.
+        /// </summary>
+        /// <remarks>
+        ///     Starts true: before the first disconnect the subscriptions are whatever
+        ///     <c>Init</c> established, and demanding a replay that has already happened would have
+        ///     the reconnect loop restart a healthy transport on its first pass.
+        /// </remarks>
+        private volatile bool _subscriptionsReplayed = true;
 
         /// <summary>
         ///     Counts how many reconnect loops have actually started, latch included.
@@ -284,20 +296,50 @@ namespace Reown.Core.Controllers
 
             var task1 = new TaskCompletionSource<string>();
 
-            EventUtils.ListenOnce<ActiveSubscription>(
-                (sender, subscription) =>
-                {
-                    if (subscription.Topic == topic)
-                        task1.TrySetResult("");
-                },
-                h => Subscriber.Created += h,
-                h => Subscriber.Created -= h
-            );
+            // Deliberately not ListenOnce: it detaches on the first Created of ANY topic, before the
+            // filter below has looked at it, so a Created for a neighbouring topic — the heartbeat
+            // sweep, or a session topic subscribed alongside a pairing one — would take this
+            // listener away and the Created for `topic` would then arrive with nobody waiting.
+            // Task.WhenAll would wait on task1 forever, and the callers in Engine have no timeout.
+            EventHandler<ActiveSubscription> onCreated = null;
+            onCreated = (_, subscription) =>
+            {
+                if (subscription.Topic == topic)
+                    task1.TrySetResult("");
+            };
+            Subscriber.Created += onCreated;
 
-            return (await Task.WhenAll(
-                task1.Task,
-                Subscriber.Subscribe(topic, opts)
-            ))[1];
+            var subscribeTask = Subscriber.Subscribe(topic, opts);
+
+            // Released when the subscribe fails, because Created is then never raised and
+            // Task.WhenAll only completes once every task has. Without this the caller waits — with
+            // no timeout of its own at Engine.cs:585, 1224 and 1526 — until the heartbeat sweep
+            // re-subscribes the topic and raises Created, and is then handed the failure from the
+            // attempt before it: an error for a subscription that by that point exists.
+            //
+            // The result put here is discarded; WhenAll takes the id from the subscribe task, and a
+            // faulted one surfaces its exception through WhenAll as it did before.
+            _ = subscribeTask.ContinueWith(
+                static (_, state) => ((TaskCompletionSource<string>)state).TrySetResult(string.Empty),
+                task1,
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+
+            try
+            {
+                return (await Task.WhenAll(
+                    task1.Task,
+                    subscribeTask
+                ))[1];
+            }
+            finally
+            {
+                // The handler stays attached until here on every path: it is not self-detaching, and
+                // on the failure path Created never fires at all — so without this every subscribe
+                // would leave one more handler on the event for the life of the process.
+                Subscriber.Created -= onCreated;
+            }
         }
 
         /// <summary>
@@ -422,6 +464,12 @@ namespace Reown.Core.Controllers
 
         private async Task TransportOpenCore(string relayUrl)
         {
+            // Taken before any of the early returns below. A caller passing a URL is telling this
+            // relayer where to connect from now on, and that outlives the question of whether an
+            // open is needed right now: dropped here, the URL was silently ignored whenever the
+            // socket happened to be up, and the next reconnect went back to the old one.
+            _relayUrl = relayUrl ?? _relayUrl;
+
             // Read here rather than at the caller: a restart passes its own check long before it
             // reaches this point, and a close arriving in between has to win.
             if (TransportExplicitlyClosed)
@@ -449,7 +497,6 @@ namespace Reown.Core.Controllers
                 return;
             }
 
-            _relayUrl = relayUrl ?? _relayUrl;
             _reconnecting = true;
 
             // ListenOnce detaches only the handler whose event fired, and exactly one of these two
@@ -707,6 +754,7 @@ namespace Reown.Core.Controllers
             if (closeAbandoned)
             {
                 _logger.Log("Close was abandoned, reporting the disconnect so subscriptions get rebuilt");
+                _subscriptionsReplayed = false;
                 OnDisconnected?.Invoke(this, EventArgs.Empty);
             }
 
@@ -800,6 +848,7 @@ namespace Reown.Core.Controllers
         {
             if (Disposed) return;
 
+            _subscriptionsReplayed = false;
             OnDisconnected?.Invoke(this, EventArgs.Empty);
 
             if (TransportExplicitlyClosed)
@@ -851,7 +900,7 @@ namespace Reown.Core.Controllers
                 // the state the loop exited on once more now that the latch is free: without this
                 // the latch turns a lost wakeup into a transport that stays down for good, which is
                 // worse than the loops it was added to stop.
-                if (Disposed || TransportExplicitlyClosed || Connected)
+                if (Disposed || TransportExplicitlyClosed || ConnectedAndReplayed)
                 {
                     return;
                 }
@@ -860,11 +909,18 @@ namespace Reown.Core.Controllers
             }
         }
 
+        /// <remarks>
+        ///     The loop ends on <see cref="ConnectedAndReplayed" /> rather than on
+        ///     <see cref="Connected" />. A socket that came up on its own — re-registered by a send
+        ///     rather than opened here — leaves the topic map cleared, and exiting on it would hand
+        ///     back a connection the relay delivers nothing on, with nothing left retrying. Going
+        ///     round again costs one restart and ends with the subscriptions in place.
+        /// </remarks>
         private async Task ReconnectWithBackoffUnsafe()
         {
             TimeSpan delay = ReconnectInitialDelay;
 
-            while (!Disposed && !TransportExplicitlyClosed && !Connected)
+            while (!Disposed && !TransportExplicitlyClosed && !ConnectedAndReplayed)
             {
                 try
                 {
@@ -875,7 +931,7 @@ namespace Reown.Core.Controllers
                     _logger.Log($"Reconnect attempt failed: {e.Message}");
                 }
 
-                if (Connected || Disposed || TransportExplicitlyClosed)
+                if (ConnectedAndReplayed || Disposed || TransportExplicitlyClosed)
                     return;
 
                 await Task.Delay(delay);
@@ -900,6 +956,39 @@ namespace Reown.Core.Controllers
         protected virtual void RegisterEventListeners()
         {
             OnConnectionStalled += OnConnectionStalledHandler;
+
+            Subscriber.Resubscribed += OnSubscriberResubscribed;
+        }
+
+        /// <summary>
+        ///     Records which connection the subscriber has replayed its subscriptions onto.
+        /// </summary>
+        /// <remarks>
+        ///     Read by the reconnect loop, which cannot use <see cref="Connected" /> alone: a socket
+        ///     can come up without a replay behind it. <c>WebsocketConnection.SendRequest</c>
+        ///     re-registers the transport when it finds none, and that path raises <c>Opened</c>
+        ///     rather than the provider's <c>Connected</c>, so <c>Subscriber.OnConnect</c> never runs
+        ///     — leaving the loop to exit on a connection whose topic map is still empty.
+        /// </remarks>
+        private void OnSubscriberResubscribed(object sender, EventArgs e)
+        {
+            _subscriptionsReplayed = true;
+        }
+
+        /// <summary>
+        ///     Whether the transport is up <i>and</i> carrying the subscriptions that belong to it.
+        /// </summary>
+        /// <remarks>
+        ///     The flag tracks the replay rather than the identity of <see cref="Provider" />: the
+        ///     socket can come back up on the very same provider object. <c>SendRequest</c>
+        ///     re-registers the transport in place when it finds none, so <see cref="Provider" /> is
+        ///     unchanged and a check comparing it against the one last replayed onto would hold —
+        ///     exiting the loop on a connection whose topic map is empty, with nothing left to
+        ///     rebuild it.
+        /// </remarks>
+        protected bool ConnectedAndReplayed
+        {
+            get => Connected && _subscriptionsReplayed;
         }
 
         private async void OnConnectionStalledHandler(object sender, EventArgs e)

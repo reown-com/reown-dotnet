@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -304,6 +304,25 @@ namespace Reown.Core.Controllers
             }
 
             OnSubscribe(id, @params);
+
+            // Checked once more, because the two steps above are not one. A swap landing between
+            // the check and the record stamps the entry with the provider that replaced the one it
+            // was made on, and OnSubscribe has already taken the topic out of _pending — so
+            // DiscardMapBuiltOnAnotherProvider keeps an entry the new connection never subscribed,
+            // and no sweep is left to notice. Putting the topic back is what makes it recoverable.
+            if (!ReferenceEquals(provider, _relayer.Provider) || Volatile.Read(ref _connectionEpoch) != epoch)
+            {
+                lock (_sync)
+                {
+                    _pending[topic] = @params;
+                }
+
+                _logger.LogError(
+                    $"Subscription to {topic} was recorded as its socket went away; queued for the sweep");
+
+                throw new IOException($"The transport was replaced while subscribing to {topic}.");
+            }
+
             return id;
         }
 
@@ -903,10 +922,12 @@ namespace Reown.Core.Controllers
 
             var provider = _relayer.Provider;
             var epoch = Volatile.Read(ref _connectionEpoch);
-            var batches = subscriptions.Batch(BatchSubscribeTopicsLimit);
-            foreach (var batch in batches)
+            // Materialised so the batches still waiting can be recorded when one of them has to bail
+            // out: dropping the remainder would leave those topics in no collection at all.
+            var batches = subscriptions.Batch(BatchSubscribeTopicsLimit).Select(b => b.ToArray()).ToArray();
+            for (var batchIndex = 0; batchIndex < batches.Length; batchIndex++)
             {
-                var batchSubscriptions = batch.ToArray();
+                var batchSubscriptions = batches[batchIndex];
                 if (batchSubscriptions.Length == 0) continue;
 
                 var topics = batchSubscriptions.Select(s => s.Topic).ToArray();
@@ -919,6 +940,17 @@ namespace Reown.Core.Controllers
                 }
                 catch (TimeoutException)
                 {
+                    // Recorded before moving on for the same reason as the discard below: a replay's
+                    // batches come from _cached, which OnEnabled has already cleared, so a batch that
+                    // is merely skipped here exists nowhere afterwards.
+                    lock (_sync)
+                    {
+                        foreach (var timedOut in batchSubscriptions)
+                        {
+                            _pending[timedOut.Topic] = timedOut;
+                        }
+                    }
+
                     _relayer.TriggerConnectionStalled();
                     continue;
                 }
@@ -926,10 +958,33 @@ namespace Reown.Core.Controllers
                 // Same rule as in Subscribe: a batch answered after its socket went away describes
                 // subscriptions the current connection does not have. Dropped rather than thrown —
                 // this runs from the restart and from the pending sweep, neither of which has a
-                // caller waiting to hear about it; the topics stay pending and are picked up again.
+                // caller waiting to hear about it.
                 if (!ReferenceEquals(provider, _relayer.Provider) || Volatile.Read(ref _connectionEpoch) != epoch)
                 {
                     _logger.LogError($"Batch subscribe to {topics.Length} topic(s) was answered after its socket went away; discarding it");
+
+                    // Put back as pending on the way out, and that is not tidiness. Only the sweep's
+                    // batches come from _pending; a replay's come from _cached, which OnEnabled
+                    // clears the moment Reset raises Resubscribed. Dropping those without recording
+                    // them anywhere leaves the topics in no collection at all — the open reports
+                    // success, the relay holds no subscription for them, and nothing remains to
+                    // notice. Recorded here, the sweep picks them up whatever the source was.
+                    // Every batch still queued behind this one goes back too. They were never sent,
+                    // and each batch that already succeeded has overwritten storage with a
+                    // Values snapshot that does not contain them — so without this they are gone
+                    // from _cached, from _subscriptions and from storage alike, and Restore would
+                    // not find them either.
+                    lock (_sync)
+                    {
+                        for (var i = batchIndex; i < batches.Length; i++)
+                        {
+                            foreach (var dropped in batches[i])
+                            {
+                                _pending[dropped.Topic] = dropped;
+                            }
+                        }
+                    }
+
                     return;
                 }
 
