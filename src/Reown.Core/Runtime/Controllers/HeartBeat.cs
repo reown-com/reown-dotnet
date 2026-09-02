@@ -32,7 +32,10 @@ namespace Reown.Core
             Interval = interval;
         }
 
-        private CancellationTokenSource CancellationTokenSource { get; set; } = new();
+        /// <summary>
+        ///     The CancellationTokenSource that can be used to stop the Heartbeat module
+        /// </summary>
+        public CancellationTokenSource CancellationTokenSource { get; private set; } = new();
 
         /// <summary>
         ///     The name of this Heartbeat module
