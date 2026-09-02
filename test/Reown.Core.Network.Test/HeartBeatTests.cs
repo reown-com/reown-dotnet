@@ -9,33 +9,46 @@ namespace Reown.Core.Network.Test;
 [Trait("Category", "unit")]
 public class HeartBeatTests
 {
-    private static readonly TimeSpan NoPulseTimeout = TimeSpan.FromMilliseconds(200);
+    private const int PulseInterval = 100;
+    private static readonly TimeSpan NoPulseTimeout = TimeSpan.FromMilliseconds(500);
 
     [Fact]
     public async Task Dispose_StopsFurtherPulses()
     {
         var firstPulse = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var additionalPulse = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var releaseFirstPulse = new ManualResetEventSlim(false);
         var pulseCount = 0;
-        var heartBeat = new HeartBeat(25);
+        var heartBeat = new HeartBeat(PulseInterval);
         heartBeat.OnPulse += (_, _) =>
         {
             if (Interlocked.Increment(ref pulseCount) == 1)
             {
                 firstPulse.TrySetResult(true);
+                releaseFirstPulse.Wait();
                 return;
             }
 
             additionalPulse.TrySetResult(true);
         };
 
-        await heartBeat.InitAsync();
-        await WaitForCompletionAsync(firstPulse.Task);
+        try
+        {
+            await heartBeat.InitAsync();
+            await WaitForCompletionAsync(firstPulse.Task);
 
-        heartBeat.Dispose();
+            heartBeat.Dispose();
+            releaseFirstPulse.Set();
 
-        await AssertDoesNotCompleteAsync(additionalPulse.Task);
-        await WaitForCompletionAsync(heartBeat.PulseTask);
+            await AssertDoesNotCompleteAsync(additionalPulse.Task);
+            await WaitForCompletionAsync(heartBeat.PulseTask);
+        }
+        finally
+        {
+            heartBeat.Dispose();
+            releaseFirstPulse.Set();
+        }
+
         Assert.False(heartBeat.PulseTask.IsFaulted);
     }
 
@@ -44,7 +57,7 @@ public class HeartBeatTests
     {
         var laterPulse = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var successfulPulseCount = 0;
-        var heartBeat = new HeartBeat(25);
+        var heartBeat = new HeartBeat(PulseInterval);
         heartBeat.OnPulse += (_, _) => throw new InvalidOperationException("subscriber failure");
         heartBeat.OnPulse += (_, _) =>
         {
@@ -75,13 +88,15 @@ public class HeartBeatTests
         using var cancellationTokenSource = new CancellationTokenSource();
         var firstPulse = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var additionalPulse = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var releaseFirstPulse = new ManualResetEventSlim(false);
         var pulseCount = 0;
-        var heartBeat = new HeartBeat(25);
+        var heartBeat = new HeartBeat(PulseInterval);
         heartBeat.OnPulse += (_, _) =>
         {
             if (Interlocked.Increment(ref pulseCount) == 1)
             {
                 firstPulse.TrySetResult(true);
+                releaseFirstPulse.Wait();
                 return;
             }
 
@@ -94,6 +109,7 @@ public class HeartBeatTests
             await WaitForCompletionAsync(firstPulse.Task);
 
             cancellationTokenSource.Cancel();
+            releaseFirstPulse.Set();
 
             await AssertDoesNotCompleteAsync(additionalPulse.Task);
             await WaitForCompletionAsync(heartBeat.PulseTask);
@@ -101,6 +117,7 @@ public class HeartBeatTests
         finally
         {
             heartBeat.Dispose();
+            releaseFirstPulse.Set();
         }
 
         Assert.False(heartBeat.PulseTask.IsFaulted);
@@ -113,7 +130,7 @@ public class HeartBeatTests
         var unexpectedPulse = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         using var releaseFirstPulse = new ManualResetEventSlim(false);
         var pulseCount = 0;
-        var heartBeat = new HeartBeat(25);
+        var heartBeat = new HeartBeat(PulseInterval);
         heartBeat.OnPulse += (_, _) =>
         {
             if (Interlocked.Increment(ref pulseCount) == 1)

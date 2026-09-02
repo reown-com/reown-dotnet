@@ -32,10 +32,7 @@ namespace Reown.Core
             Interval = interval;
         }
 
-        /// <summary>
-        ///     The CancellationTokenSource that can be used to stop the Heartbeat module
-        /// </summary>
-        public CancellationTokenSource CancellationTokenSource { get; private set; } = new();
+        private CancellationTokenSource CancellationTokenSource { get; set; } = new();
 
         /// <summary>
         ///     The name of this Heartbeat module
@@ -61,8 +58,8 @@ namespace Reown.Core
         public event EventHandler OnPulse;
 
         /// <summary>
-        ///     Starts the pulse loop if it has not already been started. The loop stops when either the supplied
-        ///     cancellation token or the <see cref="CancellationTokenSource" /> is cancelled.
+        ///     Starts the pulse loop if it has not already been started. The loop stops when the supplied
+        ///     cancellation token is cancelled or this heartbeat module is disposed.
         /// </summary>
         /// <param name="cancellationToken">A token that can stop the pulse loop.</param>
         /// <returns>A task that completes after the pulse loop has been started.</returns>
@@ -86,7 +83,7 @@ namespace Reown.Core
 
                 _initialized = true;
                 var token = CancellationTokenSource.Token;
-                _pulseTask = Task.Run(() => PulseLoopAsync(token));
+                _pulseTask = Task.Run(() => PulseLoopAsync(token), CancellationToken.None);
                 ObservePulseTask(_pulseTask);
             }
 
@@ -141,11 +138,11 @@ namespace Reown.Core
                 return;
             }
 
-            foreach (EventHandler handler in handlers.GetInvocationList())
+            foreach (Delegate handler in handlers.GetInvocationList())
             {
                 try
                 {
-                    handler(this, EventArgs.Empty);
+                    ((EventHandler)handler)(this, EventArgs.Empty);
                 }
                 catch (Exception ex)
                 {
@@ -160,8 +157,9 @@ namespace Reown.Core
             {
                 ReownLogger.LogError(exception);
             }
-            catch
+            catch (Exception loggerException)
             {
+                System.Diagnostics.Debug.WriteLine(loggerException);
             }
         }
 
@@ -194,17 +192,8 @@ namespace Reown.Core
                 return;
             }
 
-            try
-            {
-                cancellationTokenSource.Cancel();
-            }
-            catch (ObjectDisposedException)
-            {
-            }
-            finally
-            {
-                cancellationTokenSource.Dispose();
-            }
+            cancellationTokenSource.Cancel();
+            cancellationTokenSource.Dispose();
         }
     }
 }
