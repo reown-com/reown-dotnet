@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Reown.Core.Common;
@@ -16,8 +16,7 @@ namespace Reown.Core.Interfaces
     public interface IJsonRpcHistory<T, TR> : IModule
     {
         /// <summary>
-        ///     A lossy snapshot mapping JSON-RPC ids to records. When records share an id across topics or directions,
-        ///     only one record is represented; use <see cref="Values" /> when every record is required.
+        ///     A mapping of Json RPC Records to their corresponding Json RPC id
         /// </summary>
         IReadOnlyDictionary<long, JsonRpcRecord<T, TR>> Records { get; }
 
@@ -27,14 +26,12 @@ namespace Reown.Core.Interfaces
         int Size { get; }
 
         /// <summary>
-        ///     A lossy snapshot of distinct JSON-RPC ids. An id appears once even when multiple records share it across
-        ///     topics or directions; use <see cref="Values" /> to retain that distinction.
+        ///     An array of all JsonRpcRecord ids
         /// </summary>
         long[] Keys { get; }
 
         /// <summary>
-        ///     A snapshot of all JSON-RPC records, including records with duplicate ids on different topics or in
-        ///     different directions.
+        ///     An array of all JsonRpcRecords, each record contains a request / response
         /// </summary>
         JsonRpcRecord<T, TR>[] Values { get; }
 
@@ -52,9 +49,10 @@ namespace Reown.Core.Interfaces
         event EventHandler Sync;
 
         /// <summary>
-        ///     Initialize this JsonRpcFactory. This will restore all history records from storage
+        ///     Initialize this JsonRpcFactory. This restores the pending history records from storage,
+        ///     discarding any record that was already answered or has expired.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A task that completes once records have been restored.</returns>
         Task Init();
 
         /// <summary>
