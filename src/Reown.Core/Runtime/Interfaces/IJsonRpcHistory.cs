@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Reown.Core.Common;
@@ -49,9 +49,10 @@ namespace Reown.Core.Interfaces
         event EventHandler Sync;
 
         /// <summary>
-        ///     Initialize this JsonRpcFactory. This will restore all history records from storage
+        ///     Initialize this JsonRpcFactory. This restores the pending history records from storage,
+        ///     discarding any record that was already answered or has expired.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A task that completes once records have been restored.</returns>
         Task Init();
 
         /// <summary>

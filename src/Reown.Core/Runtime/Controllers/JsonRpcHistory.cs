@@ -1,7 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Reown.Core.Common.Logging;
+using Reown.Core.Common.Utils;
 using Reown.Core.Interfaces;
 using Reown.Core.Models.History;
 using Reown.Core.Network;
@@ -21,13 +24,21 @@ namespace Reown.Core.Controllers
         /// </summary>
         public static readonly string Version = "0.3";
 
+        private const long RecordTtl = Clock.THIRTY_DAYS;
+
         private readonly ICoreClient _coreClient;
         private readonly object _lock = new();
 
         private readonly Dictionary<long, JsonRpcRecord<T, TR>> _records = new();
 
+        private readonly object _initializationLock = new();
+        private readonly SemaphoreSlim _persistGate = new(1, 1);
+
         private JsonRpcRecord<T, TR>[] _cached = Array.Empty<JsonRpcRecord<T, TR>>();
+        private Task _initialization;
         private bool _initialized;
+        private int _removalInProgress;
+        private volatile bool _lastPersistFailed;
 
         protected bool Disposed;
 
@@ -45,11 +56,17 @@ namespace Reown.Core.Controllers
         }
 
         /// <summary>
-        ///     A mapping of Json RPC Records to their corresponding Json RPC id
+        ///     A snapshot of the Json RPC Records mapped to their corresponding Json RPC id
         /// </summary>
         public IReadOnlyDictionary<long, JsonRpcRecord<T, TR>> Records
         {
-            get => _records;
+            get
+            {
+                lock (_lock)
+                {
+                    return new Dictionary<long, JsonRpcRecord<T, TR>>(_records);
+                }
+            }
         }
 
         /// <summary>
@@ -73,7 +90,13 @@ namespace Reown.Core.Controllers
         /// </summary>
         public int Size
         {
-            get => _records.Count;
+            get
+            {
+                lock (_lock)
+                {
+                    return _records.Count;
+                }
+            }
         }
 
         /// <summary>
@@ -81,7 +104,13 @@ namespace Reown.Core.Controllers
         /// </summary>
         public long[] Keys
         {
-            get => _records.Keys.ToArray();
+            get
+            {
+                lock (_lock)
+                {
+                    return _records.Keys.ToArray();
+                }
+            }
         }
 
         /// <summary>
@@ -89,7 +118,13 @@ namespace Reown.Core.Controllers
         /// </summary>
         public JsonRpcRecord<T, TR>[] Values
         {
-            get => _records.Values.ToArray();
+            get
+            {
+                lock (_lock)
+                {
+                    return _records.Values.ToArray();
+                }
+            }
         }
 
         /// <summary>
@@ -114,14 +149,26 @@ namespace Reown.Core.Controllers
         {
             IsInitialized();
 
-            foreach (var record in Values)
+            List<JsonRpcRecord<T, TR>> deleted = null;
+
+            lock (_lock)
             {
-                if (record.Topic == topic)
+                foreach (var record in _records.Values.ToArray())
                 {
+                    if (record.Topic != topic) continue;
                     if (id != null && record.Id != id) continue;
+
                     _records.Remove(record.Id);
-                    Deleted?.Invoke(this, record);
+                    deleted ??= new List<JsonRpcRecord<T, TR>>();
+                    deleted.Add(record);
                 }
+            }
+
+            if (deleted == null) return;
+
+            foreach (var record in deleted)
+            {
+                Deleted?.Invoke(this, record);
             }
         }
 
@@ -137,23 +184,92 @@ namespace Reown.Core.Controllers
         public event EventHandler Sync;
 
         /// <summary>
-        ///     Initialize this JsonRpcFactory. This will restore all history records from storage
+        ///     Initialize this JsonRpcFactory. This will restore all history records from storage, dropping the
+        ///     records that already carry a response and giving a fresh expiry to the records persisted without one.
         /// </summary>
         /// <returns></returns>
         public async Task Init()
         {
-            if (!_initialized)
+            Task initialization;
+
+            lock (_initializationLock)
             {
-                await Restore();
+                if (_initialized)
+                {
+                    return;
+                }
+
+                initialization = _initialization ??= InitializeCore();
+            }
+
+            try
+            {
+                await initialization;
+            }
+            catch
+            {
+                lock (_initializationLock)
+                {
+                    if (ReferenceEquals(_initialization, initialization))
+                    {
+                        _initialization = null;
+                    }
+                }
+
+                throw;
+            }
+        }
+
+        private async Task InitializeCore()
+        {
+            await Restore();
+
+            var restoreChangedRecords = false;
+            var discardedRecordCount = 0;
+
+            lock (_lock)
+            {
                 foreach (var record in _cached)
                 {
-                    _records.Add(record.Id, record);
+                    if (record == null)
+                    {
+                        discardedRecordCount++;
+                        restoreChangedRecords = true;
+                        continue;
+                    }
+
+                    if (record.Response != null)
+                    {
+                        restoreChangedRecords = true;
+                        continue;
+                    }
+
+                    if (record.Expiry == null)
+                    {
+                        record.Expiry = Clock.CalculateExpiry(RecordTtl);
+                        restoreChangedRecords = true;
+                    }
+
+                    _records[record.Id] = record;
                 }
 
                 _cached = Array.Empty<JsonRpcRecord<T, TR>>();
-                RegisterEventListeners();
-                _initialized = true;
             }
+
+            if (discardedRecordCount > 0)
+            {
+                ReownLogger.Log($"[{Name}] Discarded {discardedRecordCount} unreadable record(s) while restoring.");
+            }
+
+            RegisterEventListeners();
+            _initialized = true;
+
+            if (restoreChangedRecords)
+            {
+                await Persist();
+            }
+
+            await RemoveAnsweredAndExpiredRecords();
         }
 
         /// <summary>
@@ -180,7 +296,8 @@ namespace Reown.Core.Controllers
                 {
                     Id = request.Id,
                     Topic = topic,
-                    ChainId = chainId
+                    ChainId = chainId,
+                    Expiry = Clock.CalculateExpiry(RecordTtl)
                 };
                 _records.Add(record.Id, record);
             }
@@ -221,12 +338,24 @@ namespace Reown.Core.Controllers
         public Task Resolve(IJsonRpcResult<TR> response)
         {
             IsInitialized();
-            if (!_records.ContainsKey(response.Id)) return Task.CompletedTask;
 
-            var record = GetRecord(response.Id);
-            if (record.Response != null) return Task.CompletedTask;
+            JsonRpcRecord<T, TR> record;
 
-            record.Response = response;
+            lock (_lock)
+            {
+                if (!_records.TryGetValue(response.Id, out record))
+                {
+                    return Task.CompletedTask;
+                }
+
+                if (record.Response != null)
+                {
+                    return Task.CompletedTask;
+                }
+
+                record.Response = response;
+            }
+
             Updated?.Invoke(this, record);
             return Task.CompletedTask;
         }
@@ -241,12 +370,62 @@ namespace Reown.Core.Controllers
         {
             IsInitialized();
 
-            if (!_records.TryGetValue(id, out var record))
+            lock (_lock)
             {
-                return Task.FromResult(false);
+                if (!_records.TryGetValue(id, out var record))
+                {
+                    return Task.FromResult(false);
+                }
+
+                return Task.FromResult(record.Topic == topic);
+            }
+        }
+
+        /// <summary>
+        ///     Remove every record that has expired or that already carries a response. The whole pass writes the
+        ///     remaining records to storage at most once and raises no per-record <see cref="Deleted" /> event.
+        ///     A call that overlaps a pass already in progress returns without removing anything.
+        /// </summary>
+        /// <returns>A task that completes once the remaining records have been persisted.</returns>
+        internal async Task RemoveAnsweredAndExpiredRecords()
+        {
+            if (Interlocked.CompareExchange(ref _removalInProgress, 1, 0) != 0)
+            {
+                return;
             }
 
-            return Task.FromResult(record.Topic == topic);
+            try
+            {
+                var removedAnyRecord = false;
+
+                lock (_lock)
+                {
+                    foreach (var record in _records.Values.ToArray())
+                    {
+                        if (record.Response == null && !IsExpired(record))
+                        {
+                            continue;
+                        }
+
+                        _records.Remove(record.Id);
+                        removedAnyRecord = true;
+                    }
+                }
+
+                if (removedAnyRecord || _lastPersistFailed)
+                {
+                    await Persist();
+                }
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _removalInProgress, 0);
+            }
+        }
+
+        private static bool IsExpired(JsonRpcRecord<T, TR> record)
+        {
+            return record.Expiry != null && Clock.IsExpired(record.Expiry.Value);
         }
 
         private Task SetJsonRpcRecords(JsonRpcRecord<T, TR>[] records)
@@ -266,17 +445,36 @@ namespace Reown.Core.Controllers
         {
             IsInitialized();
 
-            if (!_records.TryGetValue(id, out var record))
+            lock (_lock)
             {
-                throw new KeyNotFoundException($"No matching {Name} with id: {id}.");
-            }
+                if (!_records.TryGetValue(id, out var record))
+                {
+                    throw new KeyNotFoundException($"No matching {Name} with id: {id}.");
+                }
 
-            return record;
+                return record;
+            }
         }
 
         private async Task Persist()
         {
-            await SetJsonRpcRecords(Values);
+            await _persistGate.WaitAsync();
+
+            try
+            {
+                await SetJsonRpcRecords(Values);
+                _lastPersistFailed = false;
+            }
+            catch
+            {
+                _lastPersistFailed = true;
+                throw;
+            }
+            finally
+            {
+                _persistGate.Release();
+            }
+
             Sync?.Invoke(this, EventArgs.Empty);
         }
 
@@ -287,9 +485,13 @@ namespace Reown.Core.Controllers
                 return;
             if (persisted.Length == 0)
                 return;
-            if (_records.Count > 0)
+
+            lock (_lock)
             {
-                throw new InvalidOperationException($"Restoring will override existing data in {Name}.");
+                if (_records.Count > 0)
+                {
+                    throw new InvalidOperationException($"Restoring will override existing data in {Name}.");
+                }
             }
 
             _cached = persisted;
@@ -300,11 +502,37 @@ namespace Reown.Core.Controllers
             Created += SaveRecordCallback;
             Updated += SaveRecordCallback;
             Deleted += SaveRecordCallback;
+
+            _coreClient.HeartBeat.OnPulse += HeartBeatPulseCallback;
         }
 
         private async void SaveRecordCallback(object sender, JsonRpcRecord<T, TR> @event)
         {
-            await Persist();
+            try
+            {
+                await Persist();
+            }
+            catch (Exception e)
+            {
+                ReownLogger.LogError(e);
+            }
+        }
+
+        private void HeartBeatPulseCallback(object sender, EventArgs args)
+        {
+            _ = RemoveRecordsAndLogFailures();
+        }
+
+        private async Task RemoveRecordsAndLogFailures()
+        {
+            try
+            {
+                await RemoveAnsweredAndExpiredRecords();
+            }
+            catch (Exception e)
+            {
+                ReownLogger.LogError(e);
+            }
         }
 
         private void IsInitialized()
@@ -324,6 +552,9 @@ namespace Reown.Core.Controllers
                 Created -= SaveRecordCallback;
                 Updated -= SaveRecordCallback;
                 Deleted -= SaveRecordCallback;
+
+                _coreClient.HeartBeat.OnPulse -= HeartBeatPulseCallback;
+                _persistGate.Dispose();
             }
 
             Disposed = true;

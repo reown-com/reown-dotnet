@@ -6,7 +6,6 @@ using Newtonsoft.Json.Linq;
 using Reown.Core;
 using Reown.Core.Common.Model.Errors;
 using Reown.Core.Controllers;
-using Reown.Core.Crypto;
 using Reown.Core.Interfaces;
 using Reown.Core.Models;
 using Reown.Core.Models.MessageHandler;
@@ -77,11 +76,7 @@ namespace Reown.Sign
             // Setup storage
             if (options.Storage == null)
             {
-                var storage = new FileSystemStorage();
-                options.Storage = storage;
-
-                // If keychain is also not set, use the same storage instance
-                options.KeyChain ??= new KeyChain(storage);
+                options.Storage = new FileSystemStorage();
             }
 
 #if !UNITY_2021_1_OR_NEWER

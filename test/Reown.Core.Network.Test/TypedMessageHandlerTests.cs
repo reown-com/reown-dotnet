@@ -4,10 +4,12 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NSubstitute;
 using Reown.Core.Common.Logging;
+using Reown.Core.Common.Utils;
 using Reown.Core.Controllers;
 using Reown.Core.Crypto;
 using Reown.Core.Crypto.Models;
 using Reown.Core.Interfaces;
+using Reown.Core.Models;
 using Reown.Core.Models.Relay;
 using Reown.Core.Network.Models;
 using Xunit;
@@ -94,6 +96,193 @@ namespace Reown.Core.Network.Test
                 this, new MessageEvent { Topic = topic, Message = "encrypted" });
 
             Assert.Contains(_logger.Messages, m => m.Contains($"Dropping message on topic {topic}"));
+        }
+
+        /// <summary>
+        ///     A relayed message that arrives after the crypto module was disposed is dropped the same way
+        ///     as one whose key is missing, instead of surfacing as an error during teardown.
+        /// </summary>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task RelayMessageCallback_DropsMessage_WhenCryptoModuleDisposed()
+        {
+            const string topic = "disposed-crypto-topic";
+            var coreClient = CreateCoreClient();
+            coreClient.Crypto
+                .Decode<JsonRpcPayload>(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DecodeOptions>())
+                .Returns<Task<JsonRpcPayload>>(_ => throw new ObjectDisposedException(nameof(Crypto)));
+
+            var handler = new TypedMessageHandler(coreClient);
+            await handler.Init();
+
+            var rawMessageRaised = false;
+            handler.RawMessage += (_, _) => rawMessageRaised = true;
+
+            coreClient.Relayer.OnMessageReceived += Raise.Event<EventHandler<MessageEvent>>(
+                this, new MessageEvent { Topic = topic, Message = "encrypted" });
+
+            Assert.False(rawMessageRaised);
+            Assert.Contains(_logger.Messages, m => m.Contains($"Dropping message on topic {topic}"));
+        }
+
+        /// <summary>
+        ///     With no options the request is published under the id derived from its parameters, with the
+        ///     lifetime declared on the request type and no encode options.
+        /// </summary>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task SendRequest_WithNullOptions_PublishesTheDerivedIdAndTheAttributedTimeToLive()
+        {
+            const string topic = "send-derived-id";
+
+            var coreClient = CreateCoreClientForSend();
+            var capture = CaptureSend(coreClient);
+            var handler = new TypedMessageHandler(coreClient);
+
+            var parameters = new SendProbeRequest { a = 7 };
+            var derivedId = handler.GenerateRequestId(parameters);
+
+            var id = await handler.SendRequest<SendProbeRequest, SendProbeResponse>(topic, parameters, requestOptions: null);
+
+            Assert.Equal(derivedId, id);
+            Assert.Equal(derivedId, capture.Payload?.Id);
+            Assert.Null(capture.EncodeOptions);
+            Assert.Equal(Clock.ONE_MINUTE, capture.PublishOptions?.TTL);
+        }
+
+        /// <summary>
+        ///     An explicit id is the one published, which is what lets a caller register a response listener
+        ///     before the request goes out.
+        /// </summary>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task SendRequest_WithARequestId_PublishesThatId()
+        {
+            const string topic = "send-explicit-id";
+            const long explicitId = 1234567890123456;
+
+            var coreClient = CreateCoreClientForSend();
+            var capture = CaptureSend(coreClient);
+            var handler = new TypedMessageHandler(coreClient);
+
+            var parameters = new SendProbeRequest { a = 7 };
+            Assert.NotEqual(explicitId, handler.GenerateRequestId(parameters));
+
+            var id = await handler.SendRequest<SendProbeRequest, SendProbeResponse>(topic, parameters,
+                new SendRequestOptions { RequestId = explicitId });
+
+            Assert.Equal(explicitId, id);
+            Assert.Equal(explicitId, capture.Payload?.Id);
+        }
+
+        /// <summary>
+        ///     An expiry replaces the lifetime declared on the request type.
+        /// </summary>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task SendRequest_WithAnExpiry_OverridesTheAttributedTimeToLive()
+        {
+            const string topic = "send-expiry";
+
+            var coreClient = CreateCoreClientForSend();
+            var capture = CaptureSend(coreClient);
+            var handler = new TypedMessageHandler(coreClient);
+
+            await handler.SendRequest<SendProbeRequest, SendProbeResponse>(topic, new SendProbeRequest { a = 7 },
+                new SendRequestOptions { Expiry = Clock.THIRTY_SECONDS });
+
+            Assert.Equal(Clock.THIRTY_SECONDS, capture.PublishOptions?.TTL);
+        }
+
+        /// <summary>
+        ///     Encode options reach the crypto layer untouched.
+        /// </summary>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task SendRequest_ForwardsTheEncodeOptions()
+        {
+            const string topic = "send-encode-options";
+
+            var coreClient = CreateCoreClientForSend();
+            var capture = CaptureSend(coreClient);
+            var handler = new TypedMessageHandler(coreClient);
+
+            var encodeOptions = new EncodeOptions { SenderPublicKey = "sender", ReceiverPublicKey = "receiver" };
+
+            await handler.SendRequest<SendProbeRequest, SendProbeResponse>(topic, new SendProbeRequest { a = 7 },
+                new SendRequestOptions { EncodeOptions = encodeOptions });
+
+            Assert.Same(encodeOptions, capture.EncodeOptions);
+        }
+
+        /// <summary>
+        ///     The overload that takes the expiry and encode options directly still derives the id and forwards
+        ///     both values, so callers written against it keep their behaviour.
+        /// </summary>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task SendRequest_WithTheExpiryOverload_DerivesTheIdAndForwardsBothValues()
+        {
+            const string topic = "send-legacy-overload";
+
+            var coreClient = CreateCoreClientForSend();
+            var capture = CaptureSend(coreClient);
+            var handler = new TypedMessageHandler(coreClient);
+
+            var parameters = new SendProbeRequest { a = 7 };
+            var encodeOptions = new EncodeOptions { SenderPublicKey = "sender", ReceiverPublicKey = "receiver" };
+
+            var id = await handler.SendRequest<SendProbeRequest, SendProbeResponse>(topic, parameters,
+                Clock.THIRTY_SECONDS, encodeOptions);
+
+            Assert.Equal(handler.GenerateRequestId(parameters), id);
+            Assert.Equal(handler.GenerateRequestId(parameters), capture.Payload?.Id);
+            Assert.Equal(Clock.THIRTY_SECONDS, capture.PublishOptions?.TTL);
+            Assert.Same(encodeOptions, capture.EncodeOptions);
+        }
+
+        private static ICoreClient CreateCoreClientForSend()
+        {
+            var coreClient = CreateCoreClient();
+            coreClient.History.JsonRpcHistoryOfType<SendProbeRequest, SendProbeResponse>()
+                .Returns(Task.FromResult(Substitute.For<IJsonRpcHistory<SendProbeRequest, SendProbeResponse>>()));
+            return coreClient;
+        }
+
+        private static SendCapture CaptureSend(ICoreClient coreClient)
+        {
+            var capture = new SendCapture();
+
+            coreClient.Crypto
+                .Encode(Arg.Any<string>(), Arg.Do<IJsonRpcPayload>(p => capture.Payload = p),
+                    Arg.Do<EncodeOptions>(o => capture.EncodeOptions = o))
+                .Returns(Task.FromResult("encoded"));
+
+            coreClient.Relayer
+                .Publish(Arg.Any<string>(), Arg.Any<string>(), Arg.Do<PublishOptions>(o => capture.PublishOptions = o))
+                .Returns(Task.CompletedTask);
+
+            return capture;
+        }
+
+        private sealed class SendCapture
+        {
+            public IJsonRpcPayload? Payload { get; set; }
+            public EncodeOptions? EncodeOptions { get; set; }
+            public PublishOptions? PublishOptions { get; set; }
+        }
+
+        [RpcMethod("test_send_request")]
+        [RpcRequestOptions(Clock.ONE_MINUTE, 99820)]
+        public sealed class SendProbeRequest
+        {
+            public int a;
+        }
+
+        [RpcResponseOptions(Clock.ONE_MINUTE, 99821)]
+        public sealed class SendProbeResponse
+        {
+            public int result;
         }
 
         private static ICoreClient CreateCoreClient()
