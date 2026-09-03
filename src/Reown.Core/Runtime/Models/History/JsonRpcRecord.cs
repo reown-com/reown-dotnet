@@ -4,6 +4,22 @@ using Reown.Core.Network;
 namespace Reown.Core.Models.History
 {
     /// <summary>
+    ///     Describes whether a JSON-RPC history record was created for a request received from a peer or sent to a peer.
+    /// </summary>
+    public enum JsonRpcRecordDirection
+    {
+        /// <summary>
+        ///     The request was received from a peer and this client is responsible for publishing its response.
+        /// </summary>
+        Inbound,
+
+        /// <summary>
+        ///     The request was sent by this client and its response must be routed when received.
+        /// </summary>
+        Outbound
+    }
+
+    /// <summary>
     ///     A class representing a single JSON RPC history record containing the Id, Topic, Request, Response and ChainId.
     ///     If no Response is set, then the record hasn't been resolved yet
     /// </summary>
@@ -35,6 +51,20 @@ namespace Reown.Core.Models.History
         /// </summary>
         [JsonProperty("topic")]
         public string Topic;
+
+        /// <summary>
+        ///     The direction in which this record's request travelled. A null value represents a record persisted by
+        ///     an earlier SDK version, whose direction was not recorded.
+        /// </summary>
+        [JsonProperty("direction")]
+        public JsonRpcRecordDirection? Direction;
+
+        /// <summary>
+        ///     The Unix timestamp, in seconds, after which this pending record may be removed. A null value represents
+        ///     a record persisted by an earlier SDK version, whose expiry was not recorded.
+        /// </summary>
+        [JsonProperty("expiry")]
+        public long? Expiry;
 
         /// <summary>
         ///     This constructor is required for the JSON deserializer to be able

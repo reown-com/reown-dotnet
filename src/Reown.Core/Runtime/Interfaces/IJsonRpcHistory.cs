@@ -16,7 +16,8 @@ namespace Reown.Core.Interfaces
     public interface IJsonRpcHistory<T, TR> : IModule
     {
         /// <summary>
-        ///     A mapping of Json RPC Records to their corresponding Json RPC id
+        ///     A lossy snapshot mapping JSON-RPC ids to records. When records share an id across topics or directions,
+        ///     only one record is represented; use <see cref="Values" /> when every record is required.
         /// </summary>
         IReadOnlyDictionary<long, JsonRpcRecord<T, TR>> Records { get; }
 
@@ -26,12 +27,14 @@ namespace Reown.Core.Interfaces
         int Size { get; }
 
         /// <summary>
-        ///     An array of all JsonRpcRecord ids
+        ///     A lossy snapshot of distinct JSON-RPC ids. An id appears once even when multiple records share it across
+        ///     topics or directions; use <see cref="Values" /> to retain that distinction.
         /// </summary>
         long[] Keys { get; }
 
         /// <summary>
-        ///     An array of all JsonRpcRecords, each record contains a request / response
+        ///     A snapshot of all JSON-RPC records, including records with duplicate ids on different topics or in
+        ///     different directions.
         /// </summary>
         JsonRpcRecord<T, TR>[] Values { get; }
 

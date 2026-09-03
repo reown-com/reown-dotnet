@@ -237,7 +237,15 @@ namespace Reown.Core.Controllers
                     var (decoded, payload) = await TryDecodeOrDrop<JsonRpcRequest<T>>(topic, message, options);
                     if (!decoded) return;
 
-                    (await CoreClient.History.JsonRpcHistoryOfType<T, TR>()).Set(topic, payload, null);
+                    var history = await CoreClient.History.JsonRpcHistoryOfType<T, TR>();
+                    if (history is JsonRpcHistory<T, TR> concreteHistory)
+                    {
+                        concreteHistory.Set(topic, payload, null, JsonRpcRecordDirection.Inbound);
+                    }
+                    else
+                    {
+                        history.Set(topic, payload, null);
+                    }
 
                     await requestCallback(topic, payload);
                 }
@@ -279,8 +287,6 @@ namespace Reown.Core.Controllers
                         return;
                     }
 
-                    await history.Resolve(payload);
-
                     await responseCallback(topic, payload);
                 }
                 catch (Exception ex) when (ex is JsonException)
@@ -309,28 +315,34 @@ namespace Reown.Core.Controllers
                     return;
                 }
 
-                var resMethod = record.Request.Method;
-
-                // Trigger the true response event, which will trigger ResponseCallback
-
-                if (_responseCallbacksMap.TryGetValue(resMethod, out var callbacks))
+                try
                 {
-                    var callbacksCopy = callbacks.ToList();
-                    foreach (var callback in callbacksCopy)
+                    var resMethod = record.Request.Method;
+
+                    // Trigger the true response event, which will trigger ResponseCallback.
+                    if (_responseCallbacksMap.TryGetValue(resMethod, out var callbacks))
                     {
-                        try
+                        var callbacksCopy = callbacks.ToList();
+                        foreach (var callback in callbacksCopy)
                         {
-                            await callback(new MessageEvent
+                            try
                             {
-                                Topic = topic,
-                                Message = message
-                            });
-                        }
-                        catch (Exception callbackException)
-                        {
-                            ReownLogger.LogError(callbackException);
+                                await callback(new MessageEvent
+                                {
+                                    Topic = topic,
+                                    Message = message
+                                });
+                            }
+                            catch (Exception callbackException)
+                            {
+                                ReownLogger.LogError(callbackException);
+                            }
                         }
                     }
+                }
+                finally
+                {
+                    JsonRpcHistoryFactory.RemoveOutboundRecord(rpcHistory, topic, payload.Id);
                 }
             }
 
@@ -421,7 +433,15 @@ namespace Reown.Core.Controllers
                 opts.TTL = (long)expiry;
             }
 
-            (await CoreClient.History.JsonRpcHistoryOfType<T, TR>()).Set(topic, payload, null);
+            var history = await CoreClient.History.JsonRpcHistoryOfType<T, TR>();
+            if (history is JsonRpcHistory<T, TR> concreteHistory)
+            {
+                concreteHistory.Set(topic, payload, null, JsonRpcRecordDirection.Outbound);
+            }
+            else
+            {
+                history.Set(topic, payload, null);
+            }
 
             await CoreClient.Relayer.Publish(topic, message, opts);
 
@@ -483,7 +503,7 @@ namespace Reown.Core.Controllers
             var message = await CoreClient.Crypto.Encode(topic, payload, options);
             var opts = RpcResponseOptionsFromTypes<T, TR>();
             await CoreClient.Relayer.Publish(topic, message, opts);
-            await (await CoreClient.History.JsonRpcHistoryOfType<T, TR>()).Resolve(payload);
+            JsonRpcHistoryFactory.RemoveInboundRecord(CoreClient, topic, id);
         }
 
         /// <summary>
@@ -500,7 +520,7 @@ namespace Reown.Core.Controllers
             var message = await CoreClient.Crypto.Encode(topic, payload, options);
             var opts = RpcResponseOptionsFromTypes<T, TR>();
             await CoreClient.Relayer.Publish(topic, message, opts);
-            await (await CoreClient.History.JsonRpcHistoryOfType<T, TR>()).Resolve(payload);
+            JsonRpcHistoryFactory.RemoveInboundRecord(CoreClient, topic, id);
         }
 
         private async Task<(bool success, T payload)> TryDecodeOrDrop<T>(string topic, string message, DecodeOptions options)
