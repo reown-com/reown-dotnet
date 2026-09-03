@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Net;
 
@@ -61,48 +62,115 @@ namespace Reown.Core.Common.Utils
                    + "=" + WebUtility.UrlEncode(value);
         }
 
+        /// <summary>
+        ///     Retrieves a task's exception so a failure nobody awaits cannot resurface later.
+        /// </summary>
+        /// <remarks>
+        ///     For the fan-out case: when a failure is both stored in a <see cref="TaskCompletionSource{T}" />
+        ///     for concurrent callers and thrown to the one that started the work, the stored copy is
+        ///     left unobserved whenever there are no concurrent callers. Observing does not swallow it —
+        ///     awaiting the task afterwards still throws.
+        /// </remarks>
+        public static void ObserveFault(this Task task)
+        {
+            ObserveAbandoned(task);
+        }
+
+        /// <summary>
+        ///     Takes the exception off a task nobody is waiting for any more.
+        /// </summary>
+        /// <remarks>
+        ///     A timed-out task keeps running and may still fail. Nothing observes it by then, so its
+        ///     exception resurfaces on the finalizer thread as an UnobservedTaskException — noise at
+        ///     best, and a process kill wherever that event is left unhandled.
+        /// </remarks>
+        private static void ObserveAbandoned(Task task)
+        {
+            _ = task.ContinueWith(
+                static abandoned => _ = abandoned.Exception,
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+        }
+
+        /// <remarks>
+        ///     The task is awaited once <see cref="Task.WhenAny(Task[])" /> picks it, so a fault
+        ///     surfaces as the original exception. Returning without awaiting dropped it silently on
+        ///     the non-generic overloads, and reading <c>.Result</c> on the generic ones wrapped it in
+        ///     an <see cref="AggregateException" /> — either way callers could neither see the failure
+        ///     nor match on its message, and a task that failed instantly looked like success.
+        /// </remarks>
         public static async Task<T> WithTimeout<T>(this Task<T> task, int timeout = 1000,
             string message = "Timeout of %t exceeded")
         {
             var resultT = await Task.WhenAny(task, Task.Delay(timeout));
             if (resultT != task)
             {
+                ObserveAbandoned(task);
                 throw new TimeoutException(message.Replace("%t", timeout.ToString()));
             }
 
-            return ((Task<T>)resultT).Result;
+            return await task;
         }
 
+        /// <remarks>
+        ///     The task is awaited once <see cref="Task.WhenAny(Task[])" /> picks it, so a fault
+        ///     surfaces as the original exception. Returning without awaiting dropped it silently on
+        ///     the non-generic overloads, and reading <c>.Result</c> on the generic ones wrapped it in
+        ///     an <see cref="AggregateException" /> — either way callers could neither see the failure
+        ///     nor match on its message, and a task that failed instantly looked like success.
+        /// </remarks>
         public static async Task WithTimeout(this Task task, int timeout = 1000,
             string message = "Timeout of %t exceeded")
         {
             var resultT = await Task.WhenAny(task, Task.Delay(timeout));
             if (resultT != task)
             {
+                ObserveAbandoned(task);
                 throw new TimeoutException(message.Replace("%t", timeout.ToString()));
             }
+
+            await task;
         }
 
+        /// <remarks>
+        ///     The task is awaited once <see cref="Task.WhenAny(Task[])" /> picks it, so a fault
+        ///     surfaces as the original exception. Returning without awaiting dropped it silently on
+        ///     the non-generic overloads, and reading <c>.Result</c> on the generic ones wrapped it in
+        ///     an <see cref="AggregateException" /> — either way callers could neither see the failure
+        ///     nor match on its message, and a task that failed instantly looked like success.
+        /// </remarks>
         public static async Task<T> WithTimeout<T>(this Task<T> task, TimeSpan timeout,
             string message = "Timeout of %t exceeded")
         {
             var resultT = await Task.WhenAny(task, Task.Delay(timeout));
             if (resultT != task)
             {
+                ObserveAbandoned(task);
                 throw new TimeoutException(message.Replace("%t", timeout.ToString()));
             }
 
-            return ((Task<T>)resultT).Result;
+            return await task;
         }
 
+        /// <remarks>
+        ///     The task is awaited once <see cref="Task.WhenAny(Task[])" /> picks it, so a fault
+        ///     surfaces as the original exception. Returning without awaiting dropped it silently on
+        ///     the non-generic overloads, and reading <c>.Result</c> on the generic ones wrapped it in
+        ///     an <see cref="AggregateException" /> — either way callers could neither see the failure
+        ///     nor match on its message, and a task that failed instantly looked like success.
+        /// </remarks>
         public static async Task WithTimeout(this Task task, TimeSpan timeout,
             string message = "Timeout of %t exceeded")
         {
             var resultT = await Task.WhenAny(task, Task.Delay(timeout));
             if (resultT != task)
             {
+                ObserveAbandoned(task);
                 throw new TimeoutException(message.Replace("%t", timeout.ToString()));
             }
+
+            await task;
         }
 
         public static bool SetEquals<T>(this IEnumerable<T> first, IEnumerable<T> second,

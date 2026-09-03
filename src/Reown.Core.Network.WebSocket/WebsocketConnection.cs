@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Reown.Core.Common;
 using Reown.Core.Common.Logging;
+using Reown.Core.Common.Utils;
 using Reown.Core.Network.Models;
 using Reown.Core.Network.Websocket.Internal;
 
@@ -19,6 +20,12 @@ namespace Reown.Core.Network.Websocket
     public class WebsocketConnection : IJsonRpcConnection, IModule
     {
         private static readonly TimeSpan DefaultKeepAliveInterval = TimeSpan.FromSeconds(30);
+
+        /// <summary>
+        ///     Preserves the value this connection used before <see cref="OpenTimeout" /> became
+        ///     settable, so callers that do not set it keep the previous behaviour.
+        /// </summary>
+        public static readonly TimeSpan DefaultOpenTimeout = TimeSpan.FromSeconds(60);
 
         private readonly string _context;
         private readonly ILogger _logger;
@@ -54,12 +61,26 @@ namespace Reown.Core.Network.Websocket
         public bool IsPaused { get; internal set; }
 
         /// <summary>
-        ///     The Open timeout
+        ///     How long a single connect attempt may run before the socket gives up.
         /// </summary>
-        public TimeSpan OpenTimeout
-        {
-            get => TimeSpan.FromSeconds(60);
-        }
+        /// <remarks>
+        ///     Keep at or below the relayer's <c>ConnectionTimeout</c>: it stops waiting there but
+        ///     does not cancel this attempt, and <see cref="Connecting" /> stays true until this
+        ///     timeout expires, blocking restarts for the difference.
+        /// </remarks>
+        public TimeSpan OpenTimeout { get; set; } = DefaultOpenTimeout;
+
+        /// <summary>
+        ///     How long a PONG may be outstanding before the socket is treated as dead, or
+        ///     <see langword="null" /> to keep the transport default.
+        /// </summary>
+        /// <remarks>
+        ///     Requiring a PONG is what stops a silently severed link from staying
+        ///     <see cref="WebSocketState.Open" /> forever. It assumes something answers the PINGs:
+        ///     the relay does, but an intermediary that swallows them would abort healthy idle
+        ///     connections, so the requirement is settable rather than fixed.
+        /// </remarks>
+        public TimeSpan? KeepAliveTimeout { get; set; }
 
         public event EventHandler<string> PayloadReceived;
         public event EventHandler Closed;
@@ -322,7 +343,7 @@ namespace Reown.Core.Network.Websocket
 
         private async Task<ClientWebSocketTransport> RegisterCore(string url, TaskCompletionSource<ClientWebSocketTransport> tcs)
         {
-            var transport = new ClientWebSocketTransport(new Uri(url), OpenTimeout, DefaultKeepAliveInterval, _logger);
+            var transport = new ClientWebSocketTransport(new Uri(url), OpenTimeout, DefaultKeepAliveInterval, _logger, KeepAliveTimeout);
 
             lock (_registerGate)
             {
@@ -362,6 +383,7 @@ namespace Reown.Core.Network.Websocket
                 {
                     var disposedException = new ObjectDisposedException(nameof(WebsocketConnection));
                     tcs.TrySetException(disposedException);
+                    tcs.Task.ObserveFault();
                     throw disposedException;
                 }
 
@@ -369,6 +391,7 @@ namespace Reown.Core.Network.Websocket
                 RegisterErrored?.Invoke(this, mapped);
                 Closed?.Invoke(this, EventArgs.Empty);
                 tcs.TrySetException(mapped);
+                tcs.Task.ObserveFault();
 
                 if (!ReferenceEquals(mapped, e))
                     throw mapped;
@@ -406,6 +429,7 @@ namespace Reown.Core.Network.Websocket
                     ? new ObjectDisposedException(nameof(WebsocketConnection))
                     : new IOException("WebSocket connection closed before registration completed.");
                 tcs.TrySetException(abortException);
+                tcs.Task.ObserveFault();
                 throw abortException;
             }
 
@@ -531,6 +555,7 @@ namespace Reown.Core.Network.Websocket
                 }
 
                 pendingRegister?.TrySetException(new ObjectDisposedException(nameof(WebsocketConnection)));
+                pendingRegister?.Task.ObserveFault();
 
                 return;
             }
