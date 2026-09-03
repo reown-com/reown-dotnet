@@ -12,6 +12,13 @@ namespace Reown.Core.Models.History
     public class JsonRpcRecord<T, R>
     {
         /// <summary>
+        ///     The Unix timestamp, in seconds, after which this record may be removed from the history.
+        ///     A null value means the record was persisted by an SDK version that did not stamp an expiry.
+        /// </summary>
+        [JsonProperty("expiry")]
+        public long? Expiry;
+
+        /// <summary>
         ///     The id of the JSON RPC request
         /// </summary>
         [JsonProperty("id")]
