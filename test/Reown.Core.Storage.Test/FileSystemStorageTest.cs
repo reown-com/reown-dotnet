@@ -1,3 +1,4 @@
+﻿using Newtonsoft.Json;
 using Reown.TestUtils;
 using Xunit;
 
@@ -59,5 +60,62 @@ public class FileSystemStorageTest
         await testDictStorage.Init();
         await testDictStorage.SetItem("checkedkey", "testingvalue");
         Assert.True(await testDictStorage.HasItem("checkedkey"));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public async Task AnUnreadableEntryDoesNotTakeTheRestOfTheFileWithIt()
+    {
+        using var tempFolder = new TempFolder();
+        var filePath = Path.Combine(tempFolder.Folder.FullName, ".wctestdata");
+
+        // $type names a type this build cannot resolve — what an integrating application leaves
+        // behind when it renames a request class or updates the dependency that owns one.
+        await File.WriteAllTextAsync(filePath, """
+        {
+          "$type": "System.Collections.Concurrent.ConcurrentDictionary`2[[System.String, mscorlib],[System.Object, mscorlib]], System.Collections.Concurrent",
+          "keychain": "the-entry-that-must-survive",
+          "history": {
+            "$type": "Some.Removed.Namespace.RequestType, Some.Removed.Assembly",
+            "topic": "abc"
+          }
+        }
+        """);
+
+        var storage = new FileSystemStorage(filePath);
+        await storage.Init();
+
+        Assert.Equal("the-entry-that-must-survive", await storage.GetItem<string>("keychain"));
+        Assert.False(await storage.HasItem("history"));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public async Task AFileWrittenAsAPlainDictionaryStillLoads()
+    {
+        using var tempFolder = new TempFolder();
+        var filePath = Path.Combine(tempFolder.Folder.FullName, ".wctestdata");
+
+        await File.WriteAllTextAsync(filePath, """
+        {
+          "somekey": "somevalue"
+        }
+        """);
+
+        var storage = new FileSystemStorage(filePath);
+        await storage.Init();
+
+        Assert.Equal("somevalue", await storage.GetItem<string>("somekey"));
+    }
+
+    [Fact] [Trait("Category", "unit")]
+    public async Task AMalformedFileStillThrows()
+    {
+        using var tempFolder = new TempFolder();
+        var filePath = Path.Combine(tempFolder.Folder.FullName, ".wctestdata");
+
+        await File.WriteAllTextAsync(filePath, "{ this is not json");
+
+        var storage = new FileSystemStorage(filePath);
+
+        await Assert.ThrowsAnyAsync<JsonException>(() => storage.Init());
     }
 }
