@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Reown.Core.Common.Logging;
 
 namespace Reown.Core.Storage
@@ -153,7 +154,6 @@ namespace Reown.Core.Storage
                 _semaphoreSlim.Release();
             }
 
-            // Hard fail here if the storage file is bad, unless it's serialized as a Dictionary (for backwards compatibility)
             var jsonSerializerSettings = new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.Auto
@@ -163,11 +163,61 @@ namespace Reown.Core.Storage
                 Entries = JsonConvert.DeserializeObject<ConcurrentDictionary<string, object>>(json,
                     jsonSerializerSettings);
             }
-            catch (JsonSerializationException)
+            catch (JsonException)
             {
-                var dict = JsonConvert.DeserializeObject<Dictionary<string, object>>(json, jsonSerializerSettings);
-                Entries = new ConcurrentDictionary<string, object>(dict);
+                // Reading the document as a whole fails for two unrelated reasons, and both are
+                // recoverable one entry at a time: a file written as a plain Dictionary by an older
+                // version, and a single value whose $type no longer resolves. The latter is not
+                // hypothetical — the type names recorded here belong to the integrating application
+                // (JsonRpcHistory stores its request types), so renaming a request class or updating
+                // a dependency that owns one is enough to make the whole file unreadable. Everything
+                // else in it goes down with that one entry, the KeyChain included, and an app that
+                // cannot read its KeyChain has lost every session it had.
+                Entries = LoadEntriesIndividually(json, jsonSerializerSettings);
             }
+        }
+
+        /// <summary>
+        ///     Reads the document one entry at a time, keeping every value that can be read and
+        ///     dropping only those that cannot.
+        /// </summary>
+        /// <remarks>
+        ///     A malformed document still fails: <see cref="JObject.Parse(string)" /> throws, and
+        ///     that is a genuinely unreadable file rather than an entry this build cannot resolve.
+        /// </remarks>
+        private static ConcurrentDictionary<string, object> LoadEntriesIndividually(
+            string json,
+            JsonSerializerSettings jsonSerializerSettings)
+        {
+            var entries = new ConcurrentDictionary<string, object>();
+            var serializer = JsonSerializer.Create(jsonSerializerSettings);
+            var root = JObject.Parse(json);
+            var dropped = 0;
+
+            foreach (var property in root.Properties())
+            {
+                // Written by TypeNameHandling.All on the way out; it describes the dictionary
+                // itself, not an entry.
+                if (string.Equals(property.Name, "$type", StringComparison.Ordinal))
+                    continue;
+
+                try
+                {
+                    var value = property.Value.ToObject<object>(serializer);
+                    if (value != null)
+                        entries[property.Name] = value;
+                }
+                catch (JsonException e)
+                {
+                    dropped++;
+                    ReownLogger.LogError($"Storage entry {property.Name} could not be read and was dropped: {e.Message}");
+                }
+            }
+
+            if (dropped > 0)
+                ReownLogger.LogError($"Storage loaded with {entries.Count} entry(ies); {dropped} could not be read");
+
+            return entries;
         }
 
         protected override void Dispose(bool disposing)
