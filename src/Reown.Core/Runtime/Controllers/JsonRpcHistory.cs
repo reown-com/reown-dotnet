@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -31,9 +31,14 @@ namespace Reown.Core.Controllers
 
         private readonly Dictionary<long, JsonRpcRecord<T, TR>> _records = new();
 
+        private readonly object _initializationLock = new();
+        private readonly SemaphoreSlim _persistGate = new(1, 1);
+
         private JsonRpcRecord<T, TR>[] _cached = Array.Empty<JsonRpcRecord<T, TR>>();
+        private Task _initialization;
         private bool _initialized;
         private int _removalInProgress;
+        private volatile bool _lastPersistFailed;
 
         protected bool Disposed;
 
@@ -185,19 +190,54 @@ namespace Reown.Core.Controllers
         /// <returns></returns>
         public async Task Init()
         {
-            if (_initialized)
+            Task initialization;
+
+            lock (_initializationLock)
             {
-                return;
+                if (_initialized)
+                {
+                    return;
+                }
+
+                initialization = _initialization ??= InitializeCore();
             }
 
+            try
+            {
+                await initialization;
+            }
+            catch
+            {
+                lock (_initializationLock)
+                {
+                    if (ReferenceEquals(_initialization, initialization))
+                    {
+                        _initialization = null;
+                    }
+                }
+
+                throw;
+            }
+        }
+
+        private async Task InitializeCore()
+        {
             await Restore();
 
             var restoreChangedRecords = false;
+            var discardedRecordCount = 0;
 
             lock (_lock)
             {
                 foreach (var record in _cached)
                 {
+                    if (record == null)
+                    {
+                        discardedRecordCount++;
+                        restoreChangedRecords = true;
+                        continue;
+                    }
+
                     if (record.Response != null)
                     {
                         restoreChangedRecords = true;
@@ -214,6 +254,11 @@ namespace Reown.Core.Controllers
                 }
 
                 _cached = Array.Empty<JsonRpcRecord<T, TR>>();
+            }
+
+            if (discardedRecordCount > 0)
+            {
+                ReownLogger.Log($"[{Name}] Discarded {discardedRecordCount} unreadable record(s) while restoring.");
             }
 
             RegisterEventListeners();
@@ -367,7 +412,7 @@ namespace Reown.Core.Controllers
                     }
                 }
 
-                if (removedAnyRecord)
+                if (removedAnyRecord || _lastPersistFailed)
                 {
                     await Persist();
                 }
@@ -413,7 +458,23 @@ namespace Reown.Core.Controllers
 
         private async Task Persist()
         {
-            await SetJsonRpcRecords(Values);
+            await _persistGate.WaitAsync();
+
+            try
+            {
+                await SetJsonRpcRecords(Values);
+                _lastPersistFailed = false;
+            }
+            catch
+            {
+                _lastPersistFailed = true;
+                throw;
+            }
+            finally
+            {
+                _persistGate.Release();
+            }
+
             Sync?.Invoke(this, EventArgs.Empty);
         }
 
@@ -447,7 +508,14 @@ namespace Reown.Core.Controllers
 
         private async void SaveRecordCallback(object sender, JsonRpcRecord<T, TR> @event)
         {
-            await Persist();
+            try
+            {
+                await Persist();
+            }
+            catch (Exception e)
+            {
+                ReownLogger.LogError(e);
+            }
         }
 
         private void HeartBeatPulseCallback(object sender, EventArgs args)
@@ -486,6 +554,7 @@ namespace Reown.Core.Controllers
                 Deleted -= SaveRecordCallback;
 
                 _coreClient.HeartBeat.OnPulse -= HeartBeatPulseCallback;
+                _persistGate.Dispose();
             }
 
             Disposed = true;

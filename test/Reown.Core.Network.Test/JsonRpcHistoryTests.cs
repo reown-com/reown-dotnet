@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -322,6 +322,103 @@ namespace Reown.Core.Network.Test
             history.Dispose();
 
             coreClient.HeartBeat.Received().OnPulse -= Arg.Any<EventHandler>();
+        }
+
+        /// <summary>
+        ///     A sweep whose storage write fails has already dropped the records from memory, so a later sweep
+        ///     with nothing left to remove must still write the pruned snapshot.
+        /// </summary>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task RemoveAnsweredAndExpiredRecords_PersistsAgainAfterAFailedWrite()
+        {
+            var shouldFailWrite = false;
+            var writeCount = 0;
+            JsonRpcRecord<TestRequest, TestResponse>[] lastWrite = null!;
+
+            var (history, _) = await CreateHistory(onWrite: records =>
+            {
+                writeCount++;
+                if (shouldFailWrite)
+                {
+                    throw new InvalidOperationException("storage unavailable");
+                }
+
+                lastWrite = records;
+                return Task.CompletedTask;
+            });
+
+            history.Set(Topic, CreateRequest(RequestId), null);
+            history.Values.Single().Expiry = Clock.Now() - 1;
+
+            shouldFailWrite = true;
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => history.RemoveAnsweredAndExpiredRecords());
+            Assert.Empty(history.Values);
+
+            shouldFailWrite = false;
+            var writesBeforeRetry = writeCount;
+
+            await history.RemoveAnsweredAndExpiredRecords();
+
+            Assert.True(writeCount > writesBeforeRetry, "the failed write should be retried");
+            Assert.Empty(lastWrite);
+        }
+
+        /// <summary>
+        ///     Two callers racing to initialize the same history run the restore once, so the persistence
+        ///     handlers are not registered twice and a single change does not write storage twice.
+        /// </summary>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task Init_RestoresOnce_WhenCalledConcurrently()
+        {
+            var releaseRead = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var writeCount = 0;
+
+            var storage = Substitute.For<IKeyValueStorage>();
+            storage.HasItem(Arg.Any<string>()).Returns(_ => releaseRead.Task);
+            storage.SetItem(Arg.Any<string>(), Arg.Any<JsonRpcRecord<TestRequest, TestResponse>[]>())
+                .Returns(_ =>
+                {
+                    writeCount++;
+                    return Task.CompletedTask;
+                });
+
+            var coreClient = Substitute.For<ICoreClient>();
+            coreClient.Name.Returns($"history-test-{Guid.NewGuid()}");
+            coreClient.Storage.Returns(storage);
+            coreClient.HeartBeat.Returns(Substitute.For<IHeartBeat>());
+
+            var history = new JsonRpcHistory<TestRequest, TestResponse>(coreClient);
+
+            var first = history.Init();
+            var second = history.Init();
+            releaseRead.TrySetResult(false);
+            await Task.WhenAll(first, second);
+
+            history.Set(Topic, CreateRequest(RequestId), null);
+
+            Assert.Equal(1, writeCount);
+        }
+
+        /// <summary>
+        ///     A persisted array holding an unreadable entry still restores the records around it instead of
+        ///     failing the whole history.
+        /// </summary>
+        [Fact]
+        [Trait("Category", "unit")]
+        public async Task Init_SkipsUnreadablePersistedRecords()
+        {
+            var persisted = new[]
+            {
+                null,
+                CreatePersistedRecord(Topic, RequestId, Clock.CalculateExpiry(Clock.THIRTY_DAYS))
+            };
+
+            var (history, _) = await CreateHistory(persisted);
+
+            Assert.Equal(RequestId, history.Values.Single().Id);
         }
 
         private static async Task<JsonRpcHistory<TestRequest, TestResponse>> CreateHistoryWithRecord()
