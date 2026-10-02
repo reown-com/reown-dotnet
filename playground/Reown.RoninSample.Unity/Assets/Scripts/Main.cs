@@ -18,7 +18,7 @@ using UnityEngine.UI;
 ///     <code language="csharp">
 ///         await AppKit.ConnectAsync("541d5dcd4ede02f3afaf75bf8e3e4c4f1fb09edb5fa6c4377ebf31c2785d9adf");
 ///     </code>
-///     where the parameter is the Ronin Wallet ID (see https://walletguide.walletconnect.network).
+///     where the parameter is the Ronin Wallet ID (see https://walletguide.walletconnect.com).
 /// </example>
 public class Main : MonoBehaviour
 {
@@ -47,7 +47,7 @@ public class Main : MonoBehaviour
                 iconUrl: "https://raw.githubusercontent.com/reown-com/reown-dotnet/refs/heads/develop/sample/Reown.AppKit.Unity/Assets/Textures/appkit-icon-unity.png"
             ),
             // Optional. Can be used to show only specific wallets in AppKit UI
-            // Wallet IDs can be found at: https://walletguide.walletconnect.network
+            // Wallet IDs can be found at: https://walletguide.walletconnect.com
             includedWalletIds = new[]
             {
                 // Ronin Wallet

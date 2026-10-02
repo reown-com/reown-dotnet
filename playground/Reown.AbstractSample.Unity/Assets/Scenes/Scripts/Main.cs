@@ -31,7 +31,7 @@ public class Main : MonoBehaviour
                 iconUrl: "https://raw.githubusercontent.com/reown-com/reown-dotnet/main/media/appkit-icon.png"
             ),
             // Optional. Can be used to show only specific wallets in AppKit UI
-            // Wallet IDs can be found at: https://walletguide.walletconnect.network
+            // Wallet IDs can be found at: https://walletguide.walletconnect.com
             includedWalletIds = new[]
             {
                 // Abstract Global Wallet
@@ -73,7 +73,7 @@ public class Main : MonoBehaviour
     private async Task ConnectAsync()
     {
         // Directly connect to Abstract Global Wallet
-        // Wallet ID is from http://walletguide.walletconnect.network
+        // Wallet ID is from http://walletguide.walletconnect.com
         await AppKit.ConnectAsync("26d3d9e7224a1eb49089aa5f03fb9f3b883e04050404594d980d4e1e74e1dbea");
 
         MyAccountConnectedHandler();
