@@ -16,7 +16,7 @@ This is a monorepo of Unity and NuGet packages for [AppKit](https://reown.com/ap
   - [Installation](https://docs.reown.com/appkit/unity/core/installation)
   - [Usage](https://docs.reown.com/appkit/unity/core/usage)
 - **WalletKit (WalletConnect Wallet SDK)**
-  - [WalletKit documentation](https://docs.walletconnect.network/wallet-sdk/c-sharp/installation)
+  - [WalletKit documentation](https://docs.walletconnect.com/wallets/c-sharp/installation)
 
 ## Samples
 
