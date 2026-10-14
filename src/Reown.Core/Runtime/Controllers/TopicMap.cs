@@ -13,11 +13,28 @@ namespace Reown.Core.Controllers
         private readonly Dictionary<string, List<string>> _topicMap = new();
 
         /// <summary>
+        ///     Guards the map.
+        /// </summary>
+        /// <remarks>
+        ///     Held here rather than left to the owner because this object is handed out through
+        ///     <c>Subscriber.TopicMap</c>: a reader outside the subscriber cannot take the
+        ///     subscriber's lock, and enumerating this map while the relayer's events clear it
+        ///     throws. The lists are never handed out either — every accessor copies.
+        /// </remarks>
+        private readonly object _sync = new();
+
+        /// <summary>
         ///     An array of topics in this mapping
         /// </summary>
         public string[] Topics
         {
-            get => _topicMap.Keys.ToArray();
+            get
+            {
+                lock (_sync)
+                {
+                    return _topicMap.Keys.ToArray();
+                }
+            }
         }
 
         /// <summary>
@@ -27,13 +44,16 @@ namespace Reown.Core.Controllers
         /// <param name="id">The subscription id to add</param>
         public void Set(string topic, string id)
         {
-            if (Exists(topic, id)) return;
+            lock (_sync)
+            {
+                if (ExistsUnsafe(topic, id)) return;
 
-            if (!_topicMap.ContainsKey(topic))
-                _topicMap.Add(topic, new List<string>());
+                if (!_topicMap.ContainsKey(topic))
+                    _topicMap.Add(topic, new List<string>());
 
-            var ids = _topicMap[topic];
-            ids.Add(id);
+                var ids = _topicMap[topic];
+                ids.Add(id);
+            }
         }
 
         /// <summary>
@@ -43,10 +63,13 @@ namespace Reown.Core.Controllers
         /// <returns>An array of subscription ids in a given topic</returns>
         public string[] Get(string topic)
         {
-            if (!_topicMap.ContainsKey(topic))
-                return Array.Empty<string>();
+            lock (_sync)
+            {
+                if (!_topicMap.ContainsKey(topic))
+                    return Array.Empty<string>();
 
-            return _topicMap[topic].ToArray();
+                return _topicMap[topic].ToArray();
+            }
         }
 
         /// <summary>
@@ -57,8 +80,21 @@ namespace Reown.Core.Controllers
         /// <returns>True if the subscription id is in the topic, false otherwise</returns>
         public bool Exists(string topic, string id)
         {
-            var ids = Get(topic);
-            return ids.Contains(id);
+            lock (_sync)
+            {
+                return ExistsUnsafe(topic, id);
+            }
+        }
+
+        /// <summary>
+        ///     Determines whether a subscription id exists in a given topic. Callers hold the lock.
+        /// </summary>
+        /// <param name="topic">The topic to check in</param>
+        /// <param name="id">The subscription id to check for</param>
+        /// <returns>True if the subscription id is in the topic, false otherwise</returns>
+        private bool ExistsUnsafe(string topic, string id)
+        {
+            return _topicMap.TryGetValue(topic, out var ids) && ids.Contains(id);
         }
 
         /// <summary>
@@ -69,21 +105,24 @@ namespace Reown.Core.Controllers
         /// <param name="id">The subscription id to remove, if set to null then all ids are removed from the topic</param>
         public void Delete(string topic, string id = null)
         {
-            if (!_topicMap.TryGetValue(topic, out var ids))
+            lock (_sync)
             {
-                return;
-            }
+                if (!_topicMap.TryGetValue(topic, out var ids))
+                {
+                    return;
+                }
 
-            if (id == null)
-            {
-                _topicMap.Remove(topic);
-            }
-            else
-            {
-                ids.Remove(id);
-                if (ids.Count == 0)
+                if (id == null)
                 {
                     _topicMap.Remove(topic);
+                }
+                else
+                {
+                    ids.Remove(id);
+                    if (ids.Count == 0)
+                    {
+                        _topicMap.Remove(topic);
+                    }
                 }
             }
         }
@@ -93,7 +132,10 @@ namespace Reown.Core.Controllers
         /// </summary>
         public void Clear()
         {
-            _topicMap.Clear();
+            lock (_sync)
+            {
+                _topicMap.Clear();
+            }
         }
     }
 }
