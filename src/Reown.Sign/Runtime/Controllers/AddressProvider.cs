@@ -147,7 +147,11 @@ namespace Reown.Sign.Controllers
 
         private async void ClientOnSessionUpdated(object sender, SessionEvent e)
         {
-            if (DefaultSession.Topic == e.Topic)
+            // DefaultSession is null until a session is approved in this run or LoadDefaultsAsync
+            // restores a stored one, and these handlers are attached from the constructor, so an
+            // event can arrive before either happens. Reading Topic off it then throws inside an
+            // async void, which takes the process down instead of surfacing to a caller.
+            if (DefaultSession is { } updatedDefault && updatedDefault.Topic == e.Topic)
             {
                 DefaultSession = Sessions.Get(e.Topic);
                 await UpdateDefaultChainIdAndNamespaceAsync();
@@ -156,7 +160,9 @@ namespace Reown.Sign.Controllers
 
         private async void ClientOnSessionDeleted(object sender, SessionEvent e)
         {
-            if (DefaultSession.Topic == e.Topic)
+            // Null here also right after this handler has cleared it once, so disconnecting a
+            // second session is enough on its own to reach the throw described above.
+            if (DefaultSession is { } deletedDefault && deletedDefault.Topic == e.Topic)
             {
                 DefaultSession = default;
                 await UpdateDefaultChainIdAndNamespaceAsync();
