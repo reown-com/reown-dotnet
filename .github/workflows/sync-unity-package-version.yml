@@ -20,6 +20,12 @@ permissions:
 
 jobs:
   sync-unity-version:
+    # A develop -> main release PR has develop as its head branch, so the
+    # push-triggered run already covers this exact commit.
+    if: >-
+      github.event_name != 'pull_request'
+      || !(github.event.pull_request.head.repo.full_name == github.repository
+           && github.event.pull_request.head.ref == 'develop')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
