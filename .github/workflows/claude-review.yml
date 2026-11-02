@@ -38,7 +38,7 @@ jobs:
           ref: ${{ github.event_name == 'issue_comment' && format('refs/pull/{0}/merge', github.event.issue.number) || '' }}
 
       - name: Claude Review
-        uses: WalletConnect/actions/claude/auto-review@dcfaa4e5f22b1c6f371a3d670f162cba4d221738
+        uses: WalletConnect/actions/claude/auto-review@64e88f95e17885f1dbdd4728ebe462a0b04cb89d
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           project_context: |
