@@ -78,6 +78,14 @@ namespace Reown.Core.Network.Websocket.Internal
         {
             get
             {
+#if !NETSTANDARD2_1
+                // Never applied on browser-wasm, so the configured value is the only answer —
+                // and reading it back would touch the Options object that platform rejects.
+                if (OperatingSystem.IsBrowser())
+                {
+                    return _keepAlive;
+                }
+#endif
                 var client = _client;
                 return client != null ? client.Options.KeepAliveInterval : _keepAlive;
             }
@@ -199,7 +207,18 @@ namespace Reown.Core.Network.Websocket.Internal
             ThrowIfDisposed();
 
             var client = new ClientWebSocket();
+
+            // The setter throws PlatformNotSupportedException on browser-wasm, which runs its own
+            // keep-alive anyway. Checked at runtime because net10.0 is the same target framework for
+            // a WebAssembly host as for a desktop one; netstandard2.1 has no OperatingSystem.IsBrowser.
+#if NETSTANDARD2_1
             client.Options.KeepAliveInterval = _keepAlive;
+#else
+            if (!OperatingSystem.IsBrowser())
+            {
+                client.Options.KeepAliveInterval = _keepAlive;
+            }
+#endif
 
             using (var connectCts = CancellationTokenSource.CreateLinkedTokenSource(externalToken, _cts.Token))
             {
